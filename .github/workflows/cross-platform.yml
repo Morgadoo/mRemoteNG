@@ -1,0 +1,165 @@
+name: Cross-Platform Build & Test
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+      - 'main'
+      - 'develop'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Platform abstraction layer (net10.0 — pure)
+  # ─────────────────────────────────────────────
+  build-platform-abstractions:
+    name: Build Platform Abstractions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore mRemoteNG.Platform/mRemoteNG.Platform.csproj
+
+      - name: Build
+        run: dotnet build mRemoteNG.Platform/mRemoteNG.Platform.csproj --no-restore -c Release
+
+      - name: Restore Linux platform
+        run: dotnet restore mRemoteNG.Platform.Linux/mRemoteNG.Platform.Linux.csproj
+
+      - name: Build Linux platform
+        run: dotnet build mRemoteNG.Platform.Linux/mRemoteNG.Platform.Linux.csproj --no-restore -c Release
+
+  # ─────────────────────────────────────────────
+  # Avalonia UI — build on all 3 platforms
+  # ─────────────────────────────────────────────
+  build-avalonia:
+    name: Build Avalonia UI (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Windows
+            runner: windows-latest
+          - os: Linux
+            runner: ubuntu-latest
+          - os: macOS
+            runner: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj
+
+      - name: Build
+        run: dotnet build mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj --no-restore -c Release
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mRemoteNG-Avalonia-${{ matrix.os }}
+          path: mRemoteNG.Avalonia/bin/Release/net10.0/
+
+  # ─────────────────────────────────────────────
+  # Original Windows build (keep green while migrating)
+  # ─────────────────────────────────────────────
+  build-windows-legacy:
+    name: Build Windows Legacy (WinForms)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore mRemoteNG/mRemoteNG.csproj
+
+      - name: Build (x64)
+        run: dotnet build mRemoteNG/mRemoteNG.csproj --no-restore -c Release -p:Platform=x64
+
+  # ─────────────────────────────────────────────
+  # Unit tests — cross-platform
+  # ─────────────────────────────────────────────
+  test:
+    name: Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    needs: [build-platform-abstractions]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Linux
+            runner: ubuntu-latest
+          - os: macOS
+            runner: macos-latest
+          - os: Windows
+            runner: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore tests
+        run: dotnet restore mRemoteNGTests/mRemoteNGTests.csproj
+
+      - name: Run tests
+        run: dotnet test mRemoteNGTests/mRemoteNGTests.csproj --no-restore -c Release --logger trx
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: '**/*.trx'
+
+  # ─────────────────────────────────────────────
+  # Migration progress check
+  # ─────────────────────────────────────────────
+  migration-progress:
+    name: Migration Progress Report
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Count completed tasks
+        run: |
+          TOTAL=$(grep -c '^\- \[' MIGRATION_PROGRESS.md || echo 0)
+          DONE=$(grep -c '^\- \[x\]' MIGRATION_PROGRESS.md || echo 0)
+          IN_PROGRESS=$(grep -c '^\- \[~\]' MIGRATION_PROGRESS.md || echo 0)
+          BLOCKED=$(grep -c '^\- \[!\]' MIGRATION_PROGRESS.md || echo 0)
+          echo "Migration Progress: $DONE/$TOTAL tasks complete ($IN_PROGRESS in progress, $BLOCKED blocked)"
+          echo "MIGRATION_TOTAL=$TOTAL" >> $GITHUB_ENV
+          echo "MIGRATION_DONE=$DONE" >> $GITHUB_ENV
+
+      - name: Post progress summary
+        run: |
+          echo "## Migration Progress" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Completed ✅ | $(grep -c '^\- \[x\]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY
+          echo "| In Progress 🔄 | $(grep -c '^\- \[~\]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Blocked ❌ | $(grep -c '^\- \[!\]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Todo ⬜ | $(grep -c '^\- \[ \]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY

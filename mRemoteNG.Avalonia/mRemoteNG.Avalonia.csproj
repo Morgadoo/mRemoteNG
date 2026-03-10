@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>mRemoteNG.Avalonia</RootNamespace>
+    <AssemblyName>mRemoteNG.Avalonia</AssemblyName>
+    <Description>mRemoteNG — Cross-platform Avalonia UI</Description>
+    <Version>1.78.2-dev</Version>
+    <!-- Avalonia uses its own designer -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core Avalonia packages -->
+    <PackageReference Include="Avalonia" Version="11.2.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.7" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.7" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.7" />
+
+    <!-- MVVM -->
+    <PackageReference Include="ReactiveUI" Version="20.1.1" />
+    <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+
+    <!-- Docking layout (cross-platform DockPanelSuite replacement) -->
+    <PackageReference Include="Dock.Avalonia" Version="0.14.1" />
+    <PackageReference Include="Dock.Model.Mvvm" Version="0.14.1" />
+
+    <!-- DI -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+
+    <!-- Icons -->
+    <PackageReference Include="Material.Icons.Avalonia" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
+    <!-- Platform-specific projects will be loaded at runtime, not compile-time -->
+  </ItemGroup>
+
+  <!-- Avalonia assets -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+  </ItemGroup>
+
+</Project>

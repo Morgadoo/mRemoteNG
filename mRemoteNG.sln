@@ -11,6 +11,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectListView.NetCore", "O
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNGTests", "mRemoteNGTests\mRemoteNGTests.csproj", "{B5CD6448-41AE-4D2E-8F20-1E2A81B8B8E4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform", "mRemoteNG.Platform\mRemoteNG.Platform.csproj", "{C1000001-0001-0001-0001-000000000001}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform.Windows", "mRemoteNG.Platform.Windows\mRemoteNG.Platform.Windows.csproj", "{C1000002-0002-0002-0002-000000000002}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform.Linux", "mRemoteNG.Platform.Linux\mRemoteNG.Platform.Linux.csproj", "{C1000003-0003-0003-0003-000000000003}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform.Mac", "mRemoteNG.Platform.Mac\mRemoteNG.Platform.Mac.csproj", "{C1000004-0004-0004-0004-000000000004}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Avalonia", "mRemoteNG.Avalonia\mRemoteNG.Avalonia.csproj", "{C1000005-0005-0005-0005-000000000005}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|arm64 = Debug|arm64

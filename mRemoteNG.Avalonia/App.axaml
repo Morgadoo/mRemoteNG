@@ -1,0 +1,18 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="mRemoteNG.Avalonia.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <!-- Application-wide resources defined here -->
+        <ResourceDictionary>
+            <!-- Colors will be defined per theme in Phase 2 -->
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <!-- Phase 2: Add custom mRemoteNG theme overrides here -->
+    </Application.Styles>
+
+</Application>

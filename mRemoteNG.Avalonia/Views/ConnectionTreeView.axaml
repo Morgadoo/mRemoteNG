@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.ConnectionTreeView"
+             x:DataType="vm:ConnectionTreeViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+        </Style>
+        <!-- Protocol badge colors -->
+        <Style Selector="Border.protocol-badge">
+            <Setter Property="CornerRadius" Value="2"/>
+            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+
+    <TreeView ItemsSource="{Binding Nodes}"
+              SelectedItem="{Binding SelectedNode}"
+              Background="#1e1e1e">
+
+        <TreeView.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Connect" Command="{Binding ConnectSelectedCommand}" />
+                <MenuItem Header="Connect in New Tab" />
+                <Separator/>
+                <MenuItem Header="New Folder" Command="{Binding NewFolderCommand}" />
+                <MenuItem Header="New Connection" Command="{Binding NewConnectionCommand}" />
+                <Separator/>
+                <MenuItem Header="Edit..." />
+                <MenuItem Header="Duplicate" />
+                <MenuItem Header="Delete" Command="{Binding DeleteSelectedCommand}" />
+                <Separator/>
+                <MenuItem Header="Sort Alphabetically" Command="{Binding SortCommand}" />
+            </ContextMenu>
+        </TreeView.ContextMenu>
+
+        <TreeView.ItemTemplate>
+            <TreeDataTemplate ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                    <!-- Folder / connection icon -->
+                    <TextBlock Text="{Binding IsFolder, Converter={x:Static vm:BoolToIconConverter.Instance}}"
+                               FontFamily="Segoe MDL2 Assets,Apple Symbols,Noto Emoji"
+                               FontSize="14"
+                               VerticalAlignment="Center"
+                               Foreground="#569cd6"/>
+
+                    <!-- Node name -->
+                    <TextBlock Text="{Binding Name}"
+                               VerticalAlignment="Center"
+                               FontSize="13"
+                               Foreground="#d4d4d4"/>
+
+                    <!-- Protocol badge (only for leaf nodes) -->
+                    <Border Classes="protocol-badge"
+                            IsVisible="{Binding !IsFolder}"
+                            Background="#264f78">
+                        <TextBlock Text="{Binding Protocol}"
+                                   FontSize="10"
+                                   Foreground="#9cdcfe"/>
+                    </Border>
+                </StackPanel>
+            </TreeDataTemplate>
+        </TreeView.ItemTemplate>
+
+    </TreeView>
+
+</UserControl>
