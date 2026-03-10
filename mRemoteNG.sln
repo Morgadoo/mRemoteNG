@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Avalonia", "mRemo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Protocols", "mRemoteNG.Protocols\mRemoteNG.Protocols.csproj", "{C1000006-0006-0006-0006-000000000006}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Tests.CrossPlatform", "mRemoteNG.Tests.CrossPlatform\mRemoteNG.Tests.CrossPlatform.csproj", "{C1000007-0007-0007-0007-000000000007}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|arm64 = Debug|arm64
@@ -93,6 +95,18 @@ Global
 		{C1000006-0006-0006-0006-000000000006}.Release|arm64.Build.0 = Release|arm64
 		{C1000006-0006-0006-0006-000000000006}.Release|x64.ActiveCfg = Release|x64
 		{C1000006-0006-0006-0006-000000000006}.Release|x64.Build.0 = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Debug|arm64.ActiveCfg = Debug|arm64
+		{C1000007-0007-0007-0007-000000000007}.Debug|arm64.Build.0 = Debug|arm64
+		{C1000007-0007-0007-0007-000000000007}.Debug|x64.ActiveCfg = Debug|x64
+		{C1000007-0007-0007-0007-000000000007}.Debug|x64.Build.0 = Debug|x64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|arm64.ActiveCfg = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|arm64.Build.0 = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|x64.ActiveCfg = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|x64.Build.0 = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Release|arm64.ActiveCfg = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release|arm64.Build.0 = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release|x64.ActiveCfg = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

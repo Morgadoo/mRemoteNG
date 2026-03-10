@@ -7,7 +7,7 @@
 > - Run `grep -r "\[~\]" MIGRATION_PROGRESS.md` to see active tasks
 > - Each PR should reference the task ID (e.g. "Implements P1-1.1.1")
 
-**Last updated:** 2026-03-10 (Phase 3 complete)
+**Last updated:** 2026-03-10 (Phase 4 in progress)
 **Current Phase:** Phase 4 — Integration, Polish & Packaging
 **Branch:** `claude/analyze-cross-platform-portability-FndER`
 
@@ -20,8 +20,8 @@
 | Phase 1 — Foundation | 24 | 13 | 0 | 0 | 54% |
 | Phase 2 — Avalonia UI | 38 | 35 | 0 | 0 | 92% |
 | Phase 3 — Protocols | 22 | 20 | 0 | 2 | 91% |
-| Phase 4 — Packaging | 16 | 1 | 0 | 0 | 6% |
-| **TOTAL** | **100** | **69** | **0** | **2** | **69%** |
+| Phase 4 — Packaging | 16 | 11 | 0 | 0 | 69% |
+| **TOTAL** | **100** | **79** | **0** | **2** | **79%** |
 
 ---
 
@@ -536,34 +536,76 @@
 
 #### 4.1 Testing
 
-- [ ] **P4-4.1.1** — Update all test projects to `net10.0`
+- [x] **P4-4.1.1** — Cross-platform test project `mRemoteNG.Tests.CrossPlatform` — @automated 2026-03-10
+  - `net10.0` target, xUnit, FluentAssertions, NSubstitute
+  - `AesGcmCryptoProviderTests`: encrypt/decrypt, tamper detection, Unicode, persistence
+  - `SettingsProviderTests`: round-trip, save/reload, remove, list keys
+  - `ProtocolFactoryTests`: instantiation of all 11 protocol types, visual protocol check
+  - `SshConfigImporterTests`: parse Host/HostName/Port/User/IdentityFile/wildcards
+  - `ConnectionParametersTests`: display name, extras, enum names
+  - Added to `cross-platform.yml`: runs on Linux, macOS, Windows
+  - PR: claude/analyze-cross-platform-portability-FndER
+
 - [ ] **P4-4.1.2** — Integration tests (SSH, VNC, settings round-trip)
-- [ ] **P4-4.1.3** — UI automation tests (Avalonia headless)
+  - Requires live test servers; set up in GitHub Actions service containers
+
+- [ ] **P4-4.1.3** — UI automation tests (Avalonia headless renderer)
 
 ---
 
 #### 4.2 Linux Packaging
 
-- [ ] **P4-4.2.1** — AppImage packaging
-- [ ] **P4-4.2.2** — Flatpak manifest
+- [x] **P4-4.2.1** — AppImage packaging — @automated 2026-03-10
+  - `packaging/linux/build-appimage.sh`: publish → AppDir → appimagetool
+  - AppRun entrypoint, .desktop entry, AppStream metainfo XML
+  - PR: claude/analyze-cross-platform-portability-FndER
+
+- [x] **P4-4.2.2** — Flatpak manifest — @automated 2026-03-10
+  - `packaging/linux/mremoteng.flatpak.yml`: org.freedesktop.Platform 23.08
+  - Finish-args: Wayland/X11/network/audio/home/tray
+  - PR: claude/analyze-cross-platform-portability-FndER
+
 - [ ] **P4-4.2.3** — Snap packaging
-- [ ] **P4-4.2.4** — .deb package
+  - `snapcraft.yaml` — deferred (Flatpak preferred)
+
+- [x] **P4-4.2.4** — .deb package — @automated 2026-03-10
+  - `packaging/linux/build-deb.sh`: publish → DEBIAN/control → dpkg-deb
+  - Recommends: xfreerdp3, xclip|wl-clipboard, libnotify-bin
+  - PR: claude/analyze-cross-platform-portability-FndER
 
 ---
 
 #### 4.3 macOS Packaging
 
-- [ ] **P4-4.3.1** — `.app` bundle + code signing
-- [ ] **P4-4.3.2** — DMG installer
-- [ ] **P4-4.3.3** — Homebrew cask
+- [x] **P4-4.3.1** — `.app` bundle + code signing — @automated 2026-03-10
+  - `packaging/macos/build-dmg.sh`: Info.plist, entitlements.plist
+  - codesign with hardened runtime; notarytool submit/staple
+  - Universal binary support: lipo x64 + arm64
+  - PR: claude/analyze-cross-platform-portability-FndER
+
+- [x] **P4-4.3.2** — DMG installer — @automated 2026-03-10
+  - create-dmg with icon positions; fallback to hdiutil
+  - PR: claude/analyze-cross-platform-portability-FndER
+
+- [x] **P4-4.3.3** — Homebrew cask — @automated 2026-03-10
+  - `packaging/macos/mRemoteNG.rb`: livecheck, on_arm/on_intel, zap, caveats
+  - PR: claude/analyze-cross-platform-portability-FndER
 
 ---
 
 #### 4.4 CI/CD
 
 - [x] **P4-4.4.1** — Multi-platform GitHub Actions matrix — @automated 2026-03-10
-- [ ] **P4-4.4.2** — Nightly builds for all platforms
+- [x] **P4-4.4.2** — Nightly builds for all platforms — @automated 2026-03-10
+  - `.github/workflows/nightly-build.yml`
+  - 7 jobs: version → build (5 platforms) → package-linux → package-macos → package-windows → test → release
+  - Scheduled at 02:00 UTC; manual dispatch with version_suffix param
+  - GitHub pre-release with DMG/deb/AppImage/MSI artifacts
+  - PR: claude/analyze-cross-platform-portability-FndER
+
 - [ ] **P4-4.4.3** — Code signing pipeline
+  - Requires Apple Developer account + Windows EV certificate
+  - Variables: APPLE_IDENTITY, APPLE_NOTARIZE_KEYCHAIN_PROFILE (GitHub Secrets)
 
 ---
 

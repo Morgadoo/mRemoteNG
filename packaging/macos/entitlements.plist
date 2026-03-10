@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Hardened runtime entitlements for notarization -->
+
+    <!-- Allow JIT / dynamic code execution (required by .NET runtime) -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- Allow unsigned executable memory (needed by .NET runtime) -->
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+
+    <!-- Disable library validation (needed for native Avalonia libs) -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+
+    <!-- Network client (SSH, RDP, VNC, HTTP connections) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- File access: read/write to user-selected files (connection files) -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- Access to ~/Documents, ~/Downloads (SFTP transfers) -->
+    <key>com.apple.security.files.downloads.read-write</key>
+    <true/>
+
+    <!-- Keychain access (for credential storage — Phase 4) -->
+    <key>keychain-access-groups</key>
+    <array>
+        <string>$(AppIdentifierPrefix)org.mremoteng.mRemoteNG</string>
+    </array>
+</dict>
+</plist>
