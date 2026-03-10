@@ -72,6 +72,12 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
                 0, 0,
                 4096);
 
+            // Wire terminal input (keystrokes) back to the SSH shell
+            if (_terminalView is not null)
+            {
+                _terminalView.DataToSend += OnTerminalDataToSend;
+            }
+
             State = ConnectionState.Connected;
             RaiseStatus($"Connected to {parameters.Hostname}");
 
@@ -134,17 +140,23 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
         var methods = new List<AuthenticationMethod>();
         string username = p.Username ?? "root";
 
-        // 1. Public key
+        // 1. Explicitly specified private key
         if (!string.IsNullOrEmpty(p.PrivateKeyPath) && File.Exists(p.PrivateKeyPath))
         {
-            PrivateKeyFile keyFile = string.IsNullOrEmpty(p.PrivateKeyPassphrase)
-                ? new PrivateKeyFile(p.PrivateKeyPath)
-                : new PrivateKeyFile(p.PrivateKeyPath, p.PrivateKeyPassphrase);
-
-            methods.Add(new PrivateKeyAuthenticationMethod(username, keyFile));
+            var keyFile = LoadPrivateKey(p.PrivateKeyPath, p.PrivateKeyPassphrase);
+            if (keyFile is not null)
+                methods.Add(new PrivateKeyAuthenticationMethod(username, keyFile));
         }
 
-        // 2. Password
+        // 2. Auto-discover default SSH keys from ~/.ssh/
+        if (methods.Count == 0)
+        {
+            var keyFiles = DiscoverDefaultKeys(p.PrivateKeyPassphrase);
+            if (keyFiles.Count > 0)
+                methods.Add(new PrivateKeyAuthenticationMethod(username, [.. keyFiles]));
+        }
+
+        // 3. Password
         if (!string.IsNullOrEmpty(p.Password))
         {
             methods.Add(new PasswordAuthenticationMethod(username, p.Password));
@@ -160,11 +172,56 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
             });
         }
 
-        // 3. None (will fail, but triggers list of accepted methods from server)
+        // 4. None (will fail, but triggers list of accepted methods from server)
         if (methods.Count == 0)
             methods.Add(new NoneAuthenticationMethod(username));
 
         return methods;
+    }
+
+    /// <summary>
+    /// Discover standard SSH private key files in ~/.ssh/.
+    /// Tries id_ed25519, id_rsa, id_ecdsa, id_dsa in order.
+    /// </summary>
+    private static List<PrivateKeyFile> DiscoverDefaultKeys(string? passphrase)
+    {
+        var sshDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".ssh");
+
+        if (!Directory.Exists(sshDir))
+            return [];
+
+        string[] keyNames = ["id_ed25519", "id_rsa", "id_ecdsa", "id_dsa"];
+        var keys = new List<PrivateKeyFile>();
+
+        foreach (var name in keyNames)
+        {
+            var path = Path.Combine(sshDir, name);
+            var key = LoadPrivateKey(path, passphrase);
+            if (key is not null)
+                keys.Add(key);
+        }
+
+        return keys;
+    }
+
+    private static PrivateKeyFile? LoadPrivateKey(string path, string? passphrase)
+    {
+        if (!File.Exists(path))
+            return null;
+
+        try
+        {
+            return string.IsNullOrEmpty(passphrase)
+                ? new PrivateKeyFile(path)
+                : new PrivateKeyFile(path, passphrase);
+        }
+        catch
+        {
+            // Key may be in unsupported format or encrypted with a passphrase we don't have
+            return null;
+        }
     }
 
     private async Task ReadLoopAsync(CancellationToken ct)
@@ -196,6 +253,19 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
         }
     }
 
+    private void OnTerminalDataToSend(object? sender, byte[] data)
+    {
+        try
+        {
+            _shellStream?.Write(data, 0, data.Length);
+            _shellStream?.Flush();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send data to SSH shell");
+        }
+    }
+
     private void OnErrorOccurred(object? sender, ExceptionEventArgs e)
     {
         _logger.LogError(e.Exception, "SSH client error");
@@ -216,6 +286,8 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
     {
         if (disposing)
         {
+            if (_terminalView is not null)
+                _terminalView.DataToSend -= OnTerminalDataToSend;
             _readCts?.Cancel();
             _readCts?.Dispose();
             _shellStream?.Dispose();

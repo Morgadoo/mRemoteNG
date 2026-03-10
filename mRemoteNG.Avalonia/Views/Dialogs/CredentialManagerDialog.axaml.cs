@@ -5,7 +5,8 @@ namespace mRemoteNG.Avalonia.Views.Dialogs;
 
 public partial class CredentialManagerDialog : Window
 {
-    public CredentialManagerDialog(CredentialManagerViewModel? viewModel = null)
+    public CredentialManagerDialog() : this(null) { }
+    public CredentialManagerDialog(CredentialManagerViewModel? viewModel)
     {
         InitializeComponent();
         DataContext = viewModel ?? new CredentialManagerViewModel();

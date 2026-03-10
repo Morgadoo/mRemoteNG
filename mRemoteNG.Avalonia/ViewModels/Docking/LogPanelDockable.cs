@@ -15,10 +15,10 @@ public sealed class LogEntry(LogLevel level, string message, DateTime timestamp)
 
     public string LevelIcon => Level switch
     {
-        LogLevel.Warning => "⚠",
-        LogLevel.Error => "✖",
-        LogLevel.Debug => "⚙",
-        _ => "ℹ",
+        LogLevel.Warning => "\u26a0",
+        LogLevel.Error => "\u2716",
+        LogLevel.Debug => "\u2699",
+        _ => "\u2139",
     };
 
     public string LevelColor => Level switch
@@ -30,30 +30,53 @@ public sealed class LogEntry(LogLevel level, string message, DateTime timestamp)
     };
 }
 
+/// <summary>Base class for dockable log panels with capped entry collections.</summary>
+public abstract class LogDockableBase : Tool
+{
+    private const int MaxEntries = 2000;
+
+    public ObservableCollection<LogEntry> Entries { get; } = [];
+
+    protected LogLevel DefaultLevel { get; init; } = LogLevel.Info;
+
+    public void Log(string message, LogLevel level)
+    {
+        void AddEntry()
+        {
+            if (Entries.Count >= MaxEntries)
+                Entries.RemoveAt(0);
+            Entries.Add(new LogEntry(level, message, DateTime.Now));
+        }
+
+        if (!global::Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            global::Avalonia.Threading.Dispatcher.UIThread.Post(AddEntry);
+        else
+            AddEntry();
+    }
+
+    public void Log(string message) => Log(message, DefaultLevel);
+
+    public void Clear() => Entries.Clear();
+}
+
 /// <summary>Dock panel showing application log / error messages.</summary>
-public sealed class LogPanelDockable : Tool
+public sealed class LogPanelDockable : LogDockableBase
 {
     public LogPanelDockable()
     {
         Id = "LogPanel";
         Title = "Log";
+        DefaultLevel = LogLevel.Info;
     }
+}
 
-    public ObservableCollection<LogEntry> Entries { get; } = [];
-
-    public void Log(string message, LogLevel level = LogLevel.Info)
+/// <summary>Debug console that captures Trace/Debug output.</summary>
+public sealed class DebugConsoleDockable : LogDockableBase
+{
+    public DebugConsoleDockable()
     {
-        // Ensure UI thread
-        if (System.Threading.Thread.CurrentThread.IsBackground)
-        {
-            global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                Entries.Add(new LogEntry(level, message, DateTime.Now)));
-        }
-        else
-        {
-            Entries.Add(new LogEntry(level, message, DateTime.Now));
-        }
+        Id = "DebugConsole";
+        Title = "Debug Console";
+        DefaultLevel = LogLevel.Debug;
     }
-
-    public void Clear() => Entries.Clear();
 }

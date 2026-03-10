@@ -1,7 +1,11 @@
+using System.Reactive.Linq;
 using ReactiveUI;
 using System.Reactive;
 
 namespace mRemoteNG.Avalonia.ViewModels;
+
+/// <summary>Result data from the connection dialog Save action.</summary>
+public sealed record ConnectionSavedResult(string Name, string Protocol, string Hostname, int Port, string Username);
 
 public sealed class ConnectionDialogViewModel : ReactiveObject
 {
@@ -18,8 +22,9 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     private string _sshKeyPath = string.Empty;
     private bool _sshCompression = true;
     private bool _isEditMode;
+    private string _testStatus = string.Empty;
 
-    public string WindowTitle => _isEditMode ? $"Edit Connection — {Name}" : "New Connection";
+    public string WindowTitle => _isEditMode ? $"Edit Connection \u2014 {Name}" : "New Connection";
 
     public string Name { get => _name; set => this.RaiseAndSetIfChanged(ref _name, value); }
     public string Hostname { get => _hostname; set => this.RaiseAndSetIfChanged(ref _hostname, value); }
@@ -30,7 +35,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedProtocol, value);
-            Port = DefaultPortFor(value);
+            Port = ConnectionNodeViewModel.DefaultPortForString(value);
             this.RaisePropertyChanged(nameof(IsRdp));
             this.RaisePropertyChanged(nameof(IsSsh));
         }
@@ -44,6 +49,9 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     public string SshKeyPath { get => _sshKeyPath; set => this.RaiseAndSetIfChanged(ref _sshKeyPath, value); }
     public bool SshCompression { get => _sshCompression; set => this.RaiseAndSetIfChanged(ref _sshCompression, value); }
 
+    /// <summary>Status text from the Test button (separate from Description).</summary>
+    public string TestStatus { get => _testStatus; set => this.RaiseAndSetIfChanged(ref _testStatus, value); }
+
     public bool IsRdp => SelectedProtocol is "RDP";
     public bool IsSsh => SelectedProtocol is "SSH" or "SSH1" or "SSH2";
 
@@ -54,27 +62,57 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> CancelCommand { get; }
     public ReactiveCommand<Unit, Unit> TestCommand { get; }
 
+    /// <summary>Raised when the user clicks Save with valid data.</summary>
+    public event Action<ConnectionSavedResult>? Saved;
+
+    /// <summary>Raised when the dialog should close.</summary>
+    public event Action? CloseRequested;
+
     public ConnectionDialogViewModel(bool isEditMode = false)
     {
         _isEditMode = isEditMode;
-        SaveCommand = ReactiveCommand.Create(OnSave);
+
+        var canSave = this.WhenAnyValue(
+            x => x.Name, x => x.Hostname,
+            (name, host) => !string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(host))
+            .ObserveOn(RxApp.MainThreadScheduler);
+
+        SaveCommand = ReactiveCommand.Create(OnSave, canSave);
         CancelCommand = ReactiveCommand.Create(OnCancel);
-        TestCommand = ReactiveCommand.Create(OnTest);
+        TestCommand = ReactiveCommand.CreateFromTask(OnTest);
     }
 
-    private static int DefaultPortFor(string protocol) => protocol switch
+    private void OnSave()
     {
-        "RDP" => 3389,
-        "VNC" => 5900,
-        "Telnet" => 23,
-        "HTTP" => 80,
-        "HTTPS" => 443,
-        "RAW" => 23,
-        "Rlogin" => 513,
-        _ => 22,
-    };
+        Saved?.Invoke(new ConnectionSavedResult(Name, SelectedProtocol, Hostname, Port, Username));
+        CloseRequested?.Invoke();
+    }
 
-    private void OnSave() { /* Phase 3: persist to connection list */ }
-    private void OnCancel() { /* close */ }
-    private void OnTest() { /* attempt connection test */ }
+    private void OnCancel()
+    {
+        CloseRequested?.Invoke();
+    }
+
+    private async Task OnTest()
+    {
+        TestStatus = $"Testing {Hostname}:{Port}...";
+        try
+        {
+            using var client = new System.Net.Sockets.TcpClient();
+            var connectTask = client.ConnectAsync(Hostname, Port);
+            var completed = await Task.WhenAny(connectTask, Task.Delay(5000));
+            if (completed == connectTask && client.Connected)
+            {
+                TestStatus = $"Success \u2014 {Hostname}:{Port} is reachable";
+            }
+            else
+            {
+                TestStatus = $"Timed out \u2014 {Hostname}:{Port} did not respond within 5s";
+            }
+        }
+        catch (Exception ex)
+        {
+            TestStatus = $"Failed \u2014 {ex.Message}";
+        }
+    }
 }

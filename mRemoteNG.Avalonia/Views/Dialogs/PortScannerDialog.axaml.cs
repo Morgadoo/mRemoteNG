@@ -5,7 +5,8 @@ namespace mRemoteNG.Avalonia.Views.Dialogs;
 
 public partial class PortScannerDialog : Window
 {
-    public PortScannerDialog(PortScannerViewModel? viewModel = null)
+    public PortScannerDialog() : this(null) { }
+    public PortScannerDialog(PortScannerViewModel? viewModel)
     {
         InitializeComponent();
         DataContext = viewModel ?? new PortScannerViewModel();

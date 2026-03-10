@@ -8,6 +8,8 @@ public partial class OptionsWindow : Window
     public OptionsWindow()
     {
         InitializeComponent();
-        DataContext = AppServices.GetRequired<OptionsWindowViewModel>();
+        var vm = AppServices.GetRequired<OptionsWindowViewModel>();
+        DataContext = vm;
+        vm.CloseRequested += () => Close();
     }
 }

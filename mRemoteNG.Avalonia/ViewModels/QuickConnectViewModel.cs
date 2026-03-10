@@ -22,7 +22,7 @@ public sealed class QuickConnectViewModel : ReactiveObject
 
     public string[] Protocols { get; } = ["SSH", "RDP", "VNC", "Telnet", "HTTP", "HTTPS", "RAW", "Rlogin"];
 
-    public ReactiveCommand<Unit, Unit> ConnectCommand { get; } = ReactiveCommand.Create(() => { });
+    public ReactiveCommand<Unit, Unit> ConnectCommand { get; set; } = ReactiveCommand.Create(() => { });
 
     public QuickConnectResult? BuildResult() => string.IsNullOrWhiteSpace(Hostname)
         ? null

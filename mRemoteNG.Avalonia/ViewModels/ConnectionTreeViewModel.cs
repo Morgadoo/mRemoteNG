@@ -1,6 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using mRemoteNG.Avalonia.ViewModels.Docking;
+using mRemoteNG.Core.Config.Connections;
+using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Container;
+using CoreProtocolType = mRemoteNG.Core.Connection.Protocol.ProtocolType;
+using mRemoteNG.Core.Tree;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 using System.Reactive;
@@ -23,6 +28,9 @@ public sealed class ConnectionNodeViewModel : ReactiveObject
     // Optional reference to sessions dock for connecting
     internal SessionsDockable? SessionsDock { private get; set; }
     internal IProtocolFactory? ProtocolFactory { private get; set; }
+
+    /// <summary>Reference to the underlying domain model (null for unsaved nodes).</summary>
+    internal ConnectionInfo? Model { get; set; }
 
     public string Name
     {
@@ -74,8 +82,11 @@ public sealed class ConnectionNodeViewModel : ReactiveObject
 
     public ConnectionNodeViewModel()
     {
-        var canConnect = this.WhenAnyValue(x => x.IsFolder, isFolder => !isFolder);
+        var canConnect = this.WhenAnyValue(x => x.IsFolder, isFolder => !isFolder)
+            .ObserveOn(RxApp.MainThreadScheduler);
         ConnectCommand = ReactiveCommand.CreateFromTask(OnConnectAsync, canConnect);
+        ConnectCommand.ThrownExceptions.Subscribe(ex =>
+            System.Diagnostics.Trace.TraceError($"Connect error: {ex.Message}"));
         EditCommand = ReactiveCommand.Create(OnEdit);
         DeleteCommand = ReactiveCommand.Create(OnDelete);
     }
@@ -84,22 +95,29 @@ public sealed class ConnectionNodeViewModel : ReactiveObject
     {
         if (IsFolder || SessionsDock is null || ProtocolFactory is null) return;
 
-        var protocolType = ResolveProtocolType(Protocol);
-        var parameters = new ConnectionParameters
+        try
         {
-            Hostname = Hostname,
-            Port = Port == 0 ? DefaultPortFor(protocolType) : Port,
-            Protocol = protocolType,
-            Username = string.IsNullOrEmpty(Username) ? null : Username,
-        };
+            var protocolType = ResolveProtocolType(Protocol);
+            var parameters = new ConnectionParameters
+            {
+                Hostname = Hostname,
+                Port = Port == 0 ? DefaultPortFor(protocolType) : Port,
+                Protocol = protocolType,
+                Username = string.IsNullOrEmpty(Username) ? null : Username,
+            };
 
-        await SessionsDock.OpenConnectionAsync(parameters, ProtocolFactory);
+            await SessionsDock.OpenConnectionAsync(parameters, ProtocolFactory);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.TraceError($"Connection failed: {ex.Message}");
+        }
     }
 
     private void OnEdit() { /* Phase 4: open ConnectionDialog pre-filled with this node */ }
     private void OnDelete() { /* Phase 4: confirm then remove from tree */ }
 
-    private static ProtocolType ResolveProtocolType(string protocol) =>
+    internal static ProtocolType ResolveProtocolType(string protocol) =>
         protocol.ToUpperInvariant() switch
         {
             "SSH" or "SSH2" => ProtocolType.Ssh,
@@ -115,7 +133,7 @@ public sealed class ConnectionNodeViewModel : ReactiveObject
             _ => ProtocolType.ExternalApp,
         };
 
-    private static int DefaultPortFor(ProtocolType type) => type switch
+    internal static int DefaultPortFor(ProtocolType type) => type switch
     {
         ProtocolType.Ssh or ProtocolType.SshSftp => 22,
         ProtocolType.Telnet => 23,
@@ -126,6 +144,82 @@ public sealed class ConnectionNodeViewModel : ReactiveObject
         ProtocolType.Https => 443,
         _ => 22,
     };
+
+    /// <summary>Default port from a protocol display string (used by dialogs).</summary>
+    internal static int DefaultPortForString(string protocol) =>
+        DefaultPortFor(ResolveProtocolType(protocol));
+
+    internal static string ProtocolToString(ProtocolType type) => type switch
+    {
+        ProtocolType.Ssh => "SSH",
+        ProtocolType.SshSftp => "SFTP",
+        ProtocolType.Telnet => "Telnet",
+        ProtocolType.Rlogin => "Rlogin",
+        ProtocolType.Rdp => "RDP",
+        ProtocolType.Vnc => "VNC",
+        ProtocolType.Http => "HTTP",
+        ProtocolType.Https => "HTTPS",
+        ProtocolType.PowerShell => "PowerShell",
+        ProtocolType.Serial => "Serial",
+        _ => "ExternalApp",
+    };
+
+    /// <summary>Convert Core domain ProtocolType to display string.</summary>
+    internal static string CoreProtocolToString(CoreProtocolType type) => type switch
+    {
+        CoreProtocolType.RDP => "RDP",
+        CoreProtocolType.VNC => "VNC",
+        CoreProtocolType.SSH1 => "SSH",
+        CoreProtocolType.SSH2 => "SSH",
+        CoreProtocolType.Telnet => "Telnet",
+        CoreProtocolType.Rlogin => "Rlogin",
+        CoreProtocolType.RAW => "RAW",
+        CoreProtocolType.HTTP => "HTTP",
+        CoreProtocolType.HTTPS => "HTTPS",
+        CoreProtocolType.PowerShell => "PowerShell",
+        _ => "SSH",
+    };
+
+    /// <summary>Convert display string to Core domain ProtocolType.</summary>
+    internal static CoreProtocolType StringToCoreProtocol(string protocol) =>
+        protocol.ToUpperInvariant() switch
+        {
+            "SSH" or "SSH2" => CoreProtocolType.SSH2,
+            "SSH1" => CoreProtocolType.SSH1,
+            "TELNET" => CoreProtocolType.Telnet,
+            "RLOGIN" => CoreProtocolType.Rlogin,
+            "RDP" => CoreProtocolType.RDP,
+            "VNC" => CoreProtocolType.VNC,
+            "HTTP" => CoreProtocolType.HTTP,
+            "HTTPS" => CoreProtocolType.HTTPS,
+            "RAW" => CoreProtocolType.RAW,
+            "POWERSHELL" => CoreProtocolType.PowerShell,
+            _ => CoreProtocolType.SSH2,
+        };
+
+    /// <summary>Create a VM node from a domain model ConnectionInfo.</summary>
+    internal static ConnectionNodeViewModel FromModel(ConnectionInfo info)
+    {
+        var vm = new ConnectionNodeViewModel
+        {
+            Name = info.Name,
+            IsFolder = info is ContainerInfo,
+            IsExpanded = info is ContainerInfo c && c.IsExpanded,
+            Protocol = CoreProtocolToString(info.Protocol),
+            Hostname = info.Hostname,
+            Port = info.Port,
+            Username = info.Username,
+            Model = info,
+        };
+
+        if (info is ContainerInfo container)
+        {
+            foreach (var child in container.Children)
+                vm.Children.Add(FromModel(child));
+        }
+
+        return vm;
+    }
 }
 
 /// <summary>
@@ -134,6 +228,7 @@ public sealed class ConnectionNodeViewModel : ReactiveObject
 /// </summary>
 public sealed class ConnectionTreeViewModel : ReactiveObject
 {
+    private readonly ConnectionsService _connectionsService;
     private string _searchFilter = string.Empty;
     private ConnectionNodeViewModel? _selectedNode;
     private SessionsDockable? _sessionsDock;
@@ -159,19 +254,26 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> DeleteSelectedCommand { get; }
     public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
-    public ConnectionTreeViewModel()
+    public ConnectionTreeViewModel(ConnectionsService connectionsService)
     {
+        _connectionsService = connectionsService;
+
         var hasNonFolderSelection = this.WhenAnyValue(
             x => x.SelectedNode,
-            n => n is { IsFolder: false });
+            n => n is { IsFolder: false })
+            .ObserveOn(RxApp.MainThreadScheduler);
 
         ConnectSelectedCommand = ReactiveCommand.CreateFromTask(OnConnectSelectedAsync, hasNonFolderSelection);
+        ConnectSelectedCommand.ThrownExceptions.Subscribe(ex =>
+            System.Diagnostics.Trace.TraceError($"Connect error: {ex.Message}"));
         NewFolderCommand = ReactiveCommand.Create(OnNewFolder);
         NewConnectionCommand = ReactiveCommand.Create(OnNewConnection);
-        DeleteSelectedCommand = ReactiveCommand.Create(OnDeleteSelected, this.WhenAnyValue(x => x.SelectedNode).Select(n => n != null));
+        DeleteSelectedCommand = ReactiveCommand.Create(OnDeleteSelected,
+            this.WhenAnyValue(x => x.SelectedNode).Select(n => n != null).ObserveOn(RxApp.MainThreadScheduler));
         SortCommand = ReactiveCommand.Create(OnSort);
 
-        LoadDemoData();
+        // Start with an empty default tree
+        CreateNewTree("Connections");
     }
 
     /// <summary>
@@ -184,6 +286,132 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         PropagateToNodes(Nodes);
     }
 
+    /// <summary>Load connection tree from an XML file.</summary>
+    public void LoadFromFile(string filePath, string password = "mR3m")
+    {
+        var model = _connectionsService.LoadFromFile(filePath, password);
+        LoadFromModel(model);
+    }
+
+    /// <summary>Save the current tree to file.</summary>
+    public void SaveToFile(string? filePath = null, string password = "mR3m")
+    {
+        SyncToModel();
+        _connectionsService.SaveToFile(filePath, password);
+    }
+
+    /// <summary>Create a fresh empty tree.</summary>
+    public void CreateNewTree(string name = "Connections")
+    {
+        var model = _connectionsService.CreateNew(name);
+        LoadFromModel(model);
+    }
+
+    /// <summary>
+    /// Add a new connection node to the tree. If a folder is selected, adds inside it;
+    /// otherwise adds to the root.
+    /// </summary>
+    public ConnectionNodeViewModel AddConnection(string name, string protocol, string hostname, int port, string username = "")
+    {
+        var node = new ConnectionNodeViewModel
+        {
+            Name = name,
+            Protocol = protocol,
+            Hostname = hostname,
+            Port = port,
+            Username = username,
+            IsFolder = false,
+            SessionsDock = _sessionsDock,
+            ProtocolFactory = _protocolFactory,
+        };
+
+        // Also create the domain model
+        var info = new ConnectionInfo
+        {
+            Name = name,
+            Protocol = ConnectionNodeViewModel.StringToCoreProtocol(protocol),
+            Hostname = hostname,
+            Port = port,
+            Username = username,
+        };
+        node.Model = info;
+
+        var target = GetInsertTarget();
+        target.vm.Children.Add(node);
+        target.container?.AddChild(info);
+
+        return node;
+    }
+
+    private void LoadFromModel(ConnectionTreeModel model)
+    {
+        Nodes.Clear();
+        var rootVm = ConnectionNodeViewModel.FromModel(model.RootNode);
+        rootVm.IsExpanded = true;
+        Nodes.Add(rootVm);
+        PropagateToNodes(Nodes);
+    }
+
+    /// <summary>Sync ViewModel tree back to the domain model before saving.</summary>
+    private void SyncToModel()
+    {
+        var model = _connectionsService.ConnectionTreeModel;
+        if (model is null) return;
+
+        // Rebuild children from ViewModel
+        model.RootNode.Children.Clear();
+        if (Nodes.Count > 0)
+        {
+            SyncChildren(Nodes[0], model.RootNode);
+        }
+    }
+
+    private static void SyncChildren(ConnectionNodeViewModel vmNode, ContainerInfo container)
+    {
+        foreach (var childVm in vmNode.Children)
+        {
+            if (childVm.Model is not null)
+            {
+                // Update model from VM
+                childVm.Model.Name = childVm.Name;
+                childVm.Model.Hostname = childVm.Hostname;
+                childVm.Model.Port = childVm.Port;
+                childVm.Model.Username = childVm.Username;
+                container.AddChild(childVm.Model);
+
+                if (childVm.IsFolder && childVm.Model is ContainerInfo childContainer)
+                {
+                    childContainer.Children.Clear();
+                    SyncChildren(childVm, childContainer);
+                }
+            }
+            else
+            {
+                // New node without a model — create one
+                ConnectionInfo info;
+                if (childVm.IsFolder)
+                {
+                    var c = new ContainerInfo { Name = childVm.Name };
+                    info = c;
+                    SyncChildren(childVm, c);
+                }
+                else
+                {
+                    info = new ConnectionInfo
+                    {
+                        Name = childVm.Name,
+                        Protocol = ConnectionNodeViewModel.StringToCoreProtocol(childVm.Protocol),
+                        Hostname = childVm.Hostname,
+                        Port = childVm.Port,
+                        Username = childVm.Username,
+                    };
+                }
+                childVm.Model = info;
+                container.AddChild(info);
+            }
+        }
+    }
+
     private void PropagateToNodes(IEnumerable<ConnectionNodeViewModel> nodes)
     {
         foreach (var node in nodes)
@@ -194,42 +422,103 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         }
     }
 
-    private void LoadDemoData()
+    private (ConnectionNodeViewModel vm, ContainerInfo? container) GetInsertTarget()
     {
-        var root = new ConnectionNodeViewModel { Name = "Connections", IsFolder = true, IsExpanded = true };
+        if (SelectedNode is { IsFolder: true })
+            return (SelectedNode, SelectedNode.Model as ContainerInfo);
 
-        var servers = new ConnectionNodeViewModel { Name = "Linux Servers", IsFolder = true, IsExpanded = true };
-        servers.Children.Add(new ConnectionNodeViewModel
-            { Name = "Web Server 01", Protocol = "SSH", Hostname = "192.168.1.10", Port = 22, Username = "admin" });
-        servers.Children.Add(new ConnectionNodeViewModel
-            { Name = "Monitoring Host", Protocol = "SSH", Hostname = "192.168.1.15", Port = 22 });
+        // Default to root
+        if (Nodes.Count > 0)
+            return (Nodes[0], Nodes[0].Model as ContainerInfo);
 
-        var windows = new ConnectionNodeViewModel { Name = "Windows Servers", IsFolder = true };
-        windows.Children.Add(new ConnectionNodeViewModel
-            { Name = "DC01", Protocol = "RDP", Hostname = "192.168.1.100", Port = 3389 });
-        windows.Children.Add(new ConnectionNodeViewModel
-            { Name = "SQL Server", Protocol = "RDP", Hostname = "192.168.1.101", Port = 3389 });
-
-        var network = new ConnectionNodeViewModel { Name = "Network Devices", IsFolder = true };
-        network.Children.Add(new ConnectionNodeViewModel
-            { Name = "Core Switch", Protocol = "Telnet", Hostname = "10.0.0.1", Port = 23 });
-        network.Children.Add(new ConnectionNodeViewModel
-            { Name = "Router", Protocol = "SSH", Hostname = "10.0.0.254", Port = 22 });
-
-        root.Children.Add(servers);
-        root.Children.Add(windows);
-        root.Children.Add(network);
-        Nodes.Add(root);
+        return (new ConnectionNodeViewModel { Name = "Connections", IsFolder = true }, null);
     }
 
     private async Task OnConnectSelectedAsync()
     {
         if (SelectedNode is null || _sessionsDock is null || _protocolFactory is null) return;
-        await SelectedNode.ConnectCommand.Execute().FirstAsync();
+        try
+        {
+            await SelectedNode.ConnectCommand.Execute().FirstAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.TraceError($"Connect failed: {ex.Message}");
+        }
     }
 
-    private void OnNewFolder() { /* Phase 4: add folder node to tree */ }
-    private void OnNewConnection() { /* Phase 4: open ConnectionDialog then add to tree */ }
-    private void OnDeleteSelected() { /* Phase 4: confirm + remove */ }
-    private void OnSort() { /* Phase 4: sort children alphabetically */ }
+    private void OnNewFolder()
+    {
+        var folder = new ConnectionNodeViewModel
+        {
+            Name = "New Folder",
+            IsFolder = true,
+            IsExpanded = true,
+            SessionsDock = _sessionsDock,
+            ProtocolFactory = _protocolFactory,
+        };
+
+        var containerModel = new ContainerInfo { Name = "New Folder" };
+        folder.Model = containerModel;
+
+        var target = GetInsertTarget();
+        target.vm.Children.Add(folder);
+        target.container?.AddChild(containerModel);
+
+        SelectedNode = folder;
+    }
+
+    private void OnNewConnection()
+    {
+        var node = AddConnection("New Connection", "SSH", "", 22);
+        SelectedNode = node;
+    }
+
+    private void OnDeleteSelected()
+    {
+        if (SelectedNode is null) return;
+
+        // Don't allow deleting the root node
+        if (Nodes.Contains(SelectedNode)) return;
+
+        // Find parent and remove
+        RemoveNodeFromParent(Nodes, SelectedNode);
+        SelectedNode = null;
+    }
+
+    private static bool RemoveNodeFromParent(
+        ObservableCollection<ConnectionNodeViewModel> siblings,
+        ConnectionNodeViewModel target)
+    {
+        if (siblings.Remove(target))
+        {
+            // Also remove from domain model
+            if (target.Model?.Parent is ContainerInfo parent)
+                parent.RemoveChild(target.Model);
+            return true;
+        }
+
+        foreach (var sibling in siblings)
+        {
+            if (sibling.IsFolder && RemoveNodeFromParent(sibling.Children, target))
+                return true;
+        }
+
+        return false;
+    }
+
+    private void OnSort()
+    {
+        var target = GetInsertTarget();
+        SortChildren(target.vm.Children);
+        (target.container)?.Sort();
+    }
+
+    private static void SortChildren(ObservableCollection<ConnectionNodeViewModel> children)
+    {
+        var sorted = children.OrderBy(c => !c.IsFolder).ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        children.Clear();
+        foreach (var item in sorted)
+            children.Add(item);
+    }
 }

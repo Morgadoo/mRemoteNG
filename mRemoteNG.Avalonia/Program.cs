@@ -11,14 +11,14 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Bootstrap DI with cross-platform core + platform services.
+        // Register services but do NOT build the provider yet.
+        // ViewModels must be created AFTER Avalonia + ReactiveUI initialize
+        // the main thread scheduler, otherwise ReactiveCommands capture a
+        // background scheduler and crash with "Call from invalid thread".
         var services = new ServiceCollection();
         services.AddMRemoteNgCore();
-
-        // Register application-level services.
         AppServices.Register(services);
-
-        AppServices.Provider = services.BuildServiceProvider();
+        AppServices.ServiceCollection = services;
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);

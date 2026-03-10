@@ -18,6 +18,11 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Build the DI container NOW — after Avalonia + ReactiveUI have
+            // initialized the main thread scheduler. This ensures all
+            // ReactiveCommands capture the correct (UI) scheduler.
+            AppServices.BuildAndActivate();
+
             // Apply persisted theme before showing any window.
             ThemeService.Instance.Apply(ThemeService.Instance.CurrentTheme);
 

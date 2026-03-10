@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Core.Security;
 using mRemoteNG.Core.Security.Factories;
@@ -17,6 +18,7 @@ public static class CoreServiceCollectionExtensions
     public static IServiceCollection AddMRemoteNgCore(this IServiceCollection services)
     {
         services.AddPlatformServices();
+        services.AddLogging();
         services.AddSingleton<CoreRuntimeDescriptor>();
 
         // Security / Cryptography

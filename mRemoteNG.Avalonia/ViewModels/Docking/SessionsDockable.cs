@@ -10,11 +10,17 @@ namespace mRemoteNG.Avalonia.ViewModels.Docking;
 public sealed class SessionsDockable : Document
 {
     private SessionTabViewModel? _activeSession;
+    private readonly LogPanelDockable? _log;
 
     public SessionsDockable()
     {
         Id = "Sessions";
         Title = "Sessions";
+    }
+
+    public SessionsDockable(LogPanelDockable log) : this()
+    {
+        _log = log;
     }
 
     public ObservableCollection<SessionTabViewModel> Sessions { get; } = [];
@@ -55,7 +61,16 @@ public sealed class SessionsDockable : Document
         var protocol = factory.Create(parameters.Protocol);
         var tab = new SessionTabViewModel(protocol, parameters);
         AddSession(tab);
-        await tab.ConnectAsync(ct);
+
+        try
+        {
+            await tab.ConnectAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            tab.SetError(ex.Message);
+            _log?.Log($"Connection to {parameters.Hostname}:{parameters.Port} failed: {ex.Message}", LogLevel.Error);
+        }
     }
 }
 
@@ -129,24 +144,39 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
 
     public async Task DisconnectAsync(CancellationToken ct = default)
     {
-        await _protocol.DisconnectAsync(ct);
+        try { await _protocol.DisconnectAsync(ct); }
+        catch { /* best-effort disconnect */ }
+    }
+
+    /// <summary>Show an error state on this tab.</summary>
+    public void SetError(string message)
+    {
+        global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            IsConnected = false;
+            Title = $"\u26a0 {ProtocolName}: {Hostname}";
+            StatusText = message;
+        });
     }
 
     private void OnStateChanged(object? sender, ConnectionState state)
     {
-        IsConnected = state == ConnectionState.Connected;
-        Title = state switch
+        global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
-            ConnectionState.Connecting => $"⏳ {ProtocolName}: {Hostname}",
-            ConnectionState.Connected => $"{ProtocolName}: {Hostname}",
-            ConnectionState.Reconnecting => $"↺ {ProtocolName}: {Hostname}",
-            ConnectionState.Error => $"⚠ {ProtocolName}: {Hostname}",
-            _ => $"✖ {ProtocolName}: {Hostname}",
-        };
+            IsConnected = state == ConnectionState.Connected;
+            Title = state switch
+            {
+                ConnectionState.Connecting => $"\u23f3 {ProtocolName}: {Hostname}",
+                ConnectionState.Connected => $"{ProtocolName}: {Hostname}",
+                ConnectionState.Reconnecting => $"\u21ba {ProtocolName}: {Hostname}",
+                ConnectionState.Error => $"\u26a0 {ProtocolName}: {Hostname}",
+                _ => $"\u2716 {ProtocolName}: {Hostname}",
+            };
+        });
     }
 
     private void OnStatusMessage(object? sender, string message) =>
-        StatusText = message;
+        global::Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusText = message);
 
     public void Dispose()
     {

@@ -220,8 +220,26 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         _ => null,
     };
 
-    private void OnOk() { OnApply(); /* close dialog */ }
-    private void OnCancel() { /* close dialog */ }
-    private void OnApply() { /* persist all page VMs to ISettingsProvider */ }
-    private void OnReset() { /* reset all pages to defaults */ }
+    /// <summary>Raised when the window should close.</summary>
+    public event Action? CloseRequested;
+
+    private void OnOk() { OnApply(); CloseRequested?.Invoke(); }
+    private void OnCancel() { CloseRequested?.Invoke(); }
+    private void OnApply()
+    {
+        // Settings are already bound to page VMs via two-way binding.
+        // Future: persist to ISettingsProvider here.
+    }
+    private void OnReset()
+    {
+        // Reset all pages to defaults
+        Appearance.FontSize = 13;
+        Appearance.ShowStatusBar = true;
+        Appearance.ShowToolbar = true;
+        Connections.DefaultPort = 22;
+        Connections.ConnectTimeout = 10;
+        Connections.AutoReconnect = true;
+        Security.EncryptConnections = true;
+        Advanced.EnableLogging = true;
+    }
 }

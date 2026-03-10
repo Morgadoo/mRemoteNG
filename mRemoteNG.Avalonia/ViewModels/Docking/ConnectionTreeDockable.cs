@@ -1,5 +1,4 @@
 using Dock.Model.Mvvm.Controls;
-using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.ViewModels.Docking;
 
@@ -12,5 +11,8 @@ public sealed class ConnectionTreeDockable : Tool
         Title = "Connections";
     }
 
-    public ConnectionTreeViewModel Tree { get; } = new();
+    /// <summary>
+    /// The tree ViewModel. Resolved from DI — set after construction.
+    /// </summary>
+    public ConnectionTreeViewModel? Tree { get; set; }
 }
