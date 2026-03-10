@@ -13,21 +13,15 @@
 
   <ItemGroup>
     <!-- SSH via SSH.NET -->
-    <PackageReference Include="SSH.NET" Version="2024.2.0" />
-
-    <!-- Terminal emulation -->
-    <PackageReference Include="VtNetCore.Avalonia" Version="1.0.7" />
-
-    <!-- VNC (cross-platform) -->
-    <PackageReference Include="MarcusW.VncClient" Version="0.3.0" />
+    <PackageReference Include="SSH.NET" />
 
     <!-- DI abstractions -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
 
     <!-- Reactive -->
-    <PackageReference Include="ReactiveUI" Version="20.1.1" />
-    <PackageReference Include="System.Reactive" Version="6.0.1" />
+    <PackageReference Include="ReactiveUI" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>

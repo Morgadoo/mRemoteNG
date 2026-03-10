@@ -25,7 +25,7 @@ public static class SettingsMigrationHelper
     private static void ImportFromRegistry(ISettingsProvider provider)
     {
         const string regPath = @"Software\mRemoteNG";
-        using var key = Registry.CurrentUser.OpenSubKey(regPath);
+        using var key = global::Microsoft.Win32.Registry.CurrentUser.OpenSubKey(regPath);
         if (key == null) return;
         foreach (var valueName in key.GetValueNames())
         {
