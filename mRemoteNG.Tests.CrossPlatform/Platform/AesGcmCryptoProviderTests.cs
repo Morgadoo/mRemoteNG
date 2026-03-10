@@ -12,11 +12,12 @@ public sealed class AesGcmCryptoProviderTests : IDisposable
 {
     private readonly string _testKeyFile;
     private readonly AesGcmCryptoProvider _sut;
+    private static readonly byte[] TestSalt = new byte[16];
 
     public AesGcmCryptoProviderTests()
     {
         _testKeyFile = Path.Combine(Path.GetTempPath(), $"test-key-{Guid.NewGuid():N}");
-        _sut = new AesGcmCryptoProvider(_testKeyFile);
+        _sut = AesGcmCryptoProvider.FromPassword("test-password", TestSalt);
     }
 
     [Fact]
@@ -108,7 +109,7 @@ public sealed class AesGcmCryptoProviderTests : IDisposable
         string encrypted = _sut.Protect(secret);
 
         // Decrypt with a new instance pointing to the same key file
-        var provider2 = new AesGcmCryptoProvider(_testKeyFile);
+        var provider2 = AesGcmCryptoProvider.FromPassword("test-password", TestSalt);
         string decrypted = provider2.Unprotect(encrypted);
 
         decrypted.Should().Be(secret);

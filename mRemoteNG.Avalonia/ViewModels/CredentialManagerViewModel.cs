@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using ReactiveUI;
 using System.Reactive;
 
@@ -32,7 +33,7 @@ public class CredentialManagerViewModel : ReactiveObject
         });
         RemoveCommand = ReactiveCommand.Create(() => {
             if (Selected != null) Credentials.Remove(Selected);
-        }, this.WhenAnyValue(x => x.Selected, s => s != null));
+        }, this.WhenAnyValue(x => x.Selected).Select(s => s != null));
         SaveCommand = ReactiveCommand.Create(() => { /* persist via ISettingsProvider in Phase 5 */ });
     }
 }

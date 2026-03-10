@@ -78,7 +78,7 @@ public class PortScannerViewModel : ReactiveObject
                         var status = winner == connectTask && !connectTask.IsFaulted ? "Open" : "Closed";
                         if (status == "Open")
                         {
-                            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                            global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                                 Results.Add(new PortScanResult { Port = p, Status = status, Service = GetServiceName(p), LatencyMs = sw.ElapsedMilliseconds }));
                         }
                     }

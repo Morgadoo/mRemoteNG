@@ -1,4 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using mRemoteNG.Core.Config.Connections;
+using mRemoteNG.Core.Security;
+using mRemoteNG.Core.Security.Factories;
+using mRemoteNG.Core.Security.SymmetricEncryption;
 using mRemoteNG.Platform;
 using mRemoteNG.Platform.DependencyInjection;
 
@@ -14,6 +18,14 @@ public static class CoreServiceCollectionExtensions
     {
         services.AddPlatformServices();
         services.AddSingleton<CoreRuntimeDescriptor>();
+
+        // Security / Cryptography
+        services.AddSingleton<ICryptoProviderFactory, CryptoProviderFactory>();
+        services.AddSingleton<ICryptographyProvider, AeadCryptographyProvider>();
+
+        // Connection file management
+        services.AddSingleton<ConnectionsService>();
+
         return services;
     }
 }

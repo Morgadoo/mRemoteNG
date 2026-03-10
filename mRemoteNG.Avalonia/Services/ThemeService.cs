@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Styling;
+using mRemoteNG.Platform;
 using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.Services;

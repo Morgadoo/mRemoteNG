@@ -15,6 +15,12 @@
     <!-- SSH via SSH.NET -->
     <PackageReference Include="SSH.NET" />
 
+    <!-- Avalonia (visual protocol controls) -->
+    <PackageReference Include="Avalonia" />
+
+    <!-- Serial port support -->
+    <PackageReference Include="System.IO.Ports" />
+
     <!-- DI abstractions -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />

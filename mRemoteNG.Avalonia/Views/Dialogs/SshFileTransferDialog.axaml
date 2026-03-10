@@ -40,7 +40,7 @@
                                 <Grid ColumnDefinitions="*,80,110">
                                     <TextBlock Grid.Column="0"
                                                Text="{Binding Name}"
-                                               FontWeight="{Binding IsDirectory, Converter={x:Static BoolConverters.ToObject}, ConverterParameter=SemiBold|Normal}"/>
+                                               FontWeight="Normal"/>
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding Size}"
                                                HorizontalAlignment="Right"
@@ -101,7 +101,7 @@
                                 <Grid ColumnDefinitions="*,80,110">
                                     <TextBlock Grid.Column="0"
                                                Text="{Binding Name}"
-                                               FontWeight="{Binding IsDirectory, Converter={x:Static BoolConverters.ToObject}, ConverterParameter=SemiBold|Normal}"/>
+                                               FontWeight="Normal"/>
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding Size}"
                                                HorizontalAlignment="Right"

@@ -229,7 +229,7 @@
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
         <Setter Property="LetterSpacing" Value="1"/>
-        <Setter Property="TextTransform" Value="Uppercase"/>
+        <!-- TextTransform not available in Avalonia 11 -->
     </Style>
 
     <!-- Panel header style -->

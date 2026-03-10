@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace mRemoteNG.Avalonia.Views.Docking.LogPanelView;
+namespace mRemoteNG.Avalonia.Views.Docking;
 
 public partial class LogPanelView : UserControl
 {

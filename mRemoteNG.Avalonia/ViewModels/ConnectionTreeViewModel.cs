@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
@@ -167,7 +168,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         ConnectSelectedCommand = ReactiveCommand.CreateFromTask(OnConnectSelectedAsync, hasNonFolderSelection);
         NewFolderCommand = ReactiveCommand.Create(OnNewFolder);
         NewConnectionCommand = ReactiveCommand.Create(OnNewConnection);
-        DeleteSelectedCommand = ReactiveCommand.Create(OnDeleteSelected, this.WhenAnyValue(x => x.SelectedNode, n => n != null));
+        DeleteSelectedCommand = ReactiveCommand.Create(OnDeleteSelected, this.WhenAnyValue(x => x.SelectedNode).Select(n => n != null));
         SortCommand = ReactiveCommand.Create(OnSort);
 
         LoadDemoData();
@@ -224,7 +225,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     private async Task OnConnectSelectedAsync()
     {
         if (SelectedNode is null || _sessionsDock is null || _protocolFactory is null) return;
-        await SelectedNode.ConnectCommand.Execute();
+        await SelectedNode.ConnectCommand.Execute().FirstAsync();
     }
 
     private void OnNewFolder() { /* Phase 4: add folder node to tree */ }

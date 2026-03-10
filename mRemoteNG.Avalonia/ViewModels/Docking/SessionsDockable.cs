@@ -22,7 +22,12 @@ public sealed class SessionsDockable : Document
     public SessionTabViewModel? ActiveSession
     {
         get => _activeSession;
-        set => this.RaiseAndSetIfChanged(ref _activeSession, value);
+        set
+        {
+            if (ReferenceEquals(_activeSession, value)) return;
+            _activeSession = value;
+            OnPropertyChanged(nameof(ActiveSession));
+        }
     }
 
     public void AddSession(SessionTabViewModel session)

@@ -117,7 +117,7 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
         RaiseStatus("Disconnected.");
     }
 
-    public override Task SendKeepAliveAsync(CancellationToken ct = default)
+    public Task SendKeepAliveAsync(CancellationToken ct = default)
     {
         if (_client?.IsConnected == true)
         {

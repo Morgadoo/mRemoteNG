@@ -47,7 +47,7 @@ public sealed class TerminalView : UserControl
 
     public TerminalView()
     {
-        Background = TerminalView.Background;
+        base.Background = TerminalView.Background;
         Focusable = true;
 
         for (int i = 0; i < TerminalRows; i++) _lines.Add(string.Empty);

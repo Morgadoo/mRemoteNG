@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
 using mRemoteNG.Core.Bootstrap;
 
@@ -27,6 +28,6 @@ internal sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .WithInterFont()
+            .UseReactiveUI()
             .LogToTrace();
 }

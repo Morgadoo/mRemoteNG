@@ -94,7 +94,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         var window = GetMainWindow();
         if (window is null) return;
         var files = await window.StorageProvider.OpenFilePickerAsync(
-            new Avalonia.Platform.Storage.FilePickerOpenOptions
+            new global::Avalonia.Platform.Storage.FilePickerOpenOptions
             {
                 Title = "Open Connection File",
                 AllowMultiple = false,

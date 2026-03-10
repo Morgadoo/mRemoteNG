@@ -4,6 +4,7 @@ using mRemoteNG.Platform.Windows.Clipboard;
 using mRemoteNG.Platform.Windows.Process;
 using mRemoteNG.Platform.Windows.Security;
 using mRemoteNG.Platform.Windows.Settings;
+using mRemoteNG.Platform.Windows.Notifications;
 using mRemoteNG.Platform.Windows.Window;
 
 namespace mRemoteNG.Platform.Windows;

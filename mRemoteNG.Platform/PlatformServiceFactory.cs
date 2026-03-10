@@ -55,11 +55,21 @@ public static class PlatformServiceFactory
         {
             return System.Reflection.Assembly.Load(name);
         }
-        catch (Exception ex)
+        catch
         {
+            // Fallback: try loading from the application base directory
+            try
+            {
+                var baseDir = AppContext.BaseDirectory;
+                var dllPath = System.IO.Path.Combine(baseDir, $"{name}.dll");
+                if (System.IO.File.Exists(dllPath))
+                    return System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(dllPath);
+            }
+            catch { /* fall through to throw below */ }
+
             throw new InvalidOperationException(
                 $"Could not load platform assembly '{name}'. " +
-                $"Ensure the platform-specific package is installed. Inner: {ex.Message}", ex);
+                $"Ensure the platform-specific package is installed.");
         }
     }
 

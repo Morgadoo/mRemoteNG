@@ -89,7 +89,7 @@ internal sealed class WebBrowserView : UserControl
 
         _addressBar = new TextBox { Watermark = "URL…", FontSize = 12 };
         _goButton = new Button { Content = "Go", Padding = new Avalonia.Thickness(8, 2) };
-        _backButton = new Button { Content = "←", Padding = new Avalonia.Thickness(6, 2), ToolTip = { Tag = "Back" } };
+        _backButton = new Button { Content = "←", Padding = new Avalonia.Thickness(6, 2) };
         _forwardButton = new Button { Content = "→", Padding = new Avalonia.Thickness(6, 2) };
         _refreshButton = new Button { Content = "↻", Padding = new Avalonia.Thickness(6, 2) };
 

@@ -18,7 +18,7 @@ public sealed class ProtocolFactoryTests
     public ProtocolFactoryTests()
     {
         var collection = new ServiceCollection();
-        collection.AddLogging(b => b.AddConsole().SetMinimumLevel(LogLevel.Warning));
+        collection.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
         ProtocolFactory.Register(collection);
         _services = collection.BuildServiceProvider();
     }

@@ -16,34 +16,45 @@
 
   <ItemGroup>
     <!-- Core Avalonia packages -->
-    <PackageReference Include="Avalonia" Version="11.2.7" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.7" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.7" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.7" />
-    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.7" />
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.ReactiveUI" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
 
     <!-- MVVM -->
-    <PackageReference Include="ReactiveUI" Version="20.1.1" />
-    <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+    <PackageReference Include="ReactiveUI" />
+    <PackageReference Include="ReactiveUI.Fody" />
 
     <!-- Docking layout (cross-platform DockPanelSuite replacement) -->
-    <PackageReference Include="Dock.Avalonia" Version="0.14.1" />
-    <PackageReference Include="Dock.Model.Mvvm" Version="0.14.1" />
+    <PackageReference Include="Dock.Avalonia" />
+    <PackageReference Include="Dock.Model.Mvvm" />
 
     <!-- DI -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
 
     <!-- Icons -->
-    <PackageReference Include="Material.Icons.Avalonia" Version="2.1.1" />
+    <PackageReference Include="Material.Icons.Avalonia" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
     <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
     <ProjectReference Include="..\mRemoteNG.Protocols\mRemoteNG.Protocols.csproj" />
-    <!-- Platform-specific projects will be loaded at runtime, not compile-time -->
   </ItemGroup>
+
+  <!-- Build and copy platform-specific assemblies for runtime Assembly.Load() -->
+  <Target Name="BuildAndCopyPlatformAssemblies" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <MSBuild Projects="..\mRemoteNG.Platform.Windows\mRemoteNG.Platform.Windows.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration)" />
+    <ItemGroup>
+      <_WinPlatformFiles Include="..\mRemoteNG.Platform.Windows\bin\$(Configuration)\net10.0-windows10.0.17763.0\mRemoteNG.Platform.Windows.dll" />
+      <_WinPlatformFiles Include="..\mRemoteNG.Platform.Windows\bin\$(Configuration)\net10.0-windows10.0.17763.0\mRemoteNG.Platform.Windows.pdb" Condition="Exists('..\mRemoteNG.Platform.Windows\bin\$(Configuration)\net10.0-windows10.0.17763.0\mRemoteNG.Platform.Windows.pdb')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_WinPlatformFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+  </Target>
 
   <!-- Avalonia assets (icons, themes) embedded as resources -->
   <ItemGroup>

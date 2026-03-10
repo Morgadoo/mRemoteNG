@@ -5,7 +5,7 @@
              x:DataType="vm:ConnectionTreeViewModel">
 
     <UserControl.Styles>
-        <Style Selector="TreeViewItem">
+        <Style Selector="TreeViewItem" x:DataType="vm:ConnectionNodeViewModel">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
         </Style>
         <!-- Protocol badge colors -->

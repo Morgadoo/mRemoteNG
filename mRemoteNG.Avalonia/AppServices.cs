@@ -42,7 +42,7 @@ public static class AppServices
         // Services
         services.AddSingleton<Services.ThemeService>(_ => Services.ThemeService.Instance);
         services.AddSingleton<Services.TrayIconService>();
-        services.AddSingleton<Services.IconService>();
+        // IconService is static — accessed directly, not via DI.
 
         // Phase 3: Protocol implementations (transient — one instance per session)
         ProtocolFactory.Register(services);
