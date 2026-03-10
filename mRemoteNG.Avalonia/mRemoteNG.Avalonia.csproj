@@ -43,9 +43,17 @@
     <!-- Platform-specific projects will be loaded at runtime, not compile-time -->
   </ItemGroup>
 
-  <!-- Avalonia assets -->
+  <!-- Avalonia assets (icons, themes) embedded as resources -->
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
+    <AvaloniaResource Include="Themes/**" />
+  </ItemGroup>
+
+  <!-- Ensure AXAML code-behind files compile correctly -->
+  <ItemGroup>
+    <Compile Update="Views/**/*.axaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

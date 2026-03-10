@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             x:Class="mRemoteNG.Avalonia.Views.Docking.SessionsView"
+             x:DataType="vm:SessionsDockable">
+
+    <Grid>
+        <!-- Empty state -->
+        <StackPanel IsVisible="{Binding Sessions.Count, Converter={x:Static vm:CountToVisibilityConverter.IsZero}}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+            <TextBlock Text="No active connections"
+                       FontSize="18"
+                       Foreground="#444444"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Double-click a connection in the tree to connect"
+                       FontSize="13"
+                       Foreground="#555555"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Active sessions tab strip -->
+        <DockPanel IsVisible="{Binding Sessions.Count, Converter={x:Static vm:CountToVisibilityConverter.IsNonZero}}">
+
+            <!-- Tab bar -->
+            <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Sessions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SessionTabViewModel">
+                            <Border Background="#2d2d2d"
+                                    BorderBrush="#3f3f46"
+                                    BorderThickness="1,1,1,0"
+                                    Padding="12,6,8,6"
+                                    MinWidth="120"
+                                    MaxWidth="200"
+                                    Cursor="Hand">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <!-- Connection status indicator -->
+                                    <Ellipse Width="8" Height="8"
+                                             Fill="{Binding IsConnected, Converter={x:Static vm:BoolToColorConverter.ConnectedColor}}"
+                                             VerticalAlignment="Center"/>
+                                    <!-- Tab title -->
+                                    <TextBlock Text="{Binding Title}"
+                                               FontSize="12"
+                                               MaxWidth="130"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"/>
+                                    <!-- Protocol badge -->
+                                    <Border Background="#264f78" CornerRadius="2" Padding="3,1">
+                                        <TextBlock Text="{Binding Protocol}" FontSize="9" Foreground="#9cdcfe"/>
+                                    </Border>
+                                    <!-- Close button -->
+                                    <Button Content="×"
+                                            Padding="2,0"
+                                            FontSize="14"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Foreground="#888888"
+                                            VerticalAlignment="Center"
+                                            ToolTip.Tip="Close tab"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Connection content area -->
+            <Border Background="#1e1e1e">
+                <!-- Phase 3: EmbeddedConnectionView will be placed here per active session -->
+                <TextBlock Text="{Binding ActiveSession.Title, StringFormat='Connected: {0}'}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="#555555"/>
+            </Border>
+        </DockPanel>
+    </Grid>
+
+</UserControl>

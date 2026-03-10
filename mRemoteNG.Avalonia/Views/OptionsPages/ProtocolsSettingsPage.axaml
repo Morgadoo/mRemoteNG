@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.ProtocolsSettingsPage"
+             x:DataType="vm:ProtocolsSettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Protocols" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="SSH" Classes="section-header"/>
+                <Grid ColumnDefinitions="*,180" RowDefinitions="Auto,12,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="SSH key path" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SshKeyPath}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="PuTTY compatibility mode" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding PuttyCompatMode}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="RDP" Classes="section-header"/>
+                <Grid ColumnDefinitions="*,180" RowDefinitions="Auto,12,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color depth (bits)" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1"
+                              ItemsSource="{Binding ColorDepths}"
+                              SelectedItem="{Binding RdpColorDepth}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Smart sizing" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding RdpSmartSize}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="VNC" Classes="section-header"/>
+                <Grid ColumnDefinitions="*,180">
+                    <TextBlock Grid.Column="0" Text="Encoding" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding VncEncodings}"
+                              SelectedItem="{Binding VncEncoding}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

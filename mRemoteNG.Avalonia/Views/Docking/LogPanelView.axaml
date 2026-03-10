@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             x:Class="mRemoteNG.Avalonia.Views.Docking.LogPanelView"
+             x:DataType="vm:LogPanelDockable">
+
+    <DockPanel>
+        <!-- Toolbar -->
+        <Border DockPanel.Dock="Top" Classes="toolbar">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <Button Content="Clear" Padding="6,2" FontSize="11"
+                        Command="{Binding $parent[UserControl].((vm:LogPanelDockable)DataContext).Clear}"/>
+                <TextBlock Text="{Binding Entries.Count, StringFormat='{}{0} entries'}"
+                           VerticalAlignment="Center" FontSize="11" Foreground="#888888"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Log entries -->
+        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Entries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:LogEntry">
+                        <Grid ColumnDefinitions="60,20,*" Margin="4,1">
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding FormattedTime}"
+                                       FontFamily="Consolas,Cascadia Code,monospace"
+                                       FontSize="11"
+                                       Foreground="#606060"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding LevelIcon}"
+                                       FontSize="12"
+                                       Foreground="{Binding LevelColor}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="2"
+                                       Text="{Binding Message}"
+                                       FontFamily="Consolas,Cascadia Code,monospace"
+                                       FontSize="11"
+                                       Foreground="#d4d4d4"
+                                       TextWrapping="NoWrap"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+
+</UserControl>

@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.AdvancedSettingsPage"
+             x:DataType="vm:AdvancedSettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Advanced" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Logging" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding EnableLogging}" Content="Enable application logging"/>
+                <CheckBox IsChecked="{Binding DebugMode}" Content="Enable debug mode (verbose logging)"/>
+                <Grid ColumnDefinitions="*,180" IsEnabled="{Binding EnableLogging}">
+                    <TextBlock Grid.Column="0" Text="Maximum log entries" VerticalAlignment="Center"/>
+                    <NumericUpDown Grid.Column="1"
+                                   Value="{Binding MaxLogEntries}"
+                                   Minimum="100" Maximum="100000" Increment="100"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Startup" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding CheckUpdatesOnStart}" Content="Check for updates on startup"/>
+                <CheckBox IsChecked="{Binding SingleInstance}" Content="Allow only a single instance of mRemoteNG"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

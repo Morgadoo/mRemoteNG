@@ -11,8 +11,10 @@
     </Application.Resources>
 
     <Application.Styles>
+        <!-- Base Fluent theme (provides all control templates) -->
         <FluentTheme />
-        <!-- Phase 2: Add custom mRemoteNG theme overrides here -->
+        <!-- mRemoteNG dark overrides — ThemeService switches variant at runtime -->
+        <StyleInclude Source="avares://mRemoteNG.Avalonia/Themes/DarkTheme.axaml" />
     </Application.Styles>
 
 </Application>

@@ -23,13 +23,29 @@ public static class AppServices
     /// <summary>Registers application-level (non-platform) services.</summary>
     public static void Register(IServiceCollection services)
     {
-        // ViewModels
-        services.AddTransient<ViewModels.MainWindowViewModel>();
-        services.AddTransient<ViewModels.ConnectionTreeViewModel>();
-        services.AddTransient<ViewModels.OptionsWindowViewModel>();
+        // Core ViewModels (singleton where state must persist)
+        services.AddSingleton<ViewModels.ConnectionTreeViewModel>();
+        services.AddSingleton<ViewModels.Docking.SessionsDockable>();
+        services.AddSingleton<ViewModels.Docking.LogPanelDockable>();
 
-        // Application services (to be expanded in Phase 2 & 3)
+        // Main window — explicit factory so DI resolves constructor arg.
+        services.AddSingleton<ViewModels.MainWindowViewModel>(sp =>
+            new ViewModels.MainWindowViewModel(
+                sp.GetRequiredService<ViewModels.ConnectionTreeViewModel>()));
+
+        // Transient dialogs (new instance per open)
+        services.AddTransient<ViewModels.OptionsWindowViewModel>();
+        services.AddTransient<ViewModels.QuickConnectViewModel>();
+        services.AddTransient<ViewModels.ConnectionDialogViewModel>();
+
+        // Services
+        services.AddSingleton<Services.ThemeService>(_ => Services.ThemeService.Instance);
+        services.AddSingleton<Services.TrayIconService>();
+        services.AddSingleton<Services.IconService>();
+
+        // Phase 3: protocol + connection services go here
         // services.AddSingleton<IConnectionsService, ConnectionsService>();
         // services.AddSingleton<ICredentialService, CredentialService>();
+        // services.AddSingleton<IProtocolFactory, ProtocolFactory>();
     }
 }

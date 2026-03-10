@@ -1,0 +1,65 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mRemoteNG.Avalonia.Views.SplashScreen"
+        Title="mRemoteNG"
+        Width="440"
+        Height="240"
+        CanResize="False"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True">
+
+    <Border Background="#1e1e1e"
+            CornerRadius="8"
+            BoxShadow="0 8 32 0 #80000000">
+        <Grid RowDefinitions="*,Auto,12">
+
+            <!-- Logo + title area -->
+            <StackPanel Grid.Row="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                <Image Source="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico"
+                       Width="64" Height="64"
+                       HorizontalAlignment="Center"/>
+                <TextBlock Text="mRemoteNG"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#569cd6"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Multi-Remote Next Generation"
+                           FontSize="12"
+                           Foreground="#666666"
+                           HorizontalAlignment="Center"/>
+                <TextBlock x:Name="StatusText"
+                           Text="Loading..."
+                           FontSize="11"
+                           Foreground="#888888"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Progress bar -->
+            <ProgressBar Grid.Row="1"
+                         x:Name="ProgressBar"
+                         Minimum="0" Maximum="100"
+                         Value="0"
+                         Height="3"
+                         Margin="24,0"
+                         Foreground="#007acc"
+                         Background="#2d2d2d"
+                         CornerRadius="0"/>
+
+            <!-- Version label -->
+            <TextBlock Grid.Row="2"
+                       x:Name="VersionLabel"
+                       Text="Version 1.78.2-dev"
+                       FontSize="10"
+                       Foreground="#444444"
+                       HorizontalAlignment="Right"
+                       Margin="0,0,16,0"/>
+        </Grid>
+    </Border>
+
+</Window>

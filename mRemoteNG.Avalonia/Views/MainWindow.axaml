@@ -5,139 +5,234 @@
         x:Class="mRemoteNG.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
-        Width="1200"
+        Width="1280"
         Height="800"
         MinWidth="800"
         MinHeight="500"
-        WindowStartupLocation="CenterScreen">
-
-    <Window.Styles>
-        <!-- Status bar style -->
-        <Style Selector="Border.statusbar">
-            <Setter Property="Background" Value="#1e1e1e"/>
-            <Setter Property="Padding" Value="8,4"/>
-        </Style>
-        <!-- Toolbar style -->
-        <Style Selector="Border.toolbar">
-            <Setter Property="Background" Value="#2d2d2d"/>
-            <Setter Property="Padding" Value="4,2"/>
-        </Style>
-    </Window.Styles>
+        WindowStartupLocation="CenterScreen"
+        Icon="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico">
 
     <DockPanel>
 
         <!-- ═══ MENU BAR ═══ -->
-        <Menu DockPanel.Dock="Top">
+        <Menu DockPanel.Dock="Top" FontSize="13">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Connection" Command="{Binding NewConnectionCommand}" />
+                <MenuItem Header="_New Connection..." Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N"/>
                 <Separator/>
-                <MenuItem Header="_Open Connection File..." Command="{Binding OpenConnectionFileCommand}" />
-                <MenuItem Header="_Save Connection File" Command="{Binding SaveConnectionFileCommand}" />
+                <MenuItem Header="_Open Connection File..." Command="{Binding OpenConnectionFileCommand}" InputGesture="Ctrl+O"/>
+                <MenuItem Header="_Save Connection File" Command="{Binding SaveConnectionFileCommand}" InputGesture="Ctrl+S"/>
                 <Separator/>
-                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" />
+                <MenuItem Header="_Import Connections..." Command="{Binding ImportCommand}"/>
+                <MenuItem Header="_Export Connections..." Command="{Binding ExportCommand}"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" InputGesture="Alt+F4"/>
             </MenuItem>
+
             <MenuItem Header="_View">
-                <MenuItem Header="Connection Tree" />
-                <MenuItem Header="Log / Errors" />
+                <MenuItem Header="Connection Tree" InputGesture="Ctrl+Shift+T"/>
+                <MenuItem Header="Log Panel" InputGesture="Ctrl+Shift+L"/>
                 <Separator/>
-                <MenuItem Header="Reset Layout" />
+                <MenuItem Header="Reset Layout"/>
+                <Separator/>
+                <MenuItem Header="Full Screen" InputGesture="F11"/>
             </MenuItem>
+
             <MenuItem Header="_Tools">
-                <MenuItem Header="_Options..." Command="{Binding OpenOptionsCommand}" />
+                <MenuItem Header="Quick Connect..." Command="{Binding OpenQuickConnectDialogCommand}" InputGesture="Ctrl+Q"/>
                 <Separator/>
-                <MenuItem Header="External Tools" />
-                <MenuItem Header="Port Scanner" />
-                <MenuItem Header="SSH File Transfer" />
+                <MenuItem Header="Port Scanner..." Command="{Binding PortScannerCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Options..." Command="{Binding OpenOptionsCommand}" InputGesture="Ctrl+,"/>
             </MenuItem>
+
             <MenuItem Header="_Help">
-                <MenuItem Header="_About mRemoteNG..." Command="{Binding AboutCommand}" />
-                <MenuItem Header="Check for Updates..." />
+                <MenuItem Header="_About mRemoteNG..." Command="{Binding AboutCommand}"/>
+                <MenuItem Header="Check for Updates..."/>
                 <Separator/>
-                <MenuItem Header="GitHub Repository" />
-                <MenuItem Header="Documentation" />
+                <MenuItem Header="GitHub Repository"/>
+                <MenuItem Header="Documentation"/>
+                <MenuItem Header="Report a Bug"/>
             </MenuItem>
         </Menu>
 
         <!-- ═══ TOOLBAR ═══ -->
         <Border DockPanel.Dock="Top" Classes="toolbar">
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <Button ToolTip.Tip="New Connection" Padding="6,2">
-                    <TextBlock Text="+ New" />
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+
+                <Button ToolTip.Tip="New Connection (Ctrl+N)"
+                        Command="{Binding NewConnectionCommand}"
+                        Padding="8,3">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#4caf50"/>
+                        <TextBlock Text="New" FontSize="12"/>
+                    </StackPanel>
                 </Button>
-                <Button ToolTip.Tip="Open Connection File" Padding="6,2">
-                    <TextBlock Text="Open" />
+
+                <Button ToolTip.Tip="Open Connection File"
+                        Command="{Binding OpenConnectionFileCommand}"
+                        Padding="8,3">
+                    <TextBlock Text="Open" FontSize="12"/>
                 </Button>
-                <Separator/>
+
+                <Button ToolTip.Tip="Save"
+                        Command="{Binding SaveConnectionFileCommand}"
+                        Padding="8,3">
+                    <TextBlock Text="Save" FontSize="12"/>
+                </Button>
+
+                <!-- Vertical separator -->
+                <Border Width="1" Background="#3f3f46" Margin="4,2"/>
+
                 <!-- Quick connect bar -->
-                <TextBlock Text="Quick Connect:" VerticalAlignment="Center" Margin="4,0"/>
-                <TextBox Width="160" Watermark="host[:port]" />
-                <ComboBox Width="80" SelectedIndex="0">
-                    <ComboBoxItem>SSH</ComboBoxItem>
-                    <ComboBoxItem>RDP</ComboBoxItem>
-                    <ComboBoxItem>VNC</ComboBoxItem>
-                    <ComboBoxItem>Telnet</ComboBoxItem>
-                </ComboBox>
-                <Button Padding="6,2">Connect</Button>
+                <TextBlock Text="Quick Connect:"
+                           FontSize="12"
+                           Foreground="#a0a0a0"
+                           VerticalAlignment="Center"/>
+                <TextBox Width="200"
+                         Text="{Binding QuickConnectHost}"
+                         Watermark="host[:port]"
+                         FontSize="12"/>
+                <ComboBox Width="90"
+                          ItemsSource="{Binding QuickConnectProtocols}"
+                          SelectedItem="{Binding QuickConnectProtocol}"
+                          FontSize="12"/>
+                <Button Padding="8,3"
+                        Classes="accent"
+                        Command="{Binding QuickConnectCommand}"
+                        ToolTip.Tip="Connect (Enter)">
+                    <TextBlock Text="Connect" FontSize="12"/>
+                </Button>
+
             </StackPanel>
         </Border>
 
         <!-- ═══ STATUS BAR ═══ -->
         <Border DockPanel.Dock="Bottom" Classes="statusbar">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto,16,Auto">
                 <TextBlock Grid.Column="0"
                            Text="{Binding ActiveConnectionCount, StringFormat='Active connections: {0}'}"
-                           VerticalAlignment="Center"
                            FontSize="11"
-                           Foreground="#a0a0a0"/>
-                <TextBlock Grid.Column="1"
-                           Text="mRemoteNG 1.78.2-dev"
+                           Foreground="#888888"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2"
+                           Text="●"
+                           Foreground="#4caf50"
+                           FontSize="10"
                            VerticalAlignment="Center"
+                           ToolTip.Tip="Connected to update server"/>
+                <TextBlock Grid.Column="3"
+                           Text="mRemoteNG 1.78.2-dev (Avalonia)"
                            FontSize="11"
-                           Foreground="#606060"
-                           Margin="0,0,8,0"/>
+                           Foreground="#555555"
+                           VerticalAlignment="Center"/>
             </Grid>
         </Border>
 
-        <!-- ═══ MAIN CONTENT AREA ═══ -->
-        <!-- Phase 2: Replace with Dock.Avalonia DockControl for full docking support -->
-        <Grid ColumnDefinitions="280,Auto,*">
+        <!-- ═══ MAIN CONTENT — Splitter Layout ═══ -->
+        <!-- Phase 2: This will be replaced with DockControl from Dock.Avalonia
+             once Dock.Avalonia package resolves. For now using a manual splitter. -->
+        <Grid ColumnDefinitions="280,4,*" RowDefinitions="*,4,160">
 
-            <!-- LEFT: Connection Tree Panel -->
-            <Border Grid.Column="0" BorderBrush="#3f3f46" BorderThickness="0,0,1,0">
+            <!-- LEFT: Connection Tree -->
+            <Border Grid.Column="0" Grid.RowSpan="3"
+                    BorderBrush="#3f3f46"
+                    BorderThickness="0,0,1,0">
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Background="#252526" Padding="8,6">
-                        <TextBlock Text="CONNECTIONS" FontSize="11" FontWeight="Bold"
-                                   Foreground="#a0a0a0" LetterSpacing="1"/>
+                    <Border DockPanel.Dock="Top" Classes="panel-header">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="CONNECTIONS"
+                                       Classes="section-header"
+                                       VerticalAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    Content="+"
+                                    FontSize="16"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Foreground="#4caf50"
+                                    ToolTip.Tip="New connection"
+                                    Command="{Binding NewConnectionCommand}"/>
+                        </Grid>
                     </Border>
-                    <Border DockPanel.Dock="Top" Background="#1e1e1e" Padding="4,4">
-                        <TextBox Watermark="Search connections..."
-                                 Text="{Binding ConnectionTree.SearchFilter}"
-                                 FontSize="12"/>
+
+                    <Border DockPanel.Dock="Top" Padding="6,4" Background="#1e1e1e">
+                        <TextBox Text="{Binding ConnectionTree.SearchFilter}"
+                                 Watermark="🔍  Search connections..."
+                                 FontSize="12"
+                                 Background="#2d2d2d"
+                                 BorderThickness="0"/>
                     </Border>
+
                     <views:ConnectionTreeView DataContext="{Binding ConnectionTree}"/>
                 </DockPanel>
             </Border>
 
-            <!-- SPLITTER -->
-            <GridSplitter Grid.Column="1" Width="4" Background="#3f3f46"
-                          ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
+            <!-- COLUMN SPLITTER -->
+            <GridSplitter Grid.Column="1" Grid.RowSpan="3"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
 
-            <!-- RIGHT: Connection Tabs Area -->
-            <Border Grid.Column="2" Background="#1e1e1e">
+            <!-- CENTER: Session tabs -->
+            <Border Grid.Column="2" Grid.Row="0" Background="#1e1e1e">
                 <DockPanel>
-                    <Border DockPanel.Dock="Top" Background="#2d2d2d" Padding="8,6">
-                        <TextBlock Text="CONNECTION SESSIONS" FontSize="11" FontWeight="Bold"
-                                   Foreground="#a0a0a0" LetterSpacing="1"/>
+                    <Border DockPanel.Dock="Top" Classes="panel-header">
+                        <TextBlock Text="SESSIONS" Classes="section-header"/>
                     </Border>
-                    <!-- Phase 2: Replace with ConnectionTabHost containing embedded protocol views -->
+                    <!-- Phase 3: EmbeddedConnectionView goes here -->
                     <Border>
-                        <TextBlock Text="No active connections.&#10;&#10;Double-click a connection in the tree to connect."
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   Foreground="#555555"
-                                   FontSize="14"
-                                   TextAlignment="Center"/>
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="8">
+                            <TextBlock Text="No active sessions"
+                                       FontSize="16"
+                                       Foreground="#444444"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Double-click a connection to start a session"
+                                       FontSize="12"
+                                       Foreground="#555555"
+                                       HorizontalAlignment="Center"/>
+                            <Button Content="Quick Connect..."
+                                    Classes="accent"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,8,0,0"
+                                    Command="{Binding OpenQuickConnectDialogCommand}"/>
+                        </StackPanel>
                     </Border>
+                </DockPanel>
+            </Border>
+
+            <!-- ROW SPLITTER -->
+            <GridSplitter Grid.Column="2" Grid.Row="1"
+                          ResizeDirection="Rows"
+                          ResizeBehavior="PreviousAndNext"
+                          Height="4"/>
+
+            <!-- BOTTOM: Log panel -->
+            <Border Grid.Column="2" Grid.Row="2"
+                    BorderBrush="#3f3f46"
+                    BorderThickness="0,1,0,0"
+                    Background="#1a1a1a">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Classes="panel-header">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="LOG" Classes="section-header" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    Content="Clear"
+                                    Padding="6,1"
+                                    FontSize="11"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Foreground="#888888"/>
+                        </Grid>
+                    </Border>
+                    <!-- Log entries list — Phase 3: bind to LogPanelDockable.Entries -->
+                    <ScrollViewer>
+                        <TextBlock Text="Application started successfully."
+                                   FontFamily="Consolas,Cascadia Code,monospace"
+                                   FontSize="11"
+                                   Foreground="#4caf50"
+                                   Margin="8,4"/>
+                    </ScrollViewer>
                 </DockPanel>
             </Border>
 
