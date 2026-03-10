@@ -1,6 +1,6 @@
 using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
-using mRemoteNG.Platform;
+using mRemoteNG.Core.Bootstrap;
 
 namespace mRemoteNG.Avalonia;
 
@@ -10,9 +10,9 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Bootstrap the DI container with platform-specific services.
+        // Bootstrap DI with cross-platform core + platform services.
         var services = new ServiceCollection();
-        PlatformServiceFactory.Register(services);
+        services.AddMRemoteNgCore();
 
         // Register application-level services.
         AppServices.Register(services);

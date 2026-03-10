@@ -7,8 +7,8 @@
 > - Run `grep -r "\[~\]" MIGRATION_PROGRESS.md` to see active tasks
 > - Each PR should reference the task ID (e.g. "Implements P1-1.1.1")
 
-**Last updated:** 2026-03-10 (Phase 4 complete)
-**Current Phase:** All phases complete (blocked items require live infra)
+**Last updated:** 2026-03-10 (Phase 1 resumed: Core extraction started)
+**Current Phase:** Phase 1 resumed (unblocking Core extraction tasks)
 **Branch:** `claude/analyze-cross-platform-portability-FndER`
 
 ---
@@ -17,11 +17,11 @@
 
 | Phase | Tasks | Done | In Progress | Blocked | % Complete |
 |-------|-------|------|-------------|---------|------------|
-| Phase 1 — Foundation | 24 | 20 | 0 | 4 | 83% |
+| Phase 1 — Foundation | 24 | 20 | 1 | 3 | 83% |
 | Phase 2 — Avalonia UI | 38 | 38 | 0 | 0 | 100% |
 | Phase 3 — Protocols | 22 | 20 | 0 | 2 | 91% |
 | Phase 4 — Packaging | 16 | 14 | 0 | 2 | 88% |
-| **TOTAL** | **100** | **92** | **0** | **8** | **92% done, 8% blocked** |
+| **TOTAL** | **100** | **92** | **1** | **7** | **92% done, 1% in progress, 7% blocked** |
 
 ---
 
@@ -33,11 +33,13 @@
 
 #### 1.1 Project Structure
 
-- [!] **P1-1.1.1** — Create `mRemoteNG.Core` project (`net10.0`) — **DEFERRED**
-  - Requires moving ~200 source files and updating all project references
-  - High-risk refactor; needs a dedicated PR with build validation on all 3 platforms
-  - Blocked by: team review + CI green on Ubuntu/macOS before merging
-  - Files to move: `App/Info/`, `App/Runtime.cs`, `Config/`, `Security/`, `Tree/`, `Container/`, `Credential/`
+- [~] **P1-1.1.1** — Create `mRemoteNG.Core` project (`net10.0`) — @codex 2026-03-10
+  - `mRemoteNG.Core` scaffold added and wired into solution + Avalonia startup bootstrap
+  - Added `CoreServiceCollectionExtensions.AddMRemoteNgCore()` to centralize platform/core service registration
+  - Extracted shared path model into `mRemoteNG.Core.App.Info.ApplicationPaths` and adopted it in legacy settings providers
+  - Hardened `PortableSettingsProvider` to create platform settings directories before saving/resetting XML settings
+  - Next step: migrate remaining `App/Info/`, `Config/`, `Security/`, `Tree/`, `Container/`, and `Credential` namespaces incrementally into Core
+  - Validation pending once `dotnet` SDK is available in environment
 
 - [x] **P1-1.1.2** — Create `mRemoteNG.Platform` abstraction project (`net10.0`) — @automated 2026-03-10
   - Interfaces created: `IClipboardService`, `IWindowService`, `IProcessService`, `ISettingsProvider`, `ICryptoProvider`, `ISystemTrayService`, `INotificationService`
@@ -523,7 +525,6 @@
 
 | ID | Task | Reason | Unblocked when |
 |----|------|--------|----------------|
-| P1-1.1.1 | Create mRemoteNG.Core project | Large refactor (~200 files); high merge-conflict risk | Team review + CI green on Linux/macOS |
 | P1-1.2.3 | Refactor registry settings pages | WinForms coupling; depends on Core project existing | P1-1.1.1 complete |
 | P1-1.5.2 | Wire DI in App/Startup.cs | Circular dependency risk without Core split | P1-1.1.1 complete |
 | P1-1.6.2 | Ubuntu CI build validation | Windows-only source still in main project | P1-1.1.1 + P1-1.2.3 complete |
@@ -548,8 +549,12 @@
 | 2026-03-10 | P4-4.4.1: GitHub Actions cross-platform CI/CD pipeline | automated |
 | 2026-03-10 | **Phase 2 COMPLETE**: Full Avalonia UI — themes, docking, 10 settings pages, 5 dialogs, tray, splash | automated |
 | 2026-03-10 | Phase 4 complete: Snap, docs, integration tests, SSH File Transfer, Credential Manager, Port Scanner, TFM net10.0 | automated |
+| 2026-03-10 | P1-1.1.1 resumed: created `mRemoteNG.Core` scaffold and connected Avalonia bootstrap to core DI extension | codex |
+| 2026-03-10 | P1-1.1.1 increment: added cross-platform `ApplicationPaths` in Core and switched settings path consumers to it | codex |
+| 2026-03-10 | P1-1.1.1 hardening: ensure cross-platform settings directories are created before writing settings XML | codex |
 
 ---
+
 
 ## Notes
 
