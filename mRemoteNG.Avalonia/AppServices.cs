@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using mRemoteNG.Protocols.Abstractions;
 
 namespace mRemoteNG.Avalonia;
 
@@ -43,9 +44,7 @@ public static class AppServices
         services.AddSingleton<Services.TrayIconService>();
         services.AddSingleton<Services.IconService>();
 
-        // Phase 3: protocol + connection services go here
-        // services.AddSingleton<IConnectionsService, ConnectionsService>();
-        // services.AddSingleton<ICredentialService, CredentialService>();
-        // services.AddSingleton<IProtocolFactory, ProtocolFactory>();
+        // Phase 3: Protocol implementations (transient — one instance per session)
+        ProtocolFactory.Register(services);
     }
 }
