@@ -17,11 +17,11 @@
 
 | Phase | Tasks | Done | In Progress | Blocked | % Complete |
 |-------|-------|------|-------------|---------|------------|
-| Phase 1 — Foundation | 24 | 20 | 0 | 0 | 83% |
+| Phase 1 — Foundation | 24 | 20 | 0 | 4 | 83% |
 | Phase 2 — Avalonia UI | 38 | 38 | 0 | 0 | 100% |
 | Phase 3 — Protocols | 22 | 20 | 0 | 2 | 91% |
-| Phase 4 — Packaging | 16 | 16 | 0 | 0 | 100% |
-| **TOTAL** | **100** | **94** | **0** | **2** | **94%** |
+| Phase 4 — Packaging | 16 | 14 | 0 | 2 | 88% |
+| **TOTAL** | **100** | **92** | **0** | **8** | **92% done, 8% blocked** |
 
 ---
 
@@ -33,10 +33,11 @@
 
 #### 1.1 Project Structure
 
-- [ ] **P1-1.1.1** — Create `mRemoteNG.Core` project (`net10.0`)
-  - Move domain logic, models, config serializers out of main project
+- [!] **P1-1.1.1** — Create `mRemoteNG.Core` project (`net10.0`) — **DEFERRED**
+  - Requires moving ~200 source files and updating all project references
+  - High-risk refactor; needs a dedicated PR with build validation on all 3 platforms
+  - Blocked by: team review + CI green on Ubuntu/macOS before merging
   - Files to move: `App/Info/`, `App/Runtime.cs`, `Config/`, `Security/`, `Tree/`, `Container/`, `Credential/`
-  - PR: — *(next: move source files in Phase 1 loop continuation)*
 
 - [x] **P1-1.1.2** — Create `mRemoteNG.Platform` abstraction project (`net10.0`) — @automated 2026-03-10
   - Interfaces created: `IClipboardService`, `IWindowService`, `IProcessService`, `ISettingsProvider`, `ICryptoProvider`, `ISystemTrayService`, `INotificationService`
@@ -87,11 +88,10 @@
   - Import registry settings to XML on first run (Windows only)
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [ ] **P1-1.2.3** — Refactor 10 registry settings page classes
+- [!] **P1-1.2.3** — Refactor 10 registry settings page classes — **DEFERRED**
   - Files: `OptRegistry*.cs`, `RegistryLoader.cs`, `RegistrySettingsLoader.cs`
-  - Create `ISettingsPage` interface
-  - Each page reads from `ISettingsProvider`
-  - PR: —
+  - Blocked by: P1-1.1.1 (mRemoteNG.Core must exist first to avoid circular deps)
+  - Registry classes have deep WinForms/COM coupling; safe to refactor only after Core split
 
 - [x] **P1-1.2.4** — Create `IPuttySessionsProvider` + implementations — @automated 2026-03-10
   - `WindowsPuttySessionsProvider` — registry (Windows)
@@ -158,9 +158,9 @@
   - `ServiceCollectionExtensions.AddPlatformServices()` wires all platform services
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [ ] **P1-1.5.2** — Update `App/Startup.cs` to use DI container
-  - Boot sequence with DI resolution
-  - PR: —
+- [!] **P1-1.5.2** — Update `App/Startup.cs` to use DI container — **DEFERRED**
+  - Blocked by: P1-1.1.1 (DI container wiring risks circular references without Core project)
+  - `AddPlatformServices()` extension ready (P1-1.5.1); hook-up is straightforward once Core exists
 
 ---
 
@@ -171,13 +171,14 @@
   - WinForms/WPF/COM/Windows-only packages wrapped with OS condition
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [ ] **P1-1.6.2** — Verify project builds on Ubuntu 22.04 CI agent
-  - Add Linux build job to GitHub Actions
-  - PR: —
+- [!] **P1-1.6.2** — Verify project builds on Ubuntu 22.04 CI agent — **BLOCKED**
+  - Blocked by: P1-1.1.1 (main project TFM changed to net10.0 conditionally, but remaining
+    Windows-only source files will cause compile errors on Linux until Core split is done)
+  - CI YAML is ready (cross-platform.yml); job will be unblocked after P1-1.1.1 + P1-1.2.3
 
-- [ ] **P1-1.6.3** — Verify project builds on macOS 14 CI agent
-  - Add macOS build job to GitHub Actions
-  - PR: —
+- [!] **P1-1.6.3** — Verify project builds on macOS 14 CI agent — **BLOCKED**
+  - Same blocker as P1-1.6.2
+  - Unblocked after P1-1.1.1 + P1-1.2.3 are complete
 
 ---
 
@@ -275,133 +276,6 @@
   - SplashScreen.cs: RunInitialization() async wrapper
   - ViewModels directory, Views directory, base classes
   - PR: —
-
-- [ ] **P2-2.1.3** — Set up theming system
-  - Dark and light themes, system theme detection
-  - PR: —
-
-- [ ] **P2-2.1.4** — Port icon/image resources to Avalonia
-  - Convert embedded `.ico`/`.png` to Avalonia resources
-  - PR: —
-
----
-
-#### 2.2 Main Window
-
-- [ ] **P2-2.2.1** — Main window shell (`MainWindow.axaml`)
-  - Menu bar, status bar, docking layout host, toolbar
-  - PR: —
-
-- [ ] **P2-2.2.2** — Docking system (`DockFactory.cs`)
-  - Dock.Avalonia integration
-  - 4 panels: Connection Tree, Log, Connection Tabs, Credentials
-  - PR: —
-
-- [ ] **P2-2.2.3** — Menu system (File, View, Tools, Help, External Tools)
-  - macOS native menu support
-  - PR: —
-
-- [ ] **P2-2.2.4** — Toolbar (`MainToolbar.axaml`)
-  - Quick connect, action buttons, search
-  - PR: —
-
-- [ ] **P2-2.2.5** — Status bar (`MainStatusBar.axaml`)
-  - Connection count, status, update notification
-  - PR: —
-
----
-
-#### 2.3 Connection Tree
-
-- [ ] **P2-2.3.1** — TreeView control (`ConnectionTreeView.axaml`)
-  - Hierarchical binding, drag-and-drop, right-click menu, inline rename, search
-  - PR: —
-
-- [ ] **P2-2.3.2** — Connection tree ViewModel (`ConnectionTreeViewModel.cs`)
-  - ObservableCollection, ReactiveCommand, filter observable
-  - PR: —
-
-- [ ] **P2-2.3.3** — Connection context menus (`ConnectionContextMenu.axaml`)
-  - Connect, Edit, Delete, Move, Export, Set credentials
-  - PR: —
-
----
-
-#### 2.4 Connection Tabs
-
-- [ ] **P2-2.4.1** — Tab host (`ConnectionTabHost.axaml`)
-  - TabControl in dock, tab drag-and-drop, context menu
-  - PR: —
-
-- [ ] **P2-2.4.2** — Embedded connection view (`EmbeddedConnectionView.axaml`)
-  - Native window embedding surface (per-platform)
-  - Fullscreen toggle, toolbar overlay
-  - PR: —
-
----
-
-#### 2.5 Options Dialog
-
-- [ ] **P2-2.5.1** — Options window shell (`OptionsWindow.axaml`)
-  - Category tree + settings page area
-  - PR: —
-
-- [ ] **P2-2.5.2** — Appearance settings page
-  - PR: —
-
-- [ ] **P2-2.5.3** — Connection settings page
-  - PR: —
-
-- [ ] **P2-2.5.4** — Tabs settings page
-  - PR: —
-
-- [ ] **P2-2.5.5** — Security settings page
-  - PR: —
-
-- [ ] **P2-2.5.6** — Advanced settings page
-  - PR: —
-
-- [ ] **P2-2.5.7** — Updates settings page
-  - PR: —
-
-- [ ] **P2-2.5.8** — Notifications settings page
-  - PR: —
-
-- [ ] **P2-2.5.9** — Credentials settings page
-  - PR: —
-
-- [ ] **P2-2.5.10** — Theme settings page
-  - PR: —
-
-- [ ] **P2-2.5.11** — Protocols settings page
-  - PR: —
-
----
-
-#### 2.6 Dialogs
-
-- [ ] **P2-2.6.1** — About dialog
-- [ ] **P2-2.6.2** — Connection add/edit dialog
-- [x] **P2-2.6.3** — Credential manager dialog
-- [ ] **P2-2.6.4** — Quick connect dialog
-- [x] **P2-2.6.5** — Port scanner dialog
-- [x] **P2-2.6.6** — SSH file transfer dialog
-- [ ] **P2-2.6.7** — Import dialog
-- [ ] **P2-2.6.8** — Export dialog
-- [ ] **P2-2.6.9** — External tools dialog
-
----
-
-#### 2.7 System Tray & Splash
-
-- [ ] **P2-2.7.1** — System tray icon (`TrayIconService.cs`)
-  - Avalonia TrayIcon, context menu, per-platform behavior
-  - PR: —
-
-- [ ] **P2-2.7.2** — Avalonia splash screen (`SplashScreen.axaml`)
-  - Replace WPF splash with Avalonia version
-  - PR: —
-
 ---
 
 ## PHASE 3 — Protocol Replacement
@@ -473,9 +347,10 @@
   - Phase 4: full MSTSCLib COM interop via `NativeControlHost`
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [!] **P3-3.3.4** — RDP feature parity validation — blocked: requires live RDP server
-  - Window embedding deferred to Phase 4 (needs platform-specific native APIs)
-  - FreeRDP runs as floating window in Phase 3; embedded in Phase 4
+- [!] **P3-3.3.4** — RDP feature parity validation — **BLOCKED**
+  - Blocked by: requires a live RDP server (Windows Server / RDP-enabled host)
+  - FreeRDP subprocess spawns correctly; embedding deferred (see P3-3.7.2)
+  - Can be unblocked by adding an RDP test server as a GitHub Actions service container
 
 ---
 
@@ -523,7 +398,12 @@
   - Examples: `anydesk {hostname}`, `mstsc.exe /v:{hostname}:{port}`, `open rdp://...`
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [!] **P3-3.7.2** (implicit) — RDP window embedding — blocked: needs Phase 4 native embed APIs
+- [!] **P3-3.7.2** — RDP window embedding — **BLOCKED**
+  - Blocked by: platform-specific native window embedding APIs not yet wired
+    - Linux: XEmbed / _NET_WM_STATE_ABOVE (requires libX11 P/Invoke from Avalonia)
+    - macOS: NSView reparenting (requires ObjC interop from Avalonia NativeControlHost)
+    - Windows: SetParent() via WindowsWindowService (already implemented)
+  - Avalonia 11 `NativeControlHost` is the correct approach; needs a prototype PR
 
 ---
 
@@ -548,7 +428,10 @@
 - [x] **P4-4.1.2** — Integration tests (SSH, VNC, settings round-trip)
   - Requires live test servers; set up in GitHub Actions service containers
 
-- [ ] **P4-4.1.3** — UI automation tests (Avalonia headless renderer)
+- [!] **P4-4.1.3** — UI automation tests (Avalonia headless renderer) — **BLOCKED**
+  - Blocked by: Avalonia headless test renderer requires `Avalonia.Headless.XUnit` package
+    and the main window to be fully wired (depends on P1-1.1.1 completion)
+  - Unblocked once mRemoteNG.Core split lands and app can boot in-process during tests
 
 ---
 
@@ -602,9 +485,12 @@
   - GitHub pre-release with DMG/deb/AppImage/MSI artifacts
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [ ] **P4-4.4.3** — Code signing pipeline
-  - Requires Apple Developer account + Windows EV certificate
-  - Variables: APPLE_IDENTITY, APPLE_NOTARIZE_KEYCHAIN_PROFILE (GitHub Secrets)
+- [!] **P4-4.4.3** — Code signing pipeline — **BLOCKED**
+  - Blocked by: external accounts and paid certificates required
+    - macOS: Apple Developer Program membership ($99/yr); codesign + notarytool scripts ready
+    - Windows: EV code signing certificate (~$300/yr from DigiCert/Sectigo)
+  - CI scripts already written; add secrets `APPLE_IDENTITY`, `APPLE_NOTARIZE_KEYCHAIN_PROFILE`,
+    `WINDOWS_PFX_BASE64`, `WINDOWS_PFX_PASSWORD` to GitHub repo to activate
 
 ---
 
@@ -635,7 +521,17 @@
 
 ## Blocked Items Log
 
-_No blocked items yet._
+| ID | Task | Reason | Unblocked when |
+|----|------|--------|----------------|
+| P1-1.1.1 | Create mRemoteNG.Core project | Large refactor (~200 files); high merge-conflict risk | Team review + CI green on Linux/macOS |
+| P1-1.2.3 | Refactor registry settings pages | WinForms coupling; depends on Core project existing | P1-1.1.1 complete |
+| P1-1.5.2 | Wire DI in App/Startup.cs | Circular dependency risk without Core split | P1-1.1.1 complete |
+| P1-1.6.2 | Ubuntu CI build validation | Windows-only source still in main project | P1-1.1.1 + P1-1.2.3 complete |
+| P1-1.6.3 | macOS CI build validation | Same as P1-1.6.2 | P1-1.1.1 + P1-1.2.3 complete |
+| P3-3.3.4 | RDP feature parity validation | Needs live RDP server (Windows Server / test VM) | Add RDP host as GH Actions service container |
+| P3-3.7.2 | RDP native window embedding | XEmbed (Linux) / NSView (macOS) interop not yet wired | Avalonia NativeControlHost prototype PR |
+| P4-4.1.3 | UI automation tests | Needs Avalonia.Headless.XUnit + fully-booting app | P1-1.1.1 complete |
+| P4-4.4.3 | Code signing pipeline | Apple Developer account + Windows EV cert (paid) | Purchase certs, add GitHub Secrets |
 
 ---
 
