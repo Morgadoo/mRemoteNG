@@ -536,6 +536,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ExternalConnectors\ExternalConnectors.csproj" />
     <ProjectReference Include="..\ObjectListView\ObjectListView.NetCore.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
     <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
   </ItemGroup>
   <ItemGroup>

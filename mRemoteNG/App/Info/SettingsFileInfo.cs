@@ -1,18 +1,19 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using System.Runtime.Versioning;
-using System.Windows.Forms;
 using mRemoteNG.Connection;
+using mRemoteNG.Core.App.Info;
 
 namespace mRemoteNG.App.Info
 {
     [SupportedOSPlatform("windows")]
     public static class SettingsFileInfo
     {
-        private static readonly string ExePath = Path.GetDirectoryName(Assembly.GetAssembly(typeof(ConnectionInfo))?.Location);
+        private static readonly string ExePath = Path.GetDirectoryName(typeof(ConnectionInfo).Assembly.Location);
 
-        public static string SettingsPath => Runtime.IsPortableEdition ? ExePath : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\" + Application.ProductName;
+        public static string SettingsPath => Runtime.IsPortableEdition
+            ? ExePath ?? ApplicationPaths.ExecutableDirectory
+            : ApplicationPaths.SettingsDirectory;
 
         public static string LayoutFileName { get; } = "pnlLayout.xml";
         public static string ExtAppsFilesName { get; } = "extApps.xml";

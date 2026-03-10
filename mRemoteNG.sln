@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Protocols", "mRem
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Tests.CrossPlatform", "mRemoteNG.Tests.CrossPlatform\mRemoteNG.Tests.CrossPlatform.csproj", "{C1000007-0007-0007-0007-000000000007}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Core", "mRemoteNG.Core\mRemoteNG.Core.csproj", "{C1000008-0008-0008-0008-000000000008}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|arm64 = Debug|arm64
@@ -107,6 +109,18 @@ Global
 		{C1000007-0007-0007-0007-000000000007}.Release|arm64.Build.0 = Release|arm64
 		{C1000007-0007-0007-0007-000000000007}.Release|x64.ActiveCfg = Release|x64
 		{C1000007-0007-0007-0007-000000000007}.Release|x64.Build.0 = Release|x64
+		{C1000008-0008-0008-0008-000000000008}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Debug|arm64.Build.0 = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Debug|x64.Build.0 = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|arm64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|arm64.Build.0 = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|x64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|x64.Build.0 = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|arm64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|arm64.Build.0 = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|x64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

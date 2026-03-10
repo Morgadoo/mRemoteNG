@@ -27,10 +27,10 @@
 using System;
 using System.Collections;
 using System.Configuration;
-using System.Windows.Forms;
 using System.Collections.Specialized;
 using System.Xml;
 using System.IO;
+using mRemoteNG.Core.App.Info;
 using mRemoteNG.Security;
 
 //using mRemoteNG.App;
@@ -45,9 +45,7 @@ namespace mRemoteNG.Config.Settings.Providers
         private const string _className = "PortableSettingsProvider";
         private XmlDocument _xmlDocument;
 
-        private string _filePath =>
-            Path.Combine(Path.GetDirectoryName(Application.ExecutablePath) ?? throw new InvalidOperationException(),
-                         $"{ApplicationName}.settings");
+        private string _filePath => ApplicationPaths.PortableSettingsFilePath(ApplicationName);
 
         private XmlNode _localSettingsNode => GetSettingsNode(_localSettingsNodeName);
 
@@ -81,7 +79,7 @@ namespace mRemoteNG.Config.Settings.Providers
 
         public override string ApplicationName
         {
-            get => Path.GetFileNameWithoutExtension(Application.ExecutablePath);
+            get => Path.GetFileNameWithoutExtension(Environment.ProcessPath) ?? ApplicationPaths.ProductName;
             set { }
         }
 
@@ -99,6 +97,7 @@ namespace mRemoteNG.Config.Settings.Providers
 
             try
             {
+                EnsureSettingsDirectoryExists();
                 _rootDocument.Save(_filePath);
             }
             catch (Exception)
@@ -192,11 +191,27 @@ namespace mRemoteNG.Config.Settings.Providers
             return blankXmlDocument;
         }
 
+
+        private void EnsureSettingsDirectoryExists()
+        {
+            string? settingsDirectory = Path.GetDirectoryName(_filePath);
+            if (string.IsNullOrWhiteSpace(settingsDirectory))
+            {
+                return;
+            }
+
+            if (!Directory.Exists(settingsDirectory))
+            {
+                Directory.CreateDirectory(settingsDirectory);
+            }
+        }
+
         public void Reset(SettingsContext context)
         {
             _localSettingsNode.RemoveAll();
             _globalSettingsNode.RemoveAll();
 
+            EnsureSettingsDirectoryExists();
             _xmlDocument.Save(_filePath);
         }
 
