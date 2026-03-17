@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.ExportDialog"
+        Title="Export Connections"
+        Width="440"
+        Height="260"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="24" Spacing="14">
+        <TextBlock Text="Export Connections" FontSize="16" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Export Format" Classes="section-header"/>
+                <RadioButton x:Name="XmlRadio" Content="mRemoteNG XML (.xml) — recommended" IsChecked="True"/>
+                <RadioButton x:Name="CsvRadio" Content="mRemoteNG CSV (.csv) — for spreadsheet apps"/>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Export Scope" Classes="section-header"/>
+                <RadioButton x:Name="AllRadio" Content="All connections" IsChecked="True"/>
+                <RadioButton x:Name="SelectedRadio" Content="Selected folder and its children"/>
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="*,8,Auto">
+            <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="Output file path..."/>
+            <Button Grid.Column="2" Content="Browse..." x:Name="BrowseButton" Padding="10,4"/>
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Cancel" MinWidth="80" x:Name="CancelButton"/>
+            <Button Content="Export" Classes="accent" MinWidth="80" x:Name="ExportButton"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

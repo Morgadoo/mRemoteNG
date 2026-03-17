@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>mRemoteNG.Platform.Linux</RootNamespace>
+    <AssemblyName>mRemoteNG.Platform.Linux</AssemblyName>
+    <Description>Linux-specific platform service implementations for mRemoteNG</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.1" />
+  </ItemGroup>
+
+</Project>

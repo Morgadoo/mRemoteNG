@@ -78,6 +78,43 @@ For a detailed feature list and general usage support, refer to the [Documentati
 
 ## Installation
 
+### Cross-Platform Installation
+
+**Linux**
+```bash
+# AppImage (portable)
+chmod +x mRemoteNG-*.AppImage && ./mRemoteNG-*.AppImage
+
+# Debian/Ubuntu
+sudo dpkg -i mremoteng_*.deb
+sudo apt-get install -f  # install dependencies
+
+# Flatpak
+flatpak install mremoteng-*.flatpak
+
+# Snap
+sudo snap install mremoteng
+```
+
+**macOS**
+```bash
+# DMG installer
+open mRemoteNG-*.dmg
+# Drag mRemoteNG.app to Applications
+
+# Homebrew Cask
+brew install --cask mremoteng
+```
+
+**Windows**
+```powershell
+# MSI installer
+msiexec /i mRemoteNG-*.msi
+
+# winget
+winget install mRemoteNG.mRemoteNG
+```
+
 ### Supported Operating Systems
 
 - [Windows 11](https://en.wikipedia.org/wiki/Windows_11)
@@ -87,11 +124,13 @@ For a detailed feature list and general usage support, refer to the [Documentati
 - [Windows Server 2019](https://en.wikipedia.org/wiki/Windows_Server_2019)
 - [Windows Server 2016](https://en.wikipedia.org/wiki/Windows_Server_2016)
 - [Windows Server 2012 R2](https://en.wikipedia.org/wiki/Windows_Server_2012_R2)
+- Linux (Debian/Ubuntu, Fedora, Arch and derivatives) — x64 and ARM64
+- macOS 12 Monterey and later — Apple Silicon and Intel
 
 #### Source package
 
 This contains the source code from which mRemoteNG is built.
-You will need to compile it yourself using Visual Studio.
+You will need to compile it yourself using Visual Studio or the .NET 10 SDK.
 
 ### Minimum Requirements
 
@@ -106,7 +145,7 @@ Make sure you have the latest version installed:
 
 ### Download
 
-> :star: Starting Windows 11 you can use winget to install mRemoteNG. Just run `winget install -e --id mRemoteNG.mRemoteNG`
+> Starting Windows 11 you can use winget to install mRemoteNG. Just run `winget install -e --id mRemoteNG.mRemoteNG`
 
 mRemoteNG is available as a redistributable MSI package or as a portable ZIP package and can be downloaded from the following locations:
 * [GitHub](https://github.com/mRemoteNG/mRemoteNG/releases)

@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.QuickConnectDialog"
+        x:DataType="vm:QuickConnectViewModel"
+        Title="Quick Connect"
+        Width="400"
+        Height="220"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="24" Spacing="14">
+        <TextBlock Text="Quick Connect" FontSize="16" FontWeight="Bold"/>
+
+        <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,12,Auto,12,Auto,12,Auto" >
+            <TextBlock Grid.Row="0" Text="Hostname" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1"
+                     Text="{Binding Hostname}"
+                     Watermark="host or IP[:port]"
+                     x:Name="HostnameBox"/>
+
+            <TextBlock Grid.Row="2" Text="Protocol" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="2" Grid.Column="1"
+                      ItemsSource="{Binding Protocols}"
+                      SelectedItem="{Binding SelectedProtocol}"/>
+
+            <TextBlock Grid.Row="4" Text="Username" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="4" Grid.Column="1"
+                     Text="{Binding Username}"
+                     Watermark="(optional)"/>
+
+            <TextBlock Grid.Row="6" Text="Password" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="6" Grid.Column="1"
+                     Text="{Binding Password}"
+                     PasswordChar="●"
+                     Watermark="(optional)"/>
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Cancel" MinWidth="80" x:Name="CancelBtn"/>
+            <Button Content="Connect" Classes="accent" MinWidth="80"
+                    Command="{Binding ConnectCommand}"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

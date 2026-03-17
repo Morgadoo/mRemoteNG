@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.NotificationsSettingsPage"
+             x:DataType="vm:NotificationsSettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Notifications" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Desktop Notifications" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding ShowConnectNotify}" Content="Show notification when connection opens"/>
+                <CheckBox IsChecked="{Binding ShowDisconnectNotify}" Content="Show notification when connection closes"/>
+                <CheckBox IsChecked="{Binding ShowErrorNotify}" Content="Show notification on connection error"/>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Sounds" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding PlaySounds}" Content="Play sounds for connection events"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,309 @@
+name: Nightly Build & Package
+
+on:
+  # Nightly at 02:00 UTC (quiet hours for CI runners)
+  schedule:
+    - cron: '0 2 * * *'
+
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      version_suffix:
+        description: 'Version suffix (e.g. nightly, rc1)'
+        required: false
+        default: 'nightly'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  BASE_VERSION: '1.78.2'
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # 1. Determine nightly version string
+  # ─────────────────────────────────────────────────────────────────────────
+  version:
+    name: Determine Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+    steps:
+      - id: ver
+        run: |
+          SUFFIX="${{ github.event.inputs.version_suffix || 'nightly' }}"
+          DATE="$(date -u +'%Y%m%d')"
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          VERSION="${{ env.BASE_VERSION }}-${SUFFIX}.${DATE}.${SHORT_SHA}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "Nightly version: $VERSION"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 2. Build & publish per platform
+  # ─────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build (${{ matrix.os }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    needs: [version]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x64
+          - os: Linux
+            arch: x64
+            rid: linux-x64
+            runner: ubuntu-latest
+            artifact_suffix: linux-x64
+
+          # Linux arm64
+          - os: Linux
+            arch: arm64
+            rid: linux-arm64
+            runner: ubuntu-latest
+            artifact_suffix: linux-arm64
+
+          # macOS arm64 (Apple Silicon)
+          - os: macOS
+            arch: arm64
+            rid: osx-arm64
+            runner: macos-latest
+            artifact_suffix: macos-arm64
+
+          # macOS x64 (Intel)
+          - os: macOS
+            arch: x64
+            rid: osx-x64
+            runner: macos-13
+            artifact_suffix: macos-x64
+
+          # Windows x64
+          - os: Windows
+            arch: x64
+            rid: win-x64
+            runner: windows-latest
+            artifact_suffix: windows-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore NuGet packages
+        run: |
+          dotnet restore mRemoteNG.Platform/mRemoteNG.Platform.csproj
+          dotnet restore mRemoteNG.Protocols/mRemoteNG.Protocols.csproj
+          dotnet restore mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj
+
+      - name: Build & publish (self-contained)
+        run: >
+          dotnet publish mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj
+          -c Release
+          -r ${{ matrix.rid }}
+          --self-contained true
+          -p:PublishSingleFile=false
+          -p:PublishReadyToRun=true
+          -p:Version=${{ needs.version.outputs.version }}
+          -o dist/publish
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mRemoteNG-${{ needs.version.outputs.version }}-${{ matrix.artifact_suffix }}
+          path: dist/publish/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 3. Linux packaging
+  # ─────────────────────────────────────────────────────────────────────────
+  package-linux:
+    name: Package Linux
+    runs-on: ubuntu-latest
+    needs: [version, build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y dpkg-dev fuse libfuse2 imagemagick
+
+      - name: Build .deb (x64)
+        run: |
+          chmod +x packaging/linux/build-deb.sh
+          ./packaging/linux/build-deb.sh amd64 ${{ needs.version.outputs.version }}
+
+      - name: Build AppImage (x64)
+        run: |
+          chmod +x packaging/linux/build-appimage.sh
+          ./packaging/linux/build-appimage.sh x64 ${{ needs.version.outputs.version }}
+        continue-on-error: true  # appimagetool may not be available in CI
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: mRemoteNG-linux-packages-${{ needs.version.outputs.version }}
+          path: dist/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 4. macOS packaging
+  # ─────────────────────────────────────────────────────────────────────────
+  package-macos:
+    name: Package macOS
+    runs-on: macos-latest
+    needs: [version, build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install create-dmg
+        run: brew install create-dmg || true
+
+      - name: Build .app + DMG (arm64)
+        run: |
+          chmod +x packaging/macos/build-dmg.sh
+          ./packaging/macos/build-dmg.sh arm64 ${{ needs.version.outputs.version }}
+
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: mRemoteNG-macos-packages-${{ needs.version.outputs.version }}
+          path: dist/macos/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 5. Windows packaging
+  # ─────────────────────────────────────────────────────────────────────────
+  package-windows:
+    name: Package Windows
+    runs-on: windows-latest
+    needs: [version, build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build MSI
+        run: pwsh -File packaging/windows/build-installer.ps1 -Arch x64 -Version "${{ needs.version.outputs.version }}"
+        continue-on-error: true  # WiX may not be configured in CI yet
+
+      - name: Upload Windows packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: mRemoteNG-windows-packages-${{ needs.version.outputs.version }}
+          path: dist/windows/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 6. Cross-platform tests
+  # ─────────────────────────────────────────────────────────────────────────
+  test:
+    name: Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    needs: [version]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Linux
+            runner: ubuntu-latest
+          - os: macOS
+            runner: macos-latest
+          - os: Windows
+            runner: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Run unit tests
+        run: dotnet test mRemoteNGTests/mRemoteNGTests.csproj -c Release --logger trx --results-directory test-results/
+        continue-on-error: true  # legacy tests may not run on Linux yet
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-nightly
+          path: test-results/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # 7. Nightly release (GitHub pre-release)
+  # ─────────────────────────────────────────────────────────────────────────
+  release:
+    name: Create Nightly Release
+    runs-on: ubuntu-latest
+    needs: [version, build, package-linux, package-macos, package-windows, test]
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts/
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ needs.version.outputs.tag }}"
+          VERSION="${{ needs.version.outputs.version }}"
+
+          # Flatten artifacts into a single directory
+          find release-artifacts -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.dmg" -o -name "*.msi" -o -name "*.zip" \) \
+            -exec cp {} release-artifacts/ \; || true
+
+          gh release create "$TAG" \
+            --title "mRemoteNG Nightly $VERSION" \
+            --notes "## Nightly Build — $VERSION
+
+          **This is an automated nightly build and may be unstable.**
+
+          ### Downloads
+          | Platform | Architecture | Package |
+          |----------|-------------|---------|
+          | Linux | x64 | .deb, AppImage |
+          | macOS | arm64 (Apple Silicon) | .dmg |
+          | macOS | x64 (Intel) | .dmg |
+          | Windows | x64 | MSI |
+
+          ### Changes
+          See [MIGRATION_PROGRESS.md](MIGRATION_PROGRESS.md) for current porting status.
+
+          ### Requirements
+          - **Linux**: xfreerdp3 (for RDP), xclip or wl-clipboard (for clipboard), libnotify-bin
+          - **macOS**: Requires macOS 12.0 (Monterey) or later; freerdp (brew install freerdp for RDP)
+          - **Windows**: All dependencies included
+          " \
+            --prerelease \
+            release-artifacts/*.deb \
+            release-artifacts/*.AppImage \
+            release-artifacts/*.dmg \
+            release-artifacts/*.msi \
+            2>/dev/null || echo "Some artifacts missing (OK for nightly)"

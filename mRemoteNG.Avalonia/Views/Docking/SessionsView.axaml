@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             x:Class="mRemoteNG.Avalonia.Views.Docking.SessionsView"
+             x:DataType="vm:SessionsDockable">
+
+    <Grid>
+        <!-- ═══ EMPTY STATE ═══ -->
+        <StackPanel IsVisible="{Binding Sessions.Count, Converter={x:Static vm:CountToVisibilityConverter.IsZero}}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+            <TextBlock Text="No active connections"
+                       FontSize="18"
+                       Foreground="#444444"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Double-click a connection in the tree to connect"
+                       FontSize="13"
+                       Foreground="#555555"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- ═══ ACTIVE SESSIONS ═══ -->
+        <DockPanel IsVisible="{Binding Sessions.Count, Converter={x:Static vm:CountToVisibilityConverter.IsNonZero}}">
+
+            <!-- ── Tab strip ── -->
+            <ScrollViewer DockPanel.Dock="Top"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled"
+                          Background="#252526">
+                <ItemsControl ItemsSource="{Binding Sessions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SessionTabViewModel">
+                            <Border Background="#2d2d2d"
+                                    BorderBrush="#3f3f46"
+                                    BorderThickness="1,1,1,0"
+                                    Padding="10,5,6,5"
+                                    MinWidth="120"
+                                    MaxWidth="220"
+                                    Cursor="Hand"
+                                    PointerPressed="OnTabPressed">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+
+                                    <!-- Connection state dot -->
+                                    <Ellipse Width="7" Height="7"
+                                             Fill="{Binding IsConnected, Converter={x:Static vm:BoolToColorConverter.ConnectedColor}}"
+                                             VerticalAlignment="Center"/>
+
+                                    <!-- Tab title (auto-updated by protocol) -->
+                                    <TextBlock Text="{Binding Title}"
+                                               FontSize="12"
+                                               MaxWidth="140"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"
+                                               ToolTip.Tip="{Binding StatusText}"/>
+
+                                    <!-- Protocol badge -->
+                                    <Border Background="#1c3f5e" CornerRadius="2" Padding="3,1">
+                                        <TextBlock Text="{Binding ProtocolName}"
+                                                   FontSize="9"
+                                                   Foreground="#9cdcfe"/>
+                                    </Border>
+
+                                    <!-- Close button -->
+                                    <Button Content="×"
+                                            Padding="2,0"
+                                            FontSize="14"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Foreground="#666666"
+                                            VerticalAlignment="Center"
+                                            ToolTip.Tip="Close session"
+                                            Command="{Binding CloseCommand}"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- ── Status bar strip ── -->
+            <Border DockPanel.Dock="Bottom"
+                    Background="#007acc"
+                    Padding="8,2"
+                    IsVisible="{Binding ActiveSession, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="{Binding ActiveSession.StatusText}"
+                           FontSize="11"
+                           Foreground="White"
+                           TextTrimming="CharacterEllipsis"/>
+            </Border>
+
+            <!-- ── Session content (protocol view) ── -->
+            <!-- ContentView is set by the code-behind from ActiveSession.ContentView -->
+            <ContentControl Name="SessionContent"
+                            Background="#1e1e1e"
+                            Content="{Binding ActiveSession.ContentView}">
+                <!-- Fallback when ContentView is null -->
+                <ContentControl.ContentTemplate>
+                    <DataTemplate>
+                        <ContentPresenter Content="{Binding}">
+                            <ContentPresenter.ContentTemplate>
+                                <DataTemplate>
+                                    <!-- shown if ContentView property is null -->
+                                    <TextBlock Text="Session running (no embedded view)"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Foreground="#555555"/>
+                                </DataTemplate>
+                            </ContentPresenter.ContentTemplate>
+                        </ContentPresenter>
+                    </DataTemplate>
+                </ContentControl.ContentTemplate>
+            </ContentControl>
+
+        </DockPanel>
+    </Grid>
+
+</UserControl>

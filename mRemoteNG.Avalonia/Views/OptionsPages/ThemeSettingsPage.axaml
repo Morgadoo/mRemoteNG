@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.ThemeSettingsPage"
+             x:DataType="vm:ThemeSettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Theme" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Color Theme" Classes="section-header"/>
+                <ListBox ItemsSource="{Binding Themes}"
+                         SelectedItem="{Binding SelectedTheme}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" Margin="4,2"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

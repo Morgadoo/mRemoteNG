@@ -1,0 +1,358 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
+        xmlns:views="using:mRemoteNG.Avalonia.Views"
+        x:Class="mRemoteNG.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Width="1280"
+        Height="800"
+        MinWidth="800"
+        MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Icon="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico">
+
+    <DockPanel>
+
+        <!-- MENU BAR -->
+        <Menu DockPanel.Dock="Top" FontSize="13">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New Connection..." Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N"/>
+                <Separator/>
+                <MenuItem Header="_Open Connection File..." Command="{Binding OpenConnectionFileCommand}" InputGesture="Ctrl+O"/>
+                <MenuItem Header="_Save Connection File" Command="{Binding SaveConnectionFileCommand}" InputGesture="Ctrl+S"/>
+                <MenuItem Header="Save Connection File _As..." Command="{Binding SaveAsConnectionFileCommand}" InputGesture="Ctrl+Shift+S"/>
+                <Separator/>
+                <MenuItem Header="_Import Connections..." Command="{Binding ImportCommand}"/>
+                <MenuItem Header="_Export Connections..." Command="{Binding ExportCommand}"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" InputGesture="Alt+F4"/>
+            </MenuItem>
+
+            <MenuItem Header="_View">
+                <MenuItem Header="Connection Tree" InputGesture="Ctrl+Shift+T"/>
+                <MenuItem Header="Log Panel" InputGesture="Ctrl+Shift+L"/>
+                <Separator/>
+                <MenuItem Header="Reset Layout"/>
+                <Separator/>
+                <MenuItem Header="Full Screen" InputGesture="F11"/>
+            </MenuItem>
+
+            <MenuItem Header="_Tools">
+                <MenuItem Header="Quick Connect..." Command="{Binding OpenQuickConnectDialogCommand}" InputGesture="Ctrl+Q"/>
+                <Separator/>
+                <MenuItem Header="Port Scanner..." Command="{Binding PortScannerCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Options..." Command="{Binding OpenOptionsCommand}" InputGesture="Ctrl+,"/>
+            </MenuItem>
+
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About mRemoteNG..." Command="{Binding AboutCommand}"/>
+                <MenuItem Header="Check for Updates..."/>
+                <Separator/>
+                <MenuItem Header="GitHub Repository"/>
+                <MenuItem Header="Documentation"/>
+                <MenuItem Header="Report a Bug"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- TOOLBAR -->
+        <Border DockPanel.Dock="Top" Classes="toolbar">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+
+                <Button ToolTip.Tip="New Connection (Ctrl+N)"
+                        Command="{Binding NewConnectionCommand}"
+                        Padding="8,3">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#4caf50"/>
+                        <TextBlock Text="New" FontSize="12"/>
+                    </StackPanel>
+                </Button>
+
+                <Button ToolTip.Tip="Open Connection File"
+                        Command="{Binding OpenConnectionFileCommand}"
+                        Padding="8,3">
+                    <TextBlock Text="Open" FontSize="12"/>
+                </Button>
+
+                <Button ToolTip.Tip="Save"
+                        Command="{Binding SaveConnectionFileCommand}"
+                        Padding="8,3">
+                    <TextBlock Text="Save" FontSize="12"/>
+                </Button>
+
+                <!-- Vertical separator -->
+                <Border Width="1" Background="#3f3f46" Margin="4,2"/>
+
+                <!-- Quick connect bar -->
+                <TextBlock Text="Quick Connect:"
+                           FontSize="12"
+                           Foreground="#a0a0a0"
+                           VerticalAlignment="Center"/>
+                <TextBox Width="200"
+                         Text="{Binding QuickConnectHost}"
+                         Watermark="host[:port]"
+                         FontSize="12"
+                         x:Name="QuickConnectHostBox"/>
+                <ComboBox Width="90"
+                          ItemsSource="{Binding QuickConnectProtocols}"
+                          SelectedItem="{Binding QuickConnectProtocol}"
+                          FontSize="12"/>
+                <Button Padding="8,3"
+                        Classes="accent"
+                        Command="{Binding QuickConnectCommand}"
+                        ToolTip.Tip="Connect (Enter)">
+                    <TextBlock Text="Connect" FontSize="12"/>
+                </Button>
+
+            </StackPanel>
+        </Border>
+
+        <!-- STATUS BAR -->
+        <Border DockPanel.Dock="Bottom" Classes="statusbar">
+            <Grid ColumnDefinitions="*,Auto,16,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding ActiveConnectionCount, StringFormat='Active connections: {0}'}"
+                           FontSize="11"
+                           Foreground="#888888"
+                           VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2"
+                           Text="●"
+                           Foreground="#4caf50"
+                           FontSize="10"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="Connected to update server"/>
+                <TextBlock Grid.Column="3"
+                           Text="mRemoteNG 1.78.2-dev (Avalonia)"
+                           FontSize="11"
+                           Foreground="#555555"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- MAIN CONTENT — Splitter Layout -->
+        <Grid ColumnDefinitions="280,4,*" RowDefinitions="*,4,160">
+
+            <!-- LEFT: Connection Tree -->
+            <Border Grid.Column="0" Grid.RowSpan="3"
+                    BorderBrush="#3f3f46"
+                    BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Classes="panel-header">
+                        <Grid ColumnDefinitions="*,Auto,Auto">
+                            <TextBlock Grid.Column="0"
+                                       Text="CONNECTIONS"
+                                       Classes="section-header"
+                                       VerticalAlignment="Center"/>
+                            <Button Grid.Column="1"
+                                    Content="&#x1F4C1;"
+                                    FontSize="14"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Foreground="#569cd6"
+                                    ToolTip.Tip="New folder"
+                                    Command="{Binding ConnectionTree.NewFolderCommand}"/>
+                            <Button Grid.Column="2"
+                                    Content="+"
+                                    FontSize="16"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Foreground="#4caf50"
+                                    ToolTip.Tip="New connection"
+                                    Command="{Binding NewConnectionCommand}"/>
+                        </Grid>
+                    </Border>
+
+                    <Border DockPanel.Dock="Top" Padding="6,4" Background="#1e1e1e">
+                        <TextBox Text="{Binding ConnectionTree.SearchFilter}"
+                                 Watermark="Search connections..."
+                                 FontSize="12"
+                                 Background="#2d2d2d"
+                                 BorderThickness="0"/>
+                    </Border>
+
+                    <views:ConnectionTreeView DataContext="{Binding ConnectionTree}"/>
+                </DockPanel>
+            </Border>
+
+            <!-- COLUMN SPLITTER -->
+            <GridSplitter Grid.Column="1" Grid.RowSpan="3"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <!-- CENTER: Session tabs -->
+            <Border Grid.Column="2" Grid.Row="0" Background="#1e1e1e">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Classes="panel-header">
+                        <TextBlock Text="SESSIONS" Classes="section-header"/>
+                    </Border>
+
+                    <!-- Session tab strip + content -->
+                    <Grid>
+                        <!-- Empty state (shown when no sessions) -->
+                        <StackPanel x:Name="EmptySessionsPanel"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="8">
+                            <TextBlock Text="No active sessions"
+                                       FontSize="16"
+                                       Foreground="#444444"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Double-click a connection to start a session"
+                                       FontSize="12"
+                                       Foreground="#555555"
+                                       HorizontalAlignment="Center"/>
+                            <Button Content="Quick Connect..."
+                                    Classes="accent"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,8,0,0"
+                                    Command="{Binding OpenQuickConnectDialogCommand}"/>
+                        </StackPanel>
+
+                        <!-- Active sessions (shown when there are sessions) -->
+                        <DockPanel x:Name="ActiveSessionsPanel"
+                                   IsVisible="False">
+                            <!-- Tab bar -->
+                            <ItemsControl DockPanel.Dock="Top"
+                                          ItemsSource="{Binding Sessions.Sessions}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="dock:SessionTabViewModel">
+                                        <Border Padding="8,4" Margin="1,0"
+                                                Background="#2d2d2d"
+                                                CornerRadius="4,4,0,0"
+                                                BorderBrush="#3f3f46"
+                                                BorderThickness="1,1,1,0">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontSize="12"
+                                                           Foreground="#d4d4d4"
+                                                           VerticalAlignment="Center"/>
+                                                <Button Content="x"
+                                                        FontSize="10"
+                                                        Padding="4,0"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Foreground="#888888"
+                                                        Command="{Binding CloseCommand}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Active session content -->
+                            <ContentControl Content="{Binding Sessions.ActiveSession.ContentView}">
+                                <ContentControl.Styles>
+                                    <Style Selector="ContentControl:empty">
+                                        <Setter Property="Content">
+                                            <Template>
+                                                <TextBlock Text="Connecting..."
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="14"
+                                                           Foreground="#666666"/>
+                                            </Template>
+                                        </Setter>
+                                    </Style>
+                                </ContentControl.Styles>
+                            </ContentControl>
+                        </DockPanel>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+            <!-- ROW SPLITTER -->
+            <GridSplitter Grid.Column="2" Grid.Row="1"
+                          ResizeDirection="Rows"
+                          ResizeBehavior="PreviousAndNext"
+                          Height="4"/>
+
+            <!-- BOTTOM: Tabbed panel (Log / Terminal / Debug Console) -->
+            <Border Grid.Column="2" Grid.Row="2"
+                    BorderBrush="#3f3f46"
+                    BorderThickness="0,1,0,0"
+                    Background="#1a1a1a">
+                <TabControl x:Name="BottomTabs" FontSize="12">
+
+                    <!-- Log Tab -->
+                    <TabItem Header="Log">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                                        HorizontalAlignment="Right" Margin="0,2,8,2">
+                                <Button Content="Copy" Padding="6,1" FontSize="11"
+                                        Background="Transparent" BorderThickness="0"
+                                        Foreground="#888888" Click="OnCopyLog"/>
+                                <Button Content="Clear" Padding="6,1" FontSize="11"
+                                        Background="Transparent" BorderThickness="0"
+                                        Foreground="#888888" Click="OnClearLog"/>
+                            </StackPanel>
+                            <ScrollViewer x:Name="LogScroller">
+                                <ItemsControl ItemsSource="{Binding LogPanel.Entries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="dock:LogEntry">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,1">
+                                                <TextBlock Text="{Binding FormattedTime}"
+                                                           FontFamily="Consolas,Cascadia Code,monospace"
+                                                           FontSize="11" Foreground="#666666"/>
+                                                <TextBlock Text="{Binding LevelIcon}" FontSize="11"/>
+                                                <TextBlock Text="{Binding Message}"
+                                                           FontFamily="Consolas,Cascadia Code,monospace"
+                                                           FontSize="11" Foreground="#d4d4d4"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </TabItem>
+
+                    <!-- Local Terminal Tab -->
+                    <TabItem Header="Terminal">
+                        <Border x:Name="LocalTerminalHost" Background="#1e1e1e"/>
+                    </TabItem>
+
+                    <!-- Debug Console Tab -->
+                    <TabItem Header="Debug Console">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                                        HorizontalAlignment="Right" Margin="0,2,8,2">
+                                <Button Content="Copy" Padding="6,1" FontSize="11"
+                                        Background="Transparent" BorderThickness="0"
+                                        Foreground="#888888" Click="OnCopyDebug"/>
+                                <Button Content="Clear" Padding="6,1" FontSize="11"
+                                        Background="Transparent" BorderThickness="0"
+                                        Foreground="#888888" Click="OnClearDebug"/>
+                            </StackPanel>
+                            <ScrollViewer x:Name="DebugScroller">
+                                <ItemsControl ItemsSource="{Binding DebugConsole.Entries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="dock:LogEntry">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,1">
+                                                <TextBlock Text="{Binding FormattedTime}"
+                                                           FontFamily="Consolas,Cascadia Code,monospace"
+                                                           FontSize="11" Foreground="#666666"/>
+                                                <TextBlock Text="{Binding LevelIcon}" FontSize="11"/>
+                                                <TextBlock Text="{Binding Message}"
+                                                           FontFamily="Consolas,Cascadia Code,monospace"
+                                                           FontSize="11" Foreground="#d4d4d4"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </TabItem>
+
+                </TabControl>
+            </Border>
+
+        </Grid>
+
+    </DockPanel>
+</Window>

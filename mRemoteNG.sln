@@ -11,6 +11,22 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectListView.NetCore", "O
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNGTests", "mRemoteNGTests\mRemoteNGTests.csproj", "{B5CD6448-41AE-4D2E-8F20-1E2A81B8B8E4}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform", "mRemoteNG.Platform\mRemoteNG.Platform.csproj", "{C1000001-0001-0001-0001-000000000001}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform.Windows", "mRemoteNG.Platform.Windows\mRemoteNG.Platform.Windows.csproj", "{C1000002-0002-0002-0002-000000000002}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform.Linux", "mRemoteNG.Platform.Linux\mRemoteNG.Platform.Linux.csproj", "{C1000003-0003-0003-0003-000000000003}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Platform.Mac", "mRemoteNG.Platform.Mac\mRemoteNG.Platform.Mac.csproj", "{C1000004-0004-0004-0004-000000000004}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Avalonia", "mRemoteNG.Avalonia\mRemoteNG.Avalonia.csproj", "{C1000005-0005-0005-0005-000000000005}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Protocols", "mRemoteNG.Protocols\mRemoteNG.Protocols.csproj", "{C1000006-0006-0006-0006-000000000006}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Tests.CrossPlatform", "mRemoteNG.Tests.CrossPlatform\mRemoteNG.Tests.CrossPlatform.csproj", "{C1000007-0007-0007-0007-000000000007}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Core", "mRemoteNG.Core\mRemoteNG.Core.csproj", "{C1000008-0008-0008-0008-000000000008}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|arm64 = Debug|arm64
@@ -69,6 +85,42 @@ Global
 		{B5CD6448-41AE-4D2E-8F20-1E2A81B8B8E4}.Release|arm64.Build.0 = Release|arm64
 		{B5CD6448-41AE-4D2E-8F20-1E2A81B8B8E4}.Release|x64.ActiveCfg = Release|x64
 		{B5CD6448-41AE-4D2E-8F20-1E2A81B8B8E4}.Release|x64.Build.0 = Release|x64
+		{C1000006-0006-0006-0006-000000000006}.Debug|arm64.ActiveCfg = Debug|arm64
+		{C1000006-0006-0006-0006-000000000006}.Debug|arm64.Build.0 = Debug|arm64
+		{C1000006-0006-0006-0006-000000000006}.Debug|x64.ActiveCfg = Debug|x64
+		{C1000006-0006-0006-0006-000000000006}.Debug|x64.Build.0 = Debug|x64
+		{C1000006-0006-0006-0006-000000000006}.Release Self-Contained|arm64.ActiveCfg = Release|arm64
+		{C1000006-0006-0006-0006-000000000006}.Release Self-Contained|arm64.Build.0 = Release|arm64
+		{C1000006-0006-0006-0006-000000000006}.Release Self-Contained|x64.ActiveCfg = Release|x64
+		{C1000006-0006-0006-0006-000000000006}.Release Self-Contained|x64.Build.0 = Release|x64
+		{C1000006-0006-0006-0006-000000000006}.Release|arm64.ActiveCfg = Release|arm64
+		{C1000006-0006-0006-0006-000000000006}.Release|arm64.Build.0 = Release|arm64
+		{C1000006-0006-0006-0006-000000000006}.Release|x64.ActiveCfg = Release|x64
+		{C1000006-0006-0006-0006-000000000006}.Release|x64.Build.0 = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Debug|arm64.ActiveCfg = Debug|arm64
+		{C1000007-0007-0007-0007-000000000007}.Debug|arm64.Build.0 = Debug|arm64
+		{C1000007-0007-0007-0007-000000000007}.Debug|x64.ActiveCfg = Debug|x64
+		{C1000007-0007-0007-0007-000000000007}.Debug|x64.Build.0 = Debug|x64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|arm64.ActiveCfg = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|arm64.Build.0 = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|x64.ActiveCfg = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Release Self-Contained|x64.Build.0 = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Release|arm64.ActiveCfg = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release|arm64.Build.0 = Release|arm64
+		{C1000007-0007-0007-0007-000000000007}.Release|x64.ActiveCfg = Release|x64
+		{C1000007-0007-0007-0007-000000000007}.Release|x64.Build.0 = Release|x64
+		{C1000008-0008-0008-0008-000000000008}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Debug|arm64.Build.0 = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Debug|x64.Build.0 = Debug|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|arm64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|arm64.Build.0 = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|x64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release Self-Contained|x64.Build.0 = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|arm64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|arm64.Build.0 = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|x64.ActiveCfg = Release|Any CPU
+		{C1000008-0008-0008-0008-000000000008}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

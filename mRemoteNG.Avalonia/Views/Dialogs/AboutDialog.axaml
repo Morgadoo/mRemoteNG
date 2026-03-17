@@ -1,0 +1,65 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.AboutDialog"
+        Title="About mRemoteNG"
+        Width="460"
+        Height="340"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="32" Spacing="16">
+
+        <!-- Logo + App Name -->
+        <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+            <Image Width="64" Height="64"
+                   Source="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico"/>
+            <StackPanel VerticalAlignment="Center" Spacing="4">
+                <TextBlock Text="mRemoteNG"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="#569cd6"/>
+                <TextBlock Text="Multi-Remote Next Generation"
+                           FontSize="12"
+                           Foreground="#a0a0a0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Separator/>
+
+        <!-- Version info -->
+        <StackPanel Spacing="6" HorizontalAlignment="Center">
+            <TextBlock x:Name="VersionText"
+                       Text="Version 1.78.2-dev"
+                       FontSize="13"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text=".NET 10.0 · Avalonia UI 11"
+                       FontSize="11"
+                       Foreground="#888888"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Cross-platform: Windows · Linux · macOS"
+                       FontSize="11"
+                       Foreground="#569cd6"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Copyright -->
+        <TextBlock Text="© 2026 mRemoteNG Dev Team · Licensed under GPL-2.0"
+                   FontSize="11"
+                   Foreground="#666666"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"/>
+
+        <Separator/>
+
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <Button Content="GitHub Repository" Padding="12,4"
+                    x:Name="GitHubButton"/>
+            <Button Content="Documentation" Padding="12,4"
+                    x:Name="DocsButton"/>
+            <Button Content="OK" Classes="accent" Padding="24,4"
+                    x:Name="OkButton"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

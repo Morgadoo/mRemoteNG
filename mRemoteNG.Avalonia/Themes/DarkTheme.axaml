@@ -1,0 +1,280 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════
+         mRemoteNG Dark Theme
+         Matches the VS2015 Dark palette used in the WinForms app.
+    ═══════════════════════════════════════════════════════ -->
+
+    <!-- Global color resources -->
+    <Styles.Resources>
+        <ResourceDictionary>
+            <!-- Background hierarchy -->
+            <Color x:Key="AppBg0">#1e1e1e</Color>       <!-- Darkest: window chrome -->
+            <Color x:Key="AppBg1">#252526</Color>       <!-- Panel headers -->
+            <Color x:Key="AppBg2">#2d2d2d</Color>       <!-- Toolbars, sidebars -->
+            <Color x:Key="AppBg3">#3e3e42</Color>       <!-- Selected rows -->
+            <Color x:Key="AppBg4">#555558</Color>       <!-- Hover state -->
+
+            <!-- Text -->
+            <Color x:Key="TextPrimary">#d4d4d4</Color>
+            <Color x:Key="TextSecondary">#a0a0a0</Color>
+            <Color x:Key="TextMuted">#606060</Color>
+            <Color x:Key="TextLink">#569cd6</Color>
+
+            <!-- Accent -->
+            <Color x:Key="Accent">#007acc</Color>
+            <Color x:Key="AccentHover">#1c97ea</Color>
+            <Color x:Key="AccentActive">#0062a3</Color>
+
+            <!-- Borders -->
+            <Color x:Key="Border0">#3f3f46</Color>
+            <Color x:Key="Border1">#1f1f1f</Color>
+
+            <!-- Protocol badge colors -->
+            <Color x:Key="BadgeSsh">#1b4f72</Color>
+            <Color x:Key="BadgeRdp">#4a235a</Color>
+            <Color x:Key="BadgeVnc">#1a5276</Color>
+            <Color x:Key="BadgeTelnet">#1d4e28</Color>
+            <Color x:Key="BadgeHttp">#6e2f1a</Color>
+
+            <!-- SolidColorBrush versions (used by controls) -->
+            <SolidColorBrush x:Key="AppBg0Brush" Color="{StaticResource AppBg0}"/>
+            <SolidColorBrush x:Key="AppBg1Brush" Color="{StaticResource AppBg1}"/>
+            <SolidColorBrush x:Key="AppBg2Brush" Color="{StaticResource AppBg2}"/>
+            <SolidColorBrush x:Key="AppBg3Brush" Color="{StaticResource AppBg3}"/>
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+            <SolidColorBrush x:Key="Border0Brush" Color="{StaticResource Border0}"/>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <!-- Window -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- TextBlock defaults -->
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="FontFamily" Value="Segoe UI, SF Pro Display, Ubuntu, sans-serif"/>
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+
+    <!-- Button -->
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{StaticResource AppBg2Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+
+    <!-- Accent Button -->
+    <Style Selector="Button.accent">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="Foreground" Value="#ffffff"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1c97ea"/>
+    </Style>
+
+    <!-- TextBox -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="#3c3c3c"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource AccentBrush}"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="6,4"/>
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+    </Style>
+
+    <!-- ComboBox -->
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="#3c3c3c"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Background" Value="#2d2d2d"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
+    </Style>
+
+    <!-- ListBox / ListBoxItem -->
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+    </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
+    </Style>
+
+    <!-- TreeView -->
+    <Style Selector="TreeView">
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="TreeViewItem">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Padding" Value="2,2"/>
+    </Style>
+    <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+    <Style Selector="TreeViewItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
+    </Style>
+
+    <!-- Menu -->
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="MenuItem">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="Height" Value="1"/>
+    </Style>
+
+    <!-- TabControl / TabItem -->
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+    </Style>
+    <Style Selector="TabItem">
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+    <Style Selector="TabItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+    </Style>
+    <Style Selector="TabItem:pointerover">
+        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
+    </Style>
+
+    <!-- GridSplitter -->
+    <Style Selector="GridSplitter">
+        <Setter Property="Background" Value="{StaticResource Border0Brush}"/>
+    </Style>
+    <Style Selector="GridSplitter:pointerover">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+    </Style>
+
+    <!-- ScrollBar -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="#2a2a2a"/>
+    </Style>
+
+    <!-- CheckBox -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- RadioButton -->
+    <Style Selector="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- Slider -->
+    <Style Selector="Slider">
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+    </Style>
+
+    <!-- ContextMenu -->
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="#252526"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- Section header label style -->
+    <Style Selector="TextBlock.section-header">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="LetterSpacing" Value="1"/>
+        <!-- TextTransform not available in Avalonia 11 -->
+    </Style>
+
+    <!-- Panel header style -->
+    <Style Selector="Border.panel-header">
+        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
+        <Setter Property="Padding" Value="8,6"/>
+    </Style>
+
+    <!-- Toolbar style -->
+    <Style Selector="Border.toolbar">
+        <Setter Property="Background" Value="{StaticResource AppBg2Brush}"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <!-- Status bar style -->
+    <Style Selector="Border.statusbar">
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+        <Setter Property="Padding" Value="8,3"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+    </Style>
+
+    <!-- Protocol badge -->
+    <Style Selector="Border.badge">
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="4,1"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Danger button -->
+    <Style Selector="Button.danger">
+        <Setter Property="Background" Value="#5a1a1a"/>
+        <Setter Property="Foreground" Value="#ff8080"/>
+    </Style>
+    <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#8b0000"/>
+    </Style>
+
+    <!-- Card / grouped container -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{StaticResource AppBg2Brush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+
+</Styles>

@@ -1,0 +1,95 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════
+         mRemoteNG Light Theme
+         Matches VS2015 Light palette.
+    ═══════════════════════════════════════════════════════ -->
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <Color x:Key="AppBg0">#f5f5f5</Color>
+            <Color x:Key="AppBg1">#eaeaea</Color>
+            <Color x:Key="AppBg2">#e1e1e1</Color>
+            <Color x:Key="AppBg3">#cce8ff</Color>
+            <Color x:Key="AppBg4">#d9d9d9</Color>
+            <Color x:Key="TextPrimary">#1e1e1e</Color>
+            <Color x:Key="TextSecondary">#444444</Color>
+            <Color x:Key="TextMuted">#909090</Color>
+            <Color x:Key="Accent">#007acc</Color>
+            <Color x:Key="Border0">#cccccc</Color>
+
+            <SolidColorBrush x:Key="AppBg0Brush" Color="{StaticResource AppBg0}"/>
+            <SolidColorBrush x:Key="AppBg1Brush" Color="{StaticResource AppBg1}"/>
+            <SolidColorBrush x:Key="AppBg2Brush" Color="{StaticResource AppBg2}"/>
+            <SolidColorBrush x:Key="AppBg3Brush" Color="{StaticResource AppBg3}"/>
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+            <SolidColorBrush x:Key="Border0Brush" Color="{StaticResource Border0}"/>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="FontFamily" Value="Segoe UI, SF Pro Display, Ubuntu, sans-serif"/>
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{StaticResource AppBg2Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="CornerRadius" Value="2"/>
+    </Style>
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="#ffffff"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="TreeView">
+        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
+    </Style>
+    <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
+    </Style>
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="Border.panel-header">
+        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
+        <Setter Property="Padding" Value="8,6"/>
+    </Style>
+    <Style Selector="Border.toolbar">
+        <Setter Property="Background" Value="{StaticResource AppBg2Brush}"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+    <Style Selector="Border.statusbar">
+        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
+        <Setter Property="Padding" Value="8,3"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+    </Style>
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="#ffffff"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+    <Style Selector="ContextMenu">
+        <Setter Property="Background" Value="#ffffff"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+</Styles>

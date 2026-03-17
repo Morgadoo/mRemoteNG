@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.ImportDialog"
+        Title="Import Connections"
+        Width="480"
+        Height="320"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="24" Spacing="16">
+        <TextBlock Text="Import Connections" FontSize="16" FontWeight="Bold"/>
+        <TextBlock Text="Choose a source to import connections from:" Foreground="#a0a0a0"/>
+
+        <!-- Format options -->
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="File Formats" Classes="section-header"/>
+                <RadioButton x:Name="XmlRadio" Content="mRemoteNG XML (.xml)" IsChecked="True"/>
+                <RadioButton x:Name="CsvRadio" Content="mRemoteNG CSV (.csv)"/>
+                <RadioButton x:Name="PuttyRadio" Content="PuTTY Sessions (registry / session file)"/>
+                <RadioButton x:Name="SshConfigRadio" Content="SSH config file (~/.ssh/config)"/>
+                <RadioButton x:Name="RdmRadio" Content="Remote Desktop Manager (.rdm)"/>
+                <RadioButton x:Name="SecureCrtRadio" Content="SecureCRT sessions"/>
+            </StackPanel>
+        </Border>
+
+        <!-- File picker -->
+        <Grid ColumnDefinitions="*,8,Auto">
+            <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="Select a file to import..."/>
+            <Button Grid.Column="2" Content="Browse..." x:Name="BrowseButton" Padding="10,4"/>
+        </Grid>
+
+        <!-- Import target -->
+        <Grid ColumnDefinitions="140,*">
+            <TextBlock Text="Import into folder:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Column="1" x:Name="TargetFolderBox" SelectedIndex="0">
+                <ComboBoxItem>Root (top level)</ComboBoxItem>
+                <ComboBoxItem>New folder...</ComboBoxItem>
+            </ComboBox>
+        </Grid>
+
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Cancel" MinWidth="80" x:Name="CancelButton"/>
+            <Button Content="Import" Classes="accent" MinWidth="80" x:Name="ImportButton"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

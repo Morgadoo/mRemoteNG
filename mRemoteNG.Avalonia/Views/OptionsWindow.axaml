@@ -1,0 +1,110 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:pages="using:mRemoteNG.Avalonia.Views.OptionsPages"
+        x:Class="mRemoteNG.Avalonia.Views.OptionsWindow"
+        x:DataType="vm:OptionsWindowViewModel"
+        Title="Options"
+        Width="820"
+        Height="580"
+        MinWidth="600"
+        MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- Main content area: category list + page panel -->
+        <Grid Grid.Row="0" ColumnDefinitions="200,Auto,*">
+
+            <!-- Category list (left nav) -->
+            <Border Grid.Column="0"
+                    BorderBrush="#3f3f46"
+                    BorderThickness="0,0,1,0"
+                    Background="#252526">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Padding="12,10">
+                        <TextBlock Text="OPTIONS" Classes="section-header"/>
+                    </Border>
+                    <ListBox ItemsSource="{Binding Categories}"
+                             SelectedItem="{Binding SelectedCategory}"
+                             Background="Transparent"
+                             BorderThickness="0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SettingsCategoryViewModel">
+                                <TextBlock Text="{Binding DisplayName}"
+                                           Padding="12,6"
+                                           FontSize="13"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="3"/>
+
+            <!-- Settings page (right panel) -->
+            <ScrollViewer Grid.Column="2" Padding="20">
+                <ContentControl Content="{Binding CurrentPage}">
+                    <ContentControl.DataTemplates>
+                        <DataTemplate DataType="{x:Type vm:AppearanceSettingsViewModel}">
+                            <pages:AppearanceSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:ConnectionSettingsViewModel}">
+                            <pages:ConnectionSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:SecuritySettingsViewModel}">
+                            <pages:SecuritySettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:AdvancedSettingsViewModel}">
+                            <pages:AdvancedSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:UpdatesSettingsViewModel}">
+                            <pages:UpdatesSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:NotificationsSettingsViewModel}">
+                            <pages:NotificationsSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:ThemeSettingsViewModel}">
+                            <pages:ThemeSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:TabsSettingsViewModel}">
+                            <pages:TabsSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:CredentialsSettingsViewModel}">
+                            <pages:CredentialsSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:ProtocolsSettingsViewModel}">
+                            <pages:ProtocolsSettingsPage/>
+                        </DataTemplate>
+                    </ContentControl.DataTemplates>
+                </ContentControl>
+            </ScrollViewer>
+
+        </Grid>
+
+        <!-- Bottom button bar -->
+        <Border Grid.Row="1"
+                BorderBrush="#3f3f46"
+                BorderThickness="0,1,0,0"
+                Padding="12,8">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,8,Auto">
+                <!-- Left: reset link -->
+                <Button Grid.Column="0"
+                        Content="Reset to defaults"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="#569cd6"
+                        Command="{Binding ResetCommand}"/>
+                <!-- Right: action buttons -->
+                <Button Grid.Column="1" Content="OK" Classes="accent"
+                        MinWidth="80" Command="{Binding OkCommand}"/>
+                <Button Grid.Column="3" Content="Cancel"
+                        MinWidth="80" Command="{Binding CancelCommand}"/>
+                <Button Grid.Column="5" Content="Apply"
+                        MinWidth="80" Command="{Binding ApplyCommand}"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

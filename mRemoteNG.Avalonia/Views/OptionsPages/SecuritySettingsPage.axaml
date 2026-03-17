@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.SecuritySettingsPage"
+             x:DataType="vm:SecuritySettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Security" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Master Password" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding UseMasterPassword}" Content="Protect connections file with a master password"/>
+                <CheckBox IsChecked="{Binding EncryptConnections}" Content="Encrypt connection passwords"/>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Auto-Lock" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding LockOnIdle}" Content="Lock application when idle"/>
+                <Grid ColumnDefinitions="*,180" IsEnabled="{Binding LockOnIdle}">
+                    <TextBlock Grid.Column="0" Text="Lock after (minutes)" VerticalAlignment="Center"/>
+                    <NumericUpDown Grid.Column="1"
+                                   Value="{Binding LockIdleMinutes}"
+                                   Minimum="1" Maximum="120" Increment="1"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Certificate Verification" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding VerifyServerCerts}" Content="Verify server certificates"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

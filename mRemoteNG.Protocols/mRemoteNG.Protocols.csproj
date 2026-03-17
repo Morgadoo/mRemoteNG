@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>mRemoteNG.Protocols</RootNamespace>
+    <AssemblyName>mRemoteNG.Protocols</AssemblyName>
+    <Description>mRemoteNG — Cross-platform protocol implementations (SSH, Telnet, RDP, VNC, HTTP)</Description>
+    <Version>1.78.2-dev</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SSH via SSH.NET -->
+    <PackageReference Include="SSH.NET" />
+
+    <!-- Avalonia (visual protocol controls) -->
+    <PackageReference Include="Avalonia" />
+
+    <!-- Serial port support -->
+    <PackageReference Include="System.IO.Ports" />
+
+    <!-- DI abstractions -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+
+    <!-- Reactive -->
+    <PackageReference Include="ReactiveUI" />
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
+  </ItemGroup>
+
+</Project>
