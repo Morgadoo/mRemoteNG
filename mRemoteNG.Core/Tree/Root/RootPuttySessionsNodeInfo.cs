@@ -6,5 +6,7 @@ namespace mRemoteNG.Core.Tree.Root
         {
             Name = "PuTTY Sessions";
         }
+
+        public override TreeNodeType GetTreeNodeType() => TreeNodeType.PuttyRoot;
     }
 }

@@ -123,6 +123,17 @@ public sealed class AppSettings
     [PersistedSetting("DefaultPorts")] public int HttpPort { get; set; } = 80;
     [PersistedSetting("DefaultPorts")] public int HttpsPort { get; set; } = 443;
 
+    // ── Default connection ───────────────────────────────────────────────
+
+    /// <summary>
+    /// Values given to new connections and folders (legacy ConDefault*), as written by
+    /// <see cref="Connection.DefaultConnectionSettings.Save"/>; empty for the built-in defaults.
+    /// </summary>
+    [PersistedSetting("DefaultConnection")] public string DefaultConnectionValues { get; set; } = string.Empty;
+
+    /// <summary>Properties new connections inherit from their folder (legacy InhDefault*), comma-separated.</summary>
+    [PersistedSetting("DefaultConnection")] public string DefaultConnectionInheritance { get; set; } = string.Empty;
+
     // ── Notifications ────────────────────────────────────────────────────
 
     [PersistedSetting("Notifications")] public bool NotifyOnConnect { get; set; }
@@ -270,6 +281,8 @@ public sealed class AppSettings
         Fix<string>(nameof(FontFamily), FontFamily is null, v => FontFamily = v, string.Empty);
         Fix<string>(nameof(DefaultUsername), DefaultUsername is null, v => DefaultUsername = v, string.Empty);
         Fix<string>(nameof(SshPrivateKeyPath), SshPrivateKeyPath is null, v => SshPrivateKeyPath = v, string.Empty);
+        Fix<string>(nameof(DefaultConnectionValues), DefaultConnectionValues is null, v => DefaultConnectionValues = v, string.Empty);
+        Fix<string>(nameof(DefaultConnectionInheritance), DefaultConnectionInheritance is null, v => DefaultConnectionInheritance = v, string.Empty);
         Fix<StartupFileBehavior>(nameof(StartupBehavior),
             StartupBehavior == StartupFileBehavior.OpenSpecificFile && string.IsNullOrWhiteSpace(StartupFilePath),
             v => StartupBehavior = v, defaults.StartupBehavior);

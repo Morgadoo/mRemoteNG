@@ -1,10 +1,12 @@
+using System.ComponentModel;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Connection.Protocol;
 using mRemoteNG.Core.Container;
 using mRemoteNG.Core.Tree.Root;
 
 namespace mRemoteNG.Core.Tree
 {
-    /// <summary>Structural edits on the connection tree (duplicate, reorder, move).</summary>
+    /// <summary>Structural edits on the connection tree (duplicate, reorder, move, sort, inheritance).</summary>
     public static class ConnectionTreeOperations
     {
         public const string CopySuffix = " (copy)";
@@ -109,5 +111,113 @@ namespace mRemoteNG.Core.Tree
         /// <summary>Number of folders and connections below <paramref name="container"/> (recursive).</summary>
         public static int CountDescendants(ContainerInfo container) =>
             container.GetRecursiveChildList().Count();
+
+        /// <summary>
+        /// Sorts <paramref name="container"/> and every folder below it by name
+        /// (case-insensitive, numbers in natural order: "Server2" before "Server10").
+        /// </summary>
+        public static void SortRecursive(ContainerInfo container, ListSortDirection direction = ListSortDirection.Ascending)
+        {
+            ArgumentNullException.ThrowIfNull(container);
+            container.SortOnRecursive(c => new NaturalSortKey(c.Name), direction);
+        }
+
+        /// <summary>Expands or collapses <paramref name="container"/> and every folder below it.</summary>
+        public static void SetExpandedRecursive(ContainerInfo container, bool expanded)
+        {
+            ArgumentNullException.ThrowIfNull(container);
+            container.IsExpanded = expanded;
+            foreach (var folder in container.GetRecursiveChildList().OfType<ContainerInfo>())
+                folder.IsExpanded = expanded;
+        }
+
+        /// <summary>
+        /// Copies the inheritance flags of <paramref name="container"/> to every node below it
+        /// (legacy "Apply inheritance to children"). Returns the number of nodes changed.
+        /// </summary>
+        public static int ApplyInheritanceToChildren(ContainerInfo container)
+        {
+            ArgumentNullException.ThrowIfNull(container);
+            var children = container.GetRecursiveChildList().ToList();
+            container.ApplyInheritancePropertiesToChildren();
+            return children.Count;
+        }
+
+        /// <summary>
+        /// The connections opened by "Connect" on <paramref name="node"/>: the node itself, or for a folder
+        /// every connection below it (recursive), in tree order.
+        /// </summary>
+        public static IReadOnlyList<ConnectionInfo> ConnectionsToOpen(ConnectionInfo node)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+            return node is ContainerInfo container
+                ? container.GetRecursiveChildList().Where(n => n is not ContainerInfo).ToList()
+                : [node];
+        }
+
+        /// <summary>Names of the SSH connections in the tree, offered as SSH tunnels (excluding <paramref name="except"/>).</summary>
+        public static IReadOnlyList<string> SshTunnelCandidates(ContainerInfo root, ConnectionInfo? except = null)
+        {
+            ArgumentNullException.ThrowIfNull(root);
+            return root.GetRecursiveChildList()
+                .Where(n => n is not ContainerInfo && !ReferenceEquals(n, except)
+                            && n.Protocol is ProtocolType.SSH1 or ProtocolType.SSH2
+                            && !string.IsNullOrWhiteSpace(n.Name))
+                .Select(n => n.Name)
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        /// <summary>Panel names used in the tree, plus "General".</summary>
+        public static IReadOnlyList<string> PanelNames(ContainerInfo root)
+        {
+            ArgumentNullException.ThrowIfNull(root);
+            return root.GetRecursiveChildList()
+                .Select(n => n.Panel)
+                .Append("General")
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        /// <summary>Compares names case-insensitively with digit runs compared by value.</summary>
+        private readonly struct NaturalSortKey(string value) : IComparable<NaturalSortKey>
+        {
+            private readonly string _value = value ?? "";
+
+            public int CompareTo(NaturalSortKey other) => Compare(_value, other._value);
+
+            private static int Compare(string a, string b)
+            {
+                int i = 0, j = 0;
+                while (i < a.Length && j < b.Length)
+                {
+                    if (char.IsDigit(a[i]) && char.IsDigit(b[j]))
+                    {
+                        var startA = i;
+                        var startB = j;
+                        while (i < a.Length && char.IsDigit(a[i])) i++;
+                        while (j < b.Length && char.IsDigit(b[j])) j++;
+                        var numberA = a[startA..i].TrimStart('0');
+                        var numberB = b[startB..j].TrimStart('0');
+                        var byLength = numberA.Length.CompareTo(numberB.Length);
+                        if (byLength != 0) return byLength;
+                        var byDigits = string.CompareOrdinal(numberA, numberB);
+                        if (byDigits != 0) return byDigits;
+                        continue;
+                    }
+
+                    var byChar = char.ToUpperInvariant(a[i]).CompareTo(char.ToUpperInvariant(b[j]));
+                    if (byChar != 0) return byChar;
+                    i++;
+                    j++;
+                }
+
+                var byRemaining = (a.Length - i).CompareTo(b.Length - j);
+                return byRemaining != 0 ? byRemaining : string.CompareOrdinal(a, b);
+            }
+        }
     }
 }
