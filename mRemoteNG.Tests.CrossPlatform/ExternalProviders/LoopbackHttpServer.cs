@@ -29,7 +29,7 @@ internal sealed class LoopbackHttpServer : IDisposable
             }
             catch (HttpListenerException) when (port < 8269)
             {
-                listener.Close();
+                CloseQuietly(listener);
             }
         }
         _loop = Task.Run(LoopAsync);
@@ -75,9 +75,24 @@ internal sealed class LoopbackHttpServer : IDisposable
 
     public void Dispose()
     {
-        _listener.Stop();
-        _listener.Close();
+        CloseQuietly(_listener);
         try { _loop.Wait(TimeSpan.FromSeconds(5)); }
         catch (AggregateException) { }
+    }
+
+    /// <summary>
+    /// Close() alone stops the listener. With the managed HttpListener (macOS/Linux), Stop() followed by Close()
+    /// unregisters twice, and the second time looks the endpoint up by re-binding the port, which fails when a
+    /// parallel test's server has taken it in the meantime. A failure while closing is harmless here.
+    /// </summary>
+    private static void CloseQuietly(HttpListener listener)
+    {
+        try
+        {
+            listener.Close();
+        }
+        catch (HttpListenerException)
+        {
+        }
     }
 }
