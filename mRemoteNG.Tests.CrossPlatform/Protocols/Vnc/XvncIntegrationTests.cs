@@ -37,9 +37,9 @@ public sealed class XvncFixture : IDisposable
             SkipReason = "Xvnc / vncpasswd (TigerVNC) not installed";
             return;
         }
-        if (IsListening())
+        if (IsListening() || !ExternalProcess.ClaimDisplay(DisplayNumber))
         {
-            SkipReason = $"Port {Port} is already in use";
+            SkipReason = $"Port {Port} or display :{DisplayNumber} is already in use";
             return;
         }
 
@@ -131,12 +131,8 @@ public sealed class XvncFixture : IDisposable
 
     public void Dispose()
     {
-        if (_xvnc is { HasExited: false })
-        {
-            _xvnc.Kill(entireProcessTree: true);
-            _xvnc.WaitForExit(5000);
-        }
-        _xvnc?.Dispose();
+        // Also removes the lock file and socket the killed server leaves behind.
+        ExternalProcess.Stop(_xvnc, DisplayNumber);
         try { Directory.Delete(_directory, recursive: true); }
         catch (DirectoryNotFoundException) { }
     }

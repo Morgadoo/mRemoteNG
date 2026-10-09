@@ -1,0 +1,9 @@
+# Tests in mRemoteNG.Tests.CrossPlatform that may be skipped by the Linux integration job
+# (.github/workflows/integration-tests.yml). ci/check-test-skips.py fails the job on any other skip,
+# so a server or tool that goes missing from ci/linux-integration-setup.sh is noticed.
+#
+# Format: <pattern> | <reason>
+# The pattern is a shell wildcard matched against the full test name from the .trx file
+# (Namespace.Class.Method, plus "(arguments)" for theory cases). Keep entries narrow and say why.
+
+mRemoteNG.Tests.CrossPlatform.Protocols.Rdp.RdpIntegrationTests.Connect_WrongPassword_WithNla_ReportsAuthenticationFailure | Needs an NLA/CredSSP server (Windows, RDP_TEST_NLA=true). xrdp has no NLA: it accepts the connection and rejects a bad password inside its own login screen.

@@ -71,8 +71,12 @@ public sealed class PowerShellIntegrationTests
 
         // What the view's TerminalResized event triggers.
         protocol.ResizeTerminal(73, 21);
-        await terminal.SendInputAsync("\"size=$($Host.UI.RawUI.WindowSize.Width)x$($Host.UI.RawUI.WindowSize.Height)\"\r"u8.ToArray());
-        await WaitForAsync(view, screen => Lines(screen).Any(l => l == "size=73x21"), "size=73x21");
+        // The pseudo-terminal has the new size as soon as ResizeTerminal returns, but pwsh learns of it through
+        // SIGWINCH, which .NET handles on a background thread; until then $Host.UI.RawUI.WindowSize is the cached
+        // old size. A command typed in the same instant can therefore still see 80x24: ask until the answer changes.
+        var query = "\"size=$($Host.UI.RawUI.WindowSize.Width)x$($Host.UI.RawUI.WindowSize.Height)\"\r"u8.ToArray();
+        await WaitForAsync(view, screen => Lines(screen).Any(l => l == "size=73x21"), "size=73x21",
+            resend: () => terminal.SendInputAsync(query));
 
         await protocol.DisconnectAsync();
     }
@@ -97,13 +101,20 @@ public sealed class PowerShellIntegrationTests
     private static IEnumerable<string> Lines(string screen) =>
         screen.Split('\n').Select(l => l.Trim());
 
-    private static async Task WaitForAsync(TerminalView view, Func<string, bool> condition, string what)
+    /// <summary>Waits for <paramref name="condition"/>; <paramref name="resend"/>, if given, runs now and every 2 seconds.</summary>
+    private static async Task WaitForAsync(TerminalView view, Func<string, bool> condition, string what, Func<Task>? resend = null)
     {
         var deadline = DateTime.UtcNow.AddSeconds(30);
+        var nextResend = DateTime.UtcNow;
         while (!condition(view.GetScreenText()))
         {
             if (DateTime.UtcNow > deadline)
                 throw new TimeoutException($"{what} did not appear. Screen:\n{view.GetScreenText()}");
+            if (resend is not null && DateTime.UtcNow >= nextResend)
+            {
+                await resend();
+                nextResend = DateTime.UtcNow.AddSeconds(2);
+            }
             await Task.Delay(50);
         }
     }
