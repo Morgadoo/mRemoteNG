@@ -3,18 +3,12 @@
              x:Class="mRemoteNG.Avalonia.App"
              RequestedThemeVariant="Dark">
 
-    <Application.Resources>
-        <!-- Application-wide resources defined here -->
-        <ResourceDictionary>
-            <!-- Colors will be defined per theme in Phase 2 -->
-        </ResourceDictionary>
-    </Application.Resources>
-
     <Application.Styles>
         <!-- Base Fluent theme (provides all control templates) -->
         <FluentTheme />
-        <!-- mRemoteNG dark overrides — ThemeService switches variant at runtime -->
-        <StyleInclude Source="avares://mRemoteNG.Avalonia/Themes/DarkTheme.axaml" />
+        <!-- The mRemoteNG palette (Themes/DarkTheme.axaml or LightTheme.axaml) is added by ThemeService
+             at startup, before any window opens. It must not be declared here: the XAML compiler inlines
+             a StyleInclude, so ThemeService could not find and replace it when the theme changes. -->
     </Application.Styles>
 
 </Application>

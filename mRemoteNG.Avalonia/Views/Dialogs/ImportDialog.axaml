@@ -14,7 +14,7 @@
             <StackPanel Spacing="10">
                 <TextBlock Text="Source" Classes="section-header"/>
                 <ComboBox x:Name="SourceTypeBox" HorizontalAlignment="Stretch"/>
-                <TextBlock x:Name="SourceHintText" Foreground="#a0a0a0" TextWrapping="Wrap"/>
+                <TextBlock x:Name="SourceHintText" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 <Grid ColumnDefinitions="*,8,Auto">
                     <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="Select a file to import..."/>
                     <Button Grid.Column="2" Content="Browse..." x:Name="BrowseButton" Padding="10,4"/>

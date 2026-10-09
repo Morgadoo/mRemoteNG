@@ -35,7 +35,7 @@
             <Setter Property="Margin" Value="0,2,0,0"/>
         </Style>
         <Style Selector="TextBlock.note">
-            <Setter Property="Foreground" Value="#888888"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
@@ -315,12 +315,12 @@
         </TabControl>
 
         <!-- Button bar + test status -->
-        <Border Grid.Row="1" BorderBrush="#3f3f46" BorderThickness="0,1,0,0" Padding="16,10" Margin="0,8,0,0">
+        <Border Grid.Row="1" BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0" Padding="16,10" Margin="0,8,0,0">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top"
                            Text="{Binding TestStatus}"
                            FontSize="11"
-                           Foreground="#888888"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            Margin="0,0,0,6"
                            TextWrapping="Wrap"
                            IsVisible="{Binding TestStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>

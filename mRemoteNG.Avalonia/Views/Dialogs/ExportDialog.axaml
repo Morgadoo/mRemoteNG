@@ -43,7 +43,7 @@
         <Border Classes="card" x:Name="PasswordCard">
             <StackPanel Spacing="8">
                 <TextBlock Text="File Password (optional)" Classes="section-header"/>
-                <TextBlock Foreground="#a0a0a0" TextWrapping="Wrap"
+                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
                            Text="Protects the exported file with a master password. Leave empty for an unprotected file."/>
                 <TextBox x:Name="FilePasswordBox" PasswordChar="●" Watermark="Password"/>
                 <TextBox x:Name="FilePasswordConfirmBox" PasswordChar="●" Watermark="Confirm password"/>

@@ -27,7 +27,6 @@
     <PackageReference Include="ReactiveUI.Fody" />
 
     <!-- Docking layout (cross-platform DockPanelSuite replacement) -->
-    <PackageReference Include="Dock.Avalonia" />
     <PackageReference Include="Dock.Model.Mvvm" />
 
     <!-- DI -->

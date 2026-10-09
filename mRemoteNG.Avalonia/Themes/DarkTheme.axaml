@@ -48,6 +48,8 @@
             <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}"/>
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
             <SolidColorBrush x:Key="Border0Brush" Color="{StaticResource Border0}"/>
+            <SolidColorBrush x:Key="TextLinkBrush" Color="#569cd6"/>
+            <SolidColorBrush x:Key="WarningBrush" Color="#d7ba7d"/>
         </ResourceDictionary>
     </Styles.Resources>
 
@@ -86,6 +88,10 @@
         <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
         <Setter Property="Foreground" Value="#ffffff"/>
         <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <!-- The global TextBlock style sets a theme foreground; keep text inside accent buttons white. -->
+    <Style Selector="Button.accent TextBlock">
+        <Setter Property="Foreground" Value="#ffffff"/>
     </Style>
     <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="#1c97ea"/>

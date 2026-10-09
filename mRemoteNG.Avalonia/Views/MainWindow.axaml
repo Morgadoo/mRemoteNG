@@ -114,12 +114,12 @@
                 </Button>
 
                 <!-- Vertical separator -->
-                <Border Width="1" Background="#3f3f46" Margin="4,2"/>
+                <Border Width="1" Background="{DynamicResource Border0Brush}" Margin="4,2"/>
 
                 <!-- Quick connect bar -->
                 <TextBlock Text="Quick Connect:"
                            FontSize="12"
-                           Foreground="#a0a0a0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"/>
                 <TextBox Width="200"
                          Text="{Binding QuickConnectHost}"
@@ -146,25 +146,25 @@
                 <TextBlock Grid.Column="0"
                            Text="{Binding ActiveConnectionCount, StringFormat='Active connections: {0}'}"
                            FontSize="11"
-                           Foreground="#888888"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="2"
                            Text="{Binding FileStatus}"
                            FontSize="11"
-                           Foreground="#666666"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            TextTrimming="CharacterEllipsis"
                            VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="3"
                            Text="● Unsaved changes"
                            IsVisible="{Binding ConnectionTree.IsDirty}"
-                           Foreground="#d7ba7d"
+                           Foreground="{DynamicResource WarningBrush}"
                            FontSize="11"
                            VerticalAlignment="Center"
                            ToolTip.Tip="The connection file has changes that are not saved (Ctrl+S)"/>
                 <TextBlock Grid.Column="5"
                            Text="mRemoteNG 1.78.2-dev (Avalonia)"
                            FontSize="11"
-                           Foreground="#555555"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center"/>
             </Grid>
         </Border>
@@ -175,7 +175,7 @@
             <!-- LEFT: Connection Tree -->
             <Border x:Name="TreePanel"
                     Grid.Column="0" Grid.RowSpan="3"
-                    BorderBrush="#3f3f46"
+                    BorderBrush="{DynamicResource Border0Brush}"
                     BorderThickness="0,0,1,0">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Classes="panel-header">
@@ -189,7 +189,7 @@
                                     FontSize="14"
                                     Background="Transparent"
                                     BorderThickness="0"
-                                    Foreground="#569cd6"
+                                    Foreground="{DynamicResource TextLinkBrush}"
                                     ToolTip.Tip="New folder"
                                     Command="{Binding ConnectionTree.NewFolderCommand}"/>
                             <Button Grid.Column="2"
@@ -203,12 +203,12 @@
                         </Grid>
                     </Border>
 
-                    <Border DockPanel.Dock="Top" Padding="6,4" Background="#1e1e1e">
+                    <Border DockPanel.Dock="Top" Padding="6,4" Background="{DynamicResource AppBg0Brush}">
                         <TextBox x:Name="SearchBox"
                                  Text="{Binding ConnectionTree.SearchFilter}"
                                  Watermark="Search name, host, description... (Ctrl+F)"
                                  FontSize="12"
-                                 Background="#2d2d2d"
+                                 Background="{DynamicResource AppBg2Brush}"
                                  BorderThickness="0">
                             <TextBox.InnerRightContent>
                                 <Button Content="✕"
@@ -216,7 +216,7 @@
                                         Padding="6,0"
                                         Background="Transparent"
                                         BorderThickness="0"
-                                        Foreground="#888888"
+                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                         ToolTip.Tip="Clear search (Esc)"
                                         IsVisible="{Binding ConnectionTree.SearchFilter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                         Command="{Binding ConnectionTree.ClearSearchCommand}"/>
@@ -235,7 +235,7 @@
                           ResizeBehavior="PreviousAndNext"/>
 
             <!-- CENTER: Session tabs -->
-            <Border Grid.Column="2" Grid.Row="0" Background="#1e1e1e">
+            <Border Grid.Column="2" Grid.Row="0" Background="{DynamicResource AppBg0Brush}">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Classes="panel-header">
                         <TextBlock Text="SESSIONS" Classes="section-header"/>
@@ -250,11 +250,11 @@
                                     Spacing="8">
                             <TextBlock Text="No active sessions"
                                        FontSize="16"
-                                       Foreground="#444444"
+                                       Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center"/>
                             <TextBlock Text="Double-click a connection to start a session"
                                        FontSize="12"
-                                       Foreground="#555555"
+                                       Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center"/>
                             <Button Content="Quick Connect..."
                                     Classes="accent"
@@ -279,21 +279,21 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="dock:SessionTabViewModel">
                                         <Border Padding="8,4" Margin="1,0"
-                                                Background="#2d2d2d"
+                                                Background="{DynamicResource AppBg2Brush}"
                                                 CornerRadius="4,4,0,0"
-                                                BorderBrush="#3f3f46"
+                                                BorderBrush="{DynamicResource Border0Brush}"
                                                 BorderThickness="1,1,1,0">
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <TextBlock Text="{Binding Title}"
                                                            FontSize="12"
-                                                           Foreground="#d4d4d4"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
                                                            VerticalAlignment="Center"/>
                                                 <Button Content="x"
                                                         FontSize="10"
                                                         Padding="4,0"
                                                         Background="Transparent"
                                                         BorderThickness="0"
-                                                        Foreground="#888888"
+                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                         Command="{Binding CloseCommand}"/>
                                             </StackPanel>
                                         </Border>
@@ -311,7 +311,7 @@
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"
                                                            FontSize="14"
-                                                           Foreground="#666666"/>
+                                                           Foreground="{DynamicResource TextMutedBrush}"/>
                                             </Template>
                                         </Setter>
                                     </Style>
@@ -332,9 +332,9 @@
             <!-- BOTTOM: Tabbed panel (Log / Terminal / Debug Console) -->
             <Border x:Name="BottomPanel"
                     Grid.Column="2" Grid.Row="2"
-                    BorderBrush="#3f3f46"
+                    BorderBrush="{DynamicResource Border0Brush}"
                     BorderThickness="0,1,0,0"
-                    Background="#1a1a1a">
+                    Background="{DynamicResource AppBg0Brush}">
                 <TabControl x:Name="BottomTabs" FontSize="12">
 
                     <!-- Log Tab -->
@@ -344,10 +344,10 @@
                                         HorizontalAlignment="Right" Margin="0,2,8,2">
                                 <Button Content="Copy" Padding="6,1" FontSize="11"
                                         Background="Transparent" BorderThickness="0"
-                                        Foreground="#888888" Click="OnCopyLog"/>
+                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnCopyLog"/>
                                 <Button Content="Clear" Padding="6,1" FontSize="11"
                                         Background="Transparent" BorderThickness="0"
-                                        Foreground="#888888" Click="OnClearLog"/>
+                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnClearLog"/>
                             </StackPanel>
                             <ScrollViewer x:Name="LogScroller">
                                 <ItemsControl ItemsSource="{Binding LogPanel.Entries}">
@@ -356,11 +356,11 @@
                                             <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,1">
                                                 <TextBlock Text="{Binding FormattedTime}"
                                                            FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="#666666"/>
+                                                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                 <TextBlock Text="{Binding LevelIcon}" FontSize="11"/>
                                                 <TextBlock Text="{Binding Message}"
                                                            FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="#d4d4d4"/>
+                                                           FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -371,7 +371,7 @@
 
                     <!-- Local Terminal Tab -->
                     <TabItem Header="Terminal">
-                        <Border x:Name="LocalTerminalHost" Background="#1e1e1e"/>
+                        <Border x:Name="LocalTerminalHost" Background="{DynamicResource AppBg0Brush}"/>
                     </TabItem>
 
                     <!-- Debug Console Tab -->
@@ -381,10 +381,10 @@
                                         HorizontalAlignment="Right" Margin="0,2,8,2">
                                 <Button Content="Copy" Padding="6,1" FontSize="11"
                                         Background="Transparent" BorderThickness="0"
-                                        Foreground="#888888" Click="OnCopyDebug"/>
+                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnCopyDebug"/>
                                 <Button Content="Clear" Padding="6,1" FontSize="11"
                                         Background="Transparent" BorderThickness="0"
-                                        Foreground="#888888" Click="OnClearDebug"/>
+                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnClearDebug"/>
                             </StackPanel>
                             <ScrollViewer x:Name="DebugScroller">
                                 <ItemsControl ItemsSource="{Binding DebugConsole.Entries}">
@@ -393,11 +393,11 @@
                                             <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,1">
                                                 <TextBlock Text="{Binding FormattedTime}"
                                                            FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="#666666"/>
+                                                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                 <TextBlock Text="{Binding LevelIcon}" FontSize="11"/>
                                                 <TextBlock Text="{Binding Message}"
                                                            FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="#d4d4d4"/>
+                                                           FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

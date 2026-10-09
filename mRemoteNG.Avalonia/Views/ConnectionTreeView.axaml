@@ -31,7 +31,7 @@
               DoubleTapped="OnTreeDoubleTapped"
               DragDrop.AllowDrop="True"
               ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-              Background="#1e1e1e">
+              Background="{DynamicResource AppBg0Brush}">
 
         <TreeView.ContextMenu>
             <ContextMenu>
@@ -65,7 +65,7 @@
                                FontFamily="Segoe MDL2 Assets,Apple Symbols,Noto Emoji"
                                FontSize="14"
                                VerticalAlignment="Center"
-                               Foreground="#569cd6"/>
+                               Foreground="{DynamicResource TextLinkBrush}"/>
                     <Image Source="{Binding IconImage}"
                            IsVisible="{Binding !IsFolder}"
                            Width="16" Height="16"
@@ -75,7 +75,7 @@
                     <TextBlock Text="{Binding Name}"
                                VerticalAlignment="Center"
                                FontSize="13"
-                               Foreground="#d4d4d4"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
 
                     <!-- Protocol badge (only for leaf nodes) -->
                     <Border Classes="protocol-badge"

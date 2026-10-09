@@ -17,10 +17,10 @@
                 <TextBlock Text="mRemoteNG"
                            FontSize="24"
                            FontWeight="Bold"
-                           Foreground="#569cd6"/>
+                           Foreground="{DynamicResource TextLinkBrush}"/>
                 <TextBlock Text="Multi-Remote Next Generation"
                            FontSize="12"
-                           Foreground="#a0a0a0"/>
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
             </StackPanel>
         </StackPanel>
 
@@ -34,18 +34,18 @@
                        HorizontalAlignment="Center"/>
             <TextBlock Text=".NET 10.0 · Avalonia UI 11"
                        FontSize="11"
-                       Foreground="#888888"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
                        HorizontalAlignment="Center"/>
             <TextBlock Text="Cross-platform: Windows · Linux · macOS"
                        FontSize="11"
-                       Foreground="#569cd6"
+                       Foreground="{DynamicResource TextLinkBrush}"
                        HorizontalAlignment="Center"/>
         </StackPanel>
 
         <!-- Copyright -->
         <TextBlock Text="© 2026 mRemoteNG Dev Team · Licensed under GPL-2.0"
                    FontSize="11"
-                   Foreground="#666666"
+                   Foreground="{DynamicResource TextMutedBrush}"
                    HorizontalAlignment="Center"
                    TextAlignment="Center"/>
 
