@@ -7,6 +7,10 @@
 **Platforms:** Windows (existing), Linux (new), macOS (new)
 **Total estimated effort:** 18–24 months (team of 3–4 developers)
 
+> **Note:** this is the original plan. Current status and the decisions that replaced parts of it (no
+> MSTSCLib fallback — FreeRDP on every OS; fixed panel layout instead of Dock.Avalonia; custom terminal;
+> managed VNC client; HTTP opened in the system browser) are tracked in `MIGRATION_PROGRESS.md`.
+
 ---
 
 ## Architecture Overview

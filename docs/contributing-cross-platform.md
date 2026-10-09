@@ -15,31 +15,46 @@ This guide covers everything you need to build, test, and extend mRemoteNG on Wi
 ### Linux
 
 ```bash
-# Debian/Ubuntu
-sudo apt-get install dotnet-sdk-10 xfreerdp libgtk-3-dev libglib2.0-dev xclip
+# Debian/Ubuntu (.NET from Microsoft's packages or https://dot.net/v1/dotnet-install.sh)
+sudo apt-get install dotnet-sdk-10.0 freerdp3-x11 xclip wl-clipboard
 
 # Fedora
-sudo dnf install dotnet-sdk-10 freerdp gtk3-devel glib2-devel xclip
+sudo dnf install dotnet-sdk-10.0 freerdp xclip wl-clipboard
 
 # Arch
-sudo pacman -S dotnet-sdk freerdp gtk3 glib2 xclip
+sudo pacman -S dotnet-sdk freerdp xclip wl-clipboard
 ```
 
-Wayland sessions are supported. If you develop under Wayland and need X11 fallback for testing, install `xwayland`.
+FreeRDP is only needed to run RDP sessions; `xclip`/`wl-clipboard` provide clipboard access (X11/Wayland).
+RDP embedding needs X11 or XWayland.
 
 ### macOS
 
 ```bash
-# Install Homebrew if not already present
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-brew install dotnet@10 freerdp
-
-# XQuartz is required for X11-based testing and some RDP scenarios
-brew install --cask xquartz
+brew install dotnet freerdp
 ```
 
-After installing XQuartz, log out and back in for the `DISPLAY` environment variable to be set correctly.
+### Windows
+
+- Visual Studio 2022 with the ".NET desktop development" workload, **or** the .NET 10 SDK standalone
+- For RDP sessions in the cross-platform app, install FreeRDP (`wfreerdp.exe` on `PATH` or in
+  `C:\Program Files\FreeRDP\`)
+
+---
+
+## 2. Build Instructions
+
+On Linux and macOS, build the cross-platform projects (the solution also contains the Windows-only WinForms
+app, which only builds on Windows with Visual Studio's MSBuild):
+
+```bash
+git clone https://github.com/mRemoteNG/mRemoteNG.git
+cd mRemoteNG
+dotnet build mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj
+dotnet run --project mRemoteNG.Avalonia -- path/to/confCons.xml   # optional file to open
+```
+
+On Windows, `msbuild mRemoteNG.sln -restore -p:Configuration=Debug -p:Platform=x64` builds everything.
 
 ### Windows
 
@@ -56,12 +71,6 @@ Clone the repository and build the solution:
 git clone https://github.com/mRemoteNG/mRemoteNG.git
 cd mRemoteNG
 dotnet build mRemoteNG.sln
-```
-
-To build only the UI application:
-
-```bash
-dotnet build mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj -c Release
 ```
 
 To produce a self-contained executable for your current platform:
@@ -84,40 +93,32 @@ dotnet publish mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj \
 
 ## 3. Running Tests
 
-The solution contains two test projects:
-
-| Project | Purpose |
-|---------|---------|
-| `mRemoteNG.Tests` | Existing Windows-oriented unit tests |
-| `mRemoteNG.Tests.CrossPlatform` | Platform-agnostic unit and integration tests |
-
-Run all cross-platform tests:
+| Project | Framework | Purpose |
+|---------|-----------|---------|
+| `mRemoteNGTests` | NUnit, Windows only | Legacy WinForms app |
+| `mRemoteNG.Tests.CrossPlatform` | xUnit | Core, Platform and Protocols: unit tests and integration tests against real servers |
+| `mRemoteNG.Avalonia.Tests` | xUnit + Avalonia.Headless | The real main window and view-models, rendered headlessly (no display needed) |
 
 ```bash
-dotnet test mRemoteNG.Tests.CrossPlatform/
+dotnet test mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj
+dotnet test mRemoteNG.Avalonia.Tests/mRemoteNG.Avalonia.Tests.csproj
 ```
 
-Run only unit tests (skip integration tests that require live services):
+Integration tests skip themselves (`[SkippableFact]`) when their server is not available:
+
+| Tests | Needs |
+|-------|-------|
+| SSH / SFTP | root, `/usr/sbin/sshd`, free port 2222 (the test starts its own sshd) |
+| VNC | `Xvnc` and `vncpasswd` (TigerVNC); uses display :61 / port 5961 |
+| Telnet | `socat` and inetutils `telnetd` |
+| RDP | `xfreerdp3` and `RDP_TEST_HOST`, `RDP_TEST_USER`, `RDP_TEST_PASS` (e.g. a local xrdp); `RDP_TEST_NLA=true` for a Windows host with NLA |
+
+On Debian/Ubuntu: `sudo apt-get install openssh-server tigervnc-standalone-server socat inetutils-telnetd xrdp freerdp3-x11`.
+
+Code coverage:
 
 ```bash
-dotnet test mRemoteNG.Tests.CrossPlatform/ --filter "Category!=Integration"
-```
-
-Run integration tests with a live SSH server:
-
-```bash
-export SSH_TEST_HOST=192.168.1.10
-export SSH_TEST_USER=testuser
-export SSH_TEST_PASS=secret
-dotnet test mRemoteNG.Tests.CrossPlatform/ --filter "Category=Integration"
-```
-
-To generate a code-coverage report:
-
-```bash
-dotnet test mRemoteNG.Tests.CrossPlatform/ \
-  --collect:"XPlat Code Coverage" \
-  --results-directory ./coverage/
+dotnet test mRemoteNG.Tests.CrossPlatform/ --collect:"XPlat Code Coverage" --results-directory ./coverage/
 ```
 
 ---
@@ -126,15 +127,16 @@ dotnet test mRemoteNG.Tests.CrossPlatform/ \
 
 ```
 mRemoteNG.sln
-├── mRemoteNG.Core/              # Domain models, interfaces, business logic (no UI, no OS calls)
-├── mRemoteNG.Platform/          # Platform abstraction layer
-│   ├── mRemoteNG.Platform.Windows/   # Windows implementations (DPAPI, registry, WMI)
-│   ├── mRemoteNG.Platform.Linux/     # Linux implementations (libsecret, D-Bus, xdg-open)
-│   └── mRemoteNG.Platform.Mac/       # macOS implementations (Keychain, NSWorkspace)
-├── mRemoteNG.Protocols/         # Protocol implementations (SSH.NET, LibVNCSharp, FreeRDP interop)
-├── mRemoteNG.Avalonia/          # Avalonia UI host — views, view-models, app entry point
-├── mRemoteNG.Tests/             # Legacy unit tests (Windows-only acceptable here)
-└── mRemoteNG.Tests.CrossPlatform/   # Cross-platform unit and integration tests
+├── mRemoteNG.Core/                  # Domain model, confCons.xml/CSV serializers, import/export, settings model
+├── mRemoteNG.Platform/              # Platform service interfaces + shared implementations
+├── mRemoteNG.Platform.Windows/      # Windows: DPAPI, Win32 clipboard/windows, registry PuTTY sessions
+├── mRemoteNG.Platform.Linux/        # Linux: XDG settings, keyfile crypto, xclip/wl-clipboard, notify-send
+├── mRemoteNG.Platform.Mac/          # macOS: settings, keyfile crypto, pbcopy/pbpaste, osascript
+├── mRemoteNG.Protocols/             # SSH.NET, managed RFB (VNC), FreeRDP embedding, Telnet/Rlogin/Raw, …
+├── mRemoteNG.Avalonia/              # Avalonia app: views, view-models, services, entry point
+├── mRemoteNG.Avalonia.Tests/        # Headless UI tests
+├── mRemoteNG.Tests.CrossPlatform/   # Cross-platform unit and integration tests
+├── mRemoteNG/ , mRemoteNGTests/     # Legacy WinForms app and its tests (Windows only)
 ```
 
 `mRemoteNG.Core` must not reference any platform-specific APIs or NuGet packages that only work on one OS. All OS-specific code belongs in the appropriate `mRemoteNG.Platform.*` project.

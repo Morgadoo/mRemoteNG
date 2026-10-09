@@ -80,40 +80,29 @@ For a detailed feature list and general usage support, refer to the [Documentati
 
 ### Cross-Platform Installation
 
+The cross-platform (Avalonia) app is in development on the `dev` branch of this fork. No packages are
+published to Flatpak, Snap, Homebrew or winget yet; build them with the scripts in `packaging/`, or download
+the artifacts of the nightly workflow.
+
 **Linux**
 ```bash
-# AppImage (portable)
+# AppImage (portable) — packaging/linux/build-appimage.sh
 chmod +x mRemoteNG-*.AppImage && ./mRemoteNG-*.AppImage
 
-# Debian/Ubuntu
-sudo dpkg -i mremoteng_*.deb
-sudo apt-get install -f  # install dependencies
-
-# Flatpak
-flatpak install mremoteng-*.flatpak
-
-# Snap
-sudo snap install mremoteng
+# Debian/Ubuntu — packaging/linux/build-deb.sh
+sudo apt install ./mremoteng_*.deb
 ```
 
-**macOS**
-```bash
-# DMG installer
-open mRemoteNG-*.dmg
-# Drag mRemoteNG.app to Applications
+For RDP install FreeRDP 3 (`sudo apt install freerdp3-x11`); everything else (SSH, SFTP, VNC, Telnet, …) is
+built in.
 
-# Homebrew Cask
-brew install --cask mremoteng
-```
+**macOS** — `packaging/macos/build-dmg.sh` builds a DMG; RDP needs `brew install freerdp`.
 
-**Windows**
-```powershell
-# MSI installer
-msiexec /i mRemoteNG-*.msi
+**Windows** — the classic WinForms installer below; the cross-platform app runs from
+`dotnet publish mRemoteNG.Avalonia -r win-x64` (RDP needs FreeRDP's `wfreerdp.exe`).
 
-# winget
-winget install mRemoteNG.mRemoteNG
-```
+Moving from the Windows app? See the [migration guide](docs/user-migration-guide.md): existing `confCons.xml`
+files, including master passwords, open unchanged.
 
 ### Supported Operating Systems
 

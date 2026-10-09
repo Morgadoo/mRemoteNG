@@ -24,6 +24,7 @@ dotnet build mRemoteNG/mRemoteNG.csproj  # Windows-only (WinForms)
 # Run tests
 dotnet test mRemoteNGTests/mRemoteNGTests.csproj              # Legacy NUnit (Windows-only)
 dotnet test mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj  # xUnit (all platforms)
+dotnet test mRemoteNG.Avalonia.Tests/mRemoteNG.Avalonia.Tests.csproj              # Headless UI tests (all platforms)
 
 # Run a single test by filter
 dotnet test mRemoteNGTests/mRemoteNGTests.csproj --filter "FullyQualifiedName~ClassName.MethodName"
@@ -58,6 +59,7 @@ The codebase has two UI layers running in parallel during migration:
 | `ObjectListView.NetCore` | Custom list view control | Any CPU |
 | `mRemoteNGTests` | Legacy NUnit tests (Windows) | net10.0-windows |
 | `mRemoteNG.Tests.CrossPlatform` | New xUnit tests (all platforms) | net10.0 |
+| `mRemoteNG.Avalonia.Tests` | Headless Avalonia UI tests | net10.0 |
 
 ### Platform Abstraction Layer
 
