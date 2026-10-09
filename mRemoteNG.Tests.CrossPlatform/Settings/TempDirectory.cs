@@ -13,6 +13,8 @@ internal sealed class TempDirectory : IDisposable
 
     public string Combine(string name) => System.IO.Path.Combine(Path, name);
 
+    public string Combine(string folder, string name) => System.IO.Path.Combine(Path, folder, name);
+
     public void Dispose()
     {
         try

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Protocols.Abstractions;
 
@@ -103,9 +104,27 @@ public static class AppServices
         });
         services.AddSingleton<mRemoteNG.Core.Settings.StartupService>(sp =>
             new mRemoteNG.Core.Settings.StartupService(sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>()));
-        services.AddSingleton<Services.UpdateCheckService>();
+        services.AddSingleton<Services.UpdateCheckService>(sp => new Services.UpdateCheckService(
+            sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>(),
+            sp.GetService<mRemoteNG.Platform.Security.ICryptoProvider>()));
         services.AddSingleton<Services.CloseConfirmationService>();
         services.AddSingleton<Services.AppSettingsRuntime>();
+
+        // Command line (Program registers the parsed one first; tests get the empty default).
+        services.TryAddSingleton(mRemoteNG.Core.App.StartupArguments.Empty);
+
+        // Rolling log file (mRemoteNG.log in the settings or portable folder); StorageRuntime applies the
+        // level/file/on-off options. Everything logged through ILogger<T> goes there.
+        var fileLog = new mRemoteNG.Core.Logging.RollingFileLoggerProvider(mRemoteNG.Core.App.Info.ApplicationPaths.DefaultLogFilePath);
+        services.AddSingleton(fileLog);
+        services.AddLogging(builder =>
+        {
+            builder.SetMinimumLevel(LogLevel.Debug);
+            builder.AddProvider(fileLog);
+        });
+
+        // Backups, autosave, SQL connection database (multi-user polling), file logging options.
+        services.AddSingleton<Services.StorageRuntime>();
         services.AddSingleton<mRemoteNG.Core.Credential.FileCredentialRepository>(sp =>
         {
             var directory = sp.GetRequiredService<mRemoteNG.Platform.ISettingsProvider>().ApplicationDataDirectory;

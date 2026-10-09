@@ -21,6 +21,9 @@
                 </Grid>
                 <CheckBox IsChecked="{Binding SingleInstance}"
                           Content="Allow only a single instance of mRemoteNG"/>
+                <CheckBox IsChecked="{Binding StartMinimized}"
+                          Content="Start minimised (to the system tray when minimising to the tray)"/>
+                <SelectableTextBlock Text="{Binding DataDirectoryInfo}" TextWrapping="Wrap" Opacity="0.7"/>
             </StackPanel>
         </Border>
 

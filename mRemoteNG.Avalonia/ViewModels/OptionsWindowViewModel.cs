@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Config;
 using mRemoteNG.Core.Settings;
+using mRemoteNG.Platform.Security;
 using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.ViewModels;
@@ -106,25 +107,84 @@ public sealed class GeneralSettingsViewModel(AppSettings working) : SettingsPage
         get => Working.MinimizeToTray;
         set => Set(Working.MinimizeToTray, value, v => Working.MinimizeToTray = v);
     }
+
+    public bool StartMinimized
+    {
+        get => Working.StartMinimized;
+        set => Set(Working.StartMinimized, value, v => Working.StartMinimized = v);
+    }
+
+    public string DataDirectoryInfo => mRemoteNG.Core.App.Info.ApplicationPaths.IsPortable
+        ? $"Portable mode: all data is kept in {mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory}"
+        : $"Data folder: {mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory}";
 }
 
-public sealed class AppearanceSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
+/// <summary>A theme in the Appearance list: a plain mode (Dark/Light/System) or a named theme.</summary>
+public sealed class ThemeChoice(string displayName, ThemeMode mode, string themeName)
 {
-    public IReadOnlyList<Choice<ThemeMode>> Themes { get; } =
-    [
-        new(ThemeMode.Dark, "Dark"),
-        new(ThemeMode.Light, "Light"),
-        new(ThemeMode.System, "Follow system setting"),
-    ];
+    public string DisplayName { get; } = displayName;
+    public ThemeMode Mode { get; } = mode;
 
-    public Choice<ThemeMode> SelectedTheme
+    /// <summary>Empty for the plain modes.</summary>
+    public string ThemeName { get; } = themeName;
+
+    public override string ToString() => DisplayName;
+}
+
+public sealed class AppearanceSettingsViewModel : SettingsPageViewModel
+{
+    private readonly ThemeCatalog _catalog;
+    private IReadOnlyList<ThemeChoice> _themes = [];
+
+    public AppearanceSettingsViewModel(AppSettings working, ThemeCatalog? catalog = null) : base(working)
     {
-        get => Themes.First(t => t.Value == Working.Theme);
+        _catalog = catalog ?? ThemeService.Instance.Catalog;
+        RefreshThemes();
+    }
+
+    /// <summary>Dark, Light, Follow system, then the legacy themes (VS2015 Blue, Darcula) and user themes.</summary>
+    public IReadOnlyList<ThemeChoice> Themes
+    {
+        get => _themes;
+        private set => this.RaiseAndSetIfChanged(ref _themes, value);
+    }
+
+    public ThemeChoice SelectedTheme
+    {
+        get => Themes.FirstOrDefault(t => t.ThemeName.Length > 0 && string.Equals(t.ThemeName, Working.ThemeName, StringComparison.OrdinalIgnoreCase))
+               ?? Themes.First(t => t.ThemeName.Length == 0 && t.Mode == Working.Theme);
         set
         {
             if (value is null) return;
-            Set(Working.Theme, value.Value, v => Working.Theme = v);
+            if (value.ThemeName.Length == 0)
+                Working.Theme = value.Mode;
+            Set(Working.ThemeName, value.ThemeName, v => Working.ThemeName = v);
+            this.RaisePropertyChanged();
         }
+    }
+
+    /// <summary>Re-reads the user themes (after the theme editor saved or deleted one).</summary>
+    public void RefreshThemes()
+    {
+        var list = new List<ThemeChoice>
+        {
+            new("Dark (VS2015 Dark)", ThemeMode.Dark, string.Empty),
+            new("Light (VS2015 Light)", ThemeMode.Light, string.Empty),
+            new("Follow system setting", ThemeMode.System, string.Empty),
+        };
+        foreach (var theme in _catalog.GetAll().Where(t => t.Name is not ThemeCatalog.DarkName and not ThemeCatalog.LightName))
+            list.Add(new ThemeChoice(theme.IsBuiltIn ? theme.Name : $"{theme.Name} (user theme)", theme.IsDark ? ThemeMode.Dark : ThemeMode.Light, theme.Name));
+        Themes = list;
+        this.RaisePropertyChanged(nameof(SelectedTheme));
+    }
+
+    /// <summary>Selects a theme saved by the theme editor.</summary>
+    public void SelectThemeByName(string name)
+    {
+        RefreshThemes();
+        var choice = Themes.FirstOrDefault(t => string.Equals(t.ThemeName, name, StringComparison.OrdinalIgnoreCase));
+        if (choice is not null)
+            SelectedTheme = choice;
     }
 
     public string FontFamily
@@ -260,14 +320,130 @@ public sealed class NotificationsSettingsViewModel(AppSettings working) : Settin
 public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
 {
     private readonly UpdateCheckService _updates;
+    private readonly ICryptoProvider? _crypto;
     private string _status = string.Empty;
     private string? _releaseUrl;
+    private UpdateCheckResult? _lastCheck;
+    private string _proxyPassword;
+    private double _downloadProgress;
+    private bool _isDownloading;
+    private string? _downloadedFile;
 
-    public UpdatesSettingsViewModel(AppSettings working, UpdateCheckService updates) : base(working)
+    public UpdatesSettingsViewModel(AppSettings working, UpdateCheckService updates, ICryptoProvider? crypto = null) : base(working)
     {
         _updates = updates;
+        _crypto = crypto;
+        _proxyPassword = StorageRuntime.UnprotectPassword(crypto, working.UpdateProxyPasswordProtected);
         CheckNowCommand = ReactiveCommand.CreateFromTask(CheckNowAsync);
         CheckNowCommand.ThrownExceptions.Subscribe(ex => Status = $"Update check failed: {ex.Message}");
+        var canDownload = this.WhenAnyValue(x => x.CanDownload);
+        DownloadCommand = ReactiveCommand.CreateFromTask(DownloadAsync, canDownload);
+        DownloadCommand.ThrownExceptions.Subscribe(ex =>
+        {
+            IsDownloading = false;
+            Status = $"Download failed: {ex.Message}";
+        });
+    }
+
+    public bool UseProxy
+    {
+        get => Working.UpdateUseProxy;
+        set => Set(Working.UpdateUseProxy, value, v => Working.UpdateUseProxy = v);
+    }
+
+    public string ProxyAddress
+    {
+        get => Working.UpdateProxyAddress;
+        set => Set(Working.UpdateProxyAddress, value?.Trim() ?? string.Empty, v => Working.UpdateProxyAddress = v);
+    }
+
+    public decimal? ProxyPort
+    {
+        get => Working.UpdateProxyPort;
+        set
+        {
+            if (value is null) return;
+            Set(Working.UpdateProxyPort, (int)Math.Round(value.Value), v => Working.UpdateProxyPort = v);
+        }
+    }
+
+    public bool ProxyUseAuthentication
+    {
+        get => Working.UpdateProxyUseAuthentication;
+        set => Set(Working.UpdateProxyUseAuthentication, value, v => Working.UpdateProxyUseAuthentication = v);
+    }
+
+    public string ProxyUsername
+    {
+        get => Working.UpdateProxyUsername;
+        set => Set(Working.UpdateProxyUsername, value ?? string.Empty, v => Working.UpdateProxyUsername = v);
+    }
+
+    /// <summary>Plain-text proxy password; stored encrypted with the platform crypto provider.</summary>
+    public string ProxyPassword
+    {
+        get => _proxyPassword;
+        set
+        {
+            value ??= string.Empty;
+            if (value == _proxyPassword) return;
+            _proxyPassword = value;
+            Working.UpdateProxyPasswordProtected = value.Length == 0 || _crypto is null ? string.Empty : _crypto.Protect(value);
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public ReactiveCommand<Unit, Unit> DownloadCommand { get; }
+
+    /// <summary>True when the last check found an update with a package for this platform.</summary>
+    public bool CanDownload => _lastCheck is { IsUpdateAvailable: true } check
+                               && mRemoteNG.Core.Settings.UpdateDownloader.SelectAsset(check.Assets, _updates.Platform) is not null
+                               && !IsDownloading;
+
+    public string? PackageName => _lastCheck is null ? null : mRemoteNG.Core.Settings.UpdateDownloader.SelectAsset(_lastCheck.Assets, _updates.Platform)?.Name;
+
+    public bool IsDownloading
+    {
+        get => _isDownloading;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isDownloading, value);
+            this.RaisePropertyChanged(nameof(CanDownload));
+        }
+    }
+
+    public double DownloadProgress
+    {
+        get => _downloadProgress;
+        private set => this.RaiseAndSetIfChanged(ref _downloadProgress, value);
+    }
+
+    /// <summary>The downloaded package (for "Open" / "Show in folder").</summary>
+    public string? DownloadedFile
+    {
+        get => _downloadedFile;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _downloadedFile, value);
+            this.RaisePropertyChanged(nameof(HasDownloadedFile));
+        }
+    }
+
+    public bool HasDownloadedFile => !string.IsNullOrEmpty(DownloadedFile);
+
+    private async Task DownloadAsync()
+    {
+        if (_lastCheck is null)
+            return;
+        IsDownloading = true;
+        DownloadedFile = null;
+        DownloadProgress = 0;
+        Status = $"Downloading {PackageName}…";
+        var progress = new Progress<double>(p => DownloadProgress = p * 100);
+        var result = await _updates.DownloadAsync(_lastCheck, progress, Working);
+        IsDownloading = false;
+        Status = result.Message;
+        DownloadedFile = result.Succeeded ? result.FilePath : null;
     }
 
     public IReadOnlyList<Choice<UpdateChannel>> Channels { get; } =
@@ -318,9 +494,15 @@ public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
     {
         Status = "Checking…";
         ReleaseUrl = null;
-        var result = await _updates.CheckAsync(Working.UpdateChannel);
+        DownloadedFile = null;
+        _lastCheck = null;
+        // Uses the proxy entered on this page, even before OK/Apply.
+        var result = await _updates.CheckAsync(Working.UpdateChannel, Working);
+        _lastCheck = result;
         Status = result.Message;
         ReleaseUrl = result.IsUpdateAvailable ? result.ReleaseUrl : null;
+        this.RaisePropertyChanged(nameof(CanDownload));
+        this.RaisePropertyChanged(nameof(PackageName));
     }
 }
 
@@ -340,6 +522,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
 {
     private readonly AppSettingsService _settings;
     private readonly UpdateCheckService _updates;
+    private readonly ICryptoProvider? _crypto;
     private readonly Func<int> _credentialCount;
     private readonly mRemoteNG.ExternalProviders.ExternalProviderFactory? _externalProviders;
     private readonly AppSettings _working;
@@ -351,8 +534,9 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         AppSettingsService settings,
         UpdateCheckService updates,
         mRemoteNG.Core.Credential.FileCredentialRepository credentials,
+        ICryptoProvider? crypto = null,
         mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders = null)
-        : this(settings, updates, () => credentials.CredentialRecords.Count, externalProviders)
+        : this(settings, updates, () => credentials.CredentialRecords.Count, crypto, externalProviders)
     {
     }
 
@@ -360,10 +544,12 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         AppSettingsService settings,
         UpdateCheckService updates,
         Func<int> credentialCount,
+        ICryptoProvider? crypto,
         mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders)
     {
         _settings = settings;
         _updates = updates;
+        _crypto = crypto;
         _credentialCount = credentialCount;
         _externalProviders = externalProviders;
         _working = settings.CreateEditableCopy();
@@ -385,6 +571,9 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     public UpdatesSettingsViewModel Updates { get; private set; } = null!;
     public ExternalProvidersSettingsViewModel ExternalProviders { get; private set; } = null!;
     public TabsPanelsSettingsViewModel TabsPanels { get; private set; } = null!;
+    public SavingSettingsViewModel Saving { get; private set; } = null!;
+    public SqlServerSettingsViewModel SqlServer { get; private set; } = null!;
+    public LoggingSettingsViewModel Logging { get; private set; } = null!;
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
@@ -392,11 +581,18 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         new("Appearance", "appearance"),
         new("Connections", "connections"),
         new("Tabs & Panels", "tabspanels"),
+        new("Saving & Backups", "saving"),
+        new("SQL Server", "sql"),
         new("Credentials", "credentials"),
         new("External Providers", "externalProviders"),
         new("Notifications", "notifications"),
+        new("Logging", "logging"),
         new("Updates", "updates"),
     ];
+
+    /// <summary>Selects a page by key ("general", "sql", …).</summary>
+    public void SelectCategory(string key) =>
+        SelectedCategory = Categories.FirstOrDefault(c => c.Key == key) ?? SelectedCategory;
 
     public SettingsCategoryViewModel? SelectedCategory
     {
@@ -466,9 +662,12 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         Connections = new ConnectionSettingsViewModel(_working);
         Credentials = new CredentialsSettingsViewModel(_working, _credentialCount);
         Notifications = new NotificationsSettingsViewModel(_working);
-        Updates = new UpdatesSettingsViewModel(_working, _updates);
-        ExternalProviders = new ExternalProvidersSettingsViewModel(_working, _externalProviders);
+                ExternalProviders = new ExternalProvidersSettingsViewModel(_working, _externalProviders);
         TabsPanels = new TabsPanelsSettingsViewModel(_working);
+        Updates = new UpdatesSettingsViewModel(_working, _updates, _crypto);
+        Saving = new SavingSettingsViewModel(_working);
+        SqlServer = new SqlServerSettingsViewModel(_working, _crypto);
+        Logging = new LoggingSettingsViewModel(_working);
     }
 
     private object? ResolvePageViewModel(string? key) => key switch
@@ -481,6 +680,9 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         "updates" => Updates,
         "externalProviders" => ExternalProviders,
         "tabspanels" => TabsPanels,
+        "saving" => Saving,
+        "sql" => SqlServer,
+        "logging" => Logging,
         _ => null,
     };
 
@@ -512,6 +714,9 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(Updates));
         this.RaisePropertyChanged(nameof(ExternalProviders));
         this.RaisePropertyChanged(nameof(TabsPanels));
+        this.RaisePropertyChanged(nameof(Saving));
+        this.RaisePropertyChanged(nameof(SqlServer));
+        this.RaisePropertyChanged(nameof(Logging));
         CurrentPage = ResolvePageViewModel(SelectedCategory?.Key);
     }
 }

@@ -10,7 +10,7 @@ namespace mRemoteNG.Platform.Mac.Settings;
 public sealed class MacSettingsProvider : XmlFileSettingsProvider
 {
     public MacSettingsProvider(ILogger<MacSettingsProvider>? logger = null)
-        : base(ResolveApplicationDataDirectory(), logger)
+        : base(AppDataLocation.Resolve(ResolveApplicationDataDirectory), logger)
     {
     }
 

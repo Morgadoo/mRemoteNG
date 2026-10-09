@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using mRemoteNG.Avalonia.ViewModels.Docking;
+using mRemoteNG.Core.App;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Platform;
@@ -16,7 +17,8 @@ namespace mRemoteNG.Avalonia.Services;
 /// <summary>
 /// Makes <see cref="AppSettings"/> take effect in the running app:
 /// theme/fonts/toolbars, tray icon, minimise-to-tray, remembering the
-/// last connection file, save-on-exit, desktop notifications and the startup update check.
+/// last connection file, save-on-exit, desktop notifications, the startup update check, starting minimised,
+/// and (through <see cref="StorageRuntime"/>) backups, autosave, the SQL database and file logging.
 /// Re-applies whenever <see cref="AppSettingsService.Changed"/> fires.
 /// </summary>
 public sealed class AppSettingsRuntime : IDisposable
@@ -28,6 +30,8 @@ public sealed class AppSettingsRuntime : IDisposable
     private readonly LogPanelDockable _log;
     private readonly INotificationService? _notifications;
     private readonly UpdateCheckService _updates;
+    private readonly StorageRuntime? _storage;
+    private readonly StartupArguments _arguments;
     private readonly ILogger _logger;
     private readonly HashSet<SessionTabViewModel> _watchedSessions = [];
     private readonly Dictionary<SessionTabViewModel, bool> _wasConnected = [];
@@ -44,8 +48,12 @@ public sealed class AppSettingsRuntime : IDisposable
         LogPanelDockable log,
         UpdateCheckService updates,
         INotificationService? notifications = null,
-        ILogger<AppSettingsRuntime>? logger = null)
+        ILogger<AppSettingsRuntime>? logger = null,
+        StorageRuntime? storage = null,
+        StartupArguments? arguments = null)
     {
+        _storage = storage;
+        _arguments = arguments ?? StartupArguments.Empty;
         _settings = settings;
         _startup = startup;
         _connections = connections;
@@ -65,7 +73,16 @@ public sealed class AppSettingsRuntime : IDisposable
         _mainWindow = mainWindow;
         _tray = tray;
 
+        // /resettoolbar (or /reset) brings back the toolbar and status bar.
+        if (_arguments.ResetToolbar && (!_settings.Current.ShowToolbar || !_settings.Current.ShowStatusBar))
+            _settings.Update(s => { s.ShowToolbar = true; s.ShowStatusBar = true; });
+
+        _storage?.Attach();
         ApplyAll();
+
+        if (_settings.Current.StartMinimized || _arguments.StartMinimized)
+            mainWindow.WindowState = WindowState.Minimized;
+        mainWindow.Opened += OnMainWindowOpened;
         _settings.Changed += OnSettingsChanged;
 
         mainWindow.PropertyChanged += OnMainWindowPropertyChanged;
@@ -97,6 +114,30 @@ public sealed class AppSettingsRuntime : IDisposable
         _tray?.SetVisible(current.ShowTrayIcon);
     }
 
+    private async void OnMainWindowOpened(object? sender, EventArgs e)
+    {
+        if (_mainWindow is null)
+            return;
+        _mainWindow.Opened -= OnMainWindowOpened;
+
+        // Started minimised with minimise-to-tray: only the tray icon is shown.
+        if (_mainWindow.WindowState == WindowState.Minimized && _settings.Current.MinimizeToTray
+            && _settings.Current.ShowTrayIcon && _tray?.IsVisible == true)
+        {
+            _mainWindow.Hide();
+        }
+
+        try
+        {
+            if (_storage is not null)
+                await _storage.LoadAtStartupAsync(_mainWindow, _arguments);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Loading the SQL connection database at startup failed");
+        }
+    }
+
     // ── Exit ──────────────────────────────────────────────────────────────
 
     /// <summary>Remembers the open connection file and saves it if "save on exit" is on. Runs once.</summary>
@@ -104,6 +145,8 @@ public sealed class AppSettingsRuntime : IDisposable
     {
         if (Interlocked.Exchange(ref _exitPersisted, 1) == 1)
             return;
+
+        _storage?.OnExit();
 
         try
         {
@@ -114,12 +157,8 @@ public sealed class AppSettingsRuntime : IDisposable
             _logger.LogError(ex, "Could not remember the last connection file");
         }
 
-        if (!_settings.Current.SaveConnectionsOnExit
-            || _connections.ConnectionTreeModel is null
-            || string.IsNullOrEmpty(_connections.CurrentFilePath))
-        {
+        if (!_settings.Current.SaveConnectionsOnExit || !_connections.HasStorage)
             return;
-        }
 
         try
         {
@@ -257,6 +296,7 @@ public sealed class AppSettingsRuntime : IDisposable
 
     public void Dispose()
     {
+        _storage?.Dispose();
         _settings.Changed -= OnSettingsChanged;
         _sessions.Sessions.CollectionChanged -= OnSessionsChanged;
         _log.Entries.CollectionChanged -= OnLogEntriesChanged;

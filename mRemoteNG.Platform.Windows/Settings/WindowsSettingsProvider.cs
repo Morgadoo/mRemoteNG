@@ -13,7 +13,7 @@ namespace mRemoteNG.Platform.Windows.Settings;
 public sealed class WindowsSettingsProvider : XmlFileSettingsProvider
 {
     public WindowsSettingsProvider(ILogger<WindowsSettingsProvider>? logger = null)
-        : base(ResolveApplicationDataDirectory(), logger)
+        : base(AppDataLocation.Resolve(ResolveApplicationDataDirectory), logger)
     {
     }
 

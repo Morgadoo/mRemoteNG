@@ -48,6 +48,7 @@
   <!-- Import fixtures created for the cross-platform importers -->
   <ItemGroup>
     <None Include="Resources\Import\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Resources\Sql\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

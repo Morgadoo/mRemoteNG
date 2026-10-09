@@ -1,5 +1,6 @@
 namespace mRemoteNG.Core.Config.DataProviders
 {
+    /// <summary>Reads and writes a text file. Writes go to a temp file first and are then renamed into place.</summary>
     public class FileDataProvider : IDataProvider<string>
     {
         public string FilePath { get; }
@@ -16,11 +17,20 @@ namespace mRemoteNG.Core.Config.DataProviders
 
         public void Save(string data)
         {
-            var directory = Path.GetDirectoryName(FilePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-
-            File.WriteAllText(FilePath, data);
+            // Write to a temp file first so a crash mid-write never truncates the user's file.
+            var directory = Path.GetDirectoryName(Path.GetFullPath(FilePath))!;
+            Directory.CreateDirectory(directory);
+            var tempPath = Path.Combine(directory, $".{Path.GetFileName(FilePath)}.{Guid.NewGuid():N}.tmp");
+            try
+            {
+                File.WriteAllText(tempPath, data);
+                File.Move(tempPath, FilePath, overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
         }
     }
 }

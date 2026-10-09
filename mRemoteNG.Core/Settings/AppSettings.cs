@@ -1,5 +1,7 @@
 using System.Reflection;
 using mRemoteNG.Core.Config;
+using mRemoteNG.Core.Config.DataProviders;
+using mRemoteNG.Core.Config.DatabaseConnectors;
 using mRemoteNG.Core.Connection.Protocol;
 
 namespace mRemoteNG.Core.Settings;
@@ -30,6 +32,15 @@ public enum UpdateChannel
     PreRelease,
 }
 
+/// <summary>Minimum level written to the log file.</summary>
+public enum LogFileLevel
+{
+    Debug,
+    Information,
+    Warning,
+    Error,
+}
+
 /// <summary>Marks an <see cref="AppSettings"/> property as persisted, under the given settings section.</summary>
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class PersistedSettingAttribute(string section) : Attribute
@@ -56,6 +67,9 @@ public sealed class AppSettings
     public const int MinReconnectAttempts = 1;
     public const int MaxReconnectAttempts = 50;
     public const int DefaultReconnectAttempts = 5;
+    public const int MaxAutoSaveMinutes = 1440;
+    public const int MinSqlUpdateCheckSeconds = 1;
+    public const int MaxSqlUpdateCheckSeconds = 3600;
 
     /// <summary>Protocol names offered as the default protocol (same strings as the quick-connect box).</summary>
     public static IReadOnlyList<string> DefaultProtocolChoices { get; } = ["SSH", "RDP", "VNC", "Telnet", "HTTP", "HTTPS"];
@@ -83,6 +97,9 @@ public sealed class AppSettings
     /// </summary>
     [PersistedSetting("Exit")] public ConfirmCloseEnum ConfirmCloseConnection { get; set; } = ConfirmCloseEnum.Exit;
 
+    /// <summary>Start with the main window minimised (hidden in the tray when minimise-to-tray is on).</summary>
+    [PersistedSetting("Startup")] public bool StartMinimized { get; set; }
+
     [PersistedSetting("Tray")] public bool ShowTrayIcon { get; set; } = true;
 
     /// <summary>Hide the main window when it is minimised; restore it from the tray icon.</summary>
@@ -91,6 +108,12 @@ public sealed class AppSettings
     // ── Appearance ───────────────────────────────────────────────────────
 
     [PersistedSetting("Appearance")] public ThemeMode Theme { get; set; } = ThemeMode.Dark;
+
+    /// <summary>
+    /// A named theme (built-in such as "Darcula", or a user theme from the Themes folder) that replaces
+    /// <see cref="Theme"/>; empty means use <see cref="Theme"/>.
+    /// </summary>
+    [PersistedSetting("Appearance")] public string ThemeName { get; set; } = string.Empty;
 
     /// <summary>UI font family; empty means the theme's default font.</summary>
     [PersistedSetting("Appearance")] public string FontFamily { get; set; } = string.Empty;
@@ -255,6 +278,77 @@ public sealed class AppSettings
     /// <summary>Main window and session panel layout as JSON (not shown in the UI); empty for the default layout.</summary>
     [PersistedSetting("Layout")] public string WindowLayout { get; set; } = string.Empty;
 
+    // ── Update proxy ─────────────────────────────────────────────────────
+
+    /// <summary>Use a custom proxy for the update check and download (otherwise the system proxy).</summary>
+    [PersistedSetting("Updates")] public bool UpdateUseProxy { get; set; }
+
+    [PersistedSetting("Updates")] public string UpdateProxyAddress { get; set; } = string.Empty;
+
+    [PersistedSetting("Updates")] public int UpdateProxyPort { get; set; } = 80;
+
+    [PersistedSetting("Updates")] public bool UpdateProxyUseAuthentication { get; set; }
+
+    [PersistedSetting("Updates")] public string UpdateProxyUsername { get; set; } = string.Empty;
+
+    /// <summary>Proxy password, encrypted with the platform crypto provider (DPAPI / key file).</summary>
+    [PersistedSetting("Updates")] public string UpdateProxyPasswordProtected { get; set; } = string.Empty;
+
+    // ── Saving and backups ───────────────────────────────────────────────
+
+    /// <summary>Save the connections every N minutes when they changed (0 = off; legacy AutoSaveEveryMinutes).</summary>
+    [PersistedSetting("Saving")] public int AutoSaveEveryMinutes { get; set; }
+
+    /// <summary>Save the connections shortly after every edit (legacy SaveConnectionsAfterEveryEdit).</summary>
+    [PersistedSetting("Saving")] public bool SaveConnectionsOnEdit { get; set; }
+
+    /// <summary>When the connection file is backed up (legacy: before every save when the keep count is above 0).</summary>
+    [PersistedSetting("Backup")] public BackupFrequency BackupFrequency { get; set; } = BackupFrequency.OnSave;
+
+    /// <summary>How many backups to keep (legacy BackupFileKeepCount).</summary>
+    [PersistedSetting("Backup")] public int BackupKeepCount { get; set; } = 10;
+
+    /// <summary>Backup folder; empty = next to the connection file.</summary>
+    [PersistedSetting("Backup")] public string BackupDirectory { get; set; } = string.Empty;
+
+    /// <summary>Backup file name format: {0} = connection file, {1} = timestamp (legacy BackupFileNameFormat).</summary>
+    [PersistedSetting("Backup")] public string BackupNameFormat { get; set; } = FileBackupOptions.DefaultNameFormat;
+
+    // ── SQL server ───────────────────────────────────────────────────────
+
+    /// <summary>Load and save the connections in a SQL database instead of a file (legacy UseSQLServer).</summary>
+    [PersistedSetting("SqlServer")] public bool UseSqlServer { get; set; }
+
+    [PersistedSetting("SqlServer")] public DatabaseServerType SqlServerType { get; set; } = DatabaseServerType.MsSql;
+
+    /// <summary>Server name, optionally "host:port".</summary>
+    [PersistedSetting("SqlServer")] public string SqlHost { get; set; } = string.Empty;
+
+    [PersistedSetting("SqlServer")] public string SqlDatabaseName { get; set; } = string.Empty;
+
+    [PersistedSetting("SqlServer")] public string SqlUsername { get; set; } = string.Empty;
+
+    /// <summary>SQL password, encrypted with the platform crypto provider (DPAPI / key file).</summary>
+    [PersistedSetting("SqlServer")] public string SqlPasswordProtected { get; set; } = string.Empty;
+
+    /// <summary>Never write to the database (legacy SQLReadOnly).</summary>
+    [PersistedSetting("SqlServer")] public bool SqlReadOnly { get; set; }
+
+    /// <summary>How often other clients' saves are looked for (tblUpdate polling; legacy: 3 s).</summary>
+    [PersistedSetting("SqlServer")] public int SqlUpdateCheckIntervalSeconds { get; set; } = 3;
+
+    /// <summary>Reload automatically when another client saved and there are no unsaved local changes.</summary>
+    [PersistedSetting("SqlServer")] public bool SqlAutoReload { get; set; } = true;
+
+    // ── Logging ──────────────────────────────────────────────────────────
+
+    [PersistedSetting("Logging")] public bool LogToFile { get; set; } = true;
+
+    [PersistedSetting("Logging")] public LogFileLevel LogLevel { get; set; } = LogFileLevel.Information;
+
+    /// <summary>Log file; empty = mRemoteNG.log in the settings (or portable) folder.</summary>
+    [PersistedSetting("Logging")] public string LogFilePath { get; set; } = string.Empty;
+
     // ── Helpers ──────────────────────────────────────────────────────────
 
     /// <summary>All persisted properties with their section.</summary>
@@ -279,6 +373,30 @@ public sealed class AppSettings
     /// <summary>True when every persisted value equals the one in <paramref name="other"/>.</summary>
     public bool ValueEquals(AppSettings other) =>
         PersistedProperties.All(p => Equals(p.Property.GetValue(this), p.Property.GetValue(other)));
+
+    /// <summary>The rolling backup settings for <see cref="Config.Connections.ConnectionsService"/>.</summary>
+    public FileBackupOptions GetBackupOptions() => new()
+    {
+        KeepCount = BackupFrequency == BackupFrequency.Never ? 0 : BackupKeepCount,
+        BackupDirectory = BackupDirectory ?? string.Empty,
+        NameFormat = IsValidBackupNameFormat(BackupNameFormat) ? BackupNameFormat : FileBackupOptions.DefaultNameFormat,
+    };
+
+    /// <summary>True when <paramref name="format"/> uses {0} and {1} and formats without error.</summary>
+    public static bool IsValidBackupNameFormat(string? format)
+    {
+        if (string.IsNullOrWhiteSpace(format) || !format.Contains("{0") || !format.Contains("{1"))
+            return false;
+        try
+        {
+            var name = string.Format(System.Globalization.CultureInfo.InvariantCulture, format, "confCons.xml", DateTime.Now);
+            return name.IndexOfAny(Path.GetInvalidFileNameChars().Where(c => c != '/' && c != '\\').ToArray()) < 0;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+    }
 
     /// <summary>The default port for a protocol, or null when the protocol has no network port.</summary>
     public int? GetDefaultPort(ProtocolType protocol) => protocol switch
@@ -344,10 +462,38 @@ public sealed class AppSettings
             errors.Add("Choose the connection file to open at startup.");
 
         if (!Enum.IsDefined(StartupBehavior) || !Enum.IsDefined(ConfirmCloseConnection)
-            || !Enum.IsDefined(Theme) || !Enum.IsDefined(UpdateChannel))
+            || !Enum.IsDefined(Theme) || !Enum.IsDefined(UpdateChannel)
+            || !Enum.IsDefined(BackupFrequency) || !Enum.IsDefined(SqlServerType) || !Enum.IsDefined(LogLevel))
             errors.Add("An option has an unknown value.");
 
         ValidateExternalProviders(errors);
+        if (AutoSaveEveryMinutes is < 0 or > MaxAutoSaveMinutes)
+            errors.Add($"Automatic save interval must be between 0 and {MaxAutoSaveMinutes} minutes.");
+
+        if (BackupKeepCount is < 0 or > FileBackupOptions.MaxKeepCount)
+            errors.Add($"Number of backups must be between 0 and {FileBackupOptions.MaxKeepCount}.");
+
+        if (!IsValidBackupNameFormat(BackupNameFormat))
+            errors.Add("The backup file name format must contain {0} (file) and {1} (time), e.g. {0}.{1:yyyyMMdd-HHmmssffff}.backup.");
+
+        if (SqlUpdateCheckIntervalSeconds is < MinSqlUpdateCheckSeconds or > MaxSqlUpdateCheckSeconds)
+            errors.Add($"SQL update check interval must be between {MinSqlUpdateCheckSeconds} and {MaxSqlUpdateCheckSeconds} seconds.");
+
+        if (UseSqlServer)
+        {
+            if (string.IsNullOrWhiteSpace(SqlHost))
+                errors.Add("Enter the SQL server host name.");
+            if (string.IsNullOrWhiteSpace(SqlDatabaseName))
+                errors.Add("Enter the SQL database name.");
+        }
+
+        if (UpdateUseProxy)
+        {
+            if (string.IsNullOrWhiteSpace(UpdateProxyAddress))
+                errors.Add("Enter the proxy address.");
+            if (UpdateProxyPort is < MinPort or > MaxPort)
+                errors.Add($"Proxy port must be between {MinPort} and {MaxPort}.");
+        }
 
         return errors;
     }
@@ -396,6 +542,27 @@ public sealed class AppSettings
         Fix<string>(nameof(SshPrivateKeyPath), SshPrivateKeyPath is null, v => SshPrivateKeyPath = v, string.Empty);
         Fix<string>(nameof(DefaultConnectionValues), DefaultConnectionValues is null, v => DefaultConnectionValues = v, string.Empty);
         Fix<string>(nameof(DefaultConnectionInheritance), DefaultConnectionInheritance is null, v => DefaultConnectionInheritance = v, string.Empty);
+        Fix<int>(nameof(AutoSaveEveryMinutes), AutoSaveEveryMinutes is < 0 or > MaxAutoSaveMinutes,
+            v => AutoSaveEveryMinutes = v, defaults.AutoSaveEveryMinutes);
+        Fix<int>(nameof(BackupKeepCount), BackupKeepCount is < 0 or > FileBackupOptions.MaxKeepCount,
+            v => BackupKeepCount = v, defaults.BackupKeepCount);
+        Fix<string>(nameof(BackupNameFormat), !IsValidBackupNameFormat(BackupNameFormat),
+            v => BackupNameFormat = v, defaults.BackupNameFormat);
+        Fix<int>(nameof(SqlUpdateCheckIntervalSeconds),
+            SqlUpdateCheckIntervalSeconds is < MinSqlUpdateCheckSeconds or > MaxSqlUpdateCheckSeconds,
+            v => SqlUpdateCheckIntervalSeconds = v, defaults.SqlUpdateCheckIntervalSeconds);
+        Fix<int>(nameof(UpdateProxyPort), UpdateProxyPort is < MinPort or > MaxPort,
+            v => UpdateProxyPort = v, defaults.UpdateProxyPort);
+        foreach (var property in PersistedProperties.Where(p => p.Property.PropertyType == typeof(string)))
+        {
+            if (property.Property.GetValue(this) is null)
+            {
+                property.Property.SetValue(this, property.Property.GetValue(defaults));
+                if (!reset.Contains(property.Property.Name))
+                    reset.Add(property.Property.Name);
+            }
+        }
+
         Fix<StartupFileBehavior>(nameof(StartupBehavior),
             StartupBehavior == StartupFileBehavior.OpenSpecificFile && string.IsNullOrWhiteSpace(StartupFilePath),
             v => StartupBehavior = v, defaults.StartupBehavior);
