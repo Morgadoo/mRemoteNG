@@ -5,11 +5,14 @@ on:
     branches:
       - 'claude/**'
       - 'main'
+      - 'dev'
       - 'develop'
   pull_request:
     branches:
       - main
+      - dev
       - develop
+  workflow_dispatch:
 
 jobs:
   # ─────────────────────────────────────────────
