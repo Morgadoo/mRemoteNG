@@ -5,141 +5,98 @@
         x:DataType="vm:SshFileTransferViewModel"
         Title="SSH File Transfer (SFTP)"
         Width="900"
-        Height="600"
+        Height="620"
         MinWidth="720"
         MinHeight="480"
         WindowStartupLocation="CenterOwner">
 
-    <Grid RowDefinitions="*,Auto,Auto" Margin="16">
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="16">
 
-        <!-- Two-panel file browser -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*" Margin="0,0,0,12">
-
-            <!-- Left panel: local filesystem -->
-            <Border Classes="card" Grid.Column="0" Margin="0,0,6,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="Local" Classes="section-header" Margin="0,0,0,8"/>
-
-                    <!-- Path bar -->
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,8,Auto" Margin="0,0,0,6">
-                        <TextBox Grid.Column="0"
-                                 Text="{Binding LocalPath}"
-                                 Watermark="Local path"/>
-                        <Button Grid.Column="2"
-                                Content="↑"
-                                ToolTip.Tip="Go up one level"
-                                MinWidth="32"
-                                Command="{Binding LocalUpCommand}"/>
-                    </Grid>
-
-                    <!-- File list -->
-                    <ListBox ItemsSource="{Binding LocalFiles}"
-                             SelectedItem="{Binding SelectedLocal}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:FileEntry">
-                                <Grid ColumnDefinitions="*,80,110">
-                                    <TextBlock Grid.Column="0"
-                                               Text="{Binding Name}"
-                                               FontWeight="Normal"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding Size}"
-                                               HorizontalAlignment="Right"
-                                               Opacity="0.65"
-                                               FontSize="11"/>
-                                    <TextBlock Grid.Column="2"
-                                               Text="{Binding Modified}"
-                                               HorizontalAlignment="Right"
-                                               Opacity="0.65"
-                                               FontSize="11"
-                                               Margin="8,0,0,0"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
-            </Border>
-
-            <!-- Transfer buttons (center column) -->
-            <StackPanel Grid.Column="1"
-                        VerticalAlignment="Center"
-                        Spacing="12"
-                        Margin="6,0">
-                <Button Content="→"
-                        ToolTip.Tip="Upload selected file"
-                        MinWidth="40"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding UploadCommand}"/>
-                <Button Content="←"
-                        ToolTip.Tip="Download selected file"
-                        MinWidth="40"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding DownloadCommand}"/>
+        <!-- Connection -->
+        <Grid Grid.Row="0" ColumnDefinitions="2*,8,70,8,*,8,*,8,*,8,Auto" Margin="0,0,0,12">
+            <TextBox Grid.Column="0" Text="{Binding Host}" Watermark="Host"
+                     IsEnabled="{Binding !IsConnected}"/>
+            <NumericUpDown Grid.Column="2" Value="{Binding Port}" Minimum="1" Maximum="65535"
+                           FormatString="0" ShowButtonSpinner="False" ToolTip.Tip="Port"
+                           IsEnabled="{Binding !IsConnected}"/>
+            <TextBox Grid.Column="4" Text="{Binding Username}" Watermark="Username"
+                     IsEnabled="{Binding !IsConnected}"/>
+            <TextBox Grid.Column="6" Text="{Binding Password}" Watermark="Password" PasswordChar="●"
+                     IsEnabled="{Binding !IsConnected}"/>
+            <TextBox Grid.Column="8" Text="{Binding PrivateKeyPath}" Watermark="Private key (optional)"
+                     IsEnabled="{Binding !IsConnected}"/>
+            <StackPanel Grid.Column="10" Orientation="Horizontal" Spacing="8">
+                <Button Content="Connect" Classes="accent" MinWidth="90" Command="{Binding ConnectCommand}"
+                        IsVisible="{Binding !IsConnected}" IsDefault="True"/>
+                <Button Content="Disconnect" MinWidth="90" Command="{Binding DisconnectCommand}"
+                        IsVisible="{Binding IsConnected}"/>
             </StackPanel>
-
-            <!-- Right panel: remote SFTP filesystem -->
-            <Border Classes="card" Grid.Column="2" Margin="6,0,0,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="Remote (SFTP)" Classes="section-header" Margin="0,0,0,8"/>
-
-                    <!-- Path bar -->
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,8,Auto" Margin="0,0,0,6">
-                        <TextBox Grid.Column="0"
-                                 Text="{Binding RemotePath}"
-                                 Watermark="Remote path"/>
-                        <Button Grid.Column="2"
-                                Content="↑"
-                                ToolTip.Tip="Go up one level"
-                                MinWidth="32"
-                                Command="{Binding RemoteUpCommand}"/>
-                    </Grid>
-
-                    <!-- Remote file list -->
-                    <ListBox ItemsSource="{Binding RemoteFiles}"
-                             SelectedItem="{Binding SelectedRemote}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:FileEntry">
-                                <Grid ColumnDefinitions="*,80,110">
-                                    <TextBlock Grid.Column="0"
-                                               Text="{Binding Name}"
-                                               FontWeight="Normal"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding Size}"
-                                               HorizontalAlignment="Right"
-                                               Opacity="0.65"
-                                               FontSize="11"/>
-                                    <TextBlock Grid.Column="2"
-                                               Text="{Binding Modified}"
-                                               HorizontalAlignment="Right"
-                                               Opacity="0.65"
-                                               FontSize="11"
-                                               Margin="8,0,0,0"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
-            </Border>
-
         </Grid>
 
-        <!-- Progress bar -->
-        <ProgressBar Grid.Row="1"
-                     Minimum="0" Maximum="100"
-                     Value="{Binding TransferProgress}"
-                     Height="8"
-                     Margin="0,0,0,8"/>
+        <!-- Remote path and actions -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,8,*,8,Auto" Margin="0,0,0,6">
+            <Button Grid.Column="0" Content="↑" MinWidth="32" ToolTip.Tip="Parent folder"
+                    Command="{Binding UpCommand}"/>
+            <TextBox Grid.Column="2" x:Name="RemotePathBox" Text="{Binding RemotePath}"
+                     Watermark="Remote path (press Enter to open)" IsEnabled="{Binding IsConnected}"/>
+            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
+                <Button Content="Refresh" Command="{Binding RefreshCommand}"/>
+                <Button Content="New folder…" Command="{Binding NewFolderCommand}"/>
+                <Button Content="Delete…" Command="{Binding DeleteCommand}"/>
+                <Button Content="Upload…" Classes="accent" Command="{Binding UploadCommand}"/>
+                <Button Content="Download…" Classes="accent" Command="{Binding DownloadCommand}"/>
+            </StackPanel>
+        </Grid>
 
-        <!-- Status bar + Close button -->
-        <Border Grid.Row="2" BorderBrush="#3f3f46" BorderThickness="0,1,0,0" Padding="0,8,0,0">
+        <!-- Remote file list -->
+        <Border Grid.Row="2" BorderBrush="#3f3f46" BorderThickness="1" Margin="0,0,0,8">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,100,150" Margin="12,6">
+                    <TextBlock Grid.Column="0" Text="Name" Opacity="0.65" FontSize="11"/>
+                    <TextBlock Grid.Column="1" Text="Size" Opacity="0.65" FontSize="11" HorizontalAlignment="Right"/>
+                    <TextBlock Grid.Column="2" Text="Modified" Opacity="0.65" FontSize="11" HorizontalAlignment="Right"/>
+                </Grid>
+                <ListBox x:Name="RemoteList"
+                         ItemsSource="{Binding RemoteFiles}"
+                         SelectedItem="{Binding SelectedRemote}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SftpFileItem">
+                            <Grid ColumnDefinitions="*,100,150">
+                                <TextBlock Grid.Column="0" Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Size}" HorizontalAlignment="Right"
+                                           Opacity="0.65" FontSize="11"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Modified}" HorizontalAlignment="Right"
+                                           Opacity="0.65" FontSize="11"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Progress -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,8,Auto" Margin="0,0,0,8" IsVisible="{Binding IsTransferring}">
+            <ProgressBar Grid.Column="0" Minimum="0" Maximum="100" Value="{Binding TransferProgress}"
+                         Height="8" VerticalAlignment="Center"/>
+            <Button Grid.Column="2" Content="Cancel" Command="{Binding CancelCommand}"/>
+        </Grid>
+
+        <!-- Status + Close -->
+        <Border Grid.Row="4" BorderBrush="#3f3f46" BorderThickness="0,1,0,0" Padding="0,8,0,0">
             <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0"
-                           Text="{Binding TransferStatus}"
-                           VerticalAlignment="Center"
-                           Opacity="0.75"
-                           FontSize="12"/>
-                <Button Grid.Column="1"
-                        Content="Close"
-                        MinWidth="80"/>
+                <SelectableTextBlock Grid.Column="0"
+                                     Text="{Binding Status}"
+                                     Classes.error="{Binding HasError}"
+                                     TextWrapping="Wrap"
+                                     VerticalAlignment="Center"
+                                     FontSize="12">
+                    <SelectableTextBlock.Styles>
+                        <Style Selector="SelectableTextBlock.error">
+                            <Setter Property="Foreground" Value="#E05252"/>
+                        </Style>
+                    </SelectableTextBlock.Styles>
+                </SelectableTextBlock>
+                <Button Grid.Column="1" x:Name="CloseButton" Content="Close" MinWidth="80" IsCancel="True"/>
             </Grid>
         </Border>
 
