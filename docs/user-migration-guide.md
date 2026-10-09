@@ -117,19 +117,49 @@ whole tree or the selected folder, with or without credentials.
 | HTTP / HTTPS | Opens in your default web browser |
 | PowerShell | `pwsh` (PowerShell 7) |
 | AnyDesk | Launches the AnyDesk client |
+| Ext. App (IntApp) | Runs an External Tool and shows its window in the tab (Windows, and Linux under X11/XWayland) |
 
 **RDP requirements:** install FreeRDP 3 for the best results (`freerdp3-x11` on Debian/Ubuntu,
 `freerdp` on Fedora/Arch, `brew install freerdp` on macOS). With FreeRDP 3 the password is passed in a way
 other users on the machine cannot see; FreeRDP 2 still works, but passes it on the command line.
 
+The RDP connection settings from the WinForms app are honoured: resolution (fit to window, smart size,
+fixed sizes, full screen), colour depth, the performance options (wallpaper, themes, font smoothing, …),
+redirection of drives, printers, smart cards, ports, sound and microphone, the start program, the idle
+timeout, RD Gateway, restricted admin mode and Hyper-V console (VM ID) connections. Settings that have no
+FreeRDP equivalent are ignored: **RDP version**, **Disable cursor shadow** and **Disable cursor blinking**.
+**Use Remote Credential Guard** turns off credential delegation instead (FreeRDP has no Remote Credential
+Guard), so the server asks for the password.
+
+**Server authentication** maps to FreeRDP's certificate policy: *Connect and don't warn me* skips the
+certificate check (the WinForms default), *Warn me* trusts a certificate the first time and refuses one that
+changes later, *Don't connect* refuses any certificate that cannot be verified.
+
 ---
 
-## 8. Known Limitations
+## 8. External Tools and Credential Providers
+
+**Tools > External Tools…** manages the same tools as the WinForms app (`extApps.xml` in the settings
+directory) with the same variables (`%HOSTNAME%`, `%USERNAME%`, `%PASSWORD%`, …). Tools can be started
+from the toolbar or from **External Tools** in the connection's context menu, and can run before or after a
+connection (*External tool before/after* in the connection properties).
+
+Connections can take their credentials from **Delinea Secret Server**, **Clickstudios Passwordstate**,
+**1Password** (through the `op` command-line tool) and **HashiCorp Vault / OpenBao**, and their address from
+**AWS EC2**. Configure the providers in **Tools > Options > External Providers**; each page has a *Test*
+button. Secrets you choose to save there are encrypted; secrets you don't save are asked for once per session.
+Unlike the WinForms app, a provider error stops the connection instead of silently using the stored values.
+
+---
+
+## 9. Known Limitations
 
 - **RDP:** embedding is not available on macOS (FreeRDP runs in its own window), and has only been tested on
   Linux so far. RD Gateway and Windows Server NLA scenarios have not been validated yet.
 - **VNC:** Tight and Zlib encodings and VNC proxy settings are not supported.
 - **HTTP/HTTPS** pages are not embedded in a tab.
-- **External Tools** (and the "IntApp" protocol that uses them) are not available yet.
+- **IntApp** cannot show the tool inside the tab on macOS or native Wayland; the tool runs in its own window.
+- **Credential providers:** Vault/OpenBao was tested against a real server; Delinea, Passwordstate, 1Password
+  and AWS were tested against simulated services only.
 - **Rlogin** does not send window-size changes.
 - **Serial ports** depend on the operating system exposing the device (e.g. `/dev/ttyUSB0`).
