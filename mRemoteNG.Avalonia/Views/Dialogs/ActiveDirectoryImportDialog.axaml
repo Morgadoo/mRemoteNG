@@ -4,13 +4,15 @@
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ActiveDirectoryImportDialog"
         x:DataType="vm:ActiveDirectoryImportViewModel"
         Title="Import from Active Directory"
-        Width="940"
+        Width="1120"
         Height="620"
         MinWidth="720"
         MinHeight="460"
         WindowStartupLocation="CenterOwner">
 
     <Window.Styles>
+        <!-- The app theme does not include the DataGrid template; load it for this window. -->
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <Style Selector="TreeViewItem" x:DataType="vm:DirectoryNodeViewModel">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
         </Style>
@@ -20,7 +22,7 @@
 
         <!-- Directory server -->
         <Border Classes="card" Grid.Row="0" Margin="0,0,0,12">
-            <Grid ColumnDefinitions="Auto,8,*,12,Auto,8,90,12,Auto" RowDefinitions="Auto,10,Auto">
+            <Grid ColumnDefinitions="Auto,8,*,12,Auto,8,130,12,Auto" RowDefinitions="Auto,10,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Server" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Grid.Column="2" x:Name="ServerBox" Text="{Binding Server}"
                          Watermark="dc1.corp.example (empty: this computer's domain on Windows)"/>
@@ -66,10 +68,10 @@
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected}" Width="40"/>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="110" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Host name" Binding="{Binding HostName}" Width="*" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="OU" Binding="{Binding Location}" Width="110" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Operating system" Binding="{Binding OperatingSystem}" Width="150" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Host name" Binding="{Binding HostName}" Width="1.4*" MinWidth="150" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="OU" Binding="{Binding Location}" Width="120" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Operating system" Binding="{Binding OperatingSystem}" Width="170" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="120" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>

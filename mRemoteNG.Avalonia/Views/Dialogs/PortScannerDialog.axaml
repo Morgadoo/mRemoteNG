@@ -4,17 +4,22 @@
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.PortScannerDialog"
         x:DataType="vm:PortScannerViewModel"
         Title="Port Scanner"
-        Width="900"
+        Width="1140"
         Height="620"
         MinWidth="700"
         MinHeight="480"
         WindowStartupLocation="CenterOwner">
 
+    <Window.Styles>
+        <!-- The app theme does not include the DataGrid template; load it for this window. -->
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+    </Window.Styles>
+
     <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" Margin="16">
 
         <!-- Target card -->
         <Border Classes="card" Grid.Row="0" Margin="0,0,0,12">
-            <Grid ColumnDefinitions="Auto,8,*,16,Auto,8,110,12,Auto,8,90" RowDefinitions="Auto,10,Auto,10,Auto">
+            <Grid ColumnDefinitions="Auto,8,*,16,Auto,8,130,12,Auto,8,120" RowDefinitions="Auto,10,Auto,10,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Hosts" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="9" x:Name="HostsBox" Text="{Binding Hosts}"
                          Watermark="192.168.1.0/24, 10.0.0.1-50, server.example.com"/>
@@ -55,16 +60,16 @@
                           CanUserSortColumns="True">
                     <DataGrid.Columns>
                         <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected}" Width="40"/>
-                        <DataGridTextColumn Header="Host" Binding="{Binding HostName}" Width="*" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="110" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="SSH" Binding="{Binding Ssh}" Width="52" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Telnet" Binding="{Binding Telnet}" Width="60" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="HTTP" Binding="{Binding Http}" Width="56" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="HTTPS" Binding="{Binding Https}" Width="62" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="rlogin" Binding="{Binding Rlogin}" Width="58" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="RDP" Binding="{Binding Rdp}" Width="50" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="VNC" Binding="{Binding Vnc}" Width="50" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Open ports" Binding="{Binding OpenPorts}" Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Host" Binding="{Binding HostName}" Width="*" MinWidth="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="SSH" Binding="{Binding Ssh}" Width="88" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Telnet" Binding="{Binding Telnet}" Width="88" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="HTTP" Binding="{Binding Http}" Width="88" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="HTTPS" Binding="{Binding Https}" Width="88" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="rlogin" Binding="{Binding Rlogin}" Width="88" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="RDP" Binding="{Binding Rdp}" Width="88" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="VNC" Binding="{Binding Vnc}" Width="88" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Open ports" Binding="{Binding OpenPorts}" Width="1.5*" MinWidth="120" IsReadOnly="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>
