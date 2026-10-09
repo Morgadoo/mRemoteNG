@@ -1317,6 +1317,164 @@ Open a connection in it from the connection tree.</value>
     <value>Nodes directly under the root have nothing to inherit from.</value>
     <comment>Connection editor Inherit box</comment>
   </data>
+  <!-- Dialogs, Options and the connection editor (design refresh) -->
+  <data name="QuickConnectSubtitle" xml:space="preserve">
+    <value>Connect to a host without adding it to the connection tree.</value>
+    <comment>Quick connect dialog subtitle</comment>
+  </data>
+  <data name="ConnectWithOptionsSubtitleFormat" xml:space="preserve">
+    <value>These options apply to this connection to "{0}" only; the saved connection is not changed.</value>
+    <comment>Connect with options subtitle; {0} = connection name</comment>
+  </data>
+  <data name="ConnectNoCredentialsDescription" xml:space="preserve">
+    <value>Leave out the saved username, password and domain.</value>
+    <comment>Connect with options: description of the no-credentials switch</comment>
+  </data>
+  <data name="SearchSettingsWatermark" xml:space="preserve">
+    <value>Search settings</value>
+    <comment>Options: search box placeholder</comment>
+  </data>
+  <data name="NoSettingsMatch" xml:space="preserve">
+    <value>No settings match the search.</value>
+    <comment>Options: navigation when the search finds nothing</comment>
+  </data>
+  <data name="ResetToDefaultsTip" xml:space="preserve">
+    <value>Resets every option in this window. Nothing changes until you press OK or Apply.</value>
+    <comment>Options: tooltip of Reset to defaults</comment>
+  </data>
+  <data name="AppearancePageDescription" xml:space="preserve">
+    <value>Colours, language and fonts, and which parts of the main window are shown.</value>
+    <comment>Options &gt; Appearance page description</comment>
+  </data>
+  <data name="FontFamilyDescription" xml:space="preserve">
+    <value>A font installed on this computer, e.g. Inter or Segoe UI. Leave empty for the theme font.</value>
+    <comment>Options &gt; Appearance: font family description</comment>
+  </data>
+  <data name="ConnectionsPageDescription" xml:space="preserve">
+    <value>Defaults for new connections and the standard port of each protocol.</value>
+    <comment>Options &gt; Connections page description</comment>
+  </data>
+  <data name="CredentialsPageManageDescription" xml:space="preserve">
+    <value>Add, edit or remove the saved usernames and passwords that connections can use.</value>
+    <comment>Options &gt; Credentials: description of the manage button row</comment>
+  </data>
+  <data name="NotificationsPageDescription" xml:space="preserve">
+    <value>Notifications shown by the desktop when connections open, close or fail.</value>
+    <comment>Options &gt; Notifications page description</comment>
+  </data>
+  <data name="TabsPanelsPageDescription" xml:space="preserve">
+    <value>How session tabs and panels look and behave.</value>
+    <comment>Options &gt; Tabs &amp; Panels page description</comment>
+  </data>
+  <data name="BackupFileName" xml:space="preserve">
+    <value>Backup file name</value>
+    <comment>Options &gt; Saving: label of the backup name pattern</comment>
+  </data>
+  <data name="BackupNameFormatTip" xml:space="preserve">
+    <value>{0} = the connection file, {1} = the time of the backup (.NET date format)</value>
+    <comment>Options &gt; Saving: tooltip of the backup name pattern</comment>
+  </data>
+  <data name="LogFileLocation" xml:space="preserve">
+    <value>Log file location</value>
+    <comment>Options &gt; Logging: label of the log file path</comment>
+  </data>
+  <data name="CurrentLogFile" xml:space="preserve">
+    <value>Current log file</value>
+    <comment>Options &gt; Logging: the file being written</comment>
+  </data>
+  <data name="CheckForUpdatesNow" xml:space="preserve">
+    <value>Check for updates now</value>
+    <comment>Options &gt; Updates: row of the Check now button</comment>
+  </data>
+  <data name="ProxyAddressAndPort" xml:space="preserve">
+    <value>Address and port</value>
+    <comment>Options &gt; Updates: proxy address row</comment>
+  </data>
+  <data name="FolderNodeLabel" xml:space="preserve">
+    <value>Folder</value>
+    <comment>Connection editor header: the edited node is a folder</comment>
+  </data>
+  <data name="SearchPropertiesWatermark" xml:space="preserve">
+    <value>Search properties</value>
+    <comment>Connection editor: search box placeholder</comment>
+  </data>
+  <data name="NoPropertiesMatch" xml:space="preserve">
+    <value>No properties match the search.</value>
+    <comment>Connection editor: navigation when the search finds nothing</comment>
+  </data>
+  <data name="InheritHintLinkFormat" xml:space="preserve">
+    <value>Fields with the link switched on use the value of the folder "{0}".</value>
+    <comment>Connection editor footer; {0} = folder name</comment>
+  </data>
+  <data name="InheritFromFolderFormat" xml:space="preserve">
+    <value>Inherit from folder "{0}"</value>
+    <comment>Connection editor: tooltip of the inherit toggle; {0} = folder name</comment>
+  </data>
+  <data name="NoHostNameYet" xml:space="preserve">
+    <value>No host name yet</value>
+    <comment>Connection editor header while the host name is empty</comment>
+  </data>
+  <data name="InFolderFormat" xml:space="preserve">
+    <value>in {0}</value>
+    <comment>Connection editor header: the folder of the connection; {0} = folder name</comment>
+  </data>
+  <data name="OneFieldNeedsAttention" xml:space="preserve">
+    <value>1 field needs attention</value>
+    <comment>Connection editor footer: validation summary</comment>
+  </data>
+  <data name="FieldsNeedAttentionFormat" xml:space="preserve">
+    <value>{0} fields need attention</value>
+    <comment>Connection editor footer: validation summary; {0} = count</comment>
+  </data>
+  <data name="InsertVariable" xml:space="preserve">
+    <value>Insert into the arguments</value>
+    <comment>External tools: tooltip of a variable chip</comment>
+  </data>
+  <data name="ImportDialogSubtitle" xml:space="preserve">
+    <value>Choose where the connections come from and where they go in the tree.</value>
+    <comment>Import dialog subtitle</comment>
+  </data>
+  <data name="FileToImport" xml:space="preserve">
+    <value>File to import</value>
+    <comment>Import dialog: label of the source path</comment>
+  </data>
+  <data name="FolderToImport" xml:space="preserve">
+    <value>Folder to import</value>
+    <comment>Import dialog: label of the source path for folder sources</comment>
+  </data>
+  <data name="DirectoryToImport" xml:space="preserve">
+    <value>Directory to import</value>
+    <comment>Import dialog: label of the source for Active Directory</comment>
+  </data>
+  <data name="ExportDialogSubtitle" xml:space="preserve">
+    <value>Save the connections, or a folder of them, to a file.</value>
+    <comment>Export dialog subtitle</comment>
+  </data>
+  <data name="PortScannerSubtitle" xml:space="preserve">
+    <value>Find hosts with open remote-access ports and add them to the tree.</value>
+    <comment>Port scanner subtitle</comment>
+  </data>
+  <data name="CredentialManagerSubtitle" xml:space="preserve">
+    <value>Saved usernames and passwords that connections can use.</value>
+    <comment>Credential manager subtitle</comment>
+  </data>
+  <data name="ConnectionFilePropertiesHeading" xml:space="preserve">
+    <value>Connection file properties</value>
+    <comment>File properties dialog heading</comment>
+  </data>
+  <data name="PasswordProtected" xml:space="preserve">
+    <value>Protected</value>
+    <comment>File properties: the file has a master password</comment>
+  </data>
+  <data name="NotPasswordProtected" xml:space="preserve">
+    <value>Not protected</value>
+    <comment>File properties: the file has no master password</comment>
+  </data>
+  <data name="UltraVncListenerPortDescription" xml:space="preserve">
+    <value>The port remote users connect to (5500 by default).</value>
+    <comment>UltraVNC listener: port description</comment>
+  </data>
+  <!-- end: Dialogs, Options and the connection editor -->
   <data name="PuttyRootToolTip" xml:space="preserve">
     <value>Saved PuTTY sessions (read-only). Connect, or duplicate a session to copy it into the connection tree.</value>
     <comment>Connection tree tooltip</comment>

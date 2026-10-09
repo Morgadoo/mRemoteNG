@@ -20,6 +20,7 @@ public partial class UltraVncListenerWindow : Window
         InitializeComponent();
         var vm = viewModel ?? UltraVncListenerViewModel.CreateForApp();
         DataContext = vm;
+        CloseButton.Click += (_, _) => Close();
         if (startListening)
             Opened += (_, _) => vm.Start();
         Closed += async (_, _) =>

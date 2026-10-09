@@ -2,52 +2,74 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
              x:Class="mRemoteNG.Avalonia.Views.OptionsPages.TabsPanelsSettingsPage"
              x:DataType="vm:TabsPanelsSettingsViewModel">
-    <StackPanel Spacing="16">
-        <TextBlock Text="{l:Tr TabsAndPanels}" FontSize="18" FontWeight="Bold"/>
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr TabsAndPanels}" Classes="h1"/>
+            <TextBlock Text="{l:Tr TabsPanelsPageDescription}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
 
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <TextBlock Text="{l:Tr SessionTabs}" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding ShowProtocolOnTabs}" Content="{l:Tr ShowProtocolOnTabs, English='Show protocol on tab names'}"/>
-                <CheckBox IsChecked="{Binding ShowLogonInfoOnTabs}" Content="{l:Tr ShowLogonInfoOnTabs}"/>
-                <CheckBox IsChecked="{Binding IdentifyQuickConnectTabs}" Content="{l:Tr IdentifyQuickConnectTabs}"/>
-                <CheckBox IsChecked="{Binding DoubleClickOnTabClosesIt}" Content="{l:Tr DoubleClickTabClosesIt}"/>
-            </StackPanel>
-        </Border>
-
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <TextBlock Text="{l:Tr Panels}" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding AlwaysShowPanelTabs}" Content="{l:Tr AlwaysShowPanelTabs}"/>
-                <CheckBox IsChecked="{Binding AlwaysShowPanelSelectionDlg}" Content="{l:Tr AlwaysShowPanelSelection}"/>
-                <CheckBox IsChecked="{Binding CreateEmptyPanelOnStartUp}" Content="{l:Tr CreateEmptyPanelOnStartUp}"/>
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="28,0,0,0"
-                            IsEnabled="{Binding CreateEmptyPanelOnStartUp}">
-                    <TextBlock Text="{l:Tr PanelName, Suffix=':', English='Panel name'}" VerticalAlignment="Center"/>
-                    <TextBox Width="220" Text="{Binding StartUpPanelName}"/>
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr SessionTabs}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ShowProtocolOnTabs, English='Show protocol on tab names'}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowProtocolOnTabs}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ShowLogonInfoOnTabs}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowLogonInfoOnTabs}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr IdentifyQuickConnectTabs}">
+                        <CheckBox Classes="switch" IsChecked="{Binding IdentifyQuickConnectTabs}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr DoubleClickTabClosesIt}">
+                        <CheckBox Classes="switch" IsChecked="{Binding DoubleClickOnTabClosesIt}"/>
+                    </ctl:SettingRow>
                 </StackPanel>
-            </StackPanel>
-        </Border>
+            </Border>
+        </StackPanel>
 
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <TextBlock Text="{l:Tr _Sessions}" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding OpenConnectionsFromLastSession}"
-                          Content="{l:Tr ReconnectAtStartup}"/>
-                <CheckBox IsChecked="{Binding ReconnectOnDisconnect}"
-                          Content="{l:Tr AutomaticallyTryToReconnectWhenDisconnectedFrom}"/>
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="28,0,0,0"
-                            IsEnabled="{Binding ReconnectOnDisconnect}">
-                    <TextBlock Text="{l:Tr Attempts, Suffix=':'}" VerticalAlignment="Center"/>
-                    <NumericUpDown Width="130" Value="{Binding ReconnectAttempts}"
-                                   Minimum="{Binding MinReconnectAttempts}" Maximum="{Binding MaxReconnectAttempts}"
-                                   Increment="1" FormatString="0"/>
-                    <TextBlock Text="{l:Tr Waits124UpTo30}" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextMutedBrush}" FontSize="11"/>
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Panels}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr AlwaysShowPanelTabs}">
+                        <CheckBox Classes="switch" IsChecked="{Binding AlwaysShowPanelTabs}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr AlwaysShowPanelSelection}">
+                        <CheckBox Classes="switch" IsChecked="{Binding AlwaysShowPanelSelectionDlg}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr CreateEmptyPanelOnStartUp}">
+                        <CheckBox Classes="switch" IsChecked="{Binding CreateEmptyPanelOnStartUp}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr PanelName, English='Panel name'}"
+                                    IsEnabled="{Binding CreateEmptyPanelOnStartUp}">
+                        <TextBox Width="220" Text="{Binding StartUpPanelName}"/>
+                    </ctl:SettingRow>
                 </StackPanel>
-            </StackPanel>
-        </Border>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr _Sessions}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ReconnectAtStartup}">
+                        <CheckBox Classes="switch" IsChecked="{Binding OpenConnectionsFromLastSession}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr AutomaticallyTryToReconnectWhenDisconnectedFrom}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ReconnectOnDisconnect}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr Attempts}" Description="{l:Tr Waits124UpTo30}"
+                                    IsEnabled="{Binding ReconnectOnDisconnect}">
+                        <NumericUpDown Width="140" Value="{Binding ReconnectAttempts}"
+                                       Minimum="{Binding MinReconnectAttempts}" Maximum="{Binding MaxReconnectAttempts}"
+                                       Increment="1" FormatString="0"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
     </StackPanel>
 </UserControl>

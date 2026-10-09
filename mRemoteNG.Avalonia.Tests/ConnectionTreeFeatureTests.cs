@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
@@ -54,30 +55,37 @@ public class ConnectionTreeFeatureTests
         dialog.Show();
         try
         {
-            var tabs = dialog.GetVisualDescendants().OfType<TabControl>().Single();
-            tabs.SelectedIndex = 3; // Protocol
-            Dispatcher.UIThread.RunJobs();
-
-            TabHeader(dialog, "Protocol").IsVisible.Should().BeTrue();
-            VisibleLabels(dialog).Should().Contain(["Resolution", "Disk drives", "Use gateway"])
-                .And.NotContain(["Gateway host name", "Sound quality", "Proxy type"]);
+            PageItem(dialog, "Display").IsVisible.Should().BeTrue();
+            VisibleLabels(dialog, vm, "display").Should().Contain("Resolution").And.NotContain("Proxy type");
+            VisibleLabels(dialog, vm, "redirection").Should().Contain("Disk drives").And.NotContain("Sound quality");
+            VisibleLabels(dialog, vm, "gateway").Should().Contain("Use gateway").And.NotContain("Gateway host name");
 
             vm.Field<ChoiceFieldViewModel>(nameof(ConnectionInfo.RDGatewayUsageMethod)).Value = RDGatewayUsageMethod.Always;
             vm.Field<ChoiceFieldViewModel>(nameof(ConnectionInfo.RedirectSound)).Value = RDPSounds.BringToThisComputer;
             Dispatcher.UIThread.RunJobs();
-            VisibleLabels(dialog).Should().Contain(["Gateway host name", "Sound quality"]);
+            VisibleLabels(dialog, vm, "gateway").Should().Contain("Gateway host name");
+            VisibleLabels(dialog, vm, "redirection").Should().Contain("Sound quality");
 
             vm.Protocol.Value = CoreProtocol.SSH2;
             Dispatcher.UIThread.RunJobs();
             vm.Port.IntValue.Should().Be(22, "the default port follows the protocol");
-            TabHeader(dialog, "Protocol").IsVisible.Should().BeFalse("SSH has no protocol-tab settings");
+            PageItem(dialog, "Display").IsVisible.Should().BeFalse("SSH has no remote desktop display settings");
+            PageItem(dialog, "Gateway").IsVisible.Should().BeFalse();
             vm.Field(nameof(ConnectionInfo.PuttySession)).IsVisible.Should().BeTrue();
             vm.Field(nameof(ConnectionInfo.Resolution)).IsVisible.Should().BeFalse();
+            VisibleLabels(dialog, vm, "protocol").Should().Contain("PuTTY session");
 
             vm.Protocol.Value = CoreProtocol.VNC;
-            tabs.SelectedIndex = 3;
             Dispatcher.UIThread.RunJobs();
-            VisibleLabels(dialog).Should().Contain(["View only", "Proxy type", "Encoding"]).And.NotContain("Resolution");
+            VisibleLabels(dialog, vm, "protocol").Should().Contain(["View only", "Proxy type", "Encoding"]).And.NotContain("Resolution");
+
+            // The search box filters the properties and the pages.
+            vm.SearchText = "encoding";
+            Dispatcher.UIThread.RunJobs();
+            vm.Pages.Where(p => p.IsVisible).Select(p => p.Key).Should().Equal("protocol", "inheritance");
+            vm.SelectedPage!.Key.Should().Be("protocol");
+            VisibleLabels(dialog, vm, "protocol").Should().Equal("Encoding");
+            vm.SearchText = string.Empty;
         }
         finally
         {
@@ -105,10 +113,12 @@ public class ConnectionTreeFeatureTests
             username.Value.Should().Be("team-user");
             username.IsEditable.Should().BeFalse();
 
-            dialog.GetVisualDescendants().OfType<TabControl>().Single().SelectedIndex = 2; // Credentials
+            vm.SelectedPage = vm.Page("credentials");
             Dispatcher.UIThread.RunJobs();
             var row = Row(dialog, "Username");
-            row.GetVisualDescendants().OfType<CheckBox>().Single(c => Equals(c.Content, "Inherit")).IsChecked.Should().BeTrue();
+            var inherit = row.GetVisualDescendants().OfType<ToggleButton>().Single(t => t.Classes.Contains("inherit"));
+            inherit.IsChecked.Should().BeTrue();
+            ToolTip.GetTip(inherit).Should().Be("Inherit from folder \"Team\"");
             row.GetVisualDescendants().OfType<TextBox>().Single().IsEffectivelyEnabled.Should().BeFalse();
 
             username.Inherit = false;
@@ -476,17 +486,22 @@ public class ConnectionTreeFeatureTests
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    private static TabItem TabHeader(Window dialog, string header) =>
-        dialog.GetVisualDescendants().OfType<TabItem>().Single(t => Equals(t.Header, header));
+    private static ListBoxItem PageItem(Window dialog, string title) =>
+        dialog.GetVisualDescendants().OfType<ListBoxItem>()
+            .Single(i => i.DataContext is PropertyPageViewModel page && page.Title == title);
 
-    private static List<string> VisibleLabels(Window dialog) =>
-        dialog.GetVisualDescendants().OfType<Grid>()
-            .Where(g => g.Classes.Contains("field-row") && g.IsEffectivelyVisible)
-            .Select(g => g.Children.OfType<TextBlock>().First().Text ?? "")
+    /// <summary>The labels of the property rows shown on a page of the connection editor.</summary>
+    private static List<string> VisibleLabels(Window dialog, ConnectionDialogViewModel vm, string page)
+    {
+        vm.SelectedPage = vm.Page(page);
+        Dispatcher.UIThread.RunJobs();
+        return dialog.GetVisualDescendants().OfType<mRemoteNG.Avalonia.Controls.SettingRow>()
+            .Where(r => r.Classes.Contains("field-row") && r.IsEffectivelyVisible)
+            .Select(r => r.Header ?? "")
             .ToList();
+    }
 
-    private static Grid Row(Window dialog, string label) =>
-        dialog.GetVisualDescendants().OfType<Grid>()
-            .First(g => g.Classes.Contains("field-row") && g.IsEffectivelyVisible
-                        && g.Children.OfType<TextBlock>().FirstOrDefault()?.Text == label);
+    private static mRemoteNG.Avalonia.Controls.SettingRow Row(Window dialog, string label) =>
+        dialog.GetVisualDescendants().OfType<mRemoteNG.Avalonia.Controls.SettingRow>()
+            .First(r => r.Classes.Contains("field-row") && r.IsEffectivelyVisible && r.Header == label);
 }

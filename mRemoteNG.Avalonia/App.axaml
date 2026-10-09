@@ -13,6 +13,8 @@
         <mi:MaterialIconStyles />
         <!-- mRemoteNG control styles (docs/design-system.md). Theme independent: colours come from the palette. -->
         <StyleInclude Source="/Themes/Controls.axaml"/>
+        <!-- Dialogs, settings pages and the connection editor (Themes/Dialogs.axaml). -->
+        <StyleInclude Source="/Themes/Dialogs.axaml"/>
         <!-- The mRemoteNG palette (Themes/DarkTheme.axaml or LightTheme.axaml) is added by ThemeService
              at startup, before any window opens. It must not be declared here: the XAML compiler inlines
              a StyleInclude, so ThemeService could not find and replace it when the theme changes. -->

@@ -18,6 +18,7 @@ public partial class PasswordPromptDialog : Window
         MessageText.Text = message;
         ErrorText.Text = error;
         ErrorText.IsVisible = !string.IsNullOrEmpty(error);
+        PasswordBox.Classes.Set("error", ErrorText.IsVisible);
 
         CancelButton.Click += (_, _) => Close(null);
         OkButton.Click += (_, _) => Close(PasswordBox.Text ?? "");

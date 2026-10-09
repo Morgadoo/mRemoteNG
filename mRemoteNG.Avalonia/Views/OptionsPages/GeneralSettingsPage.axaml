@@ -2,54 +2,70 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
              x:Class="mRemoteNG.Avalonia.Views.OptionsPages.GeneralSettingsPage"
              x:DataType="vm:GeneralSettingsViewModel">
-    <StackPanel Spacing="16">
-        <TextBlock Text="{l:Tr StartupExit, English='Startup &amp; Exit'}" FontSize="18" FontWeight="Bold"/>
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr StartupExit, English='Startup &amp; Exit'}" Classes="h1"/>
+            <SelectableTextBlock Text="{Binding DataDirectoryInfo}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
 
-        <Border Classes="card">
-            <StackPanel Spacing="12">
-                <TextBlock Text="{l:Tr Startup}" Classes="section-header"/>
-                <Grid ColumnDefinitions="*,280">
-                    <TextBlock Text="{l:Tr WhenMRemoteNGStarts}" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                              ItemsSource="{Binding StartupChoices}"
-                              SelectedItem="{Binding SelectedStartupChoice}"/>
-                </Grid>
-                <Grid ColumnDefinitions="*,8,Auto" IsEnabled="{Binding IsStartupFileEnabled}">
-                    <TextBox Text="{Binding StartupFilePath}" Watermark="{l:Tr ConnectionFileToOpenAtStartup}"/>
-                    <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseStartupFile"/>
-                </Grid>
-                <CheckBox IsChecked="{Binding SingleInstance}"
-                          Content="{l:Tr AllowOnlyASingleInstanceOfMRemoteNG}"/>
-                <CheckBox IsChecked="{Binding StartMinimized}"
-                          Content="{l:Tr StartMinimisedToTheSystemTrayWhen}"/>
-                <SelectableTextBlock Text="{Binding DataDirectoryInfo}" TextWrapping="Wrap" Opacity="0.7"/>
-            </StackPanel>
-        </Border>
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Startup}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr WhenMRemoteNGStarts}">
+                        <ComboBox Width="280" ItemsSource="{Binding StartupChoices}"
+                                  SelectedItem="{Binding SelectedStartupChoice}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked nested" Header="{l:Tr ConnectionFileToOpenAtStartup}"
+                                    IsVisible="{Binding IsStartupFileEnabled}">
+                        <Grid ColumnDefinitions="*,8,Auto" Margin="20,0,0,0">
+                            <TextBox Classes="mono" Text="{Binding StartupFilePath}"
+                                     Watermark="{l:Tr ConnectionFileToOpenAtStartup}"/>
+                            <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseStartupFile"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr AllowOnlyASingleInstanceOfMRemoteNG}">
+                        <CheckBox Classes="switch" IsChecked="{Binding SingleInstance}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr StartMinimisedToTheSystemTrayWhen}">
+                        <CheckBox Classes="switch" IsChecked="{Binding StartMinimized}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
 
-        <Border Classes="card">
-            <StackPanel Spacing="12">
-                <TextBlock Text="{l:Tr Exit}" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding SaveConnectionsOnExit}"
-                          Content="{l:Tr SaveTheOpenConnectionFileWhenExiting}"/>
-                <Grid ColumnDefinitions="*,280">
-                    <TextBlock Text="{l:Tr ConfirmClosingConnections}" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                              ItemsSource="{Binding ConfirmCloseChoices}"
-                              SelectedItem="{Binding SelectedConfirmCloseChoice}"/>
-                </Grid>
-            </StackPanel>
-        </Border>
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Exit}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr SaveTheOpenConnectionFileWhenExiting}">
+                        <CheckBox Classes="switch" IsChecked="{Binding SaveConnectionsOnExit}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ConfirmClosingConnections}">
+                        <ComboBox Width="280" ItemsSource="{Binding ConfirmCloseChoices}"
+                                  SelectedItem="{Binding SelectedConfirmCloseChoice}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
 
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <TextBlock Text="{l:Tr SystemTray}" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding ShowTrayIcon}" Content="{l:Tr ShowAnIconInTheSystemTray}"/>
-                <CheckBox IsChecked="{Binding MinimizeToTray}" IsEnabled="{Binding ShowTrayIcon}"
-                          Content="{l:Tr MinimiseToTheSystemTray}"
-                          ToolTip.Tip="{l:Tr RequiresADesktopEnvironmentWithASystem}"/>
-            </StackPanel>
-        </Border>
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr SystemTray}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ShowAnIconInTheSystemTray}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowTrayIcon}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr MinimiseToTheSystemTray}"
+                                    Description="{l:Tr RequiresADesktopEnvironmentWithASystem}"
+                                    IsEnabled="{Binding ShowTrayIcon}">
+                        <CheckBox Classes="switch" IsChecked="{Binding MinimizeToTray}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
     </StackPanel>
 </UserControl>

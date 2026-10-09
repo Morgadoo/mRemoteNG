@@ -1,4 +1,5 @@
 using Avalonia.Media;
+using Material.Icons;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Container;
 using mRemoteNG.Core.Localization;
@@ -20,6 +21,8 @@ public abstract class PropertyFieldViewModel : ReactiveObject
     private object? _own;
     private bool _inherit;
     private bool _isVisible = true;
+    private bool _matchesSearch = true;
+    private bool _isFirstShown;
     private string? _error;
 
     /// <param name="alwaysEditable">
@@ -41,7 +44,7 @@ public abstract class PropertyFieldViewModel : ReactiveObject
         _originalInherit = _inherit;
         InheritTip = alwaysEditable
             ? Localizer.Get("InheritTipDefaultConnection")
-            : CanInherit ? Localizer.Format("InheritTipFolderFormat", parentName) : Localizer.Get("InheritTipRoot");
+            : CanInherit ? Localizer.Format("InheritFromFolderFormat", parentName) : Localizer.Get("InheritTipRoot");
     }
 
     public ConnectionPropertyDescriptor Descriptor { get; }
@@ -75,15 +78,46 @@ public abstract class PropertyFieldViewModel : ReactiveObject
     public bool IsVisible
     {
         get => _isVisible;
-        set => this.RaiseAndSetIfChanged(ref _isVisible, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isVisible, value);
+            this.RaisePropertyChanged(nameof(IsShown));
+        }
+    }
+
+    /// <summary>False when the editor's search box filters the property out.</summary>
+    public bool MatchesSearch
+    {
+        get => _matchesSearch;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _matchesSearch, value);
+            this.RaisePropertyChanged(nameof(IsShown));
+        }
+    }
+
+    /// <summary>The row is shown: the property applies and matches the search.</summary>
+    public bool IsShown => _isVisible && _matchesSearch;
+
+    /// <summary>The first shown row of its section (drawn without the divider above it).</summary>
+    public bool IsFirstShown
+    {
+        get => _isFirstShown;
+        set => this.RaiseAndSetIfChanged(ref _isFirstShown, value);
     }
 
     /// <summary>Validation message shown under the editor (or null).</summary>
     public string? Error
     {
         get => _error;
-        set => this.RaiseAndSetIfChanged(ref _error, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _error, value);
+            this.RaisePropertyChanged(nameof(HasError));
+        }
     }
+
+    public bool HasError => _error is not null;
 
     /// <summary>The effective value: the folder's while inheriting, otherwise the node's own.</summary>
     public object? BoxedValue
@@ -144,6 +178,12 @@ public class TextFieldViewModel(ConnectionPropertyDescriptor descriptor, Connect
     : PropertyFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName)
 {
     public bool IsPassword => Descriptor.Editor == ConnectionPropertyEditor.Password;
+
+    /// <summary>Host names, addresses and command lines are edited in the monospace font.</summary>
+    public bool IsMonospace => Name is nameof(ConnectionInfo.Hostname) or nameof(ConnectionInfo.MacAddress)
+        or nameof(ConnectionInfo.RDGatewayHostname) or nameof(ConnectionInfo.VNCProxyIP) or nameof(ConnectionInfo.SSHOptions)
+        or nameof(ConnectionInfo.OpeningCommand) or nameof(ConnectionInfo.LoadBalanceInfo) or nameof(ConnectionInfo.VmId)
+        or nameof(ConnectionInfo.EC2InstanceId) or nameof(ConnectionInfo.RDPStartProgram) or nameof(ConnectionInfo.RDPStartProgramWorkDir);
 
     public char PasswordChar => IsPassword ? '●' : '\0';
 
@@ -265,13 +305,16 @@ public sealed class ChoiceFieldViewModel : PropertyFieldViewModel
     }
 }
 
-/// <summary>A heading inside a tab and the fields under it.</summary>
+/// <summary>A heading inside a page and the fields under it.</summary>
 public sealed class PropertySectionViewModel(string header, IReadOnlyList<PropertyFieldViewModel> fields) : ReactiveObject
 {
     private bool _isVisible = true;
 
     public string Header { get; } = header;
     public IReadOnlyList<PropertyFieldViewModel> Fields { get; } = fields;
+
+    /// <summary>False for the only section of a page (the page title is its heading).</summary>
+    public bool ShowHeader { get; set; } = true;
 
     public bool IsVisible
     {
@@ -280,17 +323,36 @@ public sealed class PropertySectionViewModel(string header, IReadOnlyList<Proper
     }
 }
 
-/// <summary>A tab of the connection editor (one property category).</summary>
-public sealed class PropertyTabViewModel(string header, IReadOnlyList<PropertySectionViewModel> sections) : ReactiveObject
+/// <summary>A page of the connection editor (an entry of its navigation).</summary>
+public sealed class PropertyPageViewModel(string key, string title, MaterialIconKind icon,
+    IReadOnlyList<PropertySectionViewModel> sections, bool isInheritance = false) : ReactiveObject
 {
     private bool _isVisible = true;
+    private bool _hasErrors;
 
-    public string Header { get; } = header;
+    /// <summary>"general", "credentials", "protocol", "display", "redirection", "gateway", "providers",
+    /// "appearance", "advanced" or "inheritance".</summary>
+    public string Key { get; } = key;
+
+    public string Title { get; } = title;
+    public MaterialIconKind Icon { get; } = icon;
     public IReadOnlyList<PropertySectionViewModel> Sections { get; } = sections;
+
+    /// <summary>The Inheritance page: one check box per inheritable property instead of editors.</summary>
+    public bool IsInheritance { get; } = isInheritance;
 
     public bool IsVisible
     {
         get => _isVisible;
         set => this.RaiseAndSetIfChanged(ref _isVisible, value);
     }
+
+    /// <summary>A shown property of the page has a validation error (marked in the navigation).</summary>
+    public bool HasErrors
+    {
+        get => _hasErrors;
+        set => this.RaiseAndSetIfChanged(ref _hasErrors, value);
+    }
+
+    public override string ToString() => Title;
 }

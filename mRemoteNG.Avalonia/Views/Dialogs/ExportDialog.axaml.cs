@@ -114,7 +114,7 @@ public partial class ExportDialog : Window
         if (error is not null)
         {
             ErrorText.Text = error;
-            ErrorText.IsVisible = true;
+            ErrorPanel.IsVisible = true;
             return;
         }
 

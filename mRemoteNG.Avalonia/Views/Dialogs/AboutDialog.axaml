@@ -1,66 +1,61 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:mi="using:Material.Icons.Avalonia"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.AboutDialog"
+        Classes="dialog"
         Title="{l:Tr AboutMRemoteNG}"
-        Width="460"
-        Height="340"
+        Width="440"
+        SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="32" Spacing="16">
+    <Grid RowDefinitions="Auto,Auto">
+        <StackPanel Margin="32,32,32,24" Spacing="20">
 
-        <!-- Logo + App Name -->
-        <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
-            <Image Width="64" Height="64"
-                   Source="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico"/>
-            <StackPanel VerticalAlignment="Center" Spacing="4">
-                <TextBlock Text="mRemoteNG"
-                           FontSize="24"
-                           FontWeight="Bold"
-                           Foreground="{DynamicResource TextLinkBrush}"/>
-                <TextBlock Text="Multi-Remote Next Generation"
-                           FontSize="12"
-                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <!-- Logo, name and version -->
+            <StackPanel Spacing="12" HorizontalAlignment="Center">
+                <Image Width="64" Height="64" HorizontalAlignment="Center"
+                       Source="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico"/>
+                <StackPanel Spacing="2" HorizontalAlignment="Center">
+                    <TextBlock Text="mRemoteNG" Classes="h1" FontSize="24" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Multi-Remote Next Generation" Classes="caption" HorizontalAlignment="Center"/>
+                </StackPanel>
+                <Border Classes="chip" HorizontalAlignment="Center" Padding="8,2">
+                    <TextBlock x:Name="VersionText" Classes="mono" FontSize="12" Text="1.78.2-dev"/>
+                </Border>
             </StackPanel>
+
+            <!-- Platform -->
+            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                <TextBlock Text="{l:Tr CrossPlatformNotice}" Classes="secondary" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="RuntimeText" Text=".NET · Avalonia UI" Classes="caption" HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Links -->
+            <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+                <Button x:Name="GitHubButton" Classes="link">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <mi:MaterialIcon Kind="Github"/>
+                        <TextBlock Text="{l:Tr GitHubRepository}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="DocsButton" Classes="link">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <mi:MaterialIcon Kind="BookOpenPageVariantOutline"/>
+                        <TextBlock Text="{l:Tr Documentation}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <TextBlock Text="{l:Tr CopyrightNotice}" Classes="caption" Foreground="{DynamicResource TextMutedBrush}"
+                       HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
         </StackPanel>
 
-        <Separator/>
-
-        <!-- Version info -->
-        <StackPanel Spacing="6" HorizontalAlignment="Center">
-            <TextBlock x:Name="VersionText"
-                       Text="Version 1.78.2-dev"
-                       FontSize="13"
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text=".NET 10.0 · Avalonia UI 11"
-                       FontSize="11"
-                       Foreground="{DynamicResource TextSecondaryBrush}"
-                       HorizontalAlignment="Center"/>
-            <TextBlock Text="{l:Tr CrossPlatformNotice}"
-                       FontSize="11"
-                       Foreground="{DynamicResource TextLinkBrush}"
-                       HorizontalAlignment="Center"/>
-        </StackPanel>
-
-        <!-- Copyright -->
-        <TextBlock Text="{l:Tr CopyrightNotice}"
-                   FontSize="11"
-                   Foreground="{DynamicResource TextMutedBrush}"
-                   HorizontalAlignment="Center"
-                   TextAlignment="Center"/>
-
-        <Separator/>
-
-        <!-- Buttons -->
-        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-            <Button Content="{l:Tr GitHubRepository}" Padding="12,4"
-                    x:Name="GitHubButton"/>
-            <Button Content="{l:Tr Documentation}" Padding="12,4"
-                    x:Name="DocsButton"/>
-            <Button Content="{l:Tr _Ok}" Classes="accent" Padding="24,4"
-                    x:Name="OkButton"/>
-        </StackPanel>
-
-    </StackPanel>
+        <Border Grid.Row="1" Classes="dialog-footer">
+            <StackPanel Classes="dialog-actions">
+                <Button x:Name="OkButton" Content="{l:Tr _Ok}" Classes="accent" IsDefault="True" IsCancel="True"/>
+            </StackPanel>
+        </Border>
+    </Grid>
 </Window>

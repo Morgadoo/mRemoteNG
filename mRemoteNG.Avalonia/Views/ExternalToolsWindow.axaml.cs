@@ -22,6 +22,7 @@ public partial class ExternalToolsWindow : Window
         var vm = viewModel ?? new ExternalToolsWindowViewModel(AppServices.GetRequired<ExternalToolsService>());
         DataContext = vm;
         vm.CloseRequested += Close;
+        VariableChips.ItemsSource = mRemoteNG.Core.Tools.ExternalToolVariables.Names.Select(n => $"%{n}%").ToList();
         vm.ConfirmDeleteAsync = name => MessageDialog.ConfirmAsync(this, Localizer.Get("DeleteExternalTool", "Delete External Tool"),
             Localizer.Format("ConfirmDeleteExternalToolDetailFormat", name),
             Localizer.Get("Delete"), Localizer.Get("_Cancel"), confirmIsDefault: false);
@@ -36,6 +37,21 @@ public partial class ExternalToolsWindow : Window
     {
         var vm = new ExternalToolsWindowViewModel(AppServices.GetRequired<ExternalToolsService>(), targetConnection);
         return new ExternalToolsWindow(vm).ShowDialog(owner);
+    }
+
+    /// <summary>Inserts the clicked variable chip at the caret of the arguments box.</summary>
+    private void OnInsertVariable(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel.Selected is not { } tool || sender is not Button { Content: string variable })
+            return;
+        var text = tool.Arguments ?? string.Empty;
+        var caret = Math.Clamp(ArgumentsBox.CaretIndex, 0, text.Length);
+        if (!ArgumentsBox.IsFocused)
+            caret = text.Length;
+        var separator = caret > 0 && !char.IsWhiteSpace(text[caret - 1]) ? " " : string.Empty;
+        tool.Arguments = text[..caret] + separator + variable + text[caret..];
+        ArgumentsBox.Focus();
+        ArgumentsBox.CaretIndex = caret + separator.Length + variable.Length;
     }
 
     private async void OnBrowseFileName(object? sender, RoutedEventArgs e)

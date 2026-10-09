@@ -16,6 +16,7 @@ public partial class PortScannerDialog : Window
         InitializeComponent();
         DataContext = viewModel ?? new PortScannerViewModel(ImportIntoTree);
         Closed += (_, _) => (DataContext as PortScannerViewModel)?.Stop();
+        CloseButton.Click += (_, _) => Close();
     }
 
     private static string ImportIntoTree(IReadOnlyList<mRemoteNG.Core.Tools.PortScanning.ScanHost> hosts,

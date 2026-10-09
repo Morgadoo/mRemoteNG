@@ -16,11 +16,16 @@ public partial class TextPromptDialog : Window
     {
         InitializeComponent();
         Title = title;
+        Header.Title = title;
         MessageText.Text = message;
+        MessageText.IsVisible = !string.IsNullOrWhiteSpace(message);
         InputBox.Watermark = watermark;
         InputBox.Text = initialText;
         if (isSecret)
+        {
             InputBox.PasswordChar = '●';
+            Header.Icon = Material.Icons.MaterialIconKind.KeyOutline;
+        }
 
         CancelButton.Click += (_, _) => Close(null);
         OkButton.Click += (_, _) => Close(InputBox.Text ?? string.Empty);

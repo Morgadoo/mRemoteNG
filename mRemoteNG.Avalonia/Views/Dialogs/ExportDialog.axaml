@@ -1,66 +1,80 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ExportDialog"
+        Classes="dialog"
         Title="{l:Tr ExportConnections}"
-        Width="480"
+        Width="620"
         SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="24" Spacing="14">
-        <TextBlock Text="{l:Tr ExportConnections}" FontSize="16" FontWeight="Bold"/>
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <ctl:DialogHeader Icon="DatabaseExportOutline" Title="{l:Tr ExportConnections}"
+                          Subtitle="{l:Tr ExportDialogSubtitle}"/>
 
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <TextBlock Text="{l:Tr ExportFormat}" Classes="section-header"/>
-                <RadioButton x:Name="XmlRadio" GroupName="Format" Content="{l:Tr MRemoteNGXMLXmlRecommended}" IsChecked="True"/>
-                <RadioButton x:Name="CsvRadio" GroupName="Format" Content="{l:Tr MRemoteNGCSVCsvForSpreadsheetApps}"/>
-            </StackPanel>
-        </Border>
+        <StackPanel Grid.Row="1" Margin="24,20,24,24" Spacing="16">
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr ExportFormat}">
+                        <StackPanel>
+                            <RadioButton x:Name="XmlRadio" GroupName="Format" Content="{l:Tr MRemoteNGXMLXmlRecommended}" IsChecked="True"/>
+                            <RadioButton x:Name="CsvRadio" GroupName="Format" Content="{l:Tr MRemoteNGCSVCsvForSpreadsheetApps}"/>
+                        </StackPanel>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr ExportScope}">
+                        <StackPanel>
+                            <RadioButton x:Name="AllRadio" GroupName="Scope" Content="{l:Tr AllConnections}" IsChecked="True"/>
+                            <RadioButton x:Name="SelectedRadio" GroupName="Scope" Content="{l:Tr SelectedFolderAndItsChildren}"/>
+                        </StackPanel>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr Include}">
+                        <StackPanel Spacing="8">
+                            <WrapPanel>
+                                <CheckBox x:Name="UsernameCheck" Content="{l:Tr Username}" IsChecked="True" Margin="0,0,20,0"/>
+                                <CheckBox x:Name="PasswordCheck" Content="{l:Tr Password}" IsChecked="True" Margin="0,0,20,0"/>
+                                <CheckBox x:Name="DomainCheck" Content="{l:Tr Domain}" IsChecked="True" Margin="0,0,20,0"/>
+                                <CheckBox x:Name="InheritanceCheck" Content="{l:Tr Inheritance}" IsChecked="True"/>
+                            </WrapPanel>
+                            <Border x:Name="CsvPasswordWarning" Classes="callout warning" IsVisible="False">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <mi:MaterialIcon Classes="callout-icon" Kind="AlertOutline"/>
+                                    <TextBlock Grid.Column="1" TextWrapping="Wrap" Text="{l:Tr CSVFilesStorePasswordsInClearText}"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" x:Name="PasswordCard" Header="{l:Tr FilePasswordOptional}"
+                                    Description="{l:Tr ProtectsTheExportedFileWithAMaster}">
+                        <Grid ColumnDefinitions="*,8,*">
+                            <TextBox x:Name="FilePasswordBox" PasswordChar="●" Watermark="{l:Tr Password}"/>
+                            <TextBox Grid.Column="2" x:Name="FilePasswordConfirmBox" PasswordChar="●" Watermark="{l:Tr ConfirmPassword}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr OutputFilePath}">
+                        <Grid ColumnDefinitions="*,8,Auto">
+                            <TextBox Grid.Column="0" x:Name="FilePathBox" Classes="mono" Watermark="connections.xml"/>
+                            <Button Grid.Column="2" Content="{l:Tr _Browse}" x:Name="BrowseButton"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
 
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <TextBlock Text="{l:Tr ExportScope}" Classes="section-header"/>
-                <RadioButton x:Name="AllRadio" GroupName="Scope" Content="{l:Tr AllConnections}" IsChecked="True"/>
-                <RadioButton x:Name="SelectedRadio" GroupName="Scope" Content="{l:Tr SelectedFolderAndItsChildren}"/>
-            </StackPanel>
-        </Border>
-
-        <Border Classes="card">
-            <StackPanel Spacing="8">
-                <TextBlock Text="{l:Tr Include}" Classes="section-header"/>
-                <WrapPanel>
-                    <CheckBox x:Name="UsernameCheck" Content="{l:Tr Username}" IsChecked="True" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="PasswordCheck" Content="{l:Tr Password}" IsChecked="True" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="DomainCheck" Content="{l:Tr Domain}" IsChecked="True" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="InheritanceCheck" Content="{l:Tr Inheritance}" IsChecked="True"/>
-                </WrapPanel>
-                <TextBlock x:Name="CsvPasswordWarning" Foreground="#E0A052" TextWrapping="Wrap" IsVisible="False"
-                           Text="{l:Tr CSVFilesStorePasswordsInClearText}"/>
-            </StackPanel>
-        </Border>
-
-        <Border Classes="card" x:Name="PasswordCard">
-            <StackPanel Spacing="8">
-                <TextBlock Text="{l:Tr FilePasswordOptional}" Classes="section-header"/>
-                <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
-                           Text="{l:Tr ProtectsTheExportedFileWithAMaster}"/>
-                <TextBox x:Name="FilePasswordBox" PasswordChar="●" Watermark="{l:Tr Password}"/>
-                <TextBox x:Name="FilePasswordConfirmBox" PasswordChar="●" Watermark="{l:Tr ConfirmPassword}"/>
-            </StackPanel>
-        </Border>
-
-        <Grid ColumnDefinitions="*,8,Auto">
-            <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="{l:Tr OutputFilePath, Suffix='...'}"/>
-            <Button Grid.Column="2" Content="{l:Tr _Browse}" x:Name="BrowseButton" Padding="10,4"/>
-        </Grid>
-
-        <TextBlock x:Name="ErrorText" Foreground="#E05252" TextWrapping="Wrap" IsVisible="False"/>
-
-        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-            <Button Content="{l:Tr _Cancel}" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
-            <Button Content="{l:Tr Export}" Classes="accent" MinWidth="80" x:Name="ExportButton" IsDefault="True"/>
+            <Border x:Name="ErrorPanel" Classes="callout danger" IsVisible="False">
+                <Grid ColumnDefinitions="Auto,*">
+                    <mi:MaterialIcon Classes="callout-icon" Kind="AlertCircleOutline"/>
+                    <TextBlock Grid.Column="1" x:Name="ErrorText" TextWrapping="Wrap"/>
+                </Grid>
+            </Border>
         </StackPanel>
-    </StackPanel>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <StackPanel Classes="dialog-actions">
+                <Button Content="{l:Tr _Cancel}" x:Name="CancelButton" IsCancel="True"/>
+                <Button Content="{l:Tr Export}" Classes="accent" x:Name="ExportButton" IsDefault="True"/>
+            </StackPanel>
+        </Border>
+    </Grid>
 </Window>

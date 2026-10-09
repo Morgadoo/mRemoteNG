@@ -2,7 +2,10 @@ using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Data.Converters;
+using Avalonia.Media;
 using Avalonia.Platform;
+using Material.Icons;
+using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Connection.Protocol.Http;
 using mRemoteNG.Core.Connection.Protocol.RDP;
@@ -53,6 +56,8 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     private bool _updatingInheritEverything;
     private bool? _inheritEverythingChoice;
     private CoreProtocolType _lastProtocol;
+    private PropertyPageViewModel? _selectedPage;
+    private string _searchText = string.Empty;
 
     /// <param name="target">The node to edit (for a new node: a detached, not-yet-added instance).</param>
     /// <param name="parent">The folder the node is (or will be) in; decides what can be inherited.</param>
@@ -89,11 +94,12 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
         }
 
         Fields = ConnectionPropertyCatalog.All.Select(d => _fields[d.Name]).ToList();
-        Tabs = ConnectionPropertyCategories.All.Select(BuildTab).ToList();
         InheritanceSections = Fields.Where(f => f.SupportsInheritance)
             .GroupBy(f => f.Descriptor.Category == ConnectionPropertyCategories.Protocol ? f.Descriptor.Section : f.Descriptor.Category)
             .Select(g => new PropertySectionViewModel(ConnectionPropertyCategories.GetDisplayName(g.Key), g.ToList()))
             .ToList();
+        Pages = BuildPages();
+        _selectedPage = Pages[0];
 
         _lastProtocol = Protocol.Value is CoreProtocolType p ? p : CoreProtocolType.RDP;
         UpdateVisibility();
@@ -105,6 +111,99 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
         CheckStatusCommand = ReactiveCommand.CreateFromTask(CheckStatusAsync,
             this.WhenAnyValue(x => x.CanCheckStatus).ObserveOn(RxApp.MainThreadScheduler));
     }
+
+    // ── Pages (navigation) ────────────────────────────────────────────────
+
+    /// <summary>
+    /// The editor's pages, in navigation order: General, Credentials, Protocol, Display, Redirection, Gateway,
+    /// External providers, Appearance, Miscellaneous and Inheritance. A page is hidden when none of its
+    /// properties applies (or matches <see cref="SearchText"/>).
+    /// </summary>
+    public IReadOnlyList<PropertyPageViewModel> Pages { get; }
+
+    public PropertyPageViewModel Page(string key) => Pages.Single(p => p.Key == key);
+
+    public PropertyPageViewModel? SelectedPage
+    {
+        get => _selectedPage;
+        set
+        {
+            // The list box clears its selection when the selected page is hidden: keep the page until another is chosen.
+            if (value is null)
+                return;
+            this.RaiseAndSetIfChanged(ref _selectedPage, value);
+            this.RaisePropertyChanged(nameof(IsGeneralPageSelected));
+            this.RaisePropertyChanged(nameof(IsInheritancePageSelected));
+            this.RaisePropertyChanged(nameof(SelectedPageDescription));
+        }
+    }
+
+    /// <summary>The General page also shows the protocol note and the host status check.</summary>
+    public bool IsGeneralPageSelected => _selectedPage?.Key == "general";
+
+    /// <summary>The Inheritance page shows "Inherit everything" and one check box per property.</summary>
+    public bool IsInheritancePageSelected => _selectedPage?.IsInheritance == true;
+
+    /// <summary>Text under the page title.</summary>
+    public string SelectedPageDescription => _selectedPage?.Key switch
+    {
+        "inheritance" => Localizer.Get("CheckedPropertiesTakeTheirValueFromThe"),
+        "credentials" when IsFolder => Localizer.Get("ConnectionsInThisFolderCanInheritThese"),
+        _ => string.Empty,
+    };
+
+    /// <summary>Filters the properties by name, description and section.</summary>
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _searchText, value ?? string.Empty);
+            UpdateVisibility();
+        }
+    }
+
+    public bool IsSearching => !string.IsNullOrWhiteSpace(_searchText);
+
+    /// <summary>True when the search matches no property.</summary>
+    public bool HasNoMatches => Pages.All(p => !p.IsVisible);
+
+    // ── Header ────────────────────────────────────────────────────────────
+
+    /// <summary>The name shown in the header (live), or the window title while the name is empty.</summary>
+    public string HeaderTitle => IsDefaultConnection || string.IsNullOrWhiteSpace(Name) ? WindowTitle : Name.Trim();
+
+    /// <summary>Glyph of the edited node: its icon or protocol for a connection, a folder, the root.</summary>
+    public MaterialIconKind HeaderIcon => IsRoot ? MaterialIconKind.Database
+        : IsFolder ? MaterialIconKind.FolderOutline
+        : ProtocolVisuals.IconForLegacyName(Field(nameof(ConnectionInfo.Icon)).BoxedValue as string)
+          ?? ProtocolVisuals.IconFor(SelectedProtocol);
+
+    /// <summary>Protocol colour of the header icon (connections only; folders use the accent).</summary>
+    public IBrush HeaderIconBrush => ProtocolVisuals.BrushFor(SelectedProtocol);
+
+    /// <summary>Protocol colour at low opacity behind the header icon.</summary>
+    public IBrush HeaderTintBrush => ProtocolVisuals.TintBrushFor(SelectedProtocol);
+
+    /// <summary>The header shows the protocol (chip, colours): connections and the default connection.</summary>
+    public bool ShowsProtocol => !IsFolder && !IsRoot;
+
+    /// <summary>Host name under the name (a folder or the default connection say so instead).</summary>
+    public string HeaderSubtitle => IsDefaultConnection
+        ? Localizer.Get("InheritHintDefaultConnection")
+        : IsFolder
+            ? Localizer.Get("FolderNodeLabel")
+            : string.IsNullOrWhiteSpace(Hostname) ? Localizer.Get("NoHostNameYet") : Hostname.Trim();
+
+    /// <summary>"In folder X" (empty directly under the root).</summary>
+    public string LocationText => CanInherit && !IsDefaultConnection ? Localizer.Format("InFolderFormat", ParentName) : string.Empty;
+
+    /// <summary>Number of properties with a validation error, for the footer summary.</summary>
+    public int ErrorCount => Fields.Count(f => f.Error is not null);
+
+    public string ErrorSummary => ErrorCount == 1
+        ? Localizer.Get("OneFieldNeedsAttention")
+        : Localizer.Format("FieldsNeedAttentionFormat", ErrorCount);
 
     public bool IsNew { get; }
     public bool IsFolder { get; }
@@ -120,7 +219,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     public string InheritHint => IsDefaultConnection
         ? Localizer.Get("InheritHintDefaultConnection")
         : CanInherit
-            ? Localizer.Format("InheritHintFolderFormat", ParentName)
+            ? Localizer.Format("InheritHintLinkFormat", ParentName)
             : Localizer.Get("InheritHintRoot");
 
     public string WindowTitle => IsDefaultConnection
@@ -137,15 +236,6 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
 
     /// <summary>Every property editor, in catalog order.</summary>
     public IReadOnlyList<PropertyFieldViewModel> Fields { get; }
-
-    /// <summary>Display, Connection, Credentials, Protocol and Miscellaneous tabs.</summary>
-    public IReadOnlyList<PropertyTabViewModel> Tabs { get; }
-
-    public PropertyTabViewModel DisplayTab => Tabs[0];
-    public PropertyTabViewModel ConnectionTab => Tabs[1];
-    public PropertyTabViewModel CredentialsTab => Tabs[2];
-    public PropertyTabViewModel ProtocolTab => Tabs[3];
-    public PropertyTabViewModel MiscellaneousTab => Tabs[4];
 
     /// <summary>The Inheritance tab: every property that has an Inherit flag, grouped.</summary>
     public IReadOnlyList<PropertySectionViewModel> InheritanceSections { get; }
@@ -302,15 +392,56 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
 
     // ── Internals ─────────────────────────────────────────────────────────
 
-    private PropertyTabViewModel BuildTab(string category)
+    private IReadOnlyList<PropertyPageViewModel> BuildPages()
     {
-        var sections = ConnectionPropertyCatalog.All
-            .Where(d => d.Category == category)
-            .GroupBy(d => d.Section)
-            .Select(g => new PropertySectionViewModel(ConnectionPropertyCategories.GetDisplayName(g.Key),
-                g.Select(d => _fields[d.Name]).ToList()))
-            .ToList();
-        return new PropertyTabViewModel(category, sections);
+        // Every catalog property lands on exactly one page; sections keep the catalog order and headings.
+        static string SectionOf(ConnectionPropertyDescriptor d) =>
+            d.Name is nameof(ConnectionInfo.Name) or nameof(ConnectionInfo.Description) ? ConnectionPropertyCategories.Connection : d.Section;
+
+        static string PageOf(ConnectionPropertyDescriptor d) => (d.Category, SectionOf(d)) switch
+        {
+            (_, ConnectionPropertyCategories.Connection) => "general",
+            (ConnectionPropertyCategories.Display, _) => "appearance",
+            (ConnectionPropertyCategories.Credentials, ConnectionPropertyCategories.Credentials) => "credentials",
+            (_, "External credential provider" or "External address") => "providers",
+            (ConnectionPropertyCategories.Protocol, "Remote Desktop: display") => "display",
+            (ConnectionPropertyCategories.Protocol, "Remote Desktop: redirection") => "redirection",
+            (ConnectionPropertyCategories.Protocol, "RD Gateway") => "gateway",
+            (_, "Wake-on-LAN") => "advanced",
+            (ConnectionPropertyCategories.Connection or ConnectionPropertyCategories.Protocol, _) => "protocol",
+            _ => "advanced",
+        };
+
+        var pages = new (string Key, string Title, MaterialIconKind Icon)[]
+        {
+            ("general", Localizer.Get("General"), MaterialIconKind.InformationOutline),
+            ("credentials", Localizer.Get("Credentials"), MaterialIconKind.AccountKeyOutline),
+            ("protocol", Localizer.Get("Protocol"), MaterialIconKind.TuneVariant),
+            ("display", Localizer.Get("Display"), MaterialIconKind.MonitorScreenshot),
+            ("redirection", Localizer.Get("Redirect"), MaterialIconKind.SwapHorizontal),
+            ("gateway", Localizer.Get("Gateway"), MaterialIconKind.RouterNetwork),
+            ("providers", Localizer.Get("ExternalProviders"), MaterialIconKind.ShieldKeyOutline),
+            ("appearance", Localizer.Get("Appearance"), MaterialIconKind.PaletteOutline),
+            ("advanced", Localizer.Get("Miscellaneous"), MaterialIconKind.DotsHorizontalCircleOutline),
+        };
+
+        var result = pages.Select(page =>
+        {
+            var sections = ConnectionPropertyCatalog.All
+                .Where(d => PageOf(d) == page.Key)
+                .GroupBy(SectionOf)
+                .Select(g => new PropertySectionViewModel(ConnectionPropertyCategories.GetDisplayName(g.Key),
+                    g.Select(d => _fields[d.Name]).ToList()))
+                .ToList();
+            // A page with one section needs no second heading.
+            if (sections.Count == 1)
+                sections[0].ShowHeader = false;
+            return new PropertyPageViewModel(page.Key, page.Title, page.Icon, sections);
+        }).ToList();
+
+        result.Add(new PropertyPageViewModel("inheritance", Localizer.Get("Inheritance"), MaterialIconKind.LinkVariant,
+            InheritanceSections, isInheritance: true));
+        return result;
     }
 
     private void OnFieldValueChanged(object? sender, EventArgs e)
@@ -319,7 +450,20 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
             OnProtocolChanged();
         UpdateVisibility();
         Validate();
+        if (sender is PropertyFieldViewModel field && HeaderProperties.Contains(field.Name))
+        {
+            this.RaisePropertyChanged(nameof(HeaderTitle));
+            this.RaisePropertyChanged(nameof(HeaderSubtitle));
+            this.RaisePropertyChanged(nameof(HeaderIcon));
+            this.RaisePropertyChanged(nameof(HeaderIconBrush));
+            this.RaisePropertyChanged(nameof(HeaderTintBrush));
+        }
     }
+
+    private static readonly HashSet<string> HeaderProperties =
+    [
+        nameof(ConnectionInfo.Name), nameof(ConnectionInfo.Hostname), nameof(ConnectionInfo.Icon), nameof(ConnectionInfo.Protocol),
+    ];
 
     private void OnProtocolChanged()
     {
@@ -345,12 +489,35 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
             };
         }
 
-        foreach (var tab in Tabs)
+        var terms = _searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        foreach (var field in Fields)
         {
-            foreach (var section in tab.Sections)
-                section.IsVisible = section.Fields.Any(f => f.IsVisible);
-            tab.IsVisible = tab.Sections.Any(s => s.IsVisible);
+            field.MatchesSearch = terms.All(term =>
+                field.DisplayName.Contains(term, StringComparison.CurrentCultureIgnoreCase)
+                || field.Description.Contains(term, StringComparison.CurrentCultureIgnoreCase)
+                || field.Descriptor.SectionDisplayName.Contains(term, StringComparison.CurrentCultureIgnoreCase));
         }
+
+        foreach (var page in Pages)
+        {
+            foreach (var section in page.Sections)
+            {
+                section.IsVisible = section.Fields.Any(f => page.IsInheritance ? f.MatchesSearch : f.IsShown);
+                if (page.IsInheritance)
+                    continue;
+                var firstShown = section.Fields.FirstOrDefault(f => f.IsShown);
+                foreach (var field in section.Fields)
+                    field.IsFirstShown = ReferenceEquals(field, firstShown);
+            }
+            page.IsVisible = page.IsInheritance
+                ? !IsRoot && page.Sections.Any(s => s.IsVisible)
+                : page.Sections.Any(s => s.IsVisible) || (page.Key == "general" && !IsSearching && !IsRoot);
+        }
+
+        this.RaisePropertyChanged(nameof(IsSearching));
+        this.RaisePropertyChanged(nameof(HasNoMatches));
+        if (_selectedPage is { IsVisible: false } && Pages.FirstOrDefault(p => p.IsVisible) is { } first)
+            SelectedPage = first;
     }
 
     private void Validate()
@@ -370,7 +537,11 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(HostnameError));
         this.RaisePropertyChanged(nameof(PortError));
         this.RaisePropertyChanged(nameof(IsValid));
+        this.RaisePropertyChanged(nameof(ErrorCount));
+        this.RaisePropertyChanged(nameof(ErrorSummary));
         this.RaisePropertyChanged(nameof(CanCheckStatus));
+        foreach (var page in Pages)
+            page.HasErrors = !page.IsInheritance && page.Sections.Any(s => s.Fields.Any(f => f.Error is not null && f.IsVisible));
     }
 
     private void RaiseInheritEverything()

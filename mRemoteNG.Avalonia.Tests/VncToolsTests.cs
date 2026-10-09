@@ -204,7 +204,7 @@ public class VncToolsTests
         ImportSourceDescriptor.For(ImportSourceType.ActiveDirectory).SourceIsDirectory.Should().BeTrue();
         var dialog = new ImportDialog(null);
         dialog.Show();
-        dialog.FindControl<global::Avalonia.Controls.ComboBox>("SourceTypeBox")!.SelectedIndex = ImportSourceDescriptor.All.ToList().FindIndex(d => d.Type == ImportSourceType.ActiveDirectory);
+        dialog.FindControl<global::Avalonia.Controls.ListBox>("SourceTypeBox")!.SelectedIndex = ImportSourceDescriptor.All.ToList().FindIndex(d => d.Type == ImportSourceType.ActiveDirectory);
         Dispatcher.UIThread.RunJobs();
         dialog.FindControl<global::Avalonia.Controls.TextBox>("FilePathBox")!.IsReadOnly.Should().BeTrue();
         dialog.FindControl<global::Avalonia.Controls.Button>("BrowseButton")!.Content.Should().Be("Browse directory...");
