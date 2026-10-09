@@ -7,14 +7,71 @@ on:
       - 'main'
       - 'dev'
       - 'develop'
+      - 'v1.78.2-dev'
+  # Every pull request, whatever its base (PRs into the default branch v1.78.2-dev included).
   pull_request:
-    branches:
-      - main
-      - dev
-      - develop
   workflow_dispatch:
 
+# A newer push to the same branch/PR supersedes the running checks.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: '1'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  # Minimum line coverage (%) of the cross-platform code measured by the Linux unit-test job.
+  MIN_LINE_COVERAGE: '60'
+
 jobs:
+  # ─────────────────────────────────────────────
+  # Static validation: formatting, vulnerable dependencies
+  # ─────────────────────────────────────────────
+  validate:
+    name: Validate (format, dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # Style rules live in the root .editorconfig (the legacy app keeps mRemoteNG/.editorconfig).
+      - name: Check whitespace formatting
+        run: |
+          status=0
+          for p in mRemoteNG.Core mRemoteNG.Platform mRemoteNG.Platform.Linux mRemoteNG.Platform.Mac \
+                   mRemoteNG.Platform.Windows mRemoteNG.Protocols mRemoteNG.ExternalProviders mRemoteNG.Avalonia \
+                   mRemoteNG.Tests.CrossPlatform mRemoteNG.Avalonia.Tests; do
+            echo "::group::$p"
+            dotnet format whitespace "$p/$p.csproj" --verify-no-changes || status=1
+            echo "::endgroup::"
+          done
+          if [ "$status" -ne 0 ]; then
+            echo "::error::Whitespace formatting differs from .editorconfig. Run 'dotnet format whitespace <project>' locally and commit."
+          fi
+          exit $status
+
+      - name: Check for vulnerable packages (High/Critical fail the build)
+        run: |
+          python3 ci/check-vulnerable-packages.py \
+            mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj \
+            mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj \
+            mRemoteNG.Avalonia.Tests/mRemoteNG.Avalonia.Tests.csproj
+
+
   # ─────────────────────────────────────────────
   # Platform abstraction layer (net10.0 — pure)
   # ─────────────────────────────────────────────
@@ -28,6 +85,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
 
       - name: Restore
         run: dotnet restore mRemoteNG.Platform/mRemoteNG.Platform.csproj
@@ -69,6 +133,13 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       - name: Restore
         run: dotnet restore mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj
 
@@ -94,6 +165,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
 
       # The WinForms app has COM references (MSTSCLib etc.); ResolveComReference only runs
       # on the Visual Studio (.NET Framework) MSBuild, not on `dotnet build`.
@@ -129,6 +207,13 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       - name: Restore cross-platform tests
         run: dotnet restore mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj
 
@@ -136,13 +221,48 @@ jobs:
         shell: bash
         run: |
           dotnet test mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj \
-            -c Release --logger trx --results-directory test-results-xplat/
+            -c Release --logger trx --results-directory test-results-xplat/ \
+            --collect:"XPlat Code Coverage"
 
       - name: Run headless UI tests (Avalonia)
+        if: success() || failure()
         shell: bash
         run: |
           dotnet test mRemoteNG.Avalonia.Tests/mRemoteNG.Avalonia.Tests.csproj \
-            -c Release --logger trx --results-directory test-results-ui/
+            -c Release --logger trx --results-directory test-results-ui/ \
+            --collect:"XPlat Code Coverage"
+
+      - name: Test summary
+        if: always()
+        shell: bash
+        run: python3 ci/test-summary.py "Tests (${{ matrix.os }})" test-results-xplat test-results-ui
+
+      - name: Coverage report
+        if: runner.os == 'Linux' && (success() || failure())
+        shell: bash
+        run: |
+          dotnet tool restore
+          dotnet reportgenerator -reports:"test-results-*/**/coverage.cobertura.xml" -targetdir:coverage-report \
+            -reporttypes:"MarkdownSummaryGithub;HtmlInline_AzurePipelines;JsonSummary" \
+            -assemblyfilters:"-*Tests*;-ObjectListView*"
+          cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY'
+          import json, os, sys
+          summary = json.load(open("coverage-report/Summary.json"))["summary"]
+          line, minimum = float(summary["linecoverage"]), float(os.environ["MIN_LINE_COVERAGE"])
+          print(f"Line coverage {line:.1f}% (minimum {minimum:.0f}%)")
+          if line < minimum:
+              print(f"::error::Line coverage {line:.1f}% is below the minimum of {minimum:.0f}%")
+              sys.exit(1)
+          PY
+
+      - name: Upload coverage report
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report/
+          if-no-files-found: ignore
 
       - name: Restore legacy Windows tests
         if: runner.os == 'Windows'
