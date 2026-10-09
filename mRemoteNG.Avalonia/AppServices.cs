@@ -127,6 +127,18 @@ public static class AppServices
             parameters => Services.ConnectionSettingsDefaults.WithDefaults(
                 sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>().Current, parameters)));
 
+        // External tools: log panel, IntApp tabs and default user name wired in (registered before the protocol
+        // defaults, which only add what is missing).
+        services.AddSingleton<Protocols.External.ExternalToolsService>(Services.ExternalToolsIntegration.Create);
+        services.AddSingleton<ViewModels.ExternalToolsToolbarViewModel>(sp =>
+        {
+            var tree = sp.GetRequiredService<ViewModels.ConnectionTreeViewModel>();
+            return new ViewModels.ExternalToolsToolbarViewModel(
+                sp.GetRequiredService<Protocols.External.ExternalToolsService>(),
+                () => tree.SelectedNode?.Model,
+                sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>());
+        });
+
         // Protocol implementations (transient — one instance per session)
         ProtocolFactory.Register(services);
     }
@@ -141,6 +153,8 @@ public static class AppServices
         var sessions = GetRequired<ViewModels.Docking.SessionsDockable>();
         var protocolFactory = GetRequired<IProtocolFactory>();
         connectionTree.SetDependencies(sessions, protocolFactory);
+        var externalTools = GetRequired<Protocols.External.ExternalToolsService>();
+        connectionTree.ExternalToolNames = () => externalTools.Tools.Select(t => t.DisplayName).ToList();
 
         // Log application start
         var log = GetRequired<ViewModels.Docking.LogPanelDockable>();

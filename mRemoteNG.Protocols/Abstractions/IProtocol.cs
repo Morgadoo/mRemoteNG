@@ -33,7 +33,9 @@ public enum ProtocolType
     /// <summary>Plain TCP socket without Telnet option negotiation (PuTTY "Raw").</summary>
     Raw,
     /// <summary>Local shell (legacy Terminal and WSL protocols).</summary>
-    LocalShell
+    LocalShell,
+    /// <summary>An external tool whose window is embedded in the session tab (legacy "Ext. App").</summary>
+    IntApp
 }
 
 /// <summary>

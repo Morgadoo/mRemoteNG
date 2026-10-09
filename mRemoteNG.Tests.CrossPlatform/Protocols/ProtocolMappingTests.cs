@@ -33,12 +33,13 @@ public class ProtocolMappingTests
     [InlineData(CoreProtocol.AnyDesk, ProtocolType.ExternalApp)]
     [InlineData(CoreProtocol.Terminal, ProtocolType.LocalShell)]
     [InlineData(CoreProtocol.WSL, ProtocolType.LocalShell)]
+    [InlineData(CoreProtocol.IntApp, ProtocolType.IntApp)]
     public void MapProtocol_MapsEveryPortedProtocol(CoreProtocol core, ProtocolType expected) =>
         ConnectionParametersFactory.MapProtocol(core).Should().Be(expected);
 
     [Fact]
-    public void MapProtocol_IntApp_IsNotPorted() =>
-        ConnectionParametersFactory.MapProtocol(CoreProtocol.IntApp).Should().BeNull();
+    public void MapProtocol_EveryCoreProtocolIsPorted() =>
+        Enum.GetValues<CoreProtocol>().Should().OnlyContain(p => ConnectionParametersFactory.MapProtocol(p) != null);
 
     [Fact]
     public void FromConnectionInfo_Ard_UsesVncPort5900()

@@ -716,12 +716,16 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     // ── Editing ───────────────────────────────────────────────────────────
 
     /// <summary>Suggestion lists for the connection editor.</summary>
+    /// <summary>Names of the configured external tools (for the dialog's before/after/IntApp fields).</summary>
+    public Func<IReadOnlyList<string>>? ExternalToolNames { get; set; }
+
     public ConnectionDialogOptions CreateDialogOptions(bool isDefaultConnection = false) => new()
     {
         IsDefaultConnection = isDefaultConnection,
         Panels = Root is { } root ? ConnectionTreeOperations.PanelNames(root) : ["General"],
         SshTunnels = Root is { } r ? ConnectionTreeOperations.SshTunnelCandidates(r) : [],
         PuttySessions = _puttySessionsTree?.Root.Children.Select(s => s.PuttySession).ToList() ?? [],
+        ExternalTools = ExternalToolNames?.Invoke() ?? [],
     };
 
     private async Task NewConnectionAsync()

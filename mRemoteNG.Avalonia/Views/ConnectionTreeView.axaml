@@ -42,6 +42,7 @@
         <TreeView.ContextMenu>
             <ContextMenu x:Name="TreeMenu">
                 <MenuItem Header="Connect" Command="{Binding ConnectSelectedCommand}" InputGesture="Enter"/>
+                <MenuItem x:Name="ExternalToolsMenuItem" Header="External Tools"/>
                 <MenuItem Header="Connect (with options)">
                     <MenuItem Header="Connect with Options..." Command="{Binding ConnectWithOptionsCommand}"/>
                     <Separator/>

@@ -37,6 +37,14 @@ public partial class ConnectionTreeView : UserControl
     {
         InitializeComponent();
 
+        // External Tools ▸ <tool> for the selected connection (the designer has no service container).
+        if (!Design.IsDesignMode)
+        {
+            ExternalToolsMenu.Attach(ExternalToolsMenuItem,
+                AppServices.GetRequired<Protocols.External.ExternalToolsService>(),
+                () => (DataContext as ConnectionTreeViewModel)?.SelectedNode?.Model);
+        }
+
         Tree.AddHandler(KeyDownEvent, OnTreeKeyDown, RoutingStrategies.Tunnel);
         Tree.AddHandler(PointerPressedEvent, OnTreePointerPressed, RoutingStrategies.Tunnel);
         Tree.AddHandler(PointerMovedEvent, OnTreePointerMoved, RoutingStrategies.Tunnel);

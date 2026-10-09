@@ -98,6 +98,9 @@ public sealed class AppSettings
 
     [PersistedSetting("Appearance")] public bool ShowStatusBar { get; set; } = true;
 
+    /// <summary>Show the tools' names (not only their icons) on the External Tools toolbar (legacy ExtAppsTBShowText).</summary>
+    [PersistedSetting("Appearance")] public bool ShowExternalToolsText { get; set; } = true;
+
     // ── Connections ──────────────────────────────────────────────────────
 
     /// <summary>Protocol preselected for new / quick connections; one of <see cref="DefaultProtocolChoices"/>.</summary>
