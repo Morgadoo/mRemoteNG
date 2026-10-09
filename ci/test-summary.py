@@ -38,6 +38,11 @@ def parse(path):
     return stats, failures, assembly
 
 
+# The Windows runner's console encoding (cp1252) cannot print the status emoji and arrows.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main(args):
     if len(args) < 2:
         sys.exit(__doc__)

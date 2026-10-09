@@ -36,6 +36,11 @@ def vulnerabilities(project):
                         }
 
 
+# The Windows runner's console encoding (cp1252) cannot print the status emoji and arrows.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main(projects):
     if not projects:
         sys.exit(__doc__)

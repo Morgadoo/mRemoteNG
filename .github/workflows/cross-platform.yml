@@ -23,8 +23,11 @@ permissions:
 env:
   DOTNET_NOLOGO: '1'
   DOTNET_CLI_TELEMETRY_OPTOUT: '1'
-  # Minimum line coverage (%) of the cross-platform code measured by the Linux unit-test job.
-  MIN_LINE_COVERAGE: '60'
+  # Python helpers in ci/ print UTF-8 (the Windows runner defaults to cp1252).
+  PYTHONUTF8: '1'
+  # Minimum line coverage (%) of the cross-platform code measured by the Linux unit-test job
+  # (75.1% when the gate was introduced).
+  MIN_LINE_COVERAGE: '70'
 
 jobs:
   # ─────────────────────────────────────────────
@@ -234,6 +237,8 @@ jobs:
 
       - name: Test summary
         if: always()
+        # Reporting only: a problem here must not hide test results or skip later steps.
+        continue-on-error: true
         shell: bash
         run: python3 ci/test-summary.py "Tests (${{ matrix.os }})" test-results-xplat test-results-ui
 
@@ -265,11 +270,11 @@ jobs:
           if-no-files-found: ignore
 
       - name: Restore legacy Windows tests
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && (success() || failure())
         run: dotnet restore mRemoteNGTests/mRemoteNGTests.csproj
 
       - name: Run legacy Windows tests (Windows only)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && (success() || failure())
         run: dotnet test mRemoteNGTests/mRemoteNGTests.csproj --no-restore -c Release --logger trx
         continue-on-error: true
 
