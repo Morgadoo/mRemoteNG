@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.TabsPanelsSettingsPage"
+             x:DataType="vm:TabsPanelsSettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Tabs &amp; Panels" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Session Tabs" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding ShowProtocolOnTabs}" Content="Show protocol on tab names"/>
+                <CheckBox IsChecked="{Binding ShowLogonInfoOnTabs}" Content="Show logon information on tab names"/>
+                <CheckBox IsChecked="{Binding IdentifyQuickConnectTabs}" Content="Identify quick connect tabs by adding the prefix &quot;Quick:&quot;"/>
+                <CheckBox IsChecked="{Binding DoubleClickOnTabClosesIt}" Content="Double click on tab closes it"/>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Panels" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding AlwaysShowPanelTabs}" Content="Always show panel tabs"/>
+                <CheckBox IsChecked="{Binding AlwaysShowPanelSelectionDlg}" Content="Always show panel selection dialog when opening connections"/>
+                <CheckBox IsChecked="{Binding CreateEmptyPanelOnStartUp}" Content="Create an empty panel when mRemoteNG starts"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="28,0,0,0"
+                            IsEnabled="{Binding CreateEmptyPanelOnStartUp}">
+                    <TextBlock Text="Panel name:" VerticalAlignment="Center"/>
+                    <TextBox Width="220" Text="{Binding StartUpPanelName}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Sessions" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding OpenConnectionsFromLastSession}"
+                          Content="Reconnect to previously opened sessions on startup"/>
+                <CheckBox IsChecked="{Binding ReconnectOnDisconnect}"
+                          Content="Automatically try to reconnect when disconnected from server"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="28,0,0,0"
+                            IsEnabled="{Binding ReconnectOnDisconnect}">
+                    <TextBlock Text="Attempts:" VerticalAlignment="Center"/>
+                    <NumericUpDown Width="130" Value="{Binding ReconnectAttempts}"
+                                   Minimum="{Binding MinReconnectAttempts}" Maximum="{Binding MaxReconnectAttempts}"
+                                   Increment="1" FormatString="0"/>
+                    <TextBlock Text="(waits 1, 2, 4 … up to 30 seconds between attempts)" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextMutedBrush}" FontSize="11"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

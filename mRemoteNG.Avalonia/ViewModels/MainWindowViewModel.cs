@@ -45,6 +45,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     private bool _isConnectionTreeVisible = true;
     private bool _isLogPanelVisible = true;
     private bool _isFullScreen;
+    private bool _isMultiSshToolbarVisible;
 
     public string Title
     {
@@ -97,6 +98,16 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
     }
 
+    /// <summary>View → Multi-SSH toolbar.</summary>
+    public bool IsMultiSshToolbarVisible
+    {
+        get => _isMultiSshToolbarVisible;
+        set => this.RaiseAndSetIfChanged(ref _isMultiSshToolbarVisible, value);
+    }
+
+    /// <summary>The Multi-SSH toolbar (types into every open terminal session).</summary>
+    public MultiSshViewModel MultiSsh { get; }
+
     /// <summary>Raised by View → Reset Layout; the view restores panel sizes.</summary>
     public event EventHandler? LayoutResetRequested;
 
@@ -138,6 +149,15 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenDocumentationCommand { get; }
     public ReactiveCommand<Unit, Unit> ReportBugCommand { get; }
     public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
+    public ReactiveCommand<Unit, Unit> NextSessionCommand { get; }
+    public ReactiveCommand<Unit, Unit> PreviousSessionCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReconnectAllCommand { get; }
+    public ReactiveCommand<Unit, Unit> DisconnectAllCommand { get; }
+    public ReactiveCommand<Unit, Unit> CloseAllSessionsCommand { get; }
+    public ReactiveCommand<Unit, Unit> NewPanelCommand { get; }
+    public ReactiveCommand<Unit, Unit> ConnectSelectedToPanelCommand { get; }
+    public ReactiveCommand<PanelArrangement, Unit> ArrangePanelsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleMultiSshToolbarCommand { get; }
 
     public MainWindowViewModel(
         ConnectionTreeViewModel connectionTree,
@@ -154,6 +174,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         Sessions = sessions;
         LogPanel = logPanel;
         DebugConsole = debugConsole;
+        MultiSsh = new MultiSshViewModel(sessions);
 
         NewFileCommand = ReactiveCommand.CreateFromTask(OnNewFile);
         NewConnectionCommand = ReactiveCommand.CreateFromObservable(() => ConnectionTree.NewConnectionCommand.Execute());
@@ -179,6 +200,23 @@ public sealed class MainWindowViewModel : ReactiveObject
         // No update service exists yet in the cross-platform app; show the releases page instead.
         CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(OnCheckForUpdatesAsync);
 
+        // Sessions menu
+        var hasSessions = Observable.FromEventPattern<System.Collections.Specialized.NotifyCollectionChangedEventHandler,
+                System.Collections.Specialized.NotifyCollectionChangedEventArgs>(
+                h => sessions.Sessions.CollectionChanged += h, h => sessions.Sessions.CollectionChanged -= h)
+            .Select(_ => sessions.Sessions.Count > 0)
+            .StartWith(sessions.Sessions.Count > 0);
+        NextSessionCommand = ReactiveCommand.Create(() => _sessions.SelectAdjacentSession(+1), hasSessions);
+        PreviousSessionCommand = ReactiveCommand.Create(() => _sessions.SelectAdjacentSession(-1), hasSessions);
+        ReconnectAllCommand = ReactiveCommand.CreateFromTask(() => _sessions.ReconnectAllAsync(), hasSessions);
+        DisconnectAllCommand = ReactiveCommand.CreateFromTask(() => _sessions.DisconnectAllAsync(), hasSessions);
+        CloseAllSessionsCommand = ReactiveCommand.CreateFromTask(() => _sessions.CloseAllSessionsAsync(), hasSessions);
+        NewPanelCommand = ReactiveCommand.Create(() => { _sessions.NewPanel(); });
+        ConnectSelectedToPanelCommand = ReactiveCommand.CreateFromTask(OnConnectSelectedToPanelAsync,
+            ConnectionTree.WhenAnyValue(t => t.SelectedNode).Select(n => n is { IsFolder: false }));
+        ArrangePanelsCommand = ReactiveCommand.Create<PanelArrangement>(mode => _sessions.Arrangement = mode);
+        ToggleMultiSshToolbarCommand = ReactiveCommand.Create(() => { IsMultiSshToolbarVisible = !IsMultiSshToolbarVisible; });
+
         // Track active connection count
         sessions.Sessions.CollectionChanged += (_, _) =>
             ActiveConnectionCount = sessions.Sessions.Count;
@@ -198,7 +236,8 @@ public sealed class MainWindowViewModel : ReactiveObject
                      SaveAsConnectionFileCommand, ImportCommand, ExportCommand, OpenOptionsCommand,
                      QuickConnectCommand, OpenQuickConnectDialogCommand, AboutCommand, PortScannerCommand,
                      OpenSftpCommand, OpenGitHubCommand, OpenDocumentationCommand, ReportBugCommand,
-                     CheckForUpdatesCommand,
+                     CheckForUpdatesCommand, ReconnectAllCommand, DisconnectAllCommand, CloseAllSessionsCommand,
+                     ConnectSelectedToPanelCommand,
                  })
         {
             command.ThrownExceptions.Subscribe(ex => _log.Log($"Error: {ex.Message}", LogLevel.Error));
@@ -248,6 +287,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     /// <summary>Opens the connection file given on the command line (if any) once the window is shown.</summary>
     public async Task OpenStartupFileAsync(string? path)
     {
+        CreateStartupPanel();
         // A file on the command line wins; otherwise the startup setting (last file or a fixed one).
         if (string.IsNullOrWhiteSpace(path))
             path = AppServices.GetRequired<StartupService>().GetFileToOpenAtStartup();
@@ -276,6 +316,7 @@ public sealed class MainWindowViewModel : ReactiveObject
                 ConnectionTree.LoadFromFile(path, password);
                 _log.Log($"Loaded connection file: {path}");
                 RememberOpenFile();
+                OpenPreviousSessions();
                 return;
             }
             catch (ConnectionFilePasswordException ex)
@@ -689,7 +730,66 @@ public sealed class MainWindowViewModel : ReactiveObject
         IsConnectionTreeVisible = true;
         IsLogPanelVisible = true;
         IsFullScreen = false;
+        IsMultiSshToolbarVisible = false;
+        _sessions.ResetLayout();
         LayoutResetRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    // ── Sessions / panels / favorites ─────────────────────────────────────
+
+    /// <summary>
+    /// "Reconnect to previously opened sessions on startup": after a file loads, opens every connection
+    /// saved with Connected="true" that is not open yet. Returns the number of sessions started.
+    /// </summary>
+    public int OpenPreviousSessions()
+    {
+        var settings = AppServices.GetRequired<AppSettingsService>().Current;
+        if (!settings.OpenConnectionsFromLastSession || ConnectionTree.Root is not { } root)
+            return 0;
+        var count = _sessions.OpenPreviousSessions(root, AppServices.GetRequired<IProtocolFactory>());
+        if (count > 0)
+            _log.Log($"Reopening {count} session(s) from the last session.");
+        return count;
+    }
+
+    /// <summary>Options ▸ Tabs &amp; Panels ▸ "Create an empty panel when mRemoteNG starts".</summary>
+    public void CreateStartupPanel()
+    {
+        var settings = AppServices.GetRequired<AppSettingsService>().Current;
+        if (!settings.CreateEmptyPanelOnStartUp) return;
+        var name = string.IsNullOrWhiteSpace(settings.StartUpPanelName) ? SessionsDockable.NewPanelBaseName : settings.StartUpPanelName;
+        _sessions.GetOrCreatePanel(name);
+    }
+
+    /// <summary>Sessions ▸ Connect to Panel…: asks for a panel and opens the selected connection in it.</summary>
+    private async Task OnConnectSelectedToPanelAsync()
+    {
+        if (ConnectionTree.SelectedNode is not { IsFolder: false, Model: { } model }) return;
+        var suggestion = string.IsNullOrWhiteSpace(model.Panel) ? SessionsDockable.DefaultPanelName : model.Panel;
+        var panel = _sessions.PanelChooser is { } choose ? await choose(_sessions.PanelNames, suggestion) : suggestion;
+        if (panel is null) return;
+        await _sessions.OpenConnectionAsync(model, AppServices.GetRequired<IProtocolFactory>(), new ConnectOptions { Panel = panel });
+    }
+
+    /// <summary>Connections of the loaded file marked as favorites, in tree order.</summary>
+    public IReadOnlyList<ConnectionInfo> GetFavorites() =>
+        ConnectionTree.Root is { } root
+            ? root.GetRecursiveChildList()
+                .Where(c => c is not global::mRemoteNG.Core.Container.ContainerInfo && c.Favorite)
+                .ToList()
+            : [];
+
+    /// <summary>Favorites ▸ connection: opens a session for it.</summary>
+    public async Task ConnectFavoriteAsync(ConnectionInfo connection)
+    {
+        try
+        {
+            await _sessions.OpenConnectionAsync(connection, AppServices.GetRequired<IProtocolFactory>());
+        }
+        catch (Exception ex)
+        {
+            _log.Log($"Could not connect to \"{connection.Name}\": {ex.Message}", LogLevel.Error);
+        }
     }
 
     private async Task OpenUrlAsync(string url)

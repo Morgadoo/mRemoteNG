@@ -373,12 +373,14 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     public CredentialsSettingsViewModel Credentials { get; private set; } = null!;
     public NotificationsSettingsViewModel Notifications { get; private set; } = null!;
     public UpdatesSettingsViewModel Updates { get; private set; } = null!;
+    public TabsPanelsSettingsViewModel TabsPanels { get; private set; } = null!;
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
         new("Startup & Exit", "general"),
         new("Appearance", "appearance"),
         new("Connections", "connections"),
+        new("Tabs & Panels", "tabspanels"),
         new("Credentials", "credentials"),
         new("Notifications", "notifications"),
         new("Updates", "updates"),
@@ -453,6 +455,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         Credentials = new CredentialsSettingsViewModel(_working, _credentialCount);
         Notifications = new NotificationsSettingsViewModel(_working);
         Updates = new UpdatesSettingsViewModel(_working, _updates);
+        TabsPanels = new TabsPanelsSettingsViewModel(_working);
     }
 
     private object? ResolvePageViewModel(string? key) => key switch
@@ -463,6 +466,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         "credentials" => Credentials,
         "notifications" => Notifications,
         "updates" => Updates,
+        "tabspanels" => TabsPanels,
         _ => null,
     };
 
@@ -492,6 +496,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(Credentials));
         this.RaisePropertyChanged(nameof(Notifications));
         this.RaisePropertyChanged(nameof(Updates));
+        this.RaisePropertyChanged(nameof(TabsPanels));
         CurrentPage = ResolvePageViewModel(SelectedCategory?.Key);
     }
 }

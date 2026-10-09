@@ -1,0 +1,158 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionPanelView"
+             x:DataType="dock:SessionPanelViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="ListBox.session-tabs">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="2,2,2,0"/>
+        </Style>
+        <Style Selector="ListBox.session-tabs ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBox.session-tabs ListBoxItem /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBox.session-tabs ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBox.session-tabs ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Border.session-tab">
+            <Setter Property="Background" Value="{DynamicResource AppBg2Brush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+            <Setter Property="CornerRadius" Value="4,4,0,0"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.session-tab">
+            <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected Border.session-tab">
+            <Setter Property="Background" Value="{DynamicResource AppBg0Brush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected TextBlock.tab-title">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Border.panel-active-marker">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Border.panel-active-marker.active">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.chrome">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+        <!-- Panel header: shown when panels are side by side / stacked, or floating -->
+        <Border x:Name="Header" DockPanel.Dock="Top" Classes="panel-header" Padding="0" IsVisible="False">
+            <Grid ColumnDefinitions="3,Auto,Auto,*,Auto,Auto,Auto" Height="26">
+                <Border Grid.Column="0" x:Name="ActiveMarker" Classes="panel-active-marker"
+                        Classes.active="{Binding IsActive}"/>
+                <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="section-header"
+                           VerticalAlignment="Center" Margin="8,0,6,0"/>
+                <TextBlock Grid.Column="2" Text="{Binding SessionCount, StringFormat='({0})'}"
+                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                <Button Grid.Column="4" x:Name="FloatButton" Classes="chrome" Content="&#x29C9;"
+                        ToolTip.Tip="Float this panel in its own window"/>
+                <Button Grid.Column="5" x:Name="PanelMenuButton" Classes="chrome" Content="&#x22EF;"
+                        ToolTip.Tip="Panel options"/>
+                <Button Grid.Column="6" x:Name="ClosePanelButton" Classes="chrome" Content="&#x2715;"
+                        ToolTip.Tip="Close this panel and its sessions"/>
+            </Grid>
+        </Border>
+
+        <!-- Session tab strip -->
+        <!-- Scrolls horizontally (mouse wheel, selection) without a scroll bar covering the tabs -->
+        <Border DockPanel.Dock="Top" x:Name="TabScroller">
+            <ListBox x:Name="TabStrip"
+                     Classes="session-tabs"
+                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     ItemsSource="{Binding Sessions}"
+                     SelectedItem="{Binding ActiveSession}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="dock:SessionTabViewModel">
+                        <Border Classes="session-tab"
+                                ToolTip.Tip="{Binding ToolTipText}">
+                            <!-- TabColor tint (legacy painted the tab in that colour) -->
+                            <Grid RowDefinitions="3,*" Background="{Binding TabTintBrush}">
+                                <!-- TabColor accent -->
+                                <Border Grid.Row="0"
+                                        Background="{Binding TabColorBrush}"
+                                        IsVisible="{Binding HasTabColor}"
+                                        CornerRadius="3,3,0,0"/>
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="8,2,2,4">
+                                    <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"/>
+                                    <TextBlock Classes="tab-title"
+                                               Text="{Binding Title}"
+                                               FontSize="12"
+                                               MaxWidth="260"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <ItemsControl ItemsSource="{Binding EnvironmentTags}"
+                                                  IsVisible="{Binding HasEnvironmentTags}"
+                                                  VerticalAlignment="Center">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" Spacing="3"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="dock:EnvironmentTagBadge">
+                                                <Border Background="{Binding Background}" CornerRadius="3" Padding="4,0">
+                                                    <TextBlock Text="{Binding Text}" FontSize="9" FontWeight="Bold"
+                                                               Foreground="White"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Content="&#x2715;"
+                                            FontSize="10"
+                                            Padding="4,0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextSecondaryBrush}"
+                                            ToolTip.Tip="Close"
+                                            Command="{Binding CloseCommand}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <Border BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0">
+            <Grid>
+                <TextBlock x:Name="EmptyText"
+                           Text="No sessions in this panel.&#x0a;Open a connection in it from the connection tree."
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="13"
+                           Foreground="{DynamicResource TextMutedBrush}"/>
+                <Grid x:Name="SessionHost"/>
+            </Grid>
+        </Border>
+    </DockPanel>
+</UserControl>

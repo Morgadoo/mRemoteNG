@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionAreaView">
+
+    <UserControl.Styles>
+        <Style Selector="ToggleButton.panel-tab">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AppBg0Brush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab:checked">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        </Style>
+        <Style Selector="GridSplitter.panel-splitter">
+            <Setter Property="Background" Value="{DynamicResource Border0Brush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+        <!-- Panel tab strip (tabbed arrangement with more than one docked panel) -->
+        <Border x:Name="PanelStripBar" DockPanel.Dock="Top" Classes="panel-header" Padding="0" IsVisible="False">
+            <StackPanel x:Name="PanelStrip" Orientation="Horizontal"/>
+        </Border>
+        <Grid x:Name="PanelGrid"/>
+    </DockPanel>
+</UserControl>
