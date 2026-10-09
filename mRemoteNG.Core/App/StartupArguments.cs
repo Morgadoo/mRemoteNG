@@ -15,12 +15,14 @@ namespace mRemoteNG.Core.App;
 ///   <item><c>--portable</c>: keep settings, credentials and connections next to the executable.</item>
 ///   <item><c>/minimized</c>, <c>/min</c>: start minimised (to the tray when minimise-to-tray is on).</item>
 ///   <item><c>--design-gallery</c>: developer tool; also opens the design gallery (every colour token and control style).</item>
+///   <item><c>--smoke-test &lt;report-dir&gt; [file]</c>: CI tool; starts with an isolated data directory inside
+///   report-dir, runs a scripted check of the main window and exits (see the app's <c>Diagnostics/SmokeTest</c>).</item>
 /// </list>
 /// A token starting with <c>/</c> that is not a known switch is a (Unix) file path, not a switch.
 /// </summary>
 public sealed record StartupArguments
 {
-    private static readonly string[] ValueSwitches = ["cons", "c"];
+    private static readonly string[] ValueSwitches = ["cons", "c", "smoke-test"];
 
     private static readonly string[] FlagSwitches =
     [
@@ -50,6 +52,12 @@ public sealed record StartupArguments
     /// <summary>Developer switch: open the design gallery window (not reachable from the menus).</summary>
     public bool DesignGallery { get; init; }
 
+    /// <summary>CI switch <c>--smoke-test</c>: run the scripted end-to-end check and exit (not reachable from the menus).</summary>
+    public bool SmokeTest { get; init; }
+
+    /// <summary>Folder for the smoke-test report, screenshots and isolated data (null when the value is missing).</summary>
+    public string? SmokeTestReportDirectory { get; init; }
+
     /// <summary>Switches that were not recognised (without their prefix).</summary>
     public IReadOnlyList<string> UnknownSwitches { get; init; } = [];
 
@@ -60,7 +68,8 @@ public sealed record StartupArguments
 
         string? connectionFile = null;
         bool noReconnect = false, resetPos = false, resetPanels = false, resetToolbar = false;
-        bool resetSettings = false, portable = false, minimized = false, designGallery = false;
+        bool resetSettings = false, portable = false, minimized = false, designGallery = false, smokeTest = false;
+        string? smokeTestDirectory = null;
         var unknown = new List<string>();
         string? pendingValueSwitch = null;
         var endOfOptions = false;
@@ -72,7 +81,10 @@ public sealed record StartupArguments
 
             if (pendingValueSwitch is not null)
             {
-                connectionFile = Unquote(raw);
+                if (pendingValueSwitch == "smoke-test")
+                    smokeTestDirectory = Unquote(raw);
+                else
+                    connectionFile = Unquote(raw);
                 pendingValueSwitch = null;
                 continue;
             }
@@ -125,6 +137,13 @@ public sealed record StartupArguments
                 case "design-gallery":
                     designGallery = IsTrue(value);
                     break;
+                case "smoke-test":
+                    smokeTest = true;
+                    if (value is null)
+                        pendingValueSwitch = name;
+                    else
+                        smokeTestDirectory = Unquote(value);
+                    break;
                 default:
                     unknown.Add(name);
                     break;
@@ -142,6 +161,8 @@ public sealed record StartupArguments
             Portable = portable,
             StartMinimized = minimized,
             DesignGallery = designGallery,
+            SmokeTest = smokeTest,
+            SmokeTestReportDirectory = string.IsNullOrWhiteSpace(smokeTestDirectory) ? null : smokeTestDirectory,
             UnknownSwitches = unknown,
         };
     }

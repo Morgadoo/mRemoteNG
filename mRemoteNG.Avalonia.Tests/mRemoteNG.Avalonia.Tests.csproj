@@ -32,6 +32,8 @@
   <!-- Legacy sample connection files shared with the other test suites -->
   <ItemGroup>
     <None Include="..\mRemoteNGTests\Resources\confCons_v2_6*.xml" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The connection file of the app smoke test (.github/workflows/app-smoke.yml) -->
+    <None Include="..\ci\smoke\confCons.xml" Link="Resources\smoke-confCons.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

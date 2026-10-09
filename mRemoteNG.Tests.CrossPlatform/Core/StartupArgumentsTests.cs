@@ -94,6 +94,40 @@ public sealed class StartupArgumentsTests
     }
 
     [Fact]
+    public void SmokeTest_TakesTheReportDirectory_ThenTheConnectionFile()
+    {
+        var args = StartupArguments.Parse(["--smoke-test", "out/smoke", "ci/smoke/confCons.xml"]);
+
+        args.Should().BeEquivalentTo(new
+        {
+            SmokeTest = true,
+            SmokeTestReportDirectory = "out/smoke",
+            ConnectionFile = "ci/smoke/confCons.xml",
+        });
+        args.UnknownSwitches.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("--smoke-test=/tmp/report", "/tmp/report")]
+    [InlineData("--smoke-test:\"C:\\smoke out\"", "C:\\smoke out")]
+    public void SmokeTest_WithEnclosedValue(string arg, string expected)
+    {
+        var args = StartupArguments.Parse([arg]);
+        args.SmokeTest.Should().BeTrue();
+        args.SmokeTestReportDirectory.Should().Be(expected);
+        args.ConnectionFile.Should().BeNull();
+    }
+
+    [Fact]
+    public void SmokeTest_WithoutDirectory_IsFlaggedWithNoDirectory()
+    {
+        var args = StartupArguments.Parse(["--smoke-test"]);
+        args.SmokeTest.Should().BeTrue();
+        args.SmokeTestReportDirectory.Should().BeNull();
+        StartupArguments.Parse(["cons.xml"]).SmokeTest.Should().BeFalse();
+    }
+
+    [Fact]
     public void SwitchValueFalse_TurnsItOff()
     {
         StartupArguments.Parse(["/noreconnect:false", "--portable=0"]).Should().BeEquivalentTo(new { NoReconnect = false, Portable = false });
