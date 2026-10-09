@@ -138,6 +138,12 @@ jobs:
           dotnet test mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj \
             -c Release --logger trx --results-directory test-results-xplat/
 
+      - name: Run headless UI tests (Avalonia)
+        shell: bash
+        run: |
+          dotnet test mRemoteNG.Avalonia.Tests/mRemoteNG.Avalonia.Tests.csproj \
+            -c Release --logger trx --results-directory test-results-ui/
+
       - name: Restore legacy Windows tests
         if: runner.os == 'Windows'
         run: dotnet restore mRemoteNGTests/mRemoteNGTests.csproj

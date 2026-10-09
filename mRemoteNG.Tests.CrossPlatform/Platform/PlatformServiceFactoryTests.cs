@@ -21,9 +21,12 @@ public class PlatformServiceFactoryTests
         provider.GetService<IClipboardService>().Should().NotBeNull();
         provider.GetService<IWindowService>().Should().NotBeNull();
         provider.GetService<IProcessService>().Should().NotBeNull();
-        provider.GetService<ISettingsProvider>().Should().NotBeNull();
-        provider.GetService<ICryptoProvider>().Should().NotBeNull();
         provider.GetService<INotificationService>().Should().NotBeNull();
         provider.GetService<ISystemTrayService>().Should().NotBeNull();
+
+        // Settings and crypto create files in the user's config directory when constructed, so only
+        // check they are registered; their own tests construct them against temporary directories.
+        services.Should().Contain(d => d.ServiceType == typeof(ISettingsProvider));
+        services.Should().Contain(d => d.ServiceType == typeof(ICryptoProvider));
     }
 }

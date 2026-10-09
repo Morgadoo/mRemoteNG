@@ -109,6 +109,7 @@
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.2.7" />
     <PackageVersion Include="Avalonia.ReactiveUI" Version="11.2.7" />
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.2.7" />
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="11.2.7" />
     <PackageVersion Include="ReactiveUI.Fody" Version="19.5.41" />
     <PackageVersion Include="Dock.Avalonia" Version="11.0.0" />
     <PackageVersion Include="Dock.Model.Mvvm" Version="11.0.0" />

@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Tests.CrossPlatfo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Core", "mRemoteNG.Core\mRemoteNG.Core.csproj", "{C1000008-0008-0008-0008-000000000008}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mRemoteNG.Avalonia.Tests", "mRemoteNG.Avalonia.Tests\mRemoteNG.Avalonia.Tests.csproj", "{C1000009-0009-0009-0009-000000000009}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|arm64 = Debug|arm64
@@ -109,6 +111,18 @@ Global
 		{C1000007-0007-0007-0007-000000000007}.Release|arm64.Build.0 = Release|arm64
 		{C1000007-0007-0007-0007-000000000007}.Release|x64.ActiveCfg = Release|x64
 		{C1000007-0007-0007-0007-000000000007}.Release|x64.Build.0 = Release|x64
+		{C1000009-0009-0009-0009-000000000009}.Debug|arm64.ActiveCfg = Debug|arm64
+		{C1000009-0009-0009-0009-000000000009}.Debug|arm64.Build.0 = Debug|arm64
+		{C1000009-0009-0009-0009-000000000009}.Debug|x64.ActiveCfg = Debug|x64
+		{C1000009-0009-0009-0009-000000000009}.Debug|x64.Build.0 = Debug|x64
+		{C1000009-0009-0009-0009-000000000009}.Release Self-Contained|arm64.ActiveCfg = Release|arm64
+		{C1000009-0009-0009-0009-000000000009}.Release Self-Contained|arm64.Build.0 = Release|arm64
+		{C1000009-0009-0009-0009-000000000009}.Release Self-Contained|x64.ActiveCfg = Release|x64
+		{C1000009-0009-0009-0009-000000000009}.Release Self-Contained|x64.Build.0 = Release|x64
+		{C1000009-0009-0009-0009-000000000009}.Release|arm64.ActiveCfg = Release|arm64
+		{C1000009-0009-0009-0009-000000000009}.Release|arm64.Build.0 = Release|arm64
+		{C1000009-0009-0009-0009-000000000009}.Release|x64.ActiveCfg = Release|x64
+		{C1000009-0009-0009-0009-000000000009}.Release|x64.Build.0 = Release|x64
 		{C1000008-0008-0008-0008-000000000008}.Debug|arm64.ActiveCfg = Debug|Any CPU
 		{C1000008-0008-0008-0008-000000000008}.Debug|arm64.Build.0 = Debug|Any CPU
 		{C1000008-0008-0008-0008-000000000008}.Debug|x64.ActiveCfg = Debug|Any CPU
