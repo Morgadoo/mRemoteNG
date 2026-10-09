@@ -53,6 +53,9 @@ public sealed class AppSettings
     public const int MaxKeepAliveSeconds = 3600;
     public const double MinFontSize = 8;
     public const double MaxFontSize = 32;
+    public const int MinReconnectAttempts = 1;
+    public const int MaxReconnectAttempts = 50;
+    public const int DefaultReconnectAttempts = 5;
 
     /// <summary>Protocol names offered as the default protocol (same strings as the quick-connect box).</summary>
     public static IReadOnlyList<string> DefaultProtocolChoices { get; } = ["SSH", "RDP", "VNC", "Telnet", "HTTP", "HTTPS"];
@@ -211,6 +214,47 @@ public sealed class AppSettings
     /// <summary>Optional EC2 endpoint override (VPC endpoint, LocalStack…).</summary>
     [PersistedSetting("AwsEc2")] public string AwsServiceUrl { get; set; } = string.Empty;
 
+    // ── Tabs & panels ────────────────────────────────────────────────────
+
+    /// <summary>Prefix tab titles with the protocol ("SSH2: name").</summary>
+    [PersistedSetting("TabsPanels")] public bool ShowProtocolOnTabs { get; set; }
+
+    /// <summary>Append the logon (DOMAIN\user) to tab titles.</summary>
+    [PersistedSetting("TabsPanels")] public bool ShowLogonInfoOnTabs { get; set; }
+
+    /// <summary>Title quick-connect tabs "Quick: host".</summary>
+    [PersistedSetting("TabsPanels")] public bool IdentifyQuickConnectTabs { get; set; }
+
+    /// <summary>Double-clicking a session tab closes it.</summary>
+    [PersistedSetting("TabsPanels")] public bool DoubleClickOnTabClosesIt { get; set; } = true;
+
+    /// <summary>Show the panel tab strip even when only one panel exists.</summary>
+    [PersistedSetting("TabsPanels")] public bool AlwaysShowPanelTabs { get; set; }
+
+    /// <summary>Ask which panel to open a connection in, even when the connection names one.</summary>
+    [PersistedSetting("TabsPanels")] public bool AlwaysShowPanelSelectionDlg { get; set; }
+
+    /// <summary>Create the panel named <see cref="StartUpPanelName"/> at startup.</summary>
+    [PersistedSetting("TabsPanels")] public bool CreateEmptyPanelOnStartUp { get; set; }
+
+    [PersistedSetting("TabsPanels")] public string StartUpPanelName { get; set; } = "General";
+
+    // ── Sessions ─────────────────────────────────────────────────────────
+
+    /// <summary>Reopen the sessions that were open when the connection file was last saved ("Connected" attribute).</summary>
+    [PersistedSetting("Sessions")] public bool OpenConnectionsFromLastSession { get; set; }
+
+    /// <summary>Reconnect automatically when a session drops without the user closing it.</summary>
+    [PersistedSetting("Sessions")] public bool ReconnectOnDisconnect { get; set; }
+
+    /// <summary>How many automatic reconnect attempts to make (with exponential back-off).</summary>
+    [PersistedSetting("Sessions")] public int ReconnectAttempts { get; set; } = DefaultReconnectAttempts;
+
+    // ── Layout ───────────────────────────────────────────────────────────
+
+    /// <summary>Main window and session panel layout as JSON (not shown in the UI); empty for the default layout.</summary>
+    [PersistedSetting("Layout")] public string WindowLayout { get; set; } = string.Empty;
+
     // ── Helpers ──────────────────────────────────────────────────────────
 
     /// <summary>All persisted properties with their section.</summary>
@@ -290,6 +334,9 @@ public sealed class AppSettings
         if (double.IsNaN(FontSize) || FontSize is < MinFontSize or > MaxFontSize)
             errors.Add($"Font size must be between {MinFontSize} and {MaxFontSize}.");
 
+        if (ReconnectAttempts is < MinReconnectAttempts or > MaxReconnectAttempts)
+            errors.Add($"Reconnect attempts must be between {MinReconnectAttempts} and {MaxReconnectAttempts}.");
+
         if (!DefaultProtocolChoices.Contains(DefaultProtocol))
             errors.Add($"Default protocol must be one of: {string.Join(", ", DefaultProtocolChoices)}.");
 
@@ -342,6 +389,10 @@ public sealed class AppSettings
         Fix<string>(nameof(LastConnectionFilePath), LastConnectionFilePath is null, v => LastConnectionFilePath = v, string.Empty);
         Fix<string>(nameof(FontFamily), FontFamily is null, v => FontFamily = v, string.Empty);
         Fix<string>(nameof(DefaultUsername), DefaultUsername is null, v => DefaultUsername = v, string.Empty);
+        Fix<int>(nameof(ReconnectAttempts), ReconnectAttempts is < MinReconnectAttempts or > MaxReconnectAttempts,
+            v => ReconnectAttempts = v, defaults.ReconnectAttempts);
+        Fix<string>(nameof(StartUpPanelName), StartUpPanelName is null, v => StartUpPanelName = v, defaults.StartUpPanelName);
+        Fix<string>(nameof(WindowLayout), WindowLayout is null, v => WindowLayout = v, string.Empty);
         Fix<string>(nameof(SshPrivateKeyPath), SshPrivateKeyPath is null, v => SshPrivateKeyPath = v, string.Empty);
         Fix<string>(nameof(DefaultConnectionValues), DefaultConnectionValues is null, v => DefaultConnectionValues = v, string.Empty);
         Fix<string>(nameof(DefaultConnectionInheritance), DefaultConnectionInheritance is null, v => DefaultConnectionInheritance = v, string.Empty);

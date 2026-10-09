@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionContentHost"
+             x:DataType="dock:SessionTabViewModel">
+
+    <!-- ConnectionFrameColor: coloured border around the session (legacy InterfaceControl). -->
+    <Border x:Name="Frame"
+            BorderBrush="{Binding FrameBrush}"
+            BorderThickness="{Binding FrameThickness}"
+            Padding="{Binding FramePadding}">
+        <DockPanel>
+            <!-- Connection state / auto-reconnect banner -->
+            <Border x:Name="StatusBanner"
+                    DockPanel.Dock="Top"
+                    IsVisible="{Binding ShowStatusBanner}"
+                    Background="{DynamicResource AppBg2Brush}"
+                    BorderBrush="{DynamicResource WarningBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="10,5">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Column="0" Text="&#x26A0;" Foreground="{DynamicResource WarningBrush}"
+                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBlock Grid.Column="1" Text="{Binding StatusBannerText}" TextWrapping="Wrap"
+                               VerticalAlignment="Center" FontSize="12"/>
+                    <Button Grid.Column="2" x:Name="ReconnectButton" Content="Reconnect" Padding="10,2"
+                            FontSize="12" Margin="8,0,0,0"/>
+                </Grid>
+            </Border>
+
+            <Grid>
+                <TextBlock x:Name="Placeholder"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           FontSize="14"
+                           Margin="20"
+                           Foreground="{DynamicResource TextMutedBrush}"/>
+                <Border x:Name="ViewHost"/>
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
+        x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionFullScreenWindow"
+        x:DataType="dock:SessionTabViewModel"
+        Title="{Binding DisplayTitle}"
+        Background="Black"
+        WindowState="FullScreen"
+        Icon="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico">
+
+    <Grid>
+        <Border BorderBrush="{Binding FrameBrush}"
+                BorderThickness="{Binding FrameThickness}"
+                Padding="{Binding FramePadding}">
+            <Border x:Name="ViewHost"/>
+        </Border>
+
+        <!-- Connection bar: faint until the pointer reaches the top of the screen. -->
+        <Border x:Name="ConnectionBar"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Background="{DynamicResource AppBg2Brush}"
+                BorderBrush="{DynamicResource Border0Brush}"
+                BorderThickness="1,0,1,1"
+                CornerRadius="0,0,6,6"
+                Padding="10,3"
+                Opacity="0.25">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" FontSize="12"/>
+                <Button x:Name="ExitButton" Content="Exit full screen" Padding="8,1" FontSize="12"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

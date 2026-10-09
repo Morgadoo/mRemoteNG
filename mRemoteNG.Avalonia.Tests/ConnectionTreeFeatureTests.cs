@@ -22,9 +22,6 @@ using mRemoteNG.Protocols.Abstractions;
 using Xunit;
 using CoreProtocol = mRemoteNG.Core.Connection.Protocol.ProtocolType;
 
-// The tests share one main window and DI container; never run them concurrently.
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace mRemoteNG.Avalonia.Tests;
 
 /// <summary>Connection editor, tree commands, PuTTY root and file security, driven through the real views.</summary>

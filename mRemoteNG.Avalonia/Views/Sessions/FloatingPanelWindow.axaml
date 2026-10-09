@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mRemoteNG.Avalonia.Views.Sessions.FloatingPanelWindow"
+        Title="Panel — mRemoteNG"
+        Width="900"
+        Height="600"
+        MinWidth="320"
+        MinHeight="200"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBg0Brush}"
+        Icon="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico">
+    <Border x:Name="PanelHost"/>
+</Window>

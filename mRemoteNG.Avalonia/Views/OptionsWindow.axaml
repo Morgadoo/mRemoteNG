@@ -68,6 +68,9 @@
                         <DataTemplate DataType="{x:Type vm:ExternalProvidersSettingsViewModel}">
                             <pages:ExternalProvidersSettingsPage/>
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:TabsPanelsSettingsViewModel}">
+                            <pages:TabsPanelsSettingsPage/>
+                        </DataTemplate>
                     </ContentControl.DataTemplates>
                 </ContentControl>
             </ScrollViewer>

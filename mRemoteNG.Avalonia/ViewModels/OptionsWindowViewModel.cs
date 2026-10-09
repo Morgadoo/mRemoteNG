@@ -384,12 +384,14 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     public NotificationsSettingsViewModel Notifications { get; private set; } = null!;
     public UpdatesSettingsViewModel Updates { get; private set; } = null!;
     public ExternalProvidersSettingsViewModel ExternalProviders { get; private set; } = null!;
+    public TabsPanelsSettingsViewModel TabsPanels { get; private set; } = null!;
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
         new("Startup & Exit", "general"),
         new("Appearance", "appearance"),
         new("Connections", "connections"),
+        new("Tabs & Panels", "tabspanels"),
         new("Credentials", "credentials"),
         new("External Providers", "externalProviders"),
         new("Notifications", "notifications"),
@@ -466,6 +468,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         Notifications = new NotificationsSettingsViewModel(_working);
         Updates = new UpdatesSettingsViewModel(_working, _updates);
         ExternalProviders = new ExternalProvidersSettingsViewModel(_working, _externalProviders);
+        TabsPanels = new TabsPanelsSettingsViewModel(_working);
     }
 
     private object? ResolvePageViewModel(string? key) => key switch
@@ -477,6 +480,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         "notifications" => Notifications,
         "updates" => Updates,
         "externalProviders" => ExternalProviders,
+        "tabspanels" => TabsPanels,
         _ => null,
     };
 
@@ -507,6 +511,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(Notifications));
         this.RaisePropertyChanged(nameof(Updates));
         this.RaisePropertyChanged(nameof(ExternalProviders));
+        this.RaisePropertyChanged(nameof(TabsPanels));
         CurrentPage = ResolvePageViewModel(SelectedCategory?.Key);
     }
 }

@@ -3,6 +3,7 @@
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
         xmlns:views="using:mRemoteNG.Avalonia.Views"
+        xmlns:sessions="using:mRemoteNG.Avalonia.Views.Sessions"
         x:Class="mRemoteNG.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
@@ -47,19 +48,51 @@
                 <MenuItem Header="E_xit" Command="{Binding ExitCommand}" InputGesture="Alt+F4"/>
             </MenuItem>
 
-            <MenuItem Header="_View">
+            <MenuItem Header="_View" x:Name="ViewMenu">
                 <MenuItem Header="Connection Tree" ToggleType="CheckBox"
                           IsChecked="{Binding IsConnectionTreeVisible, Mode=OneWay}"
                           Command="{Binding ToggleConnectionTreeCommand}" InputGesture="Ctrl+Shift+T"/>
                 <MenuItem Header="Log Panel" ToggleType="CheckBox"
                           IsChecked="{Binding IsLogPanelVisible, Mode=OneWay}"
                           Command="{Binding ToggleLogPanelCommand}" InputGesture="Ctrl+Shift+L"/>
+                <MenuItem Header="Multi-SSH Toolbar" ToggleType="CheckBox"
+                          IsChecked="{Binding IsMultiSshToolbarVisible, Mode=OneWay}"
+                          Command="{Binding ToggleMultiSshToolbarCommand}"/>
                 <Separator/>
+                <MenuItem Header="New Panel" Command="{Binding NewPanelCommand}"/>
+                <MenuItem Header="Arrange Panels">
+                    <MenuItem x:Name="ArrangeTabbedItem" Header="Tabbed (one panel at a time)" ToggleType="Radio"
+                              Command="{Binding ArrangePanelsCommand}"
+                              CommandParameter="{x:Static dock:PanelArrangement.Tabbed}"/>
+                    <MenuItem x:Name="ArrangeSideBySideItem" Header="Side by Side" ToggleType="Radio"
+                              Command="{Binding ArrangePanelsCommand}"
+                              CommandParameter="{x:Static dock:PanelArrangement.SideBySide}"/>
+                    <MenuItem x:Name="ArrangeStackedItem" Header="Stacked" ToggleType="Radio"
+                              Command="{Binding ArrangePanelsCommand}"
+                              CommandParameter="{x:Static dock:PanelArrangement.Stacked}"/>
+                </MenuItem>
                 <MenuItem Header="Reset Layout" Command="{Binding ResetLayoutCommand}"/>
                 <Separator/>
                 <MenuItem Header="Full Screen" ToggleType="CheckBox"
                           IsChecked="{Binding IsFullScreen, Mode=OneWay}"
                           Command="{Binding ToggleFullScreenCommand}" InputGesture="F11"/>
+            </MenuItem>
+
+            <MenuItem Header="_Sessions" x:Name="SessionsMenu">
+                <MenuItem Header="Next Session" Command="{Binding NextSessionCommand}" InputGesture="Ctrl+Tab"/>
+                <MenuItem Header="Previous Session" Command="{Binding PreviousSessionCommand}" InputGesture="Ctrl+Shift+Tab"/>
+                <Separator/>
+                <MenuItem Header="Reconnect All" Command="{Binding ReconnectAllCommand}"/>
+                <MenuItem Header="Disconnect All" Command="{Binding DisconnectAllCommand}"/>
+                <MenuItem Header="Close All Sessions" Command="{Binding CloseAllSessionsCommand}"/>
+                <Separator/>
+                <MenuItem Header="Connect Selected to Panel..." Command="{Binding ConnectSelectedToPanelCommand}"/>
+                <MenuItem Header="New Panel" Command="{Binding NewPanelCommand}"/>
+                <Separator x:Name="SessionListSeparator"/>
+            </MenuItem>
+
+            <MenuItem Header="F_avorites" x:Name="FavoritesMenu">
+                <MenuItem Header="(No favorites)" IsEnabled="False"/>
             </MenuItem>
 
             <MenuItem Header="_Tools">
@@ -137,6 +170,27 @@
                     <TextBlock Text="Connect" FontSize="12"/>
                 </Button>
 
+            </StackPanel>
+        </Border>
+
+        <!-- MULTI-SSH TOOLBAR -->
+        <!-- Not Classes="toolbar": Options > "show toolbar" toggles those. -->
+        <Border DockPanel.Dock="Top" x:Name="MultiSshBar" Background="{DynamicResource AppBg2Brush}" Padding="4,2"
+                IsVisible="{Binding IsMultiSshToolbarVisible}">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <TextBlock Text="Multi SSH:" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBox x:Name="MultiSshBox"
+                         Width="420"
+                         FontSize="12"
+                         Text="{Binding MultiSsh.CommandText}"
+                         Watermark="Type a command; Enter sends it to every open terminal session"
+                         ToolTip.Tip="Enter sends the line, Up/Down browse the history, Ctrl+letter sends a control key (Ctrl+C)"/>
+                <ComboBox Width="130" FontSize="12"
+                          ItemsSource="{Binding MultiSsh.ScopeChoices}"
+                          SelectedItem="{Binding MultiSsh.SelectedScope}"/>
+                <TextBlock Text="{Binding MultiSsh.TargetSummary, StringFormat='→ {0}'}" FontSize="12"
+                           VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"/>
             </StackPanel>
         </Border>
 
@@ -234,92 +288,32 @@
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"/>
 
-            <!-- CENTER: Session tabs -->
+            <!-- CENTER: Session panels -->
             <Border Grid.Column="2" Grid.Row="0" Background="{DynamicResource AppBg0Brush}">
-                <DockPanel>
-                    <Border DockPanel.Dock="Top" Classes="panel-header">
-                        <TextBlock Text="SESSIONS" Classes="section-header"/>
-                    </Border>
+                <Grid>
+                    <!-- Empty state (no sessions, single panel) -->
+                    <StackPanel x:Name="EmptySessionsPanel"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="8">
+                        <TextBlock Text="No active sessions"
+                                   FontSize="16"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Double-click a connection to start a session"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <Button Content="Quick Connect..."
+                                Classes="accent"
+                                HorizontalAlignment="Center"
+                                Margin="0,8,0,0"
+                                Command="{Binding OpenQuickConnectDialogCommand}"/>
+                    </StackPanel>
 
-                    <!-- Session tab strip + content -->
-                    <Grid>
-                        <!-- Empty state (shown when no sessions) -->
-                        <StackPanel x:Name="EmptySessionsPanel"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Spacing="8">
-                            <TextBlock Text="No active sessions"
-                                       FontSize="16"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       HorizontalAlignment="Center"/>
-                            <TextBlock Text="Double-click a connection to start a session"
-                                       FontSize="12"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       HorizontalAlignment="Center"/>
-                            <Button Content="Quick Connect..."
-                                    Classes="accent"
-                                    HorizontalAlignment="Center"
-                                    Margin="0,8,0,0"
-                                    Command="{Binding OpenQuickConnectDialogCommand}"/>
-                        </StackPanel>
-
-                        <!-- Active sessions (shown when there are sessions) -->
-                        <DockPanel x:Name="ActiveSessionsPanel"
-                                   IsVisible="False">
-                            <!-- Tab bar -->
-                            <ListBox DockPanel.Dock="Top"
-                                     Background="Transparent"
-                                     ItemsSource="{Binding Sessions.Sessions}"
-                                     SelectedItem="{Binding Sessions.ActiveSession}">
-                                <ListBox.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ListBox.ItemsPanel>
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate x:DataType="dock:SessionTabViewModel">
-                                        <Border Padding="8,4" Margin="1,0"
-                                                Background="{DynamicResource AppBg2Brush}"
-                                                CornerRadius="4,4,0,0"
-                                                BorderBrush="{DynamicResource Border0Brush}"
-                                                BorderThickness="1,1,1,0">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock Text="{Binding Title}"
-                                                           FontSize="12"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                                           VerticalAlignment="Center"/>
-                                                <Button Content="x"
-                                                        FontSize="10"
-                                                        Padding="4,0"
-                                                        Background="Transparent"
-                                                        BorderThickness="0"
-                                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                                        Command="{Binding CloseCommand}"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-
-                            <!-- Active session content -->
-                            <ContentControl Content="{Binding Sessions.ActiveSession.ContentView}">
-                                <ContentControl.Styles>
-                                    <Style Selector="ContentControl:empty">
-                                        <Setter Property="Content">
-                                            <Template>
-                                                <TextBlock Text="Connecting..."
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"
-                                                           FontSize="14"
-                                                           Foreground="{DynamicResource TextMutedBrush}"/>
-                                            </Template>
-                                        </Setter>
-                                    </Style>
-                                </ContentControl.Styles>
-                            </ContentControl>
-                        </DockPanel>
-                    </Grid>
-                </DockPanel>
+                    <!-- Named session panels: tabbed, side by side or stacked; floating ones get their own window -->
+                    <sessions:SessionAreaView x:Name="SessionArea" DataContext="{Binding Sessions}" IsVisible="False"/>
+                </Grid>
             </Border>
 
             <!-- ROW SPLITTER -->
