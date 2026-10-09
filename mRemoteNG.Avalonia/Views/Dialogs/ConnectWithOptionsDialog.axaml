@@ -31,7 +31,7 @@
                     <CheckBox Classes="switch" IsChecked="{Binding ViewOnly}"/>
                 </ctl:SettingRow>
                 <ctl:SettingRow Header="{l:Tr UseConsoleSession, English='Console session'}" IsVisible="{Binding IsRdp}">
-                    <ComboBox HorizontalAlignment="Stretch"
+                    <ComboBox Width="240"
                               ItemsSource="{Binding ConsoleSessionChoices}" SelectedItem="{Binding ConsoleSession}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:ConsoleSessionChoice">
@@ -41,7 +41,7 @@
                     </ComboBox>
                 </ctl:SettingRow>
                 <ctl:SettingRow Header="{l:Tr Panel}">
-                    <AutoCompleteBox x:Name="PanelBox" Text="{Binding Panel, Mode=TwoWay}"
+                    <AutoCompleteBox x:Name="PanelBox" Width="240" Text="{Binding Panel, Mode=TwoWay}"
                                      ItemsSource="{Binding Panels}" FilterMode="ContainsOrdinal" MinimumPrefixLength="0"
                                      Watermark="{l:Tr TheConnectionSPanel}"/>
                 </ctl:SettingRow>

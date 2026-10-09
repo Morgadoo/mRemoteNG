@@ -97,9 +97,9 @@
                     <DataGridTextColumn Header="{l:Tr Host}" Binding="{Binding HostName}" Width="1.2*" MinWidth="140" IsReadOnly="True"/>
                     <DataGridTextColumn Header="{l:Tr AddressColumn}" Binding="{Binding Address}" Width="128" IsReadOnly="True" CellStyleClasses="mono"/>
                     <DataGridTextColumn Header="SSH" Binding="{Binding Ssh}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
-                    <DataGridTextColumn Header="Telnet" Binding="{Binding Telnet}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="Telnet" Binding="{Binding Telnet}" Width="90" IsReadOnly="True" CellStyleClasses="mark"/>
                     <DataGridTextColumn Header="HTTP" Binding="{Binding Http}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
-                    <DataGridTextColumn Header="HTTPS" Binding="{Binding Https}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="HTTPS" Binding="{Binding Https}" Width="90" IsReadOnly="True" CellStyleClasses="mark"/>
                     <DataGridTextColumn Header="rlogin" Binding="{Binding Rlogin}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
                     <DataGridTextColumn Header="RDP" Binding="{Binding Rdp}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
                     <DataGridTextColumn Header="VNC" Binding="{Binding Vnc}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>

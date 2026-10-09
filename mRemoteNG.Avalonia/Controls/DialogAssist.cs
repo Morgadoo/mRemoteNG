@@ -91,8 +91,16 @@ public sealed class DialogAssist
         if (target is null)
             return false;
 
-        if (target.Focus(NavigationMethod.Tab) && target is TextBox box)
-            box.SelectAll();
+        // Text fields show their caret; a button gets no focus ring until the keyboard moves the focus.
+        if (target is TextBox box)
+        {
+            if (box.Focus(NavigationMethod.Tab))
+                box.SelectAll();
+        }
+        else
+        {
+            target.Focus();
+        }
         return true;
     }
 
