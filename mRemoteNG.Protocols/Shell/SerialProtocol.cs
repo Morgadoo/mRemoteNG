@@ -25,7 +25,7 @@ namespace mRemoteNG.Protocols.Shell;
 /// The <see cref="ConnectionParameters.Hostname"/> field is used as the port name
 /// (e.g. "COM3", "/dev/ttyUSB0").
 /// </summary>
-public sealed class SerialProtocol : ProtocolBase, IVisualProtocol
+public sealed class SerialProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
     private readonly ILogger<SerialProtocol> _logger;
     private SerialPort? _port;
@@ -124,6 +124,23 @@ public sealed class SerialProtocol : ProtocolBase, IVisualProtocol
     {
         try { _port?.BaseStream.Write(data); }
         catch (Exception ex) { _logger.LogWarning(ex, "Serial write error"); }
+    }
+
+    /// <summary>Writes input to the port as if typed; ignored while the port is closed.</summary>
+    public async Task SendInputAsync(byte[] data, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (_port is not { IsOpen: true } port)
+            return;
+        try
+        {
+            await port.BaseStream.WriteAsync(data, ct);
+            await port.BaseStream.FlushAsync(ct);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or TimeoutException)
+        {
+            _logger.LogWarning(ex, "Serial write error");
+        }
     }
 
     /// <summary>Returns available serial port names on the current platform.</summary>

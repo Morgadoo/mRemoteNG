@@ -16,7 +16,7 @@ namespace mRemoteNG.Protocols.Telnet;
 /// line-edited locally: typed characters are echoed, Backspace edits the pending line, and Enter sends
 /// the line terminated by CR LF.
 /// </summary>
-public sealed class RawSocketProtocol : ProtocolBase, IVisualProtocol
+public sealed class RawSocketProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
     private readonly ILogger<RawSocketProtocol> _logger;
     private readonly StringBuilder _pendingLine = new();
@@ -67,6 +67,17 @@ public sealed class RawSocketProtocol : ProtocolBase, IVisualProtocol
         _tcp?.Close();
         State = ConnectionState.Disconnected;
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Sends input as if typed: it goes through the same local line editing, so a line reaches the
+    /// server when the input contains Enter ("\r").
+    /// </summary>
+    public Task SendInputAsync(byte[] data, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ct.ThrowIfCancellationRequested();
+        return HandleInputAsync(data);
     }
 
     /// <summary>Applies local line editing to keyboard input and sends completed lines.</summary>

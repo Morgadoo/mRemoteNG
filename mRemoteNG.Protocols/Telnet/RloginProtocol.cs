@@ -19,7 +19,7 @@ namespace mRemoteNG.Protocols.Telnet;
 /// Window-size updates are not sent: rlogin requests them with TCP urgent (out-of-band) data,
 /// which .NET sockets can't distinguish reliably from the normal stream.
 /// </summary>
-public sealed class RloginProtocol : ProtocolBase, IVisualProtocol
+public sealed class RloginProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
     private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(15);
 
@@ -99,8 +99,8 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol
         await Task.CompletedTask;
     }
 
-    /// <summary>Sends terminal input to the server (rlogin passes bytes through unchanged).</summary>
-    internal async Task SendInputAsync(byte[] input, CancellationToken ct = default)
+    /// <summary>Sends terminal input to the server (rlogin passes bytes through unchanged); ignored while not connected.</summary>
+    public async Task SendInputAsync(byte[] input, CancellationToken ct = default)
     {
         if (_stream is null || input.Length == 0) return;
         await _writeLock.WaitAsync(ct);

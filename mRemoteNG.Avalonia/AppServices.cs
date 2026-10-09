@@ -114,6 +114,11 @@ public static class AppServices
             sp.GetRequiredService<mRemoteNG.Core.Credential.FileCredentialRepository>());
         services.AddTransient<ViewModels.CredentialManagerViewModel>();
 
+        // Global connection defaults, for connections the protocol layer opens itself (SSH tunnels)
+        services.AddSingleton<IConnectionDefaults>(sp => new DelegateConnectionDefaults(
+            parameters => Services.ConnectionSettingsDefaults.WithDefaults(
+                sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>().Current, parameters)));
+
         // Protocol implementations (transient — one instance per session)
         ProtocolFactory.Register(services);
     }

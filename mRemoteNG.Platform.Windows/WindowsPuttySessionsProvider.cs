@@ -22,12 +22,19 @@ public class WindowsPuttySessionsProvider : IPuttySessionsProvider
             {
                 using var sessionKey = key.OpenSubKey(sessionName);
                 if (sessionKey == null) continue;
-                var hostname = sessionKey.GetValue("HostName")?.ToString() ?? string.Empty;
-                var portStr = sessionKey.GetValue("PortNumber")?.ToString() ?? "22";
-                var username = sessionKey.GetValue("UserName")?.ToString() ?? string.Empty;
-                var protocol = sessionKey.GetValue("Protocol")?.ToString() ?? "ssh";
+                var settings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var valueName in sessionKey.GetValueNames())
+                {
+                    if (sessionKey.GetValue(valueName) is { } value)
+                        settings[valueName] = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+
+                var hostname = settings.GetValueOrDefault("HostName") ?? string.Empty;
+                var portStr = settings.GetValueOrDefault("PortNumber") ?? "22";
+                var username = settings.GetValueOrDefault("UserName") ?? string.Empty;
+                var protocol = settings.GetValueOrDefault("Protocol") ?? "ssh";
                 if (int.TryParse(portStr, out var port))
-                    sessions.Add(new PuttySession(Uri.UnescapeDataString(sessionName), hostname, port, username, protocol));
+                    sessions.Add(new PuttySession(Uri.UnescapeDataString(sessionName), hostname, port, username, protocol, settings));
             }
         }
         return Task.FromResult<IReadOnlyList<PuttySession>>(sessions);

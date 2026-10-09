@@ -37,38 +37,45 @@ internal sealed class SshConnector
         CancellationToken ct)
         where TClient : BaseClient
     {
+        // Behind a local tunnel port the host key belongs to (and the user knows) the real host.
+        var (keyHost, keyPort) = SshExtras.GetDisplayEndpoint(parameters);
+        var displayName = $"{keyHost}:{keyPort}";
+
         var username = parameters.Username;
         if (string.IsNullOrWhiteSpace(username))
         {
             username = await _prompt.PromptTextAsync(
                 new SshTextPrompt(
                     "Username required",
-                    $"No username is configured for {parameters.DisplayName}. Enter the user to log in as.",
+                    $"No username is configured for {displayName}. Enter the user to log in as.",
                     IsSecret: false,
                     Watermark: "Username"),
                 ct);
             if (string.IsNullOrWhiteSpace(username))
             {
                 throw new InvalidOperationException(
-                    $"No username is configured for {parameters.DisplayName}. Set a username on the connection.");
+                    $"No username is configured for {displayName}. Set a username on the connection.");
             }
             username = username.Trim();
         }
 
-        var authMethods = await BuildAuthMethodsAsync(parameters, username, ct);
+        var authMethods = await BuildAuthMethodsAsync(parameters, username, keyHost, ct);
+        var proxy = GetProxy(parameters);
 
         // A user may take longer to inspect an unknown host key than SSH.NET's key-exchange timeout.
         // If the key was approved but the handshake timed out meanwhile, reconnect once; the approved
         // key is then trusted without asking again.
         for (int attempt = 1; ; attempt++)
         {
-            var connectionInfo = new ConnectionInfo(parameters.Hostname, parameters.Port, username, [.. authMethods])
-            {
-                Timeout = GetSeconds(parameters, ConnectionParametersFactory.Keys.ConnectTimeoutSeconds) is > 0 and var timeout
-                    ? TimeSpan.FromSeconds(timeout)
-                    : OperationTimeout,
-            };
-            PreferKnownHostKeyTypes(connectionInfo, parameters);
+            var connectionInfo = proxy is { } p
+                ? new ConnectionInfo(parameters.Hostname, parameters.Port, username, p.Type, p.Host, p.Port, p.Username, p.Password, [.. authMethods])
+                : new ConnectionInfo(parameters.Hostname, parameters.Port, username, [.. authMethods]);
+            connectionInfo.Timeout = GetInt(parameters, ConnectionParametersFactory.Keys.ConnectTimeoutSeconds) is > 0 and var timeout
+                ? TimeSpan.FromSeconds(timeout)
+                : OperationTimeout;
+            PreferKnownHostKeyTypes(connectionInfo, keyHost, keyPort);
+            if (SshExtras.IsTrue(parameters, SshExtras.Compression))
+                PreferCompression(connectionInfo);
 
             var client = createClient(connectionInfo);
             HostKeyVerdict? verdict = null;
@@ -76,7 +83,7 @@ internal sealed class SshConnector
             {
                 try
                 {
-                    var key = new HostKeyInfo(parameters.Hostname, parameters.Port, e.HostKey);
+                    var key = new HostKeyInfo(keyHost, keyPort, e.HostKey);
                     verdict = _verifier.Verify(key);
                 }
                 catch (Exception ex)
@@ -90,9 +97,9 @@ internal sealed class SshConnector
             {
                 using (ct.Register(client.Dispose))
                     await Task.Run(client.Connect, ct);
-                if (GetSeconds(parameters, ConnectionParametersFactory.Keys.SshKeepAliveSeconds) is > 0 and var keepAlive)
+                if (GetInt(parameters, ConnectionParametersFactory.Keys.SshKeepAliveSeconds) is > 0 and var keepAlive)
                     client.KeepAliveInterval = TimeSpan.FromSeconds(keepAlive);
-                _logger.LogDebug("SSH connected to {Host}: {Reason}", parameters.DisplayName, verdict?.Reason);
+                _logger.LogDebug("SSH connected to {Host} ({Endpoint}): {Reason}", displayName, parameters.DisplayName, verdict?.Reason);
                 return client;
             }
             catch (Exception ex)
@@ -112,7 +119,7 @@ internal sealed class SshConnector
         }
     }
 
-    private static int? GetSeconds(ConnectionParameters parameters, string key) =>
+    private static int? GetInt(ConnectionParameters parameters, string key) =>
         parameters.Extras.TryGetValue(key, out var value)
         && int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var seconds)
             ? seconds
@@ -123,9 +130,9 @@ internal sealed class SshConnector
     /// algorithms for key types already in known_hosts to the front, as OpenSSH does, so that a
     /// known host does not suddenly present a different, unknown key type.
     /// </summary>
-    private void PreferKnownHostKeyTypes(ConnectionInfo connectionInfo, ConnectionParameters parameters)
+    private void PreferKnownHostKeyTypes(ConnectionInfo connectionInfo, string host, int port)
     {
-        var known = _verifier.GetKnownKeyTypes(parameters.Hostname, parameters.Port);
+        var known = _verifier.GetKnownKeyTypes(host, port);
         var algorithms = connectionInfo.HostKeyAlgorithms.ToList();
         connectionInfo.HostKeyAlgorithms.Clear();
 
@@ -136,12 +143,53 @@ internal sealed class SshConnector
             connectionInfo.HostKeyAlgorithms.Add(algorithm.Key, algorithm.Value);
     }
 
+    /// <summary>Asks for zlib compression first (SSH.NET's default prefers "none").</summary>
+    internal static void PreferCompression(ConnectionInfo connectionInfo)
+    {
+        var algorithms = connectionInfo.CompressionAlgorithms.ToList();
+        connectionInfo.CompressionAlgorithms.Clear();
+        connectionInfo.CompressionAlgorithms.Add("zlib@openssh.com", () => new Renci.SshNet.Compression.ZlibOpenSsh());
+        connectionInfo.CompressionAlgorithms.Add("zlib", () => new Renci.SshNet.Compression.Zlib());
+        foreach (var algorithm in algorithms)
+            connectionInfo.CompressionAlgorithms.TryAdd(algorithm.Key, algorithm.Value);
+    }
+
+    private readonly record struct ProxySettings(ProxyTypes Type, string Host, int Port, string? Username, string? Password);
+
+    /// <summary>The HTTP/SOCKS proxy from <see cref="SshExtras"/>, or null for a direct connection.</summary>
+    private static ProxySettings? GetProxy(ConnectionParameters parameters)
+    {
+        var extras = parameters.Extras;
+        if (!extras.TryGetValue(SshExtras.ProxyType, out var type)
+            || !extras.TryGetValue(SshExtras.ProxyHost, out var host)
+            || string.IsNullOrWhiteSpace(host))
+        {
+            return null;
+        }
+        ProxyTypes? proxyType = type.ToLowerInvariant() switch
+        {
+            "socks4" => ProxyTypes.Socks4,
+            "socks5" => ProxyTypes.Socks5,
+            "http" => ProxyTypes.Http,
+            _ => null,
+        };
+        if (proxyType is null)
+            return null;
+        var port = GetInt(parameters, SshExtras.ProxyPort) is > 0 and var p ? p : proxyType == ProxyTypes.Http ? 8080 : 1080;
+        return new ProxySettings(
+            proxyType.Value,
+            host,
+            port,
+            extras.GetValueOrDefault(SshExtras.ProxyUsername) is { Length: > 0 } user ? user : null,
+            extras.GetValueOrDefault(SshExtras.ProxyPassword) is { Length: > 0 } password ? password : null);
+    }
+
     /// <summary>Maps a host key algorithm name to the key type stored in known_hosts.</summary>
     internal static string KeyTypeOf(string algorithm) =>
         algorithm is "rsa-sha2-256" or "rsa-sha2-512" ? "ssh-rsa" : algorithm;
 
     private async Task<List<AuthenticationMethod>> BuildAuthMethodsAsync(
-        ConnectionParameters p, string username, CancellationToken ct)
+        ConnectionParameters p, string username, string displayHost, CancellationToken ct)
     {
         var methods = new List<AuthenticationMethod>();
 
@@ -167,7 +215,7 @@ internal sealed class SshConnector
             password = await _prompt.PromptTextAsync(
                 new SshTextPrompt(
                     "Password required",
-                    $"Enter the password for {username}@{p.Hostname}.",
+                    $"Enter the password for {username}@{displayHost}.",
                     IsSecret: true,
                     Watermark: "Password"),
                 ct);

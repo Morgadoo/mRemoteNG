@@ -57,12 +57,14 @@ namespace mRemoteNG.Core.Config.Import
                     values.GetValueOrDefault("HostName") ?? "",
                     port,
                     values.GetValueOrDefault("UserName") ?? "",
-                    values.GetValueOrDefault("Protocol") ?? "ssh"));
+                    values.GetValueOrDefault("Protocol") ?? "ssh",
+                    values));
             }
             return sessions;
         }
 
-        private static Dictionary<string, string> ReadValues(string file)
+        /// <summary>Reads the <c>Key=Value</c> lines of one PuTTY session file.</summary>
+        public static Dictionary<string, string> ReadValues(string file)
         {
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var line in File.ReadLines(file))

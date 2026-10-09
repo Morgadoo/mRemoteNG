@@ -19,7 +19,7 @@ namespace mRemoteNG.Protocols.Shell;
 /// "127.0.0.1", the protocol runs:
 ///   <c>pwsh -NoLogo -Command "Enter-PSSession -ComputerName {host} -Credential {user}"</c>
 /// </summary>
-public sealed class PowerShellProtocol : ProtocolBase, IVisualProtocol
+public sealed class PowerShellProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
     private readonly ILogger<PowerShellProtocol> _logger;
     private Process? _process;
@@ -125,6 +125,23 @@ public sealed class PowerShellProtocol : ProtocolBase, IVisualProtocol
             _process.StandardInput.BaseStream.Flush();
         }
         catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "PowerShell write error");
+        }
+    }
+
+    /// <summary>Writes input to PowerShell's standard input as if typed; ignored once it has exited.</summary>
+    public async Task SendInputAsync(byte[] data, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (_process is null || _process.HasExited)
+            return;
+        try
+        {
+            await _process.StandardInput.BaseStream.WriteAsync(data, ct);
+            await _process.StandardInput.BaseStream.FlushAsync(ct);
+        }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidOperationException)
         {
             _logger.LogWarning(ex, "PowerShell write error");
         }

@@ -19,7 +19,8 @@ public class PuttySessionsImporterTests
 
         sessions.Select(s => s.Name).Should().BeEquivalentTo("Default Settings", "My Server", "raw-sock", "router", "serial console");
         var server = sessions.Single(s => s.Name == "My Server");
-        server.Should().Be(new PuttySession("My Server", "myserver.example.com", 2222, "alice", "ssh"));
+        (server with { Settings = null }).Should().Be(new PuttySession("My Server", "myserver.example.com", 2222, "alice", "ssh"));
+        server.Settings.Should().Contain("HostName", "myserver.example.com");
     }
 
     [Fact]

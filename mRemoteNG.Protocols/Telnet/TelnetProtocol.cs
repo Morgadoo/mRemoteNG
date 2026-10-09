@@ -14,7 +14,7 @@ namespace mRemoteNG.Protocols.Telnet;
 ///   • We offer WILL NAWS and send the window size on every terminal resize
 ///   • All other options are refused
 /// </summary>
-public sealed class TelnetProtocol : ProtocolBase, IVisualProtocol
+public sealed class TelnetProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
     private readonly ILogger<TelnetProtocol> _logger;
     private readonly TelnetCodec _codec = new();
@@ -77,8 +77,8 @@ public sealed class TelnetProtocol : ProtocolBase, IVisualProtocol
         await Task.CompletedTask;
     }
 
-    /// <summary>Sends terminal input (keystrokes, paste) to the server.</summary>
-    internal Task SendInputAsync(byte[] input, CancellationToken ct = default) =>
+    /// <summary>Sends terminal input (keystrokes, paste) to the server; ignored while not connected.</summary>
+    public Task SendInputAsync(byte[] input, CancellationToken ct = default) =>
         WriteAsync(TelnetCodec.EncodeInput(input), ct);
 
     /// <summary>Records the terminal size and tells the server when it accepted NAWS.</summary>

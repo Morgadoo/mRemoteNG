@@ -21,7 +21,7 @@ namespace mRemoteNG.Protocols.Shell;
 /// show a prompt and echo input, and ssh can ask for a password. Without <c>script</c> (and on Windows)
 /// the process runs on plain pipes, which works for line-oriented programs only.
 /// </summary>
-public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol
+public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
     private readonly ILogger<LocalShellProtocol> _logger;
     private Process? _process;
@@ -223,6 +223,22 @@ public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol
         catch (InvalidOperationException)
         {
             return false; // never started
+        }
+    }
+
+    /// <summary>Writes input to the shell's standard input as if typed; ignored once it has exited.</summary>
+    public async Task SendInputAsync(byte[] data, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        if (!IsRunning()) return;
+        try
+        {
+            await _process!.StandardInput.BaseStream.WriteAsync(data, ct);
+            await _process.StandardInput.BaseStream.FlushAsync(ct);
+        }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidOperationException)
+        {
+            _logger.LogWarning(ex, "Local shell write error");
         }
     }
 

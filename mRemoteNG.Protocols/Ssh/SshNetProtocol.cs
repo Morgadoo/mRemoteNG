@@ -16,8 +16,12 @@ namespace mRemoteNG.Protocols.Ssh;
 ///   • An interactive xterm-256color shell in a <see cref="TerminalView"/>, resized with the view
 ///   • The connection's opening command, sent once the shell is open
 ///   • Keep-alive messages every 30 seconds
+///   • SSH options / PuTTY session settings carried in <see cref="SshExtras"/>: local, remote and
+///     dynamic port forwardings, compression, HTTP/SOCKS proxy and "no shell" (-N); options the client
+///     cannot honour are listed in the terminal as notices
+///   • Input sent programmatically through <see cref="ITerminalProtocol"/> (Multi-SSH)
 /// </summary>
-public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
+public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
     private static readonly TimeSpan KeepAliveInterval = TimeSpan.FromSeconds(30);
 
@@ -27,6 +31,7 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
     private ShellStream? _shellStream;
     private CancellationTokenSource? _readCts;
     private TerminalView? _terminalView;
+    private List<ForwardedPort> _forwardedPorts = [];
 
     public SshNetProtocol(ILogger<SshNetProtocol> logger, IHostKeyVerifier hostKeyVerifier, ISshUserPrompt userPrompt)
     {
@@ -47,14 +52,35 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
     public override async Task ConnectAsync(ConnectionParameters parameters, CancellationToken ct = default)
     {
         State = ConnectionState.Connecting;
-        RaiseStatus($"Connecting to {parameters.DisplayName}…");
-        WriteNotice($"Connecting to {parameters.DisplayName}…", "90");
+        var (host, port) = SshExtras.GetDisplayEndpoint(parameters);
+        var target = parameters.Extras.TryGetValue(SshExtras.TunnelVia, out var tunnel) && tunnel.Length > 0
+            ? $"{host}:{port} via SSH tunnel \"{tunnel}\""
+            : $"{host}:{port}";
+        RaiseStatus($"Connecting to {target}…");
+        WriteNotice($"Connecting to {target}…", "90");
+        foreach (var notice in SshExtras.GetNotices(parameters))
+            WriteNotice(notice, "33");
 
         try
         {
             _client = await _connector.ConnectAsync(parameters, info => new SshClient(info), ct);
             _client.ErrorOccurred += OnErrorOccurred;
             _client.KeepAliveInterval = KeepAliveInterval;
+
+            _forwardedPorts = SshPortForwarding.Start(
+                _client,
+                SshExtras.GetForwards(parameters),
+                _logger,
+                (message, ok) => WriteNotice(message, ok ? "90" : "1;31"));
+
+            if (SshExtras.IsTrue(parameters, SshExtras.NoShell))
+            {
+                // PuTTY -N: the session exists only for its forwardings.
+                WriteNotice("No shell was started (-N); the session carries the port forwardings only.", "90");
+                State = ConnectionState.Connected;
+                RaiseStatus($"Connected to {host} (no shell)");
+                return;
+            }
 
             int cols = _terminalView?.TerminalCols ?? 80;
             int rows = _terminalView?.TerminalRows ?? 24;
@@ -70,7 +96,7 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
             }
 
             State = ConnectionState.Connected;
-            RaiseStatus($"Connected to {parameters.Hostname}");
+            RaiseStatus($"Connected to {host}");
 
             _readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             _ = Task.Run(() => ReadLoop(_readCts.Token), CancellationToken.None);
@@ -79,6 +105,8 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
         }
         catch (Exception ex)
         {
+            SshPortForwarding.Stop(_client, _forwardedPorts, _logger);
+            _forwardedPorts = [];
             _client?.Dispose();
             _client = null;
 
@@ -111,9 +139,12 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
         if (_client is not null)
         {
             var client = _client;
+            var ports = _forwardedPorts;
             _client = null;
+            _forwardedPorts = [];
             await Task.Run(() =>
             {
+                SshPortForwarding.Stop(client, ports, _logger);
                 try { client.Disconnect(); }
                 catch (Exception ex) { _logger.LogDebug(ex, "SSH disconnect failed"); }
                 client.Dispose();
@@ -122,6 +153,17 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
 
         State = ConnectionState.Disconnected;
         RaiseStatus("Disconnected.");
+    }
+
+    // ── ITerminalProtocol ──────────────────────────────────────────────────
+
+    /// <inheritdoc />
+    public Task SendInputAsync(byte[] data, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ct.ThrowIfCancellationRequested();
+        SendToShell(data); // ignored while no shell is open
+        return Task.CompletedTask;
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -238,6 +280,8 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
             _readCts?.Cancel();
             _readCts?.Dispose();
             _shellStream?.Dispose();
+            SshPortForwarding.Stop(_client, _forwardedPorts, _logger);
+            _forwardedPorts = [];
             _client?.Dispose();
         }
     }
