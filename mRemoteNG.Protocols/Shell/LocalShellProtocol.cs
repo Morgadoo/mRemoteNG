@@ -141,7 +141,7 @@ public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol, ITermina
         return [.. command];
     }
 
-    private static ProcessStartInfo CreateStartInfo(string[] command, int cols, int rows)
+    internal static ProcessStartInfo CreateStartInfo(string[] command, int cols, int rows)
     {
         ProcessStartInfo psi;
         var script = OperatingSystem.IsWindows() ? null : FindOnPath("script");
@@ -184,7 +184,7 @@ public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol, ITermina
             ? value
             : "'" + value.Replace("'", "'\\''") + "'";
 
-    private static string? FindOnPath(string exe)
+    internal static string? FindOnPath(string exe)
     {
         foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator))
         {
