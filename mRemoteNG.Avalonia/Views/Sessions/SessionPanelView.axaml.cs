@@ -2,7 +2,9 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Material.Icons;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -45,17 +47,97 @@ public partial class SessionPanelView : UserControl
             var menu = BuildPanelMenu(_panel, OwnerWindow);
             menu.Open(PanelMenuButton);
         };
+        Header.ContextRequested += (_, e) =>
+        {
+            if (_panel is null) return;
+            BuildPanelMenu(_panel, OwnerWindow).Open(Header);
+            e.Handled = true;
+        };
+        OverflowButton.Click += (_, _) => OpenAllTabsMenu();
+        // A narrower strip (panels side by side, a smaller window) keeps the active tab in view.
+        TabScroller.SizeChanged += (_, e) =>
+        {
+            if (Math.Abs(e.NewSize.Width - e.PreviousSize.Width) < 1 || _panel?.ActiveSession is not { } active) return;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_panel?.ActiveSession == active)
+                    TabStrip.ScrollIntoView(active);
+            }, DispatcherPriority.Background);
+        };
+        TabStrip.TemplateApplied += (_, e) =>
+        {
+            if (_tabScroller is not null)
+                _tabScroller.ScrollChanged -= OnTabScrollChanged;
+            _tabScroller = e.NameScope.Find<ScrollViewer>("PART_ScrollViewer");
+            if (_tabScroller is not null)
+                _tabScroller.ScrollChanged += OnTabScrollChanged;
+        };
+    }
+
+    private ScrollViewer? _tabScroller;
+
+    /// <summary>True when the tabs do not all fit and the "all tabs" button is shown.</summary>
+    public bool IsTabStripOverflowing => OverflowButton.IsVisible;
+
+    private void OnTabScrollChanged(object? sender, ScrollChangedEventArgs e) => UpdateOverflow();
+
+    /// <summary>Shows the "all tabs" button and the edge fades when the tabs do not fit.</summary>
+    private void UpdateOverflow()
+    {
+        if (_tabScroller is not { } scroller) return;
+        var hidden = scroller.Extent.Width - scroller.Viewport.Width;
+        var overflowing = hidden > 1;
+        OverflowButton.IsVisible = overflowing;
+        FadeLeft.IsVisible = overflowing && scroller.Offset.X > 1;
+        FadeRight.IsVisible = overflowing && scroller.Offset.X < hidden - 1;
+    }
+
+    /// <summary>The "⌄" menu: every tab of the panel (icon, title, status), the active one checked.</summary>
+    private void OpenAllTabsMenu()
+    {
+        if (_panel is null || _panel.Sessions.Count == 0) return;
+        var items = new List<Control>();
+        foreach (var session in _panel.Sessions)
+        {
+            var icon = new global::Material.Icons.Avalonia.MaterialIcon
+            {
+                Kind = Services.ProtocolVisuals.IconForConnection(session),
+                Foreground = session.IconBrush,
+                Width = 16,
+                Height = 16,
+            };
+            var item = new MenuItem
+            {
+                Header = session.DisplayTitle,
+                Icon = icon,
+                ToggleType = MenuItemToggleType.Radio,
+                IsChecked = ReferenceEquals(session, _panel.ActiveSession),
+            };
+            var target = session;
+            item.Click += (_, _) =>
+            {
+                if (_panel is not null)
+                    _panel.ActiveSession = target;
+            };
+            items.Add(item);
+        }
+        new ContextMenu { ItemsSource = items, Placement = PlacementMode.BottomEdgeAlignedRight }.Open(OverflowButton);
     }
 
     public SessionPanelView(SessionPanelViewModel panel) : this() => DataContext = panel;
 
     public SessionPanelViewModel? Panel => _panel;
 
-    /// <summary>Show the panel header (name, float/dock, close). The session area sets it.</summary>
+    /// <summary>Show the panel's name and actions (float/dock, menu, close). The session area sets it.</summary>
     public bool ShowHeader
     {
         get => Header.IsVisible;
-        set => Header.IsVisible = value;
+        set
+        {
+            Header.IsVisible = value;
+            HeaderButtons.IsVisible = value;
+            UpdateVisibility();
+        }
     }
 
     /// <summary>The host of each open session (for tests).</summary>
@@ -129,6 +211,9 @@ public partial class SessionPanelView : UserControl
         var empty = _panel is null || _panel.Sessions.Count == 0;
         EmptyText.IsVisible = empty;
         TabScroller.IsVisible = !empty;
+        TabBar.IsVisible = !empty || Header.IsVisible;
+        if (empty)
+            OverflowButton.IsVisible = false;
 
         if (focus && active?.ContentView is { } view && !active.IsDetached)
             Dispatcher.UIThread.Post(() =>
@@ -141,7 +226,7 @@ public partial class SessionPanelView : UserControl
     private void UpdateFloatButton()
     {
         if (_panel is null) return;
-        FloatButton.Content = _panel.IsFloating ? "⭳" : "⧉";
+        FloatIcon.Kind = _panel.IsFloating ? MaterialIconKind.DockWindow : MaterialIconKind.OpenInNew;
         ToolTip.SetTip(FloatButton, _panel.IsFloating ? Localizer.Get("DockThisPanelBack") : Localizer.Get("FloatThisPanelInItsOwnWindow"));
     }
 

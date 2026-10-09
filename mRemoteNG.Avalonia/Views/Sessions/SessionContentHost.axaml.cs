@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Material.Icons;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
@@ -72,7 +73,8 @@ public partial class SessionContentHost : UserControl
                     ? Localizer.Get("SessionRunsInOwnWindow")
                     : string.Empty
                 : string.Empty;
-        Placeholder.IsVisible = Placeholder.Text.Length > 0;
+        PlaceholderIcon.Kind = _session.IsDetached ? MaterialIconKind.Fullscreen : MaterialIconKind.OpenInNew;
+        PlaceholderPanel.IsVisible = Placeholder.Text.Length > 0;
     }
 
     private async void OnReconnectClick(object? sender, RoutedEventArgs e)

@@ -22,6 +22,9 @@ internal sealed class Win32EmbedSupport : IEmbeddedWindowSupport
 
     public event EventHandler? RemoteWindowMapped { add { } remove { } }
 
+    // Windows activates and focuses a clicked child window itself.
+    public event EventHandler? RemoteClicked { add { } remove { } }
+
     public nint RemoteWindow => GetWindow(_parent, GW_CHILD);
 
     public bool RemoteHasFocus

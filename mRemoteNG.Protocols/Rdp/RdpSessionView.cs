@@ -78,6 +78,11 @@ internal sealed class RdpNativeHost : NativeControlHost
 /// </summary>
 internal sealed class RdpSessionView : Grid
 {
+    // Views shown in a window, for the "another window opened" notification (OnAnyWindowOpened). UI thread only.
+    private static readonly List<WeakReference<RdpSessionView>> ShownViews = [];
+
+    // Windows opened over this view (dialogs, prompts) that are still open.
+    private readonly HashSet<Window> _windowsOver = [];
     private readonly Border _messagePanel;
     private readonly TextBlock _messageText;
     private readonly Button _bringToFrontButton;
@@ -85,7 +90,18 @@ internal sealed class RdpSessionView : Grid
     private readonly TaskCompletionSource _sized = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private TopLevel? _topLevel;
 
-    public RdpSessionView(bool embeddingCandidate)
+    static RdpSessionView()
+    {
+        Window.WindowOpenedEvent.AddClassHandler<Window>((window, _) => OnAnyWindowOpened(window), handledEventsToo: true);
+        Window.WindowClosedEvent.AddClassHandler<Window>((window, _) => OnAnyWindowClosed(window), handledEventsToo: true);
+    }
+
+    /// <param name="embeddingCandidate">False on platforms where FreeRDP can never draw into the tab (macOS).</param>
+    /// <param name="iconClass">
+    /// Style class of the message panel's icon ("rdp", "app"); the application's styles put the matching glyph into
+    /// <c>ContentControl.session-message-icon</c>.
+    /// </param>
+    public RdpSessionView(bool embeddingCandidate, string iconClass = "rdp")
     {
         Background = Brushes.Black;
         Focusable = true;
@@ -96,9 +112,11 @@ internal sealed class RdpSessionView : Grid
             Children.Add(Host);
         }
 
+        // Colours, fonts and the icon come from the application's styles (classes "session-message…") so the panel
+        // follows the theme; without them it shows the window's text colour on the view's black background.
         _messageText = new TextBlock
         {
-            Foreground = new SolidColorBrush(Color.FromRgb(0xCC, 0xCC, 0xCC)),
+            Classes = { "session-message-text" },
             TextWrapping = TextWrapping.Wrap,
             TextAlignment = TextAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -111,7 +129,7 @@ internal sealed class RdpSessionView : Grid
 
         _messagePanel = new Border
         {
-            Background = Brushes.Black,
+            Classes = { "session-message" },
             Child = new StackPanel
             {
                 Spacing = 12,
@@ -119,12 +137,19 @@ internal sealed class RdpSessionView : Grid
                 VerticalAlignment = VerticalAlignment.Center,
                 Children =
                 {
+                    new ContentControl
+                    {
+                        Classes = { "session-message-icon", iconClass },
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Focusable = false,
+                    },
                     _messageText,
                     new StackPanel
                     {
                         Orientation = Orientation.Horizontal,
                         Spacing = 8,
                         HorizontalAlignment = HorizontalAlignment.Center,
+                        Margin = new Thickness(0, 4, 0, 0),
                         Children = { _bringToFrontButton, _disconnectButton },
                     },
                 },
@@ -154,6 +179,18 @@ internal sealed class RdpSessionView : Grid
 
     /// <summary>Raised when the window hosting this view is activated by the window manager.</summary>
     public event EventHandler? WindowActivated;
+
+    /// <summary>
+    /// Raised when another Avalonia window (a dialog, a prompt) opens while this view is shown: the keyboard has to
+    /// leave the native window so typing reaches the new window instead of the remote desktop.
+    /// </summary>
+    public event EventHandler? KeyboardReleaseRequested;
+
+    /// <summary>Raised when the last window that caused <see cref="KeyboardReleaseRequested"/> has closed.</summary>
+    public event EventHandler? KeyboardReleaseEnded;
+
+    /// <summary>True while a window opened over this view (see <see cref="KeyboardReleaseRequested"/>) is still open.</summary>
+    public bool IsCoveredByWindow => _windowsOver.Count > 0;
 
     /// <summary>Raised with the new size in device pixels.</summary>
     public event EventHandler<PixelSize>? PixelSizeChanged;
@@ -204,6 +241,8 @@ internal sealed class RdpSessionView : Grid
     {
         base.OnAttachedToVisualTree(e);
         _topLevel = e.Root as TopLevel;
+        ShownViews.RemoveAll(r => !r.TryGetTarget(out var view) || ReferenceEquals(view, this));
+        ShownViews.Add(new WeakReference<RdpSessionView>(this));
         _topLevel?.AddHandler(PointerPressedEvent, OnTopLevelPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         if (_topLevel is WindowBase window)
             window.Activated += OnWindowActivated;
@@ -217,7 +256,45 @@ internal sealed class RdpSessionView : Grid
         if (_topLevel is WindowBase window)
             window.Activated -= OnWindowActivated;
         _topLevel = null;
+        ShownViews.RemoveAll(r => !r.TryGetTarget(out var view) || ReferenceEquals(view, this));
+        _windowsOver.Clear();
         base.OnDetachedFromVisualTree(e);
+    }
+
+    private static List<RdpSessionView> LiveShownViews()
+    {
+        ShownViews.RemoveAll(r => !r.TryGetTarget(out _));
+        return ShownViews.Select(r => r.TryGetTarget(out var view) ? view : null).OfType<RdpSessionView>().ToList();
+    }
+
+    private static void OnAnyWindowOpened(Window window)
+    {
+        var released = false;
+        foreach (var view in LiveShownViews())
+        {
+            // The view's own window (e.g. the full-screen window it has just moved into) is not "another" window.
+            if (view._topLevel is null || ReferenceEquals(view._topLevel, window) || !view._windowsOver.Add(window))
+                continue;
+            view.KeyboardReleaseRequested?.Invoke(view, EventArgs.Empty);
+            released = true;
+        }
+
+        // The keyboard is back in our application: make sure the new window, not the one under it, gets it.
+        if (released)
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (window.IsVisible)
+                    window.Activate();
+            });
+    }
+
+    private static void OnAnyWindowClosed(Window window)
+    {
+        foreach (var view in LiveShownViews())
+        {
+            if (view._windowsOver.Remove(window) && view._windowsOver.Count == 0)
+                view.KeyboardReleaseEnded?.Invoke(view, EventArgs.Empty);
+        }
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)
@@ -234,7 +311,10 @@ internal sealed class RdpSessionView : Grid
 
     private void OnTopLevelPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (IsOwnTabHeader(e.Source as Visual))
+        // Only a left click on the tab means "work in the remote desktop". A right click opens the tab's context menu
+        // and a middle click closes the tab: handing the keyboard to the native window then deactivated our window,
+        // which closed the context menu as soon as it opened (it took several right clicks to get the menu).
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && IsOwnTabHeader(e.Source as Visual))
         {
             // Run after the click was processed (and the window manager focused our window) so the focus
             // handed to the remote desktop is not immediately taken back.

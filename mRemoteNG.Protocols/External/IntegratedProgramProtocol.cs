@@ -68,12 +68,14 @@ public sealed class IntegratedProgramProtocol : ProtocolBase, IVisualProtocol
         if (_view is not null)
             return _view;
 
-        _view = new RdpSessionView(embeddingCandidate: !OperatingSystem.IsMacOS());
+        _view = new RdpSessionView(embeddingCandidate: !OperatingSystem.IsMacOS(), iconClass: "app");
         _view.ShowMessage("Starting the external tool…");
         _view.Shown += (_, _) => OnViewShown();
         _view.TabHeaderPressed += (_, _) => RequestRemoteFocus();
         _view.AvaloniaPointerPressed += (_, _) => OnAvaloniaPointerPressed();
         _view.WindowActivated += (_, _) => OnWindowActivated();
+        _view.KeyboardReleaseRequested += (_, _) => OnKeyboardReleaseRequested();
+        _view.KeyboardReleaseEnded += (_, _) => OnWindowActivated();
         _view.PixelSizeChanged += (_, size) => _embedded?.Support?.ResizeRemote(size.Width, size.Height);
         _view.BringToFrontRequested += (_, _) => BringToFront();
         _view.DisconnectRequested += (_, _) => _ = DisconnectAsync();
@@ -169,6 +171,8 @@ public sealed class IntegratedProgramProtocol : ProtocolBase, IVisualProtocol
                     if (!exited)
                         _embedded = embedded;
                 }
+                if (!exited && embedded.Support is { } clickSupport)
+                    clickSupport.RemoteClicked += (_, _) => Dispatcher.UIThread.Post(() => _remoteFocusWanted = true);
                 if (exited)
                 {
                     embedded.Dispose();
@@ -310,8 +314,17 @@ public sealed class IntegratedProgramProtocol : ProtocolBase, IVisualProtocol
 
     private void OnWindowActivated()
     {
-        if (_embedded?.Support is { } support && _remoteFocusWanted && State == ConnectionState.Connected)
+        // Not while one of our dialogs is open over the session (see OnKeyboardReleaseRequested).
+        if (_embedded?.Support is { } support && _view is { IsCoveredByWindow: false, IsShownInWindow: true }
+            && _remoteFocusWanted && State == ConnectionState.Connected)
             support.FocusRemote();
+    }
+
+    private void OnKeyboardReleaseRequested()
+    {
+        // A dialog opened over the session: the keyboard leaves the program's window until the dialog closes.
+        if (_embedded?.Support is { } support && _view is not null)
+            support.ReturnFocusTo(_view.TopLevelHandle);
     }
 
     private void DisposeEmbedded()

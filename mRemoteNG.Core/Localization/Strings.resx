@@ -2259,4 +2259,80 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
     <value>Offline — {0}</value>
     <comment>Host status; {0} = details</comment>
   </data>
+  <data name="TreeMoreActions" xml:space="preserve">
+    <value>More actions</value>
+    <comment>Tooltip of a "⋯" button that opens a menu (connection tree header)</comment>
+  </data>
+  <data name="TreeSearchWatermark" xml:space="preserve">
+    <value>Search connections (Ctrl+F)</value>
+    <comment>Placeholder of the connection tree's search box (it searches names, host names and descriptions)</comment>
+  </data>
+  <data name="TreeEmptyTitle" xml:space="preserve">
+    <value>No connections yet</value>
+    <comment>Connection tree empty state: title</comment>
+  </data>
+  <data name="TreeEmptyText" xml:space="preserve">
+    <value>Create your first connection, or import existing ones from a file.</value>
+    <comment>Connection tree empty state: text</comment>
+  </data>
+  <data name="TreeNoMatchesTitle" xml:space="preserve">
+    <value>No matches</value>
+    <comment>Connection tree: the search found nothing (title)</comment>
+  </data>
+  <data name="TreeNoMatchesText" xml:space="preserve">
+    <value>Nothing matches your search in the names, host names or descriptions.</value>
+    <comment>Connection tree: the search found nothing (text)</comment>
+  </data>
+  <data name="TreeClearSearch" xml:space="preserve">
+    <value>Clear search</value>
+    <comment>Connection tree: button of the no-search-results state</comment>
+  </data>
+  <data name="ConnectRowTip" xml:space="preserve">
+    <value>Connect (Enter)</value>
+    <comment>Tooltip of the connect button shown on a hovered connection row</comment>
+  </data>
+  <data name="SessionDotConnected" xml:space="preserve">
+    <value>Open session: connected</value>
+    <comment>Tooltip of the status dot on a connection row / session tab</comment>
+  </data>
+  <data name="SessionDotBusy" xml:space="preserve">
+    <value>Open session: connecting</value>
+    <comment>Tooltip of the status dot on a connection row / session tab</comment>
+  </data>
+  <data name="SessionDotFailed" xml:space="preserve">
+    <value>Open session: connection failed</value>
+    <comment>Tooltip of the status dot on a connection row / session tab</comment>
+  </data>
+  <data name="SessionDotIdle" xml:space="preserve">
+    <value>Open session: disconnected</value>
+    <comment>Tooltip of the status dot on a connection row / session tab</comment>
+  </data>
+  <data name="SessionShowAllTabs" xml:space="preserve">
+    <value>Show all tabs</value>
+    <comment>Tooltip of the "⌄" button at the end of a session tab strip</comment>
+  </data>
+  <data name="CloseTabTip" xml:space="preserve">
+    <value>Close (middle-click)</value>
+    <comment>Tooltip of the × button on a session tab</comment>
+  </data>
+  <data name="PanelEmptyTitle" xml:space="preserve">
+    <value>No sessions in this panel</value>
+    <comment>Session panel empty state: title</comment>
+  </data>
+  <data name="PanelEmptyText" xml:space="preserve">
+    <value>Connections whose Panel is set to this panel open here. Use "Move to Panel" on a tab to bring a session in.</value>
+    <comment>Session panel empty state: text</comment>
+  </data>
+  <data name="SessionBannerErrorTitle" xml:space="preserve">
+    <value>Connection failed</value>
+    <comment>Session banner title when the session could not connect</comment>
+  </data>
+  <data name="SessionBannerDisconnectedTitle" xml:space="preserve">
+    <value>Disconnected</value>
+    <comment>Session banner title after the remote side closed the session</comment>
+  </data>
+  <data name="SessionBannerReconnectingTitle" xml:space="preserve">
+    <value>Reconnecting</value>
+    <comment>Session banner title while auto-reconnect is running</comment>
+  </data>
 </root>

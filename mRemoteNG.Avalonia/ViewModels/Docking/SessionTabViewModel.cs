@@ -126,6 +126,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
             this.RaisePropertyChanged(nameof(IsConnected));
             this.RaisePropertyChanged(nameof(ShowStatusBanner));
             this.RaisePropertyChanged(nameof(StatusBannerText));
+            RaiseStatusPresentationChanged();
             UpdateTitle();
         }
     }
@@ -174,6 +175,8 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         {
             this.RaiseAndSetIfChanged(ref _statusText, value);
             this.RaisePropertyChanged(nameof(StatusBannerText));
+            this.RaisePropertyChanged(nameof(StatusBannerDetail));
+            this.RaisePropertyChanged(nameof(HasStatusBannerDetail));
             this.RaisePropertyChanged(nameof(ToolTipText));
         }
     }
@@ -189,11 +192,62 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
             this.RaisePropertyChanged(nameof(ShowStatusBanner));
             this.RaisePropertyChanged(nameof(StatusBannerText));
             this.RaisePropertyChanged(nameof(ToolTipText));
+            RaiseStatusPresentationChanged();
             UpdateTitle();
         }
     }
 
     public bool IsReconnecting => _reconnectStatus is not null;
+
+    // ── Status presentation (tab dot, banner) ─────────────────────────────
+
+    /// <summary>The tab shows a status dot (not for a session that never started or ended normally).</summary>
+    public bool HasStatusDot => IsStatusConnected || IsStatusBusy || IsStatusError;
+
+    /// <summary>Green dot: connected.</summary>
+    public bool IsStatusConnected => _reconnectStatus is null && _state == ConnectionState.Connected;
+
+    /// <summary>Amber dot: connecting or reconnecting.</summary>
+    public bool IsStatusBusy => _reconnectStatus is not null || _state is ConnectionState.Connecting or ConnectionState.Reconnecting;
+
+    /// <summary>Red dot: the connection failed.</summary>
+    public bool IsStatusError => _reconnectStatus is null && _state == ConnectionState.Error;
+
+    /// <summary>The banner reports an error (otherwise a disconnect or a reconnect in progress).</summary>
+    public bool IsBannerError => _reconnectStatus is null && _state == ConnectionState.Error;
+
+    /// <summary>The banner reports a reconnect in progress.</summary>
+    public bool IsBannerReconnecting => _reconnectStatus is not null || _state == ConnectionState.Reconnecting;
+
+    /// <summary>The banner reports a plain disconnect.</summary>
+    public bool IsBannerDisconnected => !IsBannerError && !IsBannerReconnecting;
+
+    /// <summary>Short banner heading ("Connection failed", "Disconnected", "Reconnecting").</summary>
+    public string StatusBannerTitle => IsBannerReconnecting
+        ? Localizer.Get("SessionBannerReconnectingTitle")
+        : IsBannerError
+            ? Localizer.Get("SessionBannerErrorTitle")
+            : Localizer.Get("SessionBannerDisconnectedTitle");
+
+    /// <summary>The banner's detail line: the error, or the reconnect progress; empty after a plain disconnect.</summary>
+    public string StatusBannerDetail => _reconnectStatus
+                                        ?? (IsBannerError && !string.IsNullOrWhiteSpace(_statusText) ? _statusText : string.Empty);
+
+    public bool HasStatusBannerDetail => StatusBannerDetail.Length > 0;
+
+    private void RaiseStatusPresentationChanged()
+    {
+        this.RaisePropertyChanged(nameof(HasStatusDot));
+        this.RaisePropertyChanged(nameof(IsStatusConnected));
+        this.RaisePropertyChanged(nameof(IsStatusBusy));
+        this.RaisePropertyChanged(nameof(IsStatusError));
+        this.RaisePropertyChanged(nameof(IsBannerError));
+        this.RaisePropertyChanged(nameof(IsBannerReconnecting));
+        this.RaisePropertyChanged(nameof(IsBannerDisconnected));
+        this.RaisePropertyChanged(nameof(StatusBannerTitle));
+        this.RaisePropertyChanged(nameof(StatusBannerDetail));
+        this.RaisePropertyChanged(nameof(HasStatusBannerDetail));
+    }
 
     /// <summary>Show the strip above the session view (not connected, or reconnecting).</summary>
     public bool ShowStatusBanner => _hasStarted && (_state is ConnectionState.Error or ConnectionState.Disconnected or ConnectionState.Reconnecting
@@ -256,11 +310,11 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
 
     public bool HasTabColor => TabColorBrush is not null;
 
-    /// <summary>Tab background tint from TabColor (legacy painted the selected tab in that colour).</summary>
-    public IBrush? TabTintBrush =>
-        SessionTabAppearance.ParseTabColor(_connection?.TabColor) is { } color
-            ? new SolidColorBrush(Color.FromArgb(70, color.R, color.G, color.B))
-            : null;
+    /// <summary>
+    /// Colour of the tab's protocol glyph: the TabColor when set (it tints the glyph and the tab's top line instead of
+    /// the whole tab, docs/design-system.md §6), else the protocol colour.
+    /// </summary>
+    public IBrush IconBrush => TabColorBrush ?? ProtocolVisuals.BrushForConnection(this) ?? ProtocolVisuals.BrushFor(null);
 
     /// <summary>The ConnectionFrameColor border around the session view; transparent when none.</summary>
     public IBrush FrameBrush =>
@@ -277,7 +331,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
 
     public IReadOnlyList<EnvironmentTagBadge> EnvironmentTags =>
         SessionTabAppearance.SplitTags(_connection?.EnvironmentTags)
-            .Select(t => new EnvironmentTagBadge(t, new SolidColorBrush(SessionTabAppearance.TagColor(t))))
+            .Select(t => new EnvironmentTagBadge(t, SessionTabAppearance.TagKind(t)))
             .ToList();
 
     public bool HasEnvironmentTags => EnvironmentTags.Count > 0;
@@ -354,6 +408,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         this.RaisePropertyChanged(nameof(Parameters));
         this.RaisePropertyChanged(nameof(Hostname));
         this.RaisePropertyChanged(nameof(ProtocolName));
+        this.RaisePropertyChanged(nameof(IconBrush));
         this.RaisePropertyChanged(nameof(IsTerminal));
         ContentView = protocol is IVisualProtocol visual ? visual.CreateView() : null;
         StatusText = string.Empty;
@@ -385,7 +440,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
             UpdateTitle();
             this.RaisePropertyChanged(nameof(TabColorBrush));
             this.RaisePropertyChanged(nameof(HasTabColor));
-            this.RaisePropertyChanged(nameof(TabTintBrush));
+            this.RaisePropertyChanged(nameof(IconBrush));
             this.RaisePropertyChanged(nameof(FrameBrush));
             this.RaisePropertyChanged(nameof(HasFrame));
             this.RaisePropertyChanged(nameof(FrameThickness));

@@ -172,32 +172,40 @@ internal sealed class BrowserLaunchView : UserControl
     public BrowserLaunchView(ExternalBrowserProtocol protocol)
     {
         _protocol = protocol;
-        Background = new SolidColorBrush(Color.FromRgb(0x1e, 0x1e, 0x1e));
+        // Colours and fonts come from the application's styles (the "session-message" classes and the design system's
+        // h2 / mono / caption text classes), so the panel follows the theme.
+        Classes.Add("session-message");
 
         _heading = new TextBlock
         {
             Text = "Opening in your browser…",
-            FontSize = 16,
-            Foreground = new SolidColorBrush(Color.FromRgb(0xd4, 0xd4, 0xd4)),
+            Classes = { "h2" },
             HorizontalAlignment = HorizontalAlignment.Center,
         };
         _url = new TextBlock
         {
-            FontFamily = new FontFamily("Cascadia Code,Consolas,monospace"),
-            Foreground = new SolidColorBrush(Color.FromRgb(0x56, 0x9c, 0xd6)),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            TextWrapping = TextWrapping.Wrap,
-        };
-        _detail = new TextBlock
-        {
-            Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
+            Classes = { "mono", "session-message-url" },
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 520,
+            MaxWidth = 560,
+        };
+        _detail = new TextBlock
+        {
+            Classes = { "caption" },
+            HorizontalAlignment = HorizontalAlignment.Center,
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 460,
+        };
+        var icon = new ContentControl
+        {
+            Classes = { "session-message-icon", "web" },
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Focusable = false,
         };
 
-        var reopen = new Button { Content = "Reopen in Browser" };
+        var reopen = new Button { Content = "Reopen in Browser", Classes = { "accent" } };
         reopen.Click += (_, _) => _protocol.Open();
         var copy = new Button { Content = "Copy URL" };
         copy.Click += async (_, _) =>
@@ -216,7 +224,7 @@ internal sealed class BrowserLaunchView : UserControl
             Spacing = 8,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Avalonia.Thickness(0, 8, 0, 0),
-            Children = { reopen, copy },
+            Children = { copy, reopen },
         };
 
         Content = new StackPanel
@@ -224,7 +232,7 @@ internal sealed class BrowserLaunchView : UserControl
             Spacing = 8,
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center,
-            Children = { _heading, _url, _detail, buttons },
+            Children = { icon, _heading, _url, _detail, buttons },
         };
     }
 

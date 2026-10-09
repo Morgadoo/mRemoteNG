@@ -2,7 +2,11 @@ using System.Reactive;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Material.Icons;
+using Material.Icons.Avalonia;
+using mRemoteNG.Core.Localization;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -20,7 +24,8 @@ namespace mRemoteNG.Avalonia.Views;
 /// <remarks>
 /// Keys: Enter connects (folders: every connection inside), F2 renames in place, Ctrl+E / Alt+Enter opens
 /// the properties dialog, Delete deletes, Ctrl+D duplicates, Ctrl+Shift+C copies the host name,
-/// Ctrl+X / Ctrl+V cut and paste, Ctrl+Up / Ctrl+Down move.
+/// Ctrl+X / Ctrl+V cut and paste, Ctrl+Up / Ctrl+Down move. The sidebar header and search box are the main
+/// window's; <see cref="HandleSearchKey"/> and <see cref="CreateMoreActionsMenu"/> are their hooks into the tree.
 /// </remarks>
 public partial class ConnectionTreeView : UserControl
 {
@@ -54,6 +59,127 @@ public partial class ConnectionTreeView : UserControl
         Tree.AddHandler(DragDrop.DropEvent, OnDrop);
 
         DataContextChanged += (_, _) => BindInteractions();
+    }
+
+    /// <summary>
+    /// The command of the empty tree's "Import…" button. When not set, the window's view model
+    /// <c>ImportCommand</c> is used (the main window's File ▸ Import).
+    /// </summary>
+    public static readonly StyledProperty<ICommand?> ImportCommandProperty =
+        AvaloniaProperty.Register<ConnectionTreeView, ICommand?>(nameof(ImportCommand));
+
+    public ICommand? ImportCommand
+    {
+        get => GetValue(ImportCommandProperty);
+        set => SetValue(ImportCommandProperty, value);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == ImportCommandProperty)
+            UpdateImportCommand();
+    }
+
+    private TopLevel? _topLevel;
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _topLevel = TopLevel.GetTopLevel(this);
+        if (_topLevel is not null)
+            _topLevel.DataContextChanged += OnTopLevelDataContextChanged;
+        UpdateImportCommand();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        if (_topLevel is not null)
+            _topLevel.DataContextChanged -= OnTopLevelDataContextChanged;
+        _topLevel = null;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnTopLevelDataContextChanged(object? sender, EventArgs e) => UpdateImportCommand();
+
+    private void UpdateImportCommand()
+    {
+        var command = ImportCommand ?? (_topLevel?.DataContext as MainWindowViewModel)?.ImportCommand;
+        EmptyImportButton.Command = command;
+        EmptyImportButton.IsVisible = command is not null;
+    }
+
+    // ── Hooks for the sidebar header and search box (in MainWindow) ─────
+
+    /// <summary>
+    /// Keys of the tree's search box (call from its tunnelling KeyDown): Down moves into the results, Enter connects
+    /// the selected match. Returns true when the key was used.
+    /// </summary>
+    public bool HandleSearchKey(KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Down when e.KeyModifiers == KeyModifiers.None:
+                FocusTree();
+                return true;
+            case Key.Enter when e.KeyModifiers == KeyModifiers.None
+                                && ViewModel is { SelectedNode: { IsFolder: false, IsVisible: true } } vm
+                                && !string.IsNullOrWhiteSpace(vm.SearchFilter):
+                Execute(vm.ConnectSelectedCommand);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>Moves the keyboard to the selected row (or the tree).</summary>
+    public void FocusTree()
+    {
+        if (Tree.SelectedItem is { } selected && Tree.TreeContainerFromItem(selected) is TreeViewItem item)
+            item.Focus(NavigationMethod.Directional);
+        else
+            Tree.Focus(NavigationMethod.Directional);
+    }
+
+    /// <summary>
+    /// The sidebar header's "⋯" menu: Expand all, Collapse all, Sort ▸ A–Z / Z–A, Refresh PuTTY sessions.
+    /// <code>button.Flyout = ConnectionTreeView.CreateMoreActionsMenu(vm.ConnectionTree);</code>
+    /// </summary>
+    public static MenuFlyout CreateMoreActionsMenu(ConnectionTreeViewModel tree)
+    {
+        ArgumentNullException.ThrowIfNull(tree);
+
+        static MenuItem Item(string key, ICommand? command, MaterialIconKind? icon = null) => new()
+        {
+            Header = Localizer.Get(key),
+            Command = command,
+            Icon = icon is { } kind ? new MaterialIcon { Kind = kind } : null,
+        };
+
+        var sort = Item("Sort", null, MaterialIconKind.SortAlphabeticalAscending);
+        sort.Items.Add(Item("SortAsc", tree.SortAscendingCommand));
+        sort.Items.Add(Item("SortDesc", tree.SortDescendingCommand));
+        return new MenuFlyout
+        {
+            Placement = PlacementMode.BottomEdgeAlignedRight,
+            ItemsSource = new List<Control>
+            {
+                Item("ExpandAll", tree.ExpandAllCommand, MaterialIconKind.ArrowExpandVertical),
+                Item("CollapseAll", tree.CollapseAllCommand, MaterialIconKind.ArrowCollapseVertical),
+                sort,
+                new Separator(),
+                Item("RefreshPuTTYSessions", tree.RefreshPuttySessionsCommand, MaterialIconKind.Refresh),
+            },
+        };
+    }
+
+    private async void OnRowConnectClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: ConnectionNodeViewModel { IsFolder: false } node } || ViewModel is not { } vm)
+            return;
+        e.Handled = true;
+        vm.SelectedNode = node;
+        await vm.ConnectAsync(node);
     }
 
     private ConnectionTreeViewModel? ViewModel => DataContext as ConnectionTreeViewModel;

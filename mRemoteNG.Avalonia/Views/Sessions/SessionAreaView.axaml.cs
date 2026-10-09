@@ -1,10 +1,13 @@
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Material.Icons;
+using Material.Icons.Avalonia;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
@@ -203,6 +206,7 @@ public partial class SessionAreaView : UserControl
                     ResizeBehavior = GridResizeBehavior.PreviousAndNext,
                 };
                 splitter.Classes.Add("panel-splitter");
+                splitter.Classes.Add(columns ? "columns" : "rows");
                 if (columns) splitter.Width = SplitterSize; else splitter.Height = SplitterSize;
                 splitter.DragCompleted += (_, _) => CaptureWeights();
                 Place(splitter, columns, i * 2 - 1);
@@ -289,9 +293,17 @@ public partial class SessionAreaView : UserControl
         var visible = VisibleTabbedPanel();
         foreach (var panel in _arranged)
         {
+            var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+            content.Children.Add(new TextBlock { Text = panel.Name, VerticalAlignment = VerticalAlignment.Center });
+            if (panel.SessionCount > 0)
+            {
+                var badge = new Border { Child = new TextBlock { Text = panel.SessionCount.ToString(CultureInfo.CurrentCulture) } };
+                badge.Classes.Add("badge");
+                content.Children.Add(badge);
+            }
             var button = new ToggleButton
             {
-                Content = panel.SessionCount > 0 ? $"{panel.Name} ({panel.SessionCount})" : panel.Name,
+                Content = content,
                 IsChecked = ReferenceEquals(panel, visible),
                 Tag = panel,
             };
@@ -312,12 +324,11 @@ public partial class SessionAreaView : UserControl
 
         var add = new Button
         {
-            Content = "+",
-            Background = global::Avalonia.Media.Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            Padding = new Thickness(10, 2),
+            Content = new MaterialIcon { Kind = MaterialIconKind.Plus },
             VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(2, 0, 0, 0),
         };
+        add.Classes.Add("icon");
         ToolTip.SetTip(add, Localizer.Get("NewPanel", "New panel"));
         add.Click += (_, _) => _dock.NewPanel();
         PanelStrip.Children.Add(add);

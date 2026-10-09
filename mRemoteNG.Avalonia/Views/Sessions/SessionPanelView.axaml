@@ -2,19 +2,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+             xmlns:sessions="using:mRemoteNG.Avalonia.Views.Sessions"
+             xmlns:mi="using:Material.Icons.Avalonia"
              x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionPanelView"
              x:DataType="dock:SessionPanelViewModel">
 
+    <!-- One session panel (docs/design-system.md §6 "Tabs", "Panels and splitters"): the tab bar (panel name and
+         actions when panels are split or floating, the session tabs, the "all tabs" button) over the sessions. -->
     <UserControl.Styles>
+        <StyleInclude Source="avares://mRemoteNG.Avalonia/Views/Sessions/SessionStyles.axaml"/>
+
+        <!-- Tab bar: AppBg1 with a Border0 divider the active tab covers -->
+        <Style Selector="Border.session-tabbar">
+            <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
+            <Setter Property="Height" Value="38"/>
+        </Style>
+
+        <!-- The tab strip is a ListBox: neutralise the list look (selection is drawn by the tab itself) -->
         <Style Selector="ListBox.session-tabs">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="2,2,2,0"/>
+            <Setter Property="Padding" Value="6,0,6,0"/>
+            <Setter Property="VerticalAlignment" Value="Bottom"/>
         </Style>
         <Style Selector="ListBox.session-tabs ListBoxItem">
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
         </Style>
         <Style Selector="ListBox.session-tabs ListBoxItem /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent"/>
@@ -25,135 +43,267 @@
         <Style Selector="ListBox.session-tabs ListBoxItem:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent"/>
         </Style>
-        <Style Selector="Border.session-tab">
-            <Setter Property="Background" Value="{DynamicResource AppBg2Brush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
-            <Setter Property="BorderThickness" Value="1,1,1,0"/>
-            <Setter Property="CornerRadius" Value="4,4,0,0"/>
+
+        <!-- A tab: 34 high, radius 6 6 0 0; hover AppBg4; active AppBg0 (merges with the session) -->
+        <Style Selector="Grid.session-tab">
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
-        <Style Selector="ListBoxItem:pointerover Border.session-tab">
-            <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Style Selector="Border.tab-surface">
+            <Setter Property="CornerRadius" Value="6,6,0,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+                </Transitions>
+            </Setter>
         </Style>
-        <Style Selector="ListBoxItem:selected Border.session-tab">
+        <Style Selector="ListBoxItem:pointerover Border.tab-surface">
+            <Setter Property="Background" Value="{DynamicResource AppBg4Brush}"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected Border.tab-surface">
             <Setter Property="Background" Value="{DynamicResource AppBg0Brush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+            <Setter Property="BorderThickness" Value="1,0,1,0"/>
+        </Style>
+        <!-- Top line: accent on the active tab; a TabColor shows on every tab (stronger when active) -->
+        <Style Selector="Border.tab-line">
+            <Setter Property="Height" Value="2"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="CornerRadius" Value="2,2,0,0"/>
+            <Setter Property="Margin" Value="1,0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+        <Style Selector="Border.tab-line.accent">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Opacity" Value="0"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected Border.tab-line.accent">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Border.tab-line.custom">
+            <Setter Property="Opacity" Value="0.55"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected Border.tab-line.custom">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="TextBlock.tab-title">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MaxWidth" Value="220"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover TextBlock.tab-title, ListBoxItem:selected TextBlock.tab-title">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
         <Style Selector="ListBoxItem:selected TextBlock.tab-title">
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontWeight" Value="Medium"/>
         </Style>
+        <!-- Close button: visible on hover and on the active tab -->
+        <Style Selector="Button.tab-close">
+            <Setter Property="Width" Value="20"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Button.tab-close, ListBoxItem:selected Button.tab-close">
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="IsHitTestVisible" Value="True"/>
+        </Style>
+        <!-- Environment tags: prod → Danger, staging → Warning, dev → Success, else neutral -->
+        <Style Selector="Border.env-tag">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        </Style>
+        <Style Selector="Border.env-tag > TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector="Border.env-tag.danger">
+            <Setter Property="Background" Value="{DynamicResource DangerTintBrush}"/>
+        </Style>
+        <Style Selector="Border.env-tag.danger > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+        </Style>
+        <Style Selector="Border.env-tag.warning">
+            <Setter Property="Background" Value="{DynamicResource WarningTintBrush}"/>
+        </Style>
+        <Style Selector="Border.env-tag.warning > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+        </Style>
+        <Style Selector="Border.env-tag.success">
+            <Setter Property="Background" Value="{DynamicResource SuccessTintBrush}"/>
+        </Style>
+        <Style Selector="Border.env-tag.success > TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+        </Style>
+
+        <!-- Panel name (split / floating): an overline with the active-panel marker and the session count -->
         <Style Selector="Border.panel-active-marker">
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Height" Value="6"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{DynamicResource Border1Brush}"/>
         </Style>
         <Style Selector="Border.panel-active-marker.active">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
         </Style>
-        <Style Selector="Button.chrome">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="6,0"/>
-            <Setter Property="FontSize" Value="12"/>
+        <Style Selector="StackPanel.panel-name TextBlock.overline">
+            <Setter Property="MaxWidth" Value="160"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style Selector="StackPanel.panel-name.active TextBlock.overline">
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+
+        <!-- Edge fades when the strip scrolls -->
+        <Style Selector="Border.tab-fade">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
         </Style>
     </UserControl.Styles>
 
     <DockPanel>
-        <!-- Panel header: shown when panels are side by side / stacked, or floating -->
-        <Border x:Name="Header" DockPanel.Dock="Top" Classes="panel-header" Padding="0" IsVisible="False">
-            <Grid ColumnDefinitions="3,Auto,Auto,*,Auto,Auto,Auto" Height="26">
-                <Border Grid.Column="0" x:Name="ActiveMarker" Classes="panel-active-marker"
-                        Classes.active="{Binding IsActive}"/>
-                <TextBlock Grid.Column="1" Text="{Binding Name}" Classes="section-header"
-                           VerticalAlignment="Center" Margin="8,0,6,0"/>
-                <TextBlock Grid.Column="2" Text="{Binding SessionCount, StringFormat='({0})'}"
-                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-                <Button Grid.Column="4" x:Name="FloatButton" Classes="chrome" Content="&#x29C9;"
-                        ToolTip.Tip="{l:Tr FloatThisPanelInItsOwnWindow}"/>
-                <Button Grid.Column="5" x:Name="PanelMenuButton" Classes="chrome" Content="&#x22EF;"
-                        ToolTip.Tip="{l:Tr PanelOptions}"/>
-                <Button Grid.Column="6" x:Name="ClosePanelButton" Classes="chrome" Content="&#x2715;"
-                        ToolTip.Tip="{l:Tr CloseThisPanelAndItsSessions}"/>
+        <Border x:Name="TabBar" DockPanel.Dock="Top" Classes="session-tabbar">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <!-- Divider under the strip; the active tab is drawn over it -->
+                <Border Grid.Column="0" Grid.ColumnSpan="4" Classes="divider" Height="1" VerticalAlignment="Bottom"/>
+
+                <!-- Panel name (shown when panels are side by side / stacked, or floating) -->
+                <StackPanel x:Name="Header" Grid.Column="0" Classes="panel-name" Classes.active="{Binding IsActive}"
+                            Orientation="Horizontal" Spacing="7" Margin="14,0,6,1" VerticalAlignment="Center"
+                            IsVisible="False" Background="Transparent"
+                            ToolTip.Tip="{l:Tr RightClickForPanelOptions}">
+                    <Border x:Name="ActiveMarker" Classes="panel-active-marker" Classes.active="{Binding IsActive}"/>
+                    <TextBlock Classes="overline" VerticalAlignment="Center"
+                               Text="{Binding Name, Converter={x:Static sessions:SessionConverters.Upper}}"/>
+                    <Border Classes="badge" Padding="5,0" MinWidth="18" Height="16"
+                            IsVisible="{Binding SessionCount, Converter={x:Static sessions:SessionConverters.IsPositive}}">
+                        <TextBlock Text="{Binding SessionCount}" FontSize="10" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Session tabs: scroll horizontally (wheel, selection) without a scroll bar over the tabs -->
+                <Panel x:Name="TabScroller" Grid.Column="1">
+                    <ListBox x:Name="TabStrip"
+                             Classes="session-tabs"
+                             ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                             ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                             ItemsSource="{Binding Sessions}"
+                             SelectedItem="{Binding ActiveSession}">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="dock:SessionTabViewModel">
+                                <Grid Classes="session-tab" ToolTip.Tip="{Binding ToolTipText}">
+                                    <Border Classes="tab-surface"/>
+                                    <Border Classes="tab-line accent" IsVisible="{Binding !HasTabColor}"/>
+                                    <Border Classes="tab-line custom" IsVisible="{Binding HasTabColor}"
+                                            Background="{Binding TabColorBrush}"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0,6,0">
+                                        <mi:MaterialIcon Width="16" Height="16" VerticalAlignment="Center"
+                                                         Kind="{Binding Converter={x:Static conv:ConnectionConverters.Icon}}"
+                                                         Foreground="{Binding IconBrush}"/>
+                                        <TextBlock Classes="tab-title" Text="{Binding DisplayTitle}"/>
+                                        <ItemsControl ItemsSource="{Binding EnvironmentTags}"
+                                                      IsVisible="{Binding HasEnvironmentTags}"
+                                                      VerticalAlignment="Center">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" Spacing="4"/>
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="dock:EnvironmentTagBadge">
+                                                    <Border Classes="env-tag"
+                                                            Classes.danger="{Binding IsProduction}"
+                                                            Classes.warning="{Binding IsStaging}"
+                                                            Classes.success="{Binding IsDevelopment}">
+                                                        <TextBlock Text="{Binding Text}"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Border Classes="dot"
+                                                Classes.success="{Binding IsStatusConnected}"
+                                                Classes.warning="{Binding IsStatusBusy}"
+                                                Classes.danger="{Binding IsStatusError}"
+                                                IsVisible="{Binding HasStatusDot}"/>
+                                        <Button Classes="icon tab-close"
+                                                Focusable="False"
+                                                ToolTip.Tip="{l:Tr CloseTabTip}"
+                                                Command="{Binding CloseCommand}">
+                                            <mi:MaterialIcon Kind="Close" Width="14" Height="14"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <Border x:Name="FadeLeft" Classes="tab-fade" HorizontalAlignment="Left" Margin="0,0,0,1">
+                        <Border.OpacityMask>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="Black" Offset="0"/>
+                                <GradientStop Color="Transparent" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.OpacityMask>
+                    </Border>
+                    <Border x:Name="FadeRight" Classes="tab-fade" HorizontalAlignment="Right" Margin="0,0,0,1">
+                        <Border.OpacityMask>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="Transparent" Offset="0"/>
+                                <GradientStop Color="Black" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.OpacityMask>
+                    </Border>
+                </Panel>
+
+                <!-- All tabs (shown when the strip overflows) -->
+                <Button x:Name="OverflowButton" Grid.Column="2" Classes="icon" Margin="2,0,2,1"
+                        VerticalAlignment="Center" IsVisible="False" Focusable="False"
+                        ToolTip.Tip="{l:Tr SessionShowAllTabs}">
+                    <mi:MaterialIcon Kind="ChevronDown"/>
+                </Button>
+
+                <!-- Panel actions (split / floating) -->
+                <StackPanel x:Name="HeaderButtons" Grid.Column="3" Orientation="Horizontal" Spacing="2"
+                            Margin="0,0,6,1" VerticalAlignment="Center" IsVisible="False">
+                    <Button x:Name="FloatButton" Classes="icon" ToolTip.Tip="{l:Tr FloatThisPanelInItsOwnWindow}">
+                        <mi:MaterialIcon x:Name="FloatIcon" Kind="OpenInNew"/>
+                    </Button>
+                    <Button x:Name="PanelMenuButton" Classes="icon" ToolTip.Tip="{l:Tr PanelOptions}">
+                        <mi:MaterialIcon Kind="DotsHorizontal"/>
+                    </Button>
+                    <Button x:Name="ClosePanelButton" Classes="icon" ToolTip.Tip="{l:Tr CloseThisPanelAndItsSessions}">
+                        <mi:MaterialIcon Kind="Close"/>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Session tab strip -->
-        <!-- Scrolls horizontally (mouse wheel, selection) without a scroll bar covering the tabs -->
-        <Border DockPanel.Dock="Top" x:Name="TabScroller">
-            <ListBox x:Name="TabStrip"
-                     Classes="session-tabs"
-                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                     ItemsSource="{Binding Sessions}"
-                     SelectedItem="{Binding ActiveSession}">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="dock:SessionTabViewModel">
-                        <Border Classes="session-tab"
-                                ToolTip.Tip="{Binding ToolTipText}">
-                            <!-- TabColor tint (legacy painted the tab in that colour) -->
-                            <Grid RowDefinitions="3,*" Background="{Binding TabTintBrush}">
-                                <!-- TabColor accent -->
-                                <Border Grid.Row="0"
-                                        Background="{Binding TabColorBrush}"
-                                        IsVisible="{Binding HasTabColor}"
-                                        CornerRadius="3,3,0,0"/>
-                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="8,2,2,4">
-                                    <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"/>
-                                    <TextBlock Classes="tab-title"
-                                               Text="{Binding Title}"
-                                               FontSize="12"
-                                               MaxWidth="260"
-                                               TextTrimming="CharacterEllipsis"
-                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                               VerticalAlignment="Center"/>
-                                    <ItemsControl ItemsSource="{Binding EnvironmentTags}"
-                                                  IsVisible="{Binding HasEnvironmentTags}"
-                                                  VerticalAlignment="Center">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal" Spacing="3"/>
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="dock:EnvironmentTagBadge">
-                                                <Border Background="{Binding Background}" CornerRadius="3" Padding="4,0">
-                                                    <TextBlock Text="{Binding Text}" FontSize="9" FontWeight="Bold"
-                                                               Foreground="White"/>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <Button Content="&#x2715;"
-                                            FontSize="10"
-                                            Padding="4,0"
-                                            Background="Transparent"
-                                            BorderThickness="0"
-                                            VerticalAlignment="Center"
-                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                            ToolTip.Tip="{l:Tr _Close}"
-                                            Command="{Binding CloseCommand}"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Border>
-
-        <Border BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0">
-            <Grid>
-                <TextBlock x:Name="EmptyText"
-                           Text="{l:Tr NoSessionsInPanel}"
-                           TextAlignment="Center"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           FontSize="13"
-                           Foreground="{DynamicResource TextMutedBrush}"/>
-                <Grid x:Name="SessionHost"/>
-            </Grid>
-        </Border>
+        <Grid Background="{DynamicResource AppBg0Brush}">
+            <!-- Empty panel -->
+            <StackPanel x:Name="EmptyText" Classes="session-empty">
+                <mi:MaterialIcon Kind="TabUnselected"/>
+                <TextBlock Classes="h2" Text="{l:Tr PanelEmptyTitle}"/>
+                <TextBlock Classes="caption" Text="{l:Tr PanelEmptyText}"/>
+            </StackPanel>
+            <Grid x:Name="SessionHost"/>
+        </Grid>
     </DockPanel>
 </UserControl>

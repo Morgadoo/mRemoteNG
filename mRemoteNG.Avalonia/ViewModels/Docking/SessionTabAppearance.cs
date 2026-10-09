@@ -91,7 +91,10 @@ public static class SessionTabAppearance
         return null;
     }
 
-    /// <summary>The legacy frame colours (InterfaceControl.GetFrameColor).</summary>
+    /// <summary>
+    /// The legacy frame colours (InterfaceControl.GetFrameColor). They are user-chosen identifiers ("the red frame is
+    /// production"), so they keep their hues in both themes; mid-tone values that read on dark and light backgrounds.
+    /// </summary>
     public static Color? FrameColor(ConnectionFrameColor frame) => frame switch
     {
         ConnectionFrameColor.Red => Color.FromRgb(220, 53, 69),
@@ -108,20 +111,37 @@ public static class SessionTabAppearance
             ? []
             : tags.Split([',', ';'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-    /// <summary>Badge colour for an environment tag: red for production, amber for staging/test, green for development.</summary>
-    public static Color TagColor(string tag)
+    /// <summary>
+    /// The kind of an environment tag, which picks its badge colour from the palette: production → Danger,
+    /// staging/test → Warning, development → Success, anything else neutral.
+    /// </summary>
+    public static EnvironmentTagKind TagKind(string tag)
     {
         var t = tag.ToLowerInvariant();
         if (t.StartsWith("prod", StringComparison.Ordinal) || t is "prd" or "live")
-            return Color.FromRgb(198, 40, 40);
+            return EnvironmentTagKind.Production;
         if (t.StartsWith("stag", StringComparison.Ordinal) || t.StartsWith("test", StringComparison.Ordinal)
             || t is "uat" or "qa" or "preprod" or "pre-prod")
-            return Color.FromRgb(200, 120, 0);
+            return EnvironmentTagKind.Staging;
         if (t.StartsWith("dev", StringComparison.Ordinal) || t is "lab" or "local" or "sandbox")
-            return Color.FromRgb(46, 125, 50);
-        return Color.FromRgb(84, 110, 122);
+            return EnvironmentTagKind.Development;
+        return EnvironmentTagKind.Other;
     }
 }
 
-/// <summary>One environment tag shown as a badge on a tab.</summary>
-public sealed record EnvironmentTagBadge(string Text, IBrush Background);
+/// <summary>Environment tag categories (badge colours: Danger, Warning, Success, neutral).</summary>
+public enum EnvironmentTagKind
+{
+    Other,
+    Production,
+    Staging,
+    Development,
+}
+
+/// <summary>One environment tag shown as a badge on a tab; the view colours it by <see cref="Kind"/>.</summary>
+public sealed record EnvironmentTagBadge(string Text, EnvironmentTagKind Kind)
+{
+    public bool IsProduction => Kind == EnvironmentTagKind.Production;
+    public bool IsStaging => Kind == EnvironmentTagKind.Staging;
+    public bool IsDevelopment => Kind == EnvironmentTagKind.Development;
+}

@@ -12,6 +12,12 @@ internal interface IEmbeddedWindowSupport : IDisposable
     /// <summary>Raised (on a background thread) when FreeRDP maps its window inside the parent, where detectable.</summary>
     event EventHandler? RemoteWindowMapped;
 
+    /// <summary>
+    /// Raised (on a background thread) when the user clicks into the embedded window, where detectable: the keyboard
+    /// belongs to it from then on, also when the window manager activates our top-level right after the click.
+    /// </summary>
+    event EventHandler? RemoteClicked;
+
     /// <summary>The FreeRDP window inside the parent, or 0 when it does not exist (yet).</summary>
     nint RemoteWindow { get; }
 

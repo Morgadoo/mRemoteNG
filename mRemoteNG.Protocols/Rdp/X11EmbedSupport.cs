@@ -44,6 +44,8 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
 
     public event EventHandler? RemoteWindowMapped;
 
+    public event EventHandler? RemoteClicked;
+
     private X11EmbedSupport(nint display, nint parent, ILogger logger)
     {
         _display = display;
@@ -317,6 +319,9 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
                     XAllowEvents(_display, ReplayPointer, ev.ButtonTime);
                     XFlush(_display);
                 }
+                // The window manager may activate our top-level for the same click and so take the focus back
+                // from FreeRDP (the first keystroke then went to Avalonia): the host refocuses FreeRDP on activation.
+                RemoteClicked?.Invoke(this, EventArgs.Empty);
                 break;
             }
             case ConfigureNotify when ev.ConfigureWindow == _parent:

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 
 namespace mRemoteNG.Avalonia.Views.Sessions;
@@ -21,6 +22,7 @@ public partial class SessionFullScreenWindow : Window
         _session = session;
         DataContext = session;
         ExitButton.Click += (_, _) => Close();
+        AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
         ConnectionBar.PointerEntered += (_, _) => ConnectionBar.Opacity = 1;
         ConnectionBar.PointerExited += (_, _) => ConnectionBar.Opacity = 0.25;
         session.PropertyChanged += OnSessionPropertyChanged;
@@ -80,16 +82,17 @@ public partial class SessionFullScreenWindow : Window
             Enter(session, owner);
     }
 
-    protected override void OnKeyDown(KeyEventArgs e)
+    /// <summary>The key that leaves full screen: Ctrl+Alt+Enter (a combination the remote side rarely needs).</summary>
+    public static bool IsExitGesture(KeyEventArgs e) =>
+        e.Key == Key.Enter && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Alt);
+
+    private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
-        // Ctrl+Alt+Enter leaves full screen (keys the remote side rarely needs).
-        if (e.Key == Key.Enter && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Alt))
-        {
-            Close();
-            e.Handled = true;
-            return;
-        }
-        base.OnKeyDown(e);
+        // Tunnelling, so the window sees the key before the session view: a terminal handles (and marks handled)
+        // every key it receives, Enter included, so a bubbling handler never saw Ctrl+Alt+Enter.
+        if (!IsExitGesture(e)) return;
+        e.Handled = true;
+        Close();
     }
 
     private void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
