@@ -48,17 +48,25 @@
     <ProjectReference Include="..\mRemoteNG.Platform.Mac\mRemoteNG.Platform.Mac.csproj" />
   </ItemGroup>
 
-  <!-- Build and copy platform-specific assemblies for runtime Assembly.Load() -->
-  <Target Name="BuildAndCopyPlatformAssemblies" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <MSBuild Projects="..\mRemoteNG.Platform.Windows\mRemoteNG.Platform.Windows.csproj"
-             Targets="Build"
-             Properties="Configuration=$(Configuration)" />
-    <ItemGroup>
-      <_WinPlatformFiles Include="..\mRemoteNG.Platform.Windows\bin\$(Configuration)\net10.0-windows10.0.17763.0\mRemoteNG.Platform.Windows.dll" />
-      <_WinPlatformFiles Include="..\mRemoteNG.Platform.Windows\bin\$(Configuration)\net10.0-windows10.0.17763.0\mRemoteNG.Platform.Windows.pdb" Condition="Exists('..\mRemoteNG.Platform.Windows\bin\$(Configuration)\net10.0-windows10.0.17763.0\mRemoteNG.Platform.Windows.pdb')" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_WinPlatformFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
-  </Target>
+  <!-- Windows platform services target net10.0-windows, so they can't be a normal reference of this
+       net10.0 app. Build them as a dependency (restore included) and deploy the DLL as content for
+       PlatformServiceFactory's Assembly.Load(). Only for Windows targets: a win-* RID, or a plain
+       build on a Windows host. -->
+  <PropertyGroup>
+    <_IncludeWindowsPlatform Condition="$(RuntimeIdentifier.StartsWith('win'))">true</_IncludeWindowsPlatform>
+    <_IncludeWindowsPlatform Condition="'$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">true</_IncludeWindowsPlatform>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(_IncludeWindowsPlatform)' == 'true'">
+    <ProjectReference Include="..\mRemoteNG.Platform.Windows\mRemoteNG.Platform.Windows.csproj"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=net10.0-windows10.0.17763.0"
+                      OutputItemType="Content"
+                      CopyToOutputDirectory="PreserveNewest"
+                      CopyToPublishDirectory="PreserveNewest" />
+    <!-- Runtime dependency of the Windows platform assembly (DPAPI); not flowed by the reference above. -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
 
   <!-- Avalonia assets (icons, themes) embedded as resources -->
   <ItemGroup>

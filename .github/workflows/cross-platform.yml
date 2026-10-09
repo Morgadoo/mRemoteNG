@@ -35,11 +35,14 @@ jobs:
       - name: Build
         run: dotnet build mRemoteNG.Platform/mRemoteNG.Platform.csproj --no-restore -c Release
 
-      - name: Restore Linux platform
-        run: dotnet restore mRemoteNG.Platform.Linux/mRemoteNG.Platform.Linux.csproj
+      - name: Build Linux, macOS and Windows platform services
+        run: |
+          for p in Linux Mac Windows; do
+            dotnet build "mRemoteNG.Platform.$p/mRemoteNG.Platform.$p.csproj" -c Release
+          done
 
-      - name: Build Linux platform
-        run: dotnet build mRemoteNG.Platform.Linux/mRemoteNG.Platform.Linux.csproj --no-restore -c Release
+      - name: Build Core
+        run: dotnet build mRemoteNG.Core/mRemoteNG.Core.csproj -c Release
 
   # ─────────────────────────────────────────────
   # Avalonia UI — build on all 3 platforms
@@ -92,11 +95,13 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore
-        run: dotnet restore mRemoteNG/mRemoteNG.csproj
+      # The WinForms app has COM references (MSTSCLib etc.); ResolveComReference only runs
+      # on the Visual Studio (.NET Framework) MSBuild, not on `dotnet build`.
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
 
       - name: Build (x64)
-        run: dotnet build mRemoteNG/mRemoteNG.csproj --no-restore -c Release -p:Platform=x64
+        run: msbuild mRemoteNG/mRemoteNG.csproj -restore -p:Configuration=Release -p:Platform=x64 -verbosity:minimal
 
   # ─────────────────────────────────────────────
   # Unit tests — cross-platform
@@ -127,7 +132,8 @@ jobs:
       - name: Restore cross-platform tests
         run: dotnet restore mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj
 
-      - name: Run cross-platform tests (Platform + Protocol layer)
+      - name: Run cross-platform tests (Core, Platform, Protocols)
+        shell: bash
         run: |
           dotnet test mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj \
             -c Release --logger trx --results-directory test-results-xplat/

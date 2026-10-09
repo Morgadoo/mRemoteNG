@@ -4,7 +4,6 @@ namespace mRemoteNG.Platform.Windows.Notifications;
 
 /// <summary>
 /// Windows notification implementation.
-/// Uses balloon tooltip via System.Windows.Forms.NotifyIcon on Windows 10
 /// (WinRT toast requires UWP identity which we don't have in a classic Win32 app).
 /// </summary>
 [SupportedOSPlatform("windows")]
