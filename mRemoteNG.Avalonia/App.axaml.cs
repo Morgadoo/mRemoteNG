@@ -66,6 +66,12 @@ public partial class App : Application
             // save-on-exit, last-file tracking, notifications, startup update check.
             runtime.Attach(desktop, mainWindow, _trayService);
 
+            var log = AppServices.GetRequired<ViewModels.Docking.LogPanelDockable>();
+            if (Core.App.Info.ApplicationPaths.IsPortable)
+                log.Log($"Portable mode: settings, credentials and connections are kept in {Core.App.Info.ApplicationPaths.SettingsDirectory}.");
+            foreach (var unknown in Program.Arguments.UnknownSwitches)
+                log.Log($"Unknown command-line switch ignored: {unknown}", ViewModels.Docking.LogLevel.Warning);
+
             desktop.Exit += (_, _) =>
             {
                 _trayService.Dispose();

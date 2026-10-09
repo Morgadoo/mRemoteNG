@@ -9,11 +9,16 @@
         <Border Classes="card">
             <StackPanel Spacing="12">
                 <TextBlock Text="Theme" Classes="section-header"/>
-                <Grid ColumnDefinitions="*,200">
+                <Grid ColumnDefinitions="*,240">
                     <TextBlock Text="Color theme" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" x:Name="ThemeCombo"
                               ItemsSource="{Binding Themes}"
                               SelectedItem="{Binding SelectedTheme}"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Copy a theme, change its colours and save it as your own theme." TextWrapping="Wrap"
+                               Opacity="0.7" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="Theme editor…" Click="OnOpenThemeEditor"/>
                 </Grid>
             </StackPanel>
         </Border>

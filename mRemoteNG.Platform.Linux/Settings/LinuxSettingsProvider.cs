@@ -11,7 +11,7 @@ namespace mRemoteNG.Platform.Linux.Settings;
 public sealed class LinuxSettingsProvider : XmlFileSettingsProvider
 {
     public LinuxSettingsProvider(ILogger<LinuxSettingsProvider>? logger = null)
-        : base(ResolveApplicationDataDirectory(), logger)
+        : base(AppDataLocation.Resolve(ResolveApplicationDataDirectory), logger)
     {
     }
 

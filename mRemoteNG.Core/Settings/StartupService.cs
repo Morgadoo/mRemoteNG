@@ -1,3 +1,5 @@
+using mRemoteNG.Core.App.Info;
+
 namespace mRemoteNG.Core.Settings;
 
 /// <summary>
@@ -22,11 +24,16 @@ public sealed class StartupService
 
     /// <summary>
     /// The connection file to load when the app starts, or null to start empty
-    /// (behaviour is <see cref="StartupFileBehavior.None"/>, or the configured file no longer exists).
+    /// (behaviour is <see cref="StartupFileBehavior.None"/>, the configured file no longer exists, or the
+    /// connections are loaded from a SQL database).
     /// </summary>
     public string? GetFileToOpenAtStartup()
     {
         var settings = _settings.Current;
+        // With "use SQL server" the connections come from the database (legacy behaviour).
+        if (settings.UseSqlServer)
+            return null;
+
         var path = settings.StartupBehavior switch
         {
             StartupFileBehavior.ReopenLastFile => settings.LastConnectionFilePath,
@@ -35,9 +42,18 @@ public sealed class StartupService
         };
 
         if (string.IsNullOrWhiteSpace(path))
-            return null;
+        {
+            // A portable installation opens the confCons.xml that travels with it, like the legacy app.
+            if (settings.StartupBehavior != StartupFileBehavior.None && ApplicationPaths.IsPortable
+                && _fileExists(ApplicationPaths.DefaultConnectionsFilePath))
+            {
+                return ApplicationPaths.DefaultConnectionsFilePath;
+            }
 
-        path = Environment.ExpandEnvironmentVariables(path);
+            return null;
+        }
+
+        path = ApplicationPaths.FromStoredPath(path);
         return _fileExists(path) ? path : null;
     }
 
@@ -50,7 +66,8 @@ public sealed class StartupService
         if (string.IsNullOrWhiteSpace(path))
             return;
 
-        var value = Path.GetFullPath(path);
+        // Portable installations store paths inside the portable folder relative to it.
+        var value = ApplicationPaths.ToStoredPath(path);
         if (_settings.Current.LastConnectionFilePath == value)
             return;
 

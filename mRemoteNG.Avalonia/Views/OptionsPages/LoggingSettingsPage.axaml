@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.LoggingSettingsPage"
+             x:DataType="vm:LoggingSettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Logging" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Log File" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding LogToFile}" Content="Write a log file"/>
+                <Grid ColumnDefinitions="*,240" IsEnabled="{Binding LogToFile}">
+                    <TextBlock Text="Level" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Levels}" SelectedItem="{Binding SelectedLevel}"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,8,Auto" IsEnabled="{Binding LogToFile}">
+                    <TextBox Text="{Binding LogFilePath}" TextWrapping="Wrap" Watermark="{Binding DefaultLogFilePath}"/>
+                    <Button Grid.Column="2" Content="Browse…" Click="OnBrowse"/>
+                </Grid>
+                <TextBlock TextWrapping="Wrap" Opacity="0.7"
+                           Text="The file rolls over at 10 MB; the five previous files are kept (.1 … .5). Messages shown in the Log panel are written to it too."/>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button Content="Open log file" Click="OnOpenLogFile"/>
+                    <Button Content="Open folder" Click="OnOpenFolder"/>
+                </StackPanel>
+                <SelectableTextBlock Text="{Binding EffectiveLogFilePath}" Opacity="0.8" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Data Folder" Classes="section-header"/>
+                <SelectableTextBlock Text="{Binding DataDirectoryInfo}" TextWrapping="Wrap"/>
+                <TextBlock TextWrapping="Wrap" Opacity="0.7"
+                           Text="Portable mode: put an empty file named mRemoteNG.portable next to the program, or start it with --portable."/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

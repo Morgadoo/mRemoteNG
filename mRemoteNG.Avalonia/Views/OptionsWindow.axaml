@@ -44,7 +44,7 @@
             <GridSplitter Grid.Column="1" Width="3"/>
 
             <!-- Settings page (right panel) -->
-            <ScrollViewer Grid.Column="2" Padding="20">
+            <ScrollViewer Grid.Column="2" Padding="20" HorizontalScrollBarVisibility="Disabled">
                 <ContentControl Content="{Binding CurrentPage}">
                     <ContentControl.DataTemplates>
                         <DataTemplate DataType="{x:Type vm:GeneralSettingsViewModel}">
@@ -64,6 +64,15 @@
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:UpdatesSettingsViewModel}">
                             <pages:UpdatesSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:SavingSettingsViewModel}">
+                            <pages:SavingSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:SqlServerSettingsViewModel}">
+                            <pages:SqlServerSettingsPage/>
+                        </DataTemplate>
+                        <DataTemplate DataType="{x:Type vm:LoggingSettingsViewModel}">
+                            <pages:LoggingSettingsPage/>
                         </DataTemplate>
                     </ContentControl.DataTemplates>
                 </ContentControl>

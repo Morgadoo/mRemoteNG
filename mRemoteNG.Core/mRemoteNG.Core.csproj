@@ -17,5 +17,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="BouncyCastle.Cryptography" />
+    <!-- SQL connection storage (legacy tblCons/tblRoot/tblUpdate schema) -->
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
   </ItemGroup>
 </Project>

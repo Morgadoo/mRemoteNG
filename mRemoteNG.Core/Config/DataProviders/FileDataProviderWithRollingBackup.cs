@@ -1,16 +1,32 @@
 namespace mRemoteNG.Core.Config.DataProviders
 {
+    /// <summary>
+    /// File provider that keeps rolling backups: before the file is overwritten, the current version is
+    /// copied to a timestamped backup (legacy naming) and the oldest backups beyond the configured count
+    /// are deleted. Writes are atomic (temp file + rename), so a crash never truncates the file.
+    /// </summary>
     public class FileDataProviderWithRollingBackup : IDataProvider<string>
     {
         private readonly FileDataProvider _fileDataProvider;
-        private readonly int _maxBackups;
+        private readonly FileBackupCreator _backupCreator;
 
         public string FilePath => _fileDataProvider.FilePath;
 
-        public FileDataProviderWithRollingBackup(string filePath, int maxBackups = 5)
+        public FileBackupOptions Options { get; }
+
+        /// <summary>The backup made by the last <see cref="Save"/>, if any.</summary>
+        public string? LastBackupPath { get; private set; }
+
+        public FileDataProviderWithRollingBackup(string filePath, int maxBackups = 10)
+            : this(filePath, new FileBackupOptions { KeepCount = maxBackups })
+        {
+        }
+
+        public FileDataProviderWithRollingBackup(string filePath, FileBackupOptions options, FileBackupCreator? backupCreator = null)
         {
             _fileDataProvider = new FileDataProvider(filePath);
-            _maxBackups = maxBackups;
+            Options = options ?? throw new ArgumentNullException(nameof(options));
+            _backupCreator = backupCreator ?? new FileBackupCreator();
         }
 
         public string Load()
@@ -20,30 +36,8 @@ namespace mRemoteNG.Core.Config.DataProviders
 
         public void Save(string data)
         {
-            if (File.Exists(FilePath))
-                RollBackups();
-
+            LastBackupPath = _backupCreator.CreateBackup(FilePath, Options);
             _fileDataProvider.Save(data);
-        }
-
-        private void RollBackups()
-        {
-            // Delete the oldest backup
-            var oldestBackup = $"{FilePath}.backup{_maxBackups}";
-            if (File.Exists(oldestBackup))
-                File.Delete(oldestBackup);
-
-            // Roll existing backups
-            for (var i = _maxBackups - 1; i >= 1; i--)
-            {
-                var current = $"{FilePath}.backup{i}";
-                var next = $"{FilePath}.backup{i + 1}";
-                if (File.Exists(current))
-                    File.Move(current, next);
-            }
-
-            // Copy current file as backup1
-            File.Copy(FilePath, $"{FilePath}.backup1");
         }
     }
 }

@@ -32,6 +32,32 @@
                 <TextBlock Text="{Binding Status}" TextWrapping="Wrap"/>
                 <SelectableTextBlock Text="{Binding ReleaseUrl}" IsVisible="{Binding HasReleaseUrl}"
                                      Foreground="{DynamicResource AccentBrush}"/>
+                <Grid ColumnDefinitions="Auto,12,*" IsVisible="{Binding HasReleaseUrl}">
+                    <Button Content="Download" Command="{Binding DownloadCommand}"
+                            ToolTip.Tip="Downloads the package for this system and checks its size and SHA-256"/>
+                    <TextBlock Grid.Column="2" Text="{Binding PackageName}" VerticalAlignment="Center" Opacity="0.8"/>
+                </Grid>
+                <ProgressBar Minimum="0" Maximum="100" Value="{Binding DownloadProgress}" IsVisible="{Binding IsDownloading}"/>
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasDownloadedFile}">
+                    <Button Content="Open" Click="OnOpenDownload"/>
+                    <Button Content="Show in folder" Click="OnRevealDownload"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Proxy" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding UseProxy}" Content="Use a proxy for update checks and downloads (otherwise the system proxy)"/>
+                <Grid ColumnDefinitions="*,8,120" IsEnabled="{Binding UseProxy}">
+                    <TextBox Text="{Binding ProxyAddress}" Watermark="proxy.example.com"/>
+                    <NumericUpDown Grid.Column="2" FormatString="0" Minimum="1" Maximum="65535" Value="{Binding ProxyPort}"/>
+                </Grid>
+                <CheckBox IsChecked="{Binding ProxyUseAuthentication}" IsEnabled="{Binding UseProxy}" Content="The proxy requires a user name and password"/>
+                <Grid ColumnDefinitions="*,8,*" IsEnabled="{Binding ProxyUseAuthentication}">
+                    <TextBox Text="{Binding ProxyUsername}" Watermark="User name"/>
+                    <TextBox Grid.Column="2" Text="{Binding ProxyPassword}" PasswordChar="•" Watermark="Password"/>
+                </Grid>
             </StackPanel>
         </Border>
     </StackPanel>
