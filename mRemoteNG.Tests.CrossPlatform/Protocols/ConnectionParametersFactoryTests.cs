@@ -16,8 +16,12 @@ public class ConnectionParametersFactoryTests
     {
         var info = new ConnectionInfo
         {
-            Protocol = CoreProtocol.SSH2, Hostname = "srv", Port = 2222,
-            Username = "alice", Password = "pw", Domain = "CORP",
+            Protocol = CoreProtocol.SSH2,
+            Hostname = "srv",
+            Port = 2222,
+            Username = "alice",
+            Password = "pw",
+            Domain = "CORP",
         };
 
         var p = ConnectionParametersFactory.FromConnectionInfo(info);
@@ -67,7 +71,8 @@ public class ConnectionParametersFactoryTests
     {
         var info = new ConnectionInfo
         {
-            Protocol = CoreProtocol.RDP, Hostname = "srv",
+            Protocol = CoreProtocol.RDP,
+            Hostname = "srv",
             Colors = RDPColors.Colors16Bit,
             UseCredSsp = false,
             UseConsoleSession = true,

@@ -218,7 +218,11 @@ public sealed class VncProtocolCapabilityTests : IAsyncLifetime
     {
         var parameters = new ConnectionParameters
         {
-            Hostname = "h", Port = 5900, Protocol = ProtocolType.Vnc, Username = "bob", Domain = "CORP",
+            Hostname = "h",
+            Port = 5900,
+            Protocol = ProtocolType.Vnc,
+            Username = "bob",
+            Domain = "CORP",
         };
 
         VncSessionSettings.AccountName(parameters, VncAuthenticationMode.Windows).Should().Be(@"CORP\bob");
@@ -236,7 +240,10 @@ public sealed class VncProtocolCapabilityTests : IAsyncLifetime
 
         var settings = VncSessionSettings.FromParameters(new ConnectionParameters
         {
-            Hostname = "h", Port = 5900, Protocol = ProtocolType.Vnc, Extras = extras,
+            Hostname = "h",
+            Port = 5900,
+            Protocol = ProtocolType.Vnc,
+            Extras = extras,
         });
 
         settings.Proxy!.Kind.Should().Be(kind);

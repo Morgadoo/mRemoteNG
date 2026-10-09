@@ -141,7 +141,12 @@ namespace mRemoteNG.Core.Config.Import.ActiveDirectory
             {
                 Server = new LdapServerSettings
                 {
-                    Server = host, Port = port, UseSsl = ssl, BindMode = bind, Username = user, Password = password,
+                    Server = host,
+                    Port = port,
+                    UseSsl = ssl,
+                    BindMode = bind,
+                    Username = user,
+                    Password = password,
                 },
                 BaseDn = baseDn,
                 IncludeSubOus = includeSub,

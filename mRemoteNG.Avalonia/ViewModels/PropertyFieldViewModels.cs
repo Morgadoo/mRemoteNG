@@ -160,16 +160,16 @@ public abstract class PropertyFieldViewModel : ReactiveObject
     internal static PropertyFieldViewModel Create(ConnectionPropertyDescriptor descriptor, ConnectionInfo target,
         ContainerInfo? parent, bool canInherit, bool alwaysEditable, string parentName,
         Func<ConnectionPropertySuggestions, IReadOnlyList<string>> suggestions) => descriptor.Editor switch
-    {
-        ConnectionPropertyEditor.Boolean => new BoolFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
-        ConnectionPropertyEditor.Number => new NumberFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
-        ConnectionPropertyEditor.Choice => new ChoiceFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
-        ConnectionPropertyEditor.Color => new ColorFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName,
-            suggestions(descriptor.Suggestions)),
-        ConnectionPropertyEditor.Suggest => new SuggestFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName,
-            suggestions(descriptor.Suggestions)),
-        _ => new TextFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
-    };
+        {
+            ConnectionPropertyEditor.Boolean => new BoolFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
+            ConnectionPropertyEditor.Number => new NumberFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
+            ConnectionPropertyEditor.Choice => new ChoiceFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
+            ConnectionPropertyEditor.Color => new ColorFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName,
+                suggestions(descriptor.Suggestions)),
+            ConnectionPropertyEditor.Suggest => new SuggestFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName,
+                suggestions(descriptor.Suggestions)),
+            _ => new TextFieldViewModel(descriptor, target, parent, canInherit, alwaysEditable, parentName),
+        };
 }
 
 /// <summary>Free text (or a password when <see cref="IsPassword"/>).</summary>

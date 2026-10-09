@@ -38,7 +38,11 @@ public sealed class ExternalToolPreparationStepTests : IDisposable
 
     private static ConnectionInfo Ssh(string pre = "", string post = "") => new()
     {
-        Name = "web01", Protocol = CoreProtocol.SSH2, Hostname = "web01.example", PreExtApp = pre, PostExtApp = post,
+        Name = "web01",
+        Protocol = CoreProtocol.SSH2,
+        Hostname = "web01.example",
+        PreExtApp = pre,
+        PostExtApp = post,
     };
 
     [Fact]

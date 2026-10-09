@@ -25,8 +25,11 @@ public class FreeRdpArgsTests
     {
         var p = new ConnectionParameters
         {
-            Hostname = "srv", Port = 3389, Protocol = ProtocolType.Rdp,
-            Username = "bob\" /drive:x,/ \"", Password = "p a\"ss",
+            Hostname = "srv",
+            Port = 3389,
+            Protocol = ProtocolType.Rdp,
+            Username = "bob\" /drive:x,/ \"",
+            Password = "p a\"ss",
         };
 
         var args = RdpProtocol.BuildFreeRdpArgs(p);
@@ -63,7 +66,8 @@ public class FreeRdpArgsTests
     {
         var info = new ConnectionInfo
         {
-            Protocol = CoreProtocol.RDP, Hostname = "srv",
+            Protocol = CoreProtocol.RDP,
+            Hostname = "srv",
             UseCredSsp = false,
             RedirectDiskDrives = RDPDiskDrives.Local,
             RedirectClipboard = false,

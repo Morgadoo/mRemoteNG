@@ -16,8 +16,16 @@ public sealed class IntegratedProgramTests
     {
         var info = new ConnectionInfo
         {
-            Protocol = CoreProtocol.IntApp, ExtApp = "Terminal", Name = "db01", Hostname = "",
-            Description = "primary", MacAddress = "00:11:22:33:44:55", UserField = "rack 4", Username = "dba", Password = "pw", Port = 8080,
+            Protocol = CoreProtocol.IntApp,
+            ExtApp = "Terminal",
+            Name = "db01",
+            Hostname = "",
+            Description = "primary",
+            MacAddress = "00:11:22:33:44:55",
+            UserField = "rack 4",
+            Username = "dba",
+            Password = "pw",
+            Port = 8080,
         };
 
         var parameters = ConnectionParametersFactory.FromConnectionInfo(info);
@@ -27,8 +35,16 @@ public sealed class IntegratedProgramTests
         parameters.Extras[ConnectionParametersFactory.Keys.IntAppTool].Should().Be("Terminal");
         variables.Should().BeEquivalentTo(new
         {
-            Name = "db01", Hostname = "", Port = "8080", Username = "dba", Password = "pw", Domain = "",
-            Description = "primary", MacAddress = "00:11:22:33:44:55", UserField = "rack 4", Protocol = "IntApp",
+            Name = "db01",
+            Hostname = "",
+            Port = "8080",
+            Username = "dba",
+            Password = "pw",
+            Domain = "",
+            Description = "primary",
+            MacAddress = "00:11:22:33:44:55",
+            UserField = "rack 4",
+            Protocol = "IntApp",
         });
     }
 

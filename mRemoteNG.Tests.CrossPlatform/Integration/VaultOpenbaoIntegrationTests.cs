@@ -152,11 +152,16 @@ public sealed class OpenBaoFixture : IAsyncLifetime
         await WriteAsync("sys/mounts/ldap", new JsonObject { ["type"] = "ldap" });
         await WriteAsync("ldap/config", new JsonObject
         {
-            ["binddn"] = LdapAdminDn, ["bindpass"] = "admin", ["url"] = $"ldap://127.0.0.1:{LdapPort}", ["schema"] = "openldap",
+            ["binddn"] = LdapAdminDn,
+            ["bindpass"] = "admin",
+            ["url"] = $"ldap://127.0.0.1:{LdapPort}",
+            ["schema"] = "openldap",
         });
         await WriteAsync("ldap/static-role/svc", new JsonObject
         {
-            ["dn"] = $"uid=svc,ou=users,{LdapBaseDn}", ["username"] = "svc", ["rotation_period"] = "24h",
+            ["dn"] = $"uid=svc,ou=users,{LdapBaseDn}",
+            ["username"] = "svc",
+            ["rotation_period"] = "24h",
         });
         await WriteAsync("ldap/role/dyn", new JsonObject
         {

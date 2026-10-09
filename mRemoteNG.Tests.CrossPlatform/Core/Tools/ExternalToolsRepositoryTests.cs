@@ -44,9 +44,16 @@ public sealed class ExternalToolsRepositoryTests : IDisposable
         tools.Should().HaveCount(3);
         tools[0].Should().BeEquivalentTo(new
         {
-            DisplayName = "Ping", FileName = "cmd", Arguments = "/K ping -t %HOSTNAME%", WorkingDir = "",
-            WaitForExit = false, TryIntegrate = false, RunElevated = false, ShowOnToolbar = true,
-            Platform = ExternalToolPlatform.Any, IconPath = "",
+            DisplayName = "Ping",
+            FileName = "cmd",
+            Arguments = "/K ping -t %HOSTNAME%",
+            WorkingDir = "",
+            WaitForExit = false,
+            TryIntegrate = false,
+            RunElevated = false,
+            ShowOnToolbar = true,
+            Platform = ExternalToolPlatform.Any,
+            IconPath = "",
         });
         tools[1].DisplayName.Should().Be("PuTTY & \"friends\"");
         tools[1].FileName.Should().Be(@"C:\Program Files\PuTTY\putty.exe");

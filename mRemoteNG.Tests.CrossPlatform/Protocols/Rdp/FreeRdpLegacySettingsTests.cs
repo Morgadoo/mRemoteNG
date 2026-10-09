@@ -40,8 +40,12 @@ public class FreeRdpLegacySettingsTests
 
     private static ConnectionInfo Rdp() => new()
     {
-        Protocol = CoreProtocol.RDP, Hostname = "srv", Username = "alice", Password = "pw",
-        AutomaticResize = true, Colors = RDPColors.Colors32Bit,
+        Protocol = CoreProtocol.RDP,
+        Hostname = "srv",
+        Username = "alice",
+        Password = "pw",
+        AutomaticResize = true,
+        Colors = RDPColors.Colors32Bit,
     };
 
     // ── Resolution ─────────────────────────────────────────────────────────
@@ -760,7 +764,10 @@ public class FreeRdpLegacySettingsTests
     {
         var folder = new mRemoteNG.Core.Container.ContainerInfo
         {
-            Name = "folder", Resolution = RDPResolutions.Res1024x768, RedirectPrinters = true, RDPStartProgram = "inherited.exe",
+            Name = "folder",
+            Resolution = RDPResolutions.Res1024x768,
+            RedirectPrinters = true,
+            RDPStartProgram = "inherited.exe",
         };
         var info = Rdp();
         folder.AddChild(info);

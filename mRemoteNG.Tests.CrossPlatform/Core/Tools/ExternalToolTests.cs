@@ -47,7 +47,10 @@ public sealed class ExternalToolTests
     {
         var tool = new ExternalTool("n", "f", "a", "w", runElevated: true)
         {
-            ShowOnToolbar = false, WaitForExit = true, Platform = ExternalToolPlatform.MacOS, IconPath = "/i.png",
+            ShowOnToolbar = false,
+            WaitForExit = true,
+            Platform = ExternalToolPlatform.MacOS,
+            IconPath = "/i.png",
         };
         var integrated = new ExternalTool { TryIntegrate = true };
 

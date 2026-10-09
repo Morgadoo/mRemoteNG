@@ -300,8 +300,12 @@ public sealed class ActiveDirectoryImportRequestTests
         {
             Server = new LdapServerSettings
             {
-                Server = "dc1.corp.example", Port = 3268, UseSsl = true, BindMode = LdapBindMode.Simple,
-                Username = @"CORP\alice", Password = "never in the url",
+                Server = "dc1.corp.example",
+                Port = 3268,
+                UseSsl = true,
+                BindMode = LdapBindMode.Simple,
+                Username = @"CORP\alice",
+                Password = "never in the url",
             },
             BaseDn = "OU=Sales\\, EMEA,DC=corp,DC=example",
             IncludeSubOus = true,

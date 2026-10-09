@@ -342,7 +342,7 @@ public sealed partial class RdpProtocol
             case "token":
                 if (extras.GetValueOrDefault(Keys.RdpGatewayAccessToken) is { Length: > 0 } token) parts.Add("access-token:" + EscapeGatewayValue(token));
                 break;
-            // "connection" and "smartcard": FreeRDP authenticates to the gateway like to the server.
+                // "connection" and "smartcard": FreeRDP authenticates to the gateway like to the server.
         }
         if (extras.GetValueOrDefault(Keys.RdpGatewayUsage) == "detect")
             parts.Add("usage-method:detect");

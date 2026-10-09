@@ -130,7 +130,9 @@ public sealed class VncProtocolTests : IAsyncLifetime
 
         var act = () => _protocol.ConnectAsync(new ConnectionParameters
         {
-            Hostname = "127.0.0.1", Port = port, Protocol = ProtocolType.Vnc,
+            Hostname = "127.0.0.1",
+            Port = port,
+            Protocol = ProtocolType.Vnc,
         });
 
         (await act.Should().ThrowAsync<IOException>()).WithMessage($"*127.0.0.1:{port}*");

@@ -168,7 +168,11 @@ public sealed class ExternalToolsServiceTests : IDisposable
         };
         var connection = new ConnectionInfo
         {
-            Name = "web01", Hostname = "10.0.0.5", Protocol = CoreProtocol.SSH2, PreExtApp = "before", PostExtApp = "after",
+            Name = "web01",
+            Hostname = "10.0.0.5",
+            Protocol = CoreProtocol.SSH2,
+            PreExtApp = "before",
+            PostExtApp = "after",
         };
 
         (await service.RunAsync(new ExternalTool("Terminal", "xterm") { TryIntegrate = true }, connection)).Should().BeTrue();

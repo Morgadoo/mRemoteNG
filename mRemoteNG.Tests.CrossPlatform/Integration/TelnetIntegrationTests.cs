@@ -143,7 +143,10 @@ public sealed class TelnetIntegrationTests : IDisposable
 
         await rlogin.ConnectAsync(new ConnectionParameters
         {
-            Hostname = "127.0.0.1", Port = port, Protocol = ProtocolType.Rlogin, Username = "bob",
+            Hostname = "127.0.0.1",
+            Port = port,
+            Protocol = ProtocolType.Rlogin,
+            Username = "bob",
         });
         await rlogin.SendInputAsync("ls\r"u8.ToArray());
 
