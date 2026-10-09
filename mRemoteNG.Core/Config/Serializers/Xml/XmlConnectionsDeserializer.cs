@@ -269,7 +269,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
 
             // RDP Redirects
             node.RedirectKeys = GetBool(e, "RedirectKeys", false);
-            node.RedirectDiskDrives = GetEnum(e, "RedirectDiskDrives", RDPDiskDrives.None);
+            node.RedirectDiskDrives = GetRedirectDiskDrives(e);
             node.RedirectDiskDrivesCustom = GetAttr(e, "RedirectDiskDrivesCustom", "");
             node.RedirectPorts = GetBool(e, "RedirectPorts", false);
             node.RedirectPrinters = GetBool(e, "RedirectPrinters", false);
@@ -280,7 +280,8 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             node.RedirectAudioCapture = GetBool(e, "RedirectAudioCapture", false);
 
             // RDP Auth
-            node.UseConsoleSession = GetBool(e, "UseConsoleSession", false);
+            // Legacy name is ConnectToConsole; UseConsoleSession was written by early builds of this port.
+            node.UseConsoleSession = GetBool(e, "ConnectToConsole", GetBool(e, "UseConsoleSession", false));
             node.UseCredSsp = GetBool(e, "UseCredSsp", true);
             node.UseRestrictedAdmin = GetBool(e, "UseRestrictedAdmin", false);
             node.UseRCG = GetBool(e, "UseRCG", false);
@@ -326,9 +327,23 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             node.UserField = GetAttr(e, "UserField", "");
             node.Favorite = GetBool(e, "Favorite", false);
             node.EnvironmentTags = GetAttr(e, "EnvironmentTags", "");
+            // "Connected" marks sessions the legacy app reopens at startup; kept so a round trip
+            // through this app doesn't change that behaviour.
+            node.PleaseConnect = GetBool(e, "Connected", false);
 
             // Inheritance
             DeserializeInheritance(e, node.Inheritance);
+        }
+
+        /// <summary>
+        /// Files before 2.8 stored a boolean ("True" = local drives); 2.8 stores the enum name.
+        /// </summary>
+        private static RDPDiskDrives GetRedirectDiskDrives(XmlElement e)
+        {
+            var value = e.GetAttribute("RedirectDiskDrives");
+            if (bool.TryParse(value, out var redirect))
+                return redirect ? RDPDiskDrives.Local : RDPDiskDrives.None;
+            return GetEnum(e, "RedirectDiskDrives", RDPDiskDrives.None);
         }
 
         private static void DeserializeInheritance(XmlElement e, ConnectionInfoInheritance inh)

@@ -182,7 +182,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("RedirectAudioCapture", node.RedirectAudioCapture.ToString().ToLowerInvariant());
 
             // RDP Auth
-            element.SetAttribute("UseConsoleSession", node.UseConsoleSession.ToString().ToLowerInvariant());
+            element.SetAttribute("ConnectToConsole", node.UseConsoleSession.ToString().ToLowerInvariant());
             element.SetAttribute("UseCredSsp", node.UseCredSsp.ToString().ToLowerInvariant());
             element.SetAttribute("UseRestrictedAdmin", node.UseRestrictedAdmin.ToString().ToLowerInvariant());
             element.SetAttribute("UseRCG", node.UseRCG.ToString().ToLowerInvariant());
@@ -200,12 +200,12 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("RDGatewayUsageMethod", node.RDGatewayUsageMethod.ToString());
             element.SetAttribute("RDGatewayHostname", node.RDGatewayHostname);
             element.SetAttribute("RDGatewayUseConnectionCredentials", node.RDGatewayUseConnectionCredentials.ToString());
-            element.SetAttribute("RDGatewayUsername", node.RDGatewayUsername);
+            element.SetAttribute("RDGatewayUsername", _saveFilter.SaveUsername ? node.RDGatewayUsername : "");
             element.SetAttribute("RDGatewayPassword",
                 _saveFilter.SavePassword
                     ? _cryptoProvider.Encrypt(node.RDGatewayPassword, _encryptionKey)
                     : "");
-            element.SetAttribute("RDGatewayDomain", node.RDGatewayDomain);
+            element.SetAttribute("RDGatewayDomain", _saveFilter.SaveDomain ? node.RDGatewayDomain : "");
             element.SetAttribute("RDGatewayExternalCredentialProvider", node.RDGatewayExternalCredentialProvider.ToString());
             element.SetAttribute("RDGatewayUserViaAPI", node.RDGatewayUserViaAPI);
 
@@ -216,7 +216,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("VNCProxyType", node.VNCProxyType.ToString());
             element.SetAttribute("VNCProxyIP", node.VNCProxyIP);
             element.SetAttribute("VNCProxyPort", node.VNCProxyPort.ToString());
-            element.SetAttribute("VNCProxyUsername", node.VNCProxyUsername);
+            element.SetAttribute("VNCProxyUsername", _saveFilter.SaveUsername ? node.VNCProxyUsername : "");
             element.SetAttribute("VNCProxyPassword",
                 _saveFilter.SavePassword
                     ? _cryptoProvider.Encrypt(node.VNCProxyPassword, _encryptionKey)
@@ -235,6 +235,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("UserField", node.UserField);
             element.SetAttribute("Favorite", node.Favorite.ToString().ToLowerInvariant());
             element.SetAttribute("EnvironmentTags", node.EnvironmentTags);
+            element.SetAttribute("Connected", node.PleaseConnect.ToString().ToLowerInvariant());
 
             // Inheritance
             if (_saveFilter.SaveInheritance)

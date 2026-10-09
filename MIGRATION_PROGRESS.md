@@ -38,6 +38,34 @@ xrdp + FreeRDP 3.32, inetutils telnetd — plus GitHub Actions on ubuntu/macos/w
 - Packaging: Flatpak, Snap and macOS DMG/Homebrew scripts have not been run; code signing needs certificates.
 - The Windows registry PuTTY session provider is registered but has not been run on Windows.
 
+## Feature Parity with the WinForms App (backlog)
+
+Audit of 2026-10-09 against the legacy `mRemoteNG/` sources. Connection files: every attribute the legacy
+2.8 writer emits is read and written back (guarded by `LegacyAttributeContractTests`); settings the new UI
+doesn't use yet are kept in the file, not dropped. Gaps, roughly by user impact:
+
+1. **RDP options not applied by the FreeRDP launcher:** fixed resolution/fullscreen, performance flags,
+   printers/ports/smart cards, "All"/custom drives, RestrictedAdmin/RCG, auth level, start program, gateway
+   password; Hyper-V VM console (VmId/enhanced mode).
+2. **External Tools** (tools window/toolbar, variables) — also needed for Pre/Post external apps and IntApp.
+3. **External credential/address providers:** Delinea Secret Server, Passwordstate, 1Password, Vault/OpenBao,
+   AWS EC2.
+4. **Session tab menu:** reconnect, duplicate, rename, send Ctrl+Alt+Del, disconnect others, per-session
+   fullscreen/smart-size/view-only, next/previous session shortcuts, reconnect all, reconnect at startup.
+5. **Storage:** SQL Server/MySQL backend and multi-user sync; rolling backups; autosave; portable mode.
+6. **PuTTY-specific SSH:** saved PuTTY session settings, SSHOptions, SSH tunnel through another connection.
+7. **Tools:** Multi-SSH (type into several sessions), Active Directory import, port-scan range + import,
+   UltraVNC SingleClick.
+8. **Layout:** docking/floating/split panels, multiple named panels, saved layout; tab/frame colours,
+   Favorites, environment tags not shown.
+9. **Tree:** expand/collapse all, copy hostname, apply inheritance to children, connect with options,
+   PuTTY sessions as a live tree root (import only today).
+10. **Security UI:** set/change/remove the master password and encryption settings of the open file
+    (possible only via Export today).
+11. **App:** 24 UI translations (English only now), theme editor and extra themes, log to file, start
+    minimised, in-app update download, command-line switches.
+12. **Connection dialog:** many stored properties (see 1, 3, 8) have no editor yet.
+
 ## Summary Dashboard
 
 | Phase | Tasks | Done | In Progress | Blocked | % Complete |
