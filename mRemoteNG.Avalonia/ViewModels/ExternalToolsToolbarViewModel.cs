@@ -5,6 +5,7 @@ using System.Reactive;
 using Avalonia.Media.Imaging;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Core.Tools;
 using mRemoteNG.Protocols.External;
@@ -24,8 +25,8 @@ public sealed class ExternalToolCommandItem(ExternalTool tool, Bitmap? icon, Rea
     public ReactiveCommand<Unit, Unit> RunCommand { get; } = command;
 
     public string ToolTip => Tool.TryIntegrate
-        ? $"{Tool.DisplayName} (opens in a tab) — runs for the selected connection"
-        : $"{Tool.DisplayName} — runs for the selected connection";
+        ? Localizer.Format("ExternalToolTipIntegratedFormat", Tool.DisplayName)
+        : Localizer.Format("ExternalToolTipFormat", Tool.DisplayName);
 }
 
 /// <summary>

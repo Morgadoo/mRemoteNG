@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using Avalonia.Media;
 using mRemoteNG.Avalonia.Services;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using ReactiveUI;
 
@@ -91,7 +92,7 @@ public sealed class ThemeEditorViewModel : ReactiveObject
                 return;
             this.RaiseAndSetIfChanged(ref _baseTheme, value);
             LoadColors(value);
-            Name = value.IsBuiltIn ? $"{value.Name} (custom)" : value.Name;
+            Name = value.IsBuiltIn ? Localizer.Format("CustomThemeNameFormat", value.Name) : value.Name;
             this.RaisePropertyChanged(nameof(CanDelete));
             this.RaisePropertyChanged(nameof(IsDark));
             _themes.ApplyTheme(value);
@@ -150,12 +151,12 @@ public sealed class ThemeEditorViewModel : ReactiveObject
             _settings?.Update(s => s.ThemeName = theme.Name);
             _themes.ApplyTheme(theme);
             Reload(theme.Name);
-            Status = $"Saved \"{theme.Name}\" to {path} and applied it.";
+            Status = Localizer.Format("ThemeSavedFormat", theme.Name, path);
             return true;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            Status = $"Could not save the theme: {ex.Message}";
+            Status = Localizer.Format("CouldNotSaveThemeFormat", ex.Message);
             return false;
         }
     }
@@ -168,7 +169,7 @@ public sealed class ThemeEditorViewModel : ReactiveObject
         _catalog.Delete(theme.Name);
         if (_settings is not null && string.Equals(_settings.Current.ThemeName, theme.Name, StringComparison.OrdinalIgnoreCase))
             _settings.Update(s => s.ThemeName = string.Empty);
-        Status = $"Deleted \"{theme.Name}\".";
+        Status = Localizer.Format("ThemeDeletedFormat", theme.Name);
         Reload(theme.IsDark ? ThemeCatalog.DarkName : ThemeCatalog.LightName);
     }
 

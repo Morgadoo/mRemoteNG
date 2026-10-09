@@ -14,6 +14,7 @@ using mRemoteNG.Core.Config.Connections.Sql;
 using mRemoteNG.Core.Config.DataProviders;
 using mRemoteNG.Core.Config.DatabaseConnectors;
 using mRemoteNG.Core.Config.Serializers.Xml;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Logging;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Platform.Security;
@@ -192,8 +193,8 @@ public sealed class StorageRuntime : IDisposable
                 }
 
                 if (ex.PasswordWasSupplied)
-                    error = "Incorrect password. Please try again.";
-                password = await new PasswordPromptDialog($"The SQL connection database {store.DisplayName} is protected by a password.", error)
+                    error = Localizer.Get("IncorrectPasswordTryAgain");
+                password = await new PasswordPromptDialog(Localizer.Format("SqlDatabaseIsPasswordProtectedFormat", store.DisplayName), error)
                     .ShowDialog<string?>(owner);
                 if (password is null)
                 {

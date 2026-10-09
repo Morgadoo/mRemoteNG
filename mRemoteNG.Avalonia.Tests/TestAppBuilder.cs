@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.ReactiveUI;
@@ -13,9 +14,17 @@ namespace mRemoteNG.Avalonia.Tests;
 
 public static class TestAppBuilder
 {
-    public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>()
-        .UseReactiveUI()
-        .UseHeadless(new AvaloniaHeadlessPlatformOptions());
+    public static AppBuilder BuildAvaloniaApp()
+    {
+        // The tests check English UI texts: run in English whatever the machine's language is
+        // (LocalizationTests switch languages themselves).
+        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+        CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+
+        return AppBuilder.Configure<App>()
+            .UseReactiveUI()
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions());
+    }
 }
 
 /// <summary>

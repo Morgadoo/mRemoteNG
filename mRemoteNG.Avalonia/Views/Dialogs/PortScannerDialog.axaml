@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.PortScannerDialog"
         x:DataType="vm:PortScannerViewModel"
-        Title="Port Scanner"
+        Title="{l:Tr PortScan, English='Port Scanner'}"
         Width="1140"
         Height="620"
         MinWidth="700"
@@ -20,30 +21,30 @@
         <!-- Target card -->
         <Border Classes="card" Grid.Row="0" Margin="0,0,0,12">
             <Grid ColumnDefinitions="Auto,8,*,16,Auto,8,130,12,Auto,8,120" RowDefinitions="Auto,10,Auto,10,Auto">
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Hosts" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Tr Hosts}" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="9" x:Name="HostsBox" Text="{Binding Hosts}"
                          Watermark="192.168.1.0/24, 10.0.0.1-50, server.example.com"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Ports" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Tr Ports}" VerticalAlignment="Center"/>
                 <Grid Grid.Row="2" Grid.Column="2" ColumnDefinitions="*,8,Auto">
                     <TextBox x:Name="PortsBox" Text="{Binding Ports}" Watermark="22, 80, 443, 5900-5910"/>
-                    <Button Grid.Column="2" Content="Default ports" Command="{Binding DefaultPortsCommand}" Padding="10,4"/>
+                    <Button Grid.Column="2" Content="{l:Tr DefaultPorts}" Command="{Binding DefaultPortsCommand}" Padding="10,4"/>
                 </Grid>
-                <TextBlock Grid.Row="2" Grid.Column="4" Text="Timeout (ms)" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="2" Grid.Column="4" Text="{l:Tr TimeoutMs}" VerticalAlignment="Center"/>
                 <NumericUpDown Grid.Row="2" Grid.Column="6" Value="{Binding TimeoutMs}" FormatString="0"
                                Minimum="50" Maximum="30000" Increment="100"/>
-                <TextBlock Grid.Row="2" Grid.Column="8" Text="Parallel" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="2" Grid.Column="8" Text="{l:Tr Parallel}" VerticalAlignment="Center"/>
                 <NumericUpDown Grid.Row="2" Grid.Column="10" Value="{Binding Parallelism}" FormatString="0"
                                Minimum="1" Maximum="1024" Increment="8"/>
 
                 <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="11" Orientation="Horizontal" Spacing="16">
-                    <CheckBox Content="Identify services (banners)" IsChecked="{Binding DetectServices}"/>
-                    <CheckBox Content="Resolve host names" IsChecked="{Binding ResolveHostNames}"/>
+                    <CheckBox Content="{l:Tr IdentifyServicesBanners}" IsChecked="{Binding DetectServices}"/>
+                    <CheckBox Content="{l:Tr ResolveHostNames}" IsChecked="{Binding ResolveHostNames}"/>
                 </StackPanel>
                 <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="11" Orientation="Horizontal" Spacing="8"
                             HorizontalAlignment="Right">
-                    <Button Content="Stop" MinWidth="80" x:Name="StopButton" Command="{Binding StopCommand}"/>
-                    <Button Content="Start Scan" Classes="accent" MinWidth="100" x:Name="StartButton" Command="{Binding StartCommand}"/>
+                    <Button Content="{l:Tr _Stop}" MinWidth="80" x:Name="StopButton" Command="{Binding StopCommand}"/>
+                    <Button Content="{l:Tr StartScan}" Classes="accent" MinWidth="100" x:Name="StartButton" Command="{Binding StartCommand}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -51,7 +52,7 @@
         <!-- Results -->
         <Border Classes="card" Grid.Row="1" Margin="0,0,0,12">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Hosts with open ports" Classes="section-header" Margin="0,0,0,8"/>
+                <TextBlock DockPanel.Dock="Top" Text="{l:Tr HostsWithOpenPorts}" Classes="section-header" Margin="0,0,0,8"/>
                 <DataGrid x:Name="ResultsGrid"
                           ItemsSource="{Binding Results}"
                           AutoGenerateColumns="False"
@@ -60,8 +61,8 @@
                           CanUserSortColumns="True">
                     <DataGrid.Columns>
                         <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected}" Width="40"/>
-                        <DataGridTextColumn Header="Host" Binding="{Binding HostName}" Width="*" MinWidth="120" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="100" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="{l:Tr Host}" Binding="{Binding HostName}" Width="*" MinWidth="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="{l:Tr AddressColumn}" Binding="{Binding Address}" Width="100" IsReadOnly="True"/>
                         <DataGridTextColumn Header="SSH" Binding="{Binding Ssh}" Width="88" IsReadOnly="True"/>
                         <DataGridTextColumn Header="Telnet" Binding="{Binding Telnet}" Width="88" IsReadOnly="True"/>
                         <DataGridTextColumn Header="HTTP" Binding="{Binding Http}" Width="88" IsReadOnly="True"/>
@@ -69,7 +70,7 @@
                         <DataGridTextColumn Header="rlogin" Binding="{Binding Rlogin}" Width="88" IsReadOnly="True"/>
                         <DataGridTextColumn Header="RDP" Binding="{Binding Rdp}" Width="88" IsReadOnly="True"/>
                         <DataGridTextColumn Header="VNC" Binding="{Binding Vnc}" Width="88" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="Open ports" Binding="{Binding OpenPorts}" Width="1.5*" MinWidth="120" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="{l:Tr OpenPorts, English='Open ports'}" Binding="{Binding OpenPorts}" Width="1.5*" MinWidth="120" IsReadOnly="True"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>
@@ -80,9 +81,9 @@
         <!-- Import -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,0,0,8"
                     IsVisible="{Binding CanImport}">
-            <TextBlock Text="Import checked hosts as" VerticalAlignment="Center"/>
+            <TextBlock Text="{l:Tr ImportCheckedHostsAs}" VerticalAlignment="Center"/>
             <ComboBox x:Name="ImportProtocolBox" ItemsSource="{Binding ImportProtocols}" SelectedItem="{Binding ImportProtocol}" MinWidth="110"/>
-            <Button Content="Import into tree" x:Name="ImportButton" Command="{Binding ImportCommand}" MinWidth="120"/>
+            <Button Content="{l:Tr ImportIntoTree}" x:Name="ImportButton" Command="{Binding ImportCommand}" MinWidth="120"/>
         </StackPanel>
 
         <Border Grid.Row="4" BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0" Padding="0,8,0,0">

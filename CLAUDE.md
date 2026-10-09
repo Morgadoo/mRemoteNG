@@ -111,6 +111,8 @@ Defined in `mRemoteNG/.editorconfig`:
 
 All user-facing strings go in `Language/Language.resx`. Access via `Language.ResourceName`. Naming: `PropertyDescription<Name>` for tooltips, `<EnumName><Value>` for enum display names.
 
+Cross-platform app: `mRemoteNG.Core` links the legacy `Language*.resx` (never copy or edit them for the new app) and adds its own English strings in `mRemoteNG.Core/Localization/Strings.resx` (keys must not reuse a legacy key name). Look strings up with `Localizer.Get/Menu/Format` in C# and `{l:Tr Key}` in XAML (`xmlns:l="using:mRemoteNG.Avalonia.Localization"`; `Suffix`, `English`, `Upper`, `AccessKey` options). `LocalizationKeysTests` checks that every referenced key exists.
+
 ### Testing
 
 - Legacy tests: NUnit 4.5.1 with NSubstitute — naming: `MethodName_Scenario_ExpectedBehavior`

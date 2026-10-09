@@ -1,33 +1,34 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
              x:Class="mRemoteNG.Avalonia.Views.OptionsPages.ConnectionSettingsPage"
              x:DataType="vm:ConnectionSettingsViewModel">
     <StackPanel Spacing="16">
-        <TextBlock Text="Connections" FontSize="18" FontWeight="Bold"/>
+        <TextBlock Text="{l:Tr Connections}" FontSize="18" FontWeight="Bold"/>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Defaults" Classes="section-header"/>
+                <TextBlock Text="{l:Tr Defaults}" Classes="section-header"/>
                 <Grid ColumnDefinitions="*,160" RowDefinitions="Auto,12,Auto,12,Auto">
-                    <TextBlock Grid.Row="0" Text="Default protocol" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Text="{l:Tr DefaultProtocol}" VerticalAlignment="Center"/>
                     <ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch"
                               ItemsSource="{Binding Protocols}"
                               SelectedItem="{Binding DefaultProtocol}"/>
-                    <TextBlock Grid.Row="2" Text="Connect timeout (seconds)" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" Text="{l:Tr ConnectTimeoutSeconds}" VerticalAlignment="Center"/>
                     <NumericUpDown Grid.Row="2" Grid.Column="1" FormatString="0"
                                    Value="{Binding ConnectTimeout}"
                                    Minimum="{Binding MinTimeout}" Maximum="{Binding MaxTimeout}"/>
-                    <TextBlock Grid.Row="4" Text="Default username" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="4" Text="{l:Tr DefaultUsername}" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding DefaultUsername}"
-                             Watermark="(none)"/>
+                             Watermark="{l:Tr NoneInParentheses}"/>
                 </Grid>
             </StackPanel>
         </Border>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Default Ports" Classes="section-header"/>
+                <TextBlock Text="{l:Tr DefaultPortsSection}" Classes="section-header"/>
                 <Grid ColumnDefinitions="*,120,24,*,120" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="SSH" VerticalAlignment="Center"/>
                     <NumericUpDown Grid.Row="0" Grid.Column="1" FormatString="0" Value="{Binding SshPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
@@ -53,16 +54,16 @@
         <Border Classes="card">
             <StackPanel Spacing="10">
                 <TextBlock Text="SSH" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding KeepAlive}" Content="Send keep-alive packets"/>
+                <CheckBox IsChecked="{Binding KeepAlive}" Content="{l:Tr SendKeepAlivePackets}"/>
                 <Grid ColumnDefinitions="*,160" IsEnabled="{Binding KeepAlive}">
-                    <TextBlock Text="Keep-alive interval (seconds)" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:Tr KeepAliveIntervalSeconds}" VerticalAlignment="Center"/>
                     <NumericUpDown Grid.Column="1" FormatString="0"
                                    Value="{Binding KeepAliveInterval}"
                                    Minimum="{Binding MinKeepAlive}" Maximum="{Binding MaxKeepAlive}"/>
                 </Grid>
                 <Grid ColumnDefinitions="*,8,Auto">
-                    <TextBox Text="{Binding SshKeyPath}" Watermark="Default private key file (optional)"/>
-                    <Button Grid.Column="2" Content="Browse…" Click="OnBrowseKey"/>
+                    <TextBox Text="{Binding SshKeyPath}" Watermark="{l:Tr DefaultPrivateKeyFileOptional}"/>
+                    <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseKey"/>
                 </Grid>
             </StackPanel>
         </Border>

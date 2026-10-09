@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Avalonia.ViewModels;
 using mRemoteNG.Core.Config.Import;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.Dialogs;
 
@@ -21,8 +22,8 @@ public partial class PortScannerDialog : Window
         mRemoteNG.Core.Connection.Protocol.ProtocolType protocol)
     {
         var (result, folder) = ConnectionTreeImporter.ForApp().Import(new PortScanImporter(hosts, protocol), "the port scan");
-        var text = $"Imported {result.ConnectionCount} {protocol} connection(s) into \"{folder}\".";
+        var text = Localizer.Format("PortScanImportedFormat", result.ConnectionCount, protocol, folder);
         var skipped = result.Warnings.Count;
-        return skipped > 0 ? $"{text} {skipped} host(s) skipped: no {protocol} service found." : text;
+        return skipped > 0 ? text + " " + Localizer.Format("PortScanSkippedFormat", skipped, protocol) : text;
     }
 }

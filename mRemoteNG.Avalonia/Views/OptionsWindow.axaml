@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         xmlns:pages="using:mRemoteNG.Avalonia.Views.OptionsPages"
         x:Class="mRemoteNG.Avalonia.Views.OptionsWindow"
         x:DataType="vm:OptionsWindowViewModel"
-        Title="Options"
+        Title="{l:Tr Options}"
         Width="820"
         Height="580"
         MinWidth="600"
@@ -24,7 +25,7 @@
                     Background="{DynamicResource AppBg1Brush}">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Padding="12,10">
-                        <TextBlock Text="OPTIONS" Classes="section-header"/>
+                        <TextBlock Text="{l:Tr Options, Upper=True}" Classes="section-header"/>
                     </Border>
                     <ListBox ItemsSource="{Binding Categories}"
                              SelectedItem="{Binding SelectedCategory}"
@@ -99,17 +100,17 @@
                 <Grid ColumnDefinitions="*,Auto,8,Auto,8,Auto">
                     <!-- Left: reset link (resets this dialog; OK/Apply makes it take effect) -->
                     <Button Grid.Column="0"
-                            Content="Reset to defaults"
+                            Content="{l:Tr ResetToDefaults}"
                             Background="Transparent"
                             BorderThickness="0"
                             Foreground="{DynamicResource AccentBrush}"
                             Command="{Binding ResetCommand}"/>
                     <!-- Right: action buttons -->
-                    <Button Grid.Column="1" Content="OK" Classes="accent" IsDefault="True"
+                    <Button Grid.Column="1" Content="{l:Tr _Ok}" Classes="accent" IsDefault="True"
                             MinWidth="80" Command="{Binding OkCommand}"/>
-                    <Button Grid.Column="3" Content="Cancel" IsCancel="True"
+                    <Button Grid.Column="3" Content="{l:Tr _Cancel}" IsCancel="True"
                             MinWidth="80" Command="{Binding CancelCommand}"/>
-                    <Button Grid.Column="5" Content="Apply"
+                    <Button Grid.Column="5" Content="{l:Tr Apply}"
                             MinWidth="80" Command="{Binding ApplyCommand}"/>
                 </Grid>
             </StackPanel>

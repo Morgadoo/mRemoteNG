@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
              x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionPanelView"
              x:DataType="dock:SessionPanelViewModel">
@@ -66,11 +67,11 @@
                 <TextBlock Grid.Column="2" Text="{Binding SessionCount, StringFormat='({0})'}"
                            FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                 <Button Grid.Column="4" x:Name="FloatButton" Classes="chrome" Content="&#x29C9;"
-                        ToolTip.Tip="Float this panel in its own window"/>
+                        ToolTip.Tip="{l:Tr FloatThisPanelInItsOwnWindow}"/>
                 <Button Grid.Column="5" x:Name="PanelMenuButton" Classes="chrome" Content="&#x22EF;"
-                        ToolTip.Tip="Panel options"/>
+                        ToolTip.Tip="{l:Tr PanelOptions}"/>
                 <Button Grid.Column="6" x:Name="ClosePanelButton" Classes="chrome" Content="&#x2715;"
-                        ToolTip.Tip="Close this panel and its sessions"/>
+                        ToolTip.Tip="{l:Tr CloseThisPanelAndItsSessions}"/>
             </Grid>
         </Border>
 
@@ -132,7 +133,7 @@
                                             BorderThickness="0"
                                             VerticalAlignment="Center"
                                             Foreground="{DynamicResource TextSecondaryBrush}"
-                                            ToolTip.Tip="Close"
+                                            ToolTip.Tip="{l:Tr _Close}"
                                             Command="{Binding CloseCommand}"/>
                                 </StackPanel>
                             </Grid>
@@ -145,7 +146,7 @@
         <Border BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0">
             <Grid>
                 <TextBlock x:Name="EmptyText"
-                           Text="No sessions in this panel.&#x0a;Open a connection in it from the connection tree."
+                           Text="{l:Tr NoSessionsInPanel}"
                            TextAlignment="Center"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"

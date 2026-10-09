@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Avalonia.ViewModels;
 using mRemoteNG.Avalonia.Views;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Platform;
 
@@ -29,6 +30,10 @@ public partial class App : Application
             // Loads settings.xml from the per-OS config directory.
             var settings = AppServices.GetRequired<AppSettingsService>();
 
+            // UI language (Options > Appearance): views resolve their strings when created, so this must
+            // happen before any window exists; a change takes effect after a restart.
+            Localizer.ApplyUiCulture(settings.Current.Language);
+
             _instanceGuard = new SingleInstanceGuard();
             var isPrimary = _instanceGuard.TryAcquire(settings.Provider.ApplicationDataDirectory);
             if (!isPrimary && settings.Current.SingleInstance)
@@ -37,7 +42,7 @@ public partial class App : Application
                 try
                 {
                     AppServices.GetRequired<INotificationService>()
-                        .ShowNotification("mRemoteNG", "mRemoteNG is already running.");
+                        .ShowNotification("mRemoteNG", Localizer.Get("AlreadyRunning"));
                 }
                 catch
                 {

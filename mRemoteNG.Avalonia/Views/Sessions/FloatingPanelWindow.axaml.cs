@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
 using mRemoteNG.Avalonia.ViewModels.Docking;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.Sessions;
 
@@ -84,7 +85,7 @@ public partial class FloatingPanelWindow : Window
     private void UpdateTitle()
     {
         if (_panel is null) return;
-        Title = $"{_panel.Name} ({_panel.SessionCount}) — mRemoteNG";
+        Title = Localizer.Format("FloatingPanelTitleFormat", _panel.Name, _panel.SessionCount);
     }
 
     private void RememberBounds()

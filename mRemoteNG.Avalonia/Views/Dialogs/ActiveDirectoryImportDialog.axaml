@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ActiveDirectoryImportDialog"
         x:DataType="vm:ActiveDirectoryImportViewModel"
-        Title="Import from Active Directory"
+        Title="{l:Tr ImportAD}"
         Width="1120"
         Height="620"
         MinWidth="720"
@@ -23,20 +24,20 @@
         <!-- Directory server -->
         <Border Classes="card" Grid.Row="0" Margin="0,0,0,12">
             <Grid ColumnDefinitions="Auto,8,*,12,Auto,8,130,12,Auto" RowDefinitions="Auto,10,Auto">
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Server" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Tr Server}" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Grid.Column="2" x:Name="ServerBox" Text="{Binding Server}"
-                         Watermark="dc1.corp.example (empty: this computer's domain on Windows)"/>
-                <TextBlock Grid.Row="0" Grid.Column="4" Text="Port" VerticalAlignment="Center"/>
+                         Watermark="{l:Tr Dc1CorpExampleEmptyThisComputerS}"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="{l:Tr Port}" VerticalAlignment="Center"/>
                 <NumericUpDown Grid.Row="0" Grid.Column="6" Value="{Binding Port}" FormatString="0" Minimum="0" Maximum="65535"
-                               ToolTip.Tip="0 = 389, or 636 with LDAPS"/>
+                               ToolTip.Tip="{l:Tr N0389Or636WithLDAPS}"/>
                 <CheckBox Grid.Row="0" Grid.Column="8" Content="LDAPS" IsChecked="{Binding UseSsl}"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Bind" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Tr Bind}" VerticalAlignment="Center"/>
                 <Grid Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="7" ColumnDefinitions="130,12,*,12,180,12,Auto">
                     <ComboBox x:Name="BindModeBox" ItemsSource="{Binding BindModes}" SelectedItem="{Binding BindMode}" HorizontalAlignment="Stretch"/>
-                    <TextBox Grid.Column="2" x:Name="UserBox" Text="{Binding Username}" Watermark="user (CN=…, user@domain or DOMAIN\user)"/>
-                    <TextBox Grid.Column="4" x:Name="PasswordBox" Text="{Binding Password}" PasswordChar="•" Watermark="password"/>
-                    <Button Grid.Column="6" Content="Connect" Classes="accent" MinWidth="90" x:Name="ConnectButton"
+                    <TextBox Grid.Column="2" x:Name="UserBox" Text="{Binding Username}" Watermark="{l:Tr UserCNUserDomainOrDOMAINUser}"/>
+                    <TextBox Grid.Column="4" x:Name="PasswordBox" Text="{Binding Password}" PasswordChar="•" Watermark="{l:Tr Password, English='password'}"/>
+                    <Button Grid.Column="6" Content="{l:Tr Connect}" Classes="accent" MinWidth="90" x:Name="ConnectButton"
                             Command="{Binding ConnectCommand}"/>
                 </Grid>
             </Grid>
@@ -46,7 +47,7 @@
         <Grid Grid.Row="1" ColumnDefinitions="280,12,*" Margin="0,0,0,12">
             <Border Classes="card">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="Organizational units" Classes="section-header" Margin="0,0,0,8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="{l:Tr OrganizationalUnits}" Classes="section-header" Margin="0,0,0,8"/>
                     <TreeView x:Name="OuTree" ItemsSource="{Binding Nodes}" SelectedItem="{Binding SelectedNode}">
                         <TreeView.ItemTemplate>
                             <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:DirectoryNodeViewModel">
@@ -59,19 +60,19 @@
             <Border Grid.Column="2" Classes="card">
                 <DockPanel>
                     <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,8,Auto" Margin="0,0,0,8">
-                        <TextBlock Text="Computers" Classes="section-header" VerticalAlignment="Center"/>
-                        <Button Grid.Column="1" Content="All" Command="{Binding SelectAllCommand}" Padding="10,2"/>
-                        <Button Grid.Column="3" Content="None" Command="{Binding SelectNoneCommand}" Padding="10,2"/>
+                        <TextBlock Text="{l:Tr Computers}" Classes="section-header" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="{l:Tr All}" Command="{Binding SelectAllCommand}" Padding="10,2"/>
+                        <Button Grid.Column="3" Content="{l:Tr None}" Command="{Binding SelectNoneCommand}" Padding="10,2"/>
                     </Grid>
                     <DataGrid x:Name="ComputersGrid" ItemsSource="{Binding Computers}" AutoGenerateColumns="False"
                               GridLinesVisibility="Horizontal" CanUserResizeColumns="True" CanUserSortColumns="True">
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected}" Width="40"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="110" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Host name" Binding="{Binding HostName}" Width="1.4*" MinWidth="150" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="{l:Tr Name}" Binding="{Binding Name}" Width="110" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="{l:Tr HostName}" Binding="{Binding HostName}" Width="1.4*" MinWidth="150" IsReadOnly="True"/>
                             <DataGridTextColumn Header="OU" Binding="{Binding Location}" Width="120" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Operating system" Binding="{Binding OperatingSystem}" Width="170" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="120" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="{l:Tr OperatingSystem}" Binding="{Binding OperatingSystem}" Width="170" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="{l:Tr Description}" Binding="{Binding Description}" Width="*" MinWidth="120" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
@@ -79,16 +80,16 @@
         </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="20" Margin="0,0,0,8">
-            <CheckBox Content="Include sub-OUs" IsChecked="{Binding IncludeSubOus}"/>
-            <CheckBox Content="Create folders for sub-OUs" IsChecked="{Binding CreateOuFolders}" IsEnabled="{Binding IncludeSubOus}"/>
-            <TextBlock Text="Computers are imported as RDP connections." VerticalAlignment="Center" Opacity="0.7"/>
+            <CheckBox Content="{l:Tr ImportSubOUs, English='Include sub-OUs'}" IsChecked="{Binding IncludeSubOus}"/>
+            <CheckBox Content="{l:Tr CreateFoldersForSubOUs}" IsChecked="{Binding CreateOuFolders}" IsEnabled="{Binding IncludeSubOus}"/>
+            <TextBlock Text="{l:Tr ComputersAreImportedAsRDPConnections}" VerticalAlignment="Center" Opacity="0.7"/>
         </StackPanel>
 
         <Grid Grid.Row="3" ColumnDefinitions="*,Auto">
             <TextBlock x:Name="StatusLine" Text="{Binding StatusText}" Opacity="0.75" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                <Button Content="Cancel" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
-                <Button Content="Import" Classes="accent" MinWidth="80" x:Name="ImportButton"/>
+                <Button Content="{l:Tr _Cancel}" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
+                <Button Content="{l:Tr _Import}" Classes="accent" MinWidth="80" x:Name="ImportButton"/>
             </StackPanel>
         </Grid>
     </Grid>

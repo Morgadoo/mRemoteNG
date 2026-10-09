@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.OptionsPages;
 
@@ -17,7 +18,7 @@ public partial class ExternalProvidersSettingsPage : UserControl
 
     private async void OnBrowseVaultCa(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ExternalProvidersSettingsViewModel vm && await PickFileAsync("CA certificate (PEM)") is { } path)
+        if (DataContext is ExternalProvidersSettingsViewModel vm && await PickFileAsync(Localizer.Get("CACertificatePEM")) is { } path)
             vm.VaultCaCertificatePath = path;
     }
 

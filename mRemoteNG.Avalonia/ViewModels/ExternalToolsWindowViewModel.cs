@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Tools;
 using mRemoteNG.Protocols.External;
 using ReactiveUI;
@@ -68,8 +69,8 @@ public sealed class ExternalToolsWindowViewModel : ReactiveObject
     public ConnectionInfo? TargetConnection { get; }
 
     public string TargetDescription => TargetConnection is null
-        ? "No connection selected: variables such as %HOSTNAME% are empty."
-        : $"Launch and preview use \"{TargetConnection.Name}\".";
+        ? Localizer.Get("ExternalToolsNoConnection")
+        : Localizer.Format("ExternalToolsTargetFormat", TargetConnection.Name);
 
     public IReadOnlyList<ExternalToolPlatform> Platforms { get; } = Enum.GetValues<ExternalToolPlatform>();
 
@@ -81,9 +82,8 @@ public sealed class ExternalToolsWindowViewModel : ReactiveObject
     }
 
     public string VariablesHelp { get; } =
-        "Variables: " + string.Join(", ", ExternalToolVariables.Names.Select(n => $"%{n}%")) +
-        ". %-NAME% escapes only shell metacharacters, %!NAME% inserts the value as-is; other names are environment " +
-        "variables (\\%NAME\\% always, ^%NAME^% keeps the text).";
+        Localizer.Format("ExternalToolsVariablesHelpFormat",
+            string.Join(", ", ExternalToolVariables.Names.Select(n => $"%{n}%")));
 
     public bool IsDirty
     {
@@ -128,7 +128,7 @@ public sealed class ExternalToolsWindowViewModel : ReactiveObject
 
     private void OnAdd()
     {
-        var tool = new ExternalTool(UniqueName("New External Tool"));
+        var tool = new ExternalTool(UniqueName(Localizer.Get("ExternalToolDefaultName")));
         Add(tool);
         Selected = tool;
     }
@@ -172,12 +172,14 @@ public sealed class ExternalToolsWindowViewModel : ReactiveObject
             return;
         if (tool.TryIntegrate && (IsDirty || _service.Find(tool.DisplayName) is null))
         {
-            SetStatus("Save your changes before launching a tool that opens in a tab (\"Try to integrate\").", isError: true);
+            SetStatus(Localizer.Get("ExternalToolsSaveBeforeIntegrate"), isError: true);
             return;
         }
 
         bool started = await _service.RunAsync(tool.Clone(), TargetConnection);
-        SetStatus(started ? $"Started \"{tool.DisplayName}\"." : $"\"{tool.DisplayName}\" could not be started; see the log.", !started);
+        SetStatus(started
+            ? Localizer.Format("ExternalToolStartedFormat", tool.DisplayName)
+            : Localizer.Format("ExternalToolNotStartedFormat", tool.DisplayName), !started);
     }
 
     /// <summary>Checks the edited tools; returns the problems (empty when they can be saved).</summary>
@@ -187,12 +189,12 @@ public sealed class ExternalToolsWindowViewModel : ReactiveObject
         foreach (var tool in Tools)
         {
             if (string.IsNullOrWhiteSpace(tool.DisplayName))
-                problems.Add("Every tool needs a display name.");
+                problems.Add(Localizer.Get("ExternalToolNeedsName"));
             else if (string.IsNullOrWhiteSpace(tool.FileName))
-                problems.Add($"\"{tool.DisplayName}\" has no file name.");
+                problems.Add(Localizer.Format("ExternalToolNoFileNameFormat", tool.DisplayName));
         }
         foreach (var duplicate in Tools.GroupBy(t => t.DisplayName.Trim(), StringComparer.OrdinalIgnoreCase).Where(g => g.Key.Length > 0 && g.Count() > 1))
-            problems.Add($"More than one tool is called \"{duplicate.Key}\"; connections refer to tools by name.");
+            problems.Add(Localizer.Format("ExternalToolDuplicateNameFormat", duplicate.Key));
         return problems.Distinct().ToList();
     }
 
@@ -209,7 +211,7 @@ public sealed class ExternalToolsWindowViewModel : ReactiveObject
             tool.DisplayName = tool.DisplayName.Trim();
         if (!_service.ReplaceAll(Tools.Select(t => t.Clone())))
         {
-            SetStatus($"Could not save {_service.Repository.FilePath}; see the log.", isError: true);
+            SetStatus(Localizer.Format("CouldNotSaveSeeLogFormat", _service.Repository.FilePath), isError: true);
             return false;
         }
         IsDirty = false;

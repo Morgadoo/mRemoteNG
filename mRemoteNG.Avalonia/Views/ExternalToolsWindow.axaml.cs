@@ -4,6 +4,7 @@ using Avalonia.Platform.Storage;
 using mRemoteNG.Avalonia.ViewModels;
 using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.External;
 
 namespace mRemoteNG.Avalonia.Views;
@@ -21,9 +22,9 @@ public partial class ExternalToolsWindow : Window
         var vm = viewModel ?? new ExternalToolsWindowViewModel(AppServices.GetRequired<ExternalToolsService>());
         DataContext = vm;
         vm.CloseRequested += Close;
-        vm.ConfirmDeleteAsync = name => MessageDialog.ConfirmAsync(this, "Delete External Tool",
-            $"Delete the external tool \"{name}\"?\nConnections that use it as their external application, or as the tool to run before or after connecting, will no longer find it.",
-            "Delete", "Cancel", confirmIsDefault: false);
+        vm.ConfirmDeleteAsync = name => MessageDialog.ConfirmAsync(this, Localizer.Get("DeleteExternalTool", "Delete External Tool"),
+            Localizer.Format("ConfirmDeleteExternalToolDetailFormat", name),
+            Localizer.Get("Delete"), Localizer.Get("_Cancel"), confirmIsDefault: false);
     }
 
     public ExternalToolsWindowViewModel ViewModel => (ExternalToolsWindowViewModel)DataContext!;
@@ -43,7 +44,7 @@ public partial class ExternalToolsWindow : Window
             return;
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select the program",
+            Title = Localizer.Get("SelectTheProgram"),
             AllowMultiple = false,
         });
         if (files.Count > 0 && files[0].TryGetLocalPath() is { } path)
@@ -56,7 +57,7 @@ public partial class ExternalToolsWindow : Window
             return;
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Select the working directory",
+            Title = Localizer.Get("SelectTheWorkingDirectory"),
             AllowMultiple = false,
         });
         if (folders.Count > 0 && folders[0].TryGetLocalPath() is { } path)
@@ -69,7 +70,7 @@ public partial class ExternalToolsWindow : Window
             return;
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select an icon",
+            Title = Localizer.Get("SelectAnIcon"),
             AllowMultiple = false,
             FileTypeFilter = [FilePickerFileTypes.ImageAll],
         });

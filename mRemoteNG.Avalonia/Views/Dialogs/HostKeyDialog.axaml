@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.HostKeyDialog"
-        Title="SSH Host Key"
+        Title="{l:Tr SSHHostKey}"
         Width="560"
         SizeToContent="Height"
         CanResize="False"
@@ -12,10 +13,10 @@
         <!-- Shown for a changed key -->
         <Border x:Name="WarningBanner" Background="#B3261E" CornerRadius="4" Padding="12" IsVisible="False">
             <StackPanel Spacing="6">
-                <TextBlock Text="WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!"
+                <TextBlock Text="{l:Tr HostKeyChangedWarning}"
                            FontWeight="Bold" FontSize="15" Foreground="White" TextWrapping="Wrap"/>
                 <TextBlock Foreground="White" TextWrapping="Wrap"
-                           Text="Someone could be eavesdropping on you right now (man-in-the-middle attack). It is also possible that the host key has just been changed by an administrator. Do not continue unless you have verified the new fingerprint with the server's administrator."/>
+                           Text="{l:Tr SomeoneCouldBeEavesdroppingOnYouRight}"/>
             </StackPanel>
         </Border>
 
@@ -23,11 +24,11 @@
         <TextBlock x:Name="ExplanationText" TextWrapping="Wrap" Opacity="0.85"/>
 
         <Grid ColumnDefinitions="Auto,12,*" RowDefinitions="Auto,6,Auto,6,Auto">
-            <TextBlock Grid.Row="0" Text="Host" VerticalAlignment="Center" Opacity="0.75"/>
+            <TextBlock Grid.Row="0" Text="{l:Tr Host}" VerticalAlignment="Center" Opacity="0.75"/>
             <SelectableTextBlock Grid.Row="0" Grid.Column="2" x:Name="HostText" FontFamily="Cascadia Mono, DejaVu Sans Mono, Consolas, monospace"/>
-            <TextBlock Grid.Row="2" Text="Key type" VerticalAlignment="Center" Opacity="0.75"/>
+            <TextBlock Grid.Row="2" Text="{l:Tr KeyType}" VerticalAlignment="Center" Opacity="0.75"/>
             <SelectableTextBlock Grid.Row="2" Grid.Column="2" x:Name="KeyTypeText" FontFamily="Cascadia Mono, DejaVu Sans Mono, Consolas, monospace"/>
-            <TextBlock Grid.Row="4" Text="Fingerprint" VerticalAlignment="Center" Opacity="0.75"/>
+            <TextBlock Grid.Row="4" Text="{l:Tr Fingerprint}" VerticalAlignment="Center" Opacity="0.75"/>
             <SelectableTextBlock Grid.Row="4" Grid.Column="2" x:Name="FingerprintText" TextWrapping="Wrap"
                                  FontWeight="Bold" FontFamily="Cascadia Mono, DejaVu Sans Mono, Consolas, monospace"/>
         </Grid>
@@ -40,13 +41,13 @@
         </StackPanel>
 
         <CheckBox x:Name="ConfirmReplaceBox" IsVisible="False"
-                  Content="I have verified the new fingerprint and want to replace the stored key"/>
+                  Content="{l:Tr IHaveVerifiedTheNewFingerprintAnd}"/>
 
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,4,0,0">
-            <Button x:Name="CancelButton" Content="Cancel" MinWidth="80" IsCancel="True"/>
-            <Button x:Name="OnceButton" Content="Connect once" MinWidth="110" IsVisible="False"/>
-            <Button x:Name="AcceptButton" Content="Accept and save" Classes="accent" MinWidth="120" IsVisible="False"/>
-            <Button x:Name="ReplaceButton" Content="Replace key and connect" MinWidth="160" IsVisible="False"
+            <Button x:Name="CancelButton" Content="{l:Tr _Cancel}" MinWidth="80" IsCancel="True"/>
+            <Button x:Name="OnceButton" Content="{l:Tr ConnectOnce}" MinWidth="110" IsVisible="False"/>
+            <Button x:Name="AcceptButton" Content="{l:Tr AcceptAndSave}" Classes="accent" MinWidth="120" IsVisible="False"/>
+            <Button x:Name="ReplaceButton" Content="{l:Tr ReplaceKeyAndConnect}" MinWidth="160" IsVisible="False"
                     IsEnabled="False" Background="#B3261E" Foreground="White"/>
         </StackPanel>
     </StackPanel>

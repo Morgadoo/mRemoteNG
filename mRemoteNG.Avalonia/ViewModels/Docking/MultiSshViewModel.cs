@@ -1,4 +1,5 @@
 using System.Text;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 
@@ -53,8 +54,8 @@ public sealed class MultiSshViewModel : ReactiveObject
 
     public IReadOnlyList<Choice<MultiSshScope>> ScopeChoices { get; } =
     [
-        new(MultiSshScope.AllSessions, "All sessions"),
-        new(MultiSshScope.ActivePanel, "Active panel"),
+        new(MultiSshScope.AllSessions, Localizer.Get("MultiSshAllSessions")),
+        new(MultiSshScope.ActivePanel, Localizer.Get("MultiSshActivePanel")),
     ];
 
     public Choice<MultiSshScope> SelectedScope
@@ -74,7 +75,7 @@ public sealed class MultiSshViewModel : ReactiveObject
         get
         {
             var count = GetTargets().Count;
-            return count == 1 ? "1 session" : $"{count} sessions";
+            return count == 1 ? Localizer.Get("OneSession") : Localizer.Format("SessionsCountFormat", count);
         }
     }
 

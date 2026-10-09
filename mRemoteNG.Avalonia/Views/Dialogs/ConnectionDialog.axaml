@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ConnectionDialog"
         x:DataType="vm:ConnectionDialogViewModel"
@@ -25,7 +26,7 @@
                     <TextBlock Classes="error" Text="{Binding Error}"
                                IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                 </StackPanel>
-                <CheckBox Grid.Column="2" Classes="inherit" Content="Inherit"
+                <CheckBox Grid.Column="2" Classes="inherit" Content="{l:Tr Inherit}"
                           IsVisible="{Binding SupportsInheritance}"
                           IsEnabled="{Binding CanInherit}"
                           IsChecked="{Binding Inherit}"
@@ -65,7 +66,7 @@
         <DataTemplate DataType="vm:ColorFieldViewModel">
             <Grid ColumnDefinitions="*,Auto">
                 <AutoCompleteBox Classes="suggest" Text="{Binding Value, Mode=TwoWay}" ItemsSource="{Binding Suggestions}"
-                                 FilterMode="ContainsOrdinal" MinimumPrefixLength="0" Watermark="(default)"/>
+                                 FilterMode="ContainsOrdinal" MinimumPrefixLength="0" Watermark="{l:Tr DefaultInParentheses}"/>
                 <Border Grid.Column="1" Width="22" Height="22" Margin="6,0,0,0" CornerRadius="3"
                         BorderBrush="{DynamicResource Border0Brush}" BorderThickness="1"
                         Background="{Binding Swatch}"/>
@@ -123,13 +124,13 @@
 
         <TabControl Grid.Row="1" x:Name="Tabs" Margin="12,4,12,0">
 
-            <TabItem Header="Display" IsVisible="{Binding DisplayTab.IsVisible}">
+            <TabItem Header="{l:Tr Display}" IsVisible="{Binding DisplayTab.IsVisible}">
                 <ScrollViewer Padding="4,8,24,8">
                     <ItemsControl ItemsSource="{Binding DisplayTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Connection" IsVisible="{Binding ConnectionTab.IsVisible}">
+            <TabItem Header="{l:Tr Connection}" IsVisible="{Binding ConnectionTab.IsVisible}">
                 <ScrollViewer Padding="4,8,24,8">
                     <StackPanel>
                         <ItemsControl ItemsSource="{Binding ConnectionTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
@@ -137,10 +138,10 @@
                                    IsVisible="{Binding ProtocolNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                         <!-- Host status (legacy config window "Status") -->
                         <StackPanel Spacing="6" IsVisible="{Binding IsConnection}">
-                            <TextBlock Classes="section-header" Text="Status"/>
+                            <TextBlock Classes="section-header" Text="{l:Tr Status}"/>
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Button x:Name="CheckStatusButton" Content="Check host status" Command="{Binding CheckStatusCommand}"
-                                        ToolTip.Tip="Ping the host and try to connect to its port"/>
+                                <Button x:Name="CheckStatusButton" Content="{l:Tr CheckHostStatus}" Command="{Binding CheckStatusCommand}"
+                                        ToolTip.Tip="{l:Tr PingTheHostAndTryToConnect}"/>
                                 <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
                             </StackPanel>
@@ -149,34 +150,34 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Credentials" IsVisible="{Binding CredentialsTab.IsVisible}">
+            <TabItem Header="{l:Tr Credentials}" IsVisible="{Binding CredentialsTab.IsVisible}">
                 <ScrollViewer Padding="4,8,24,8">
                     <StackPanel>
                         <TextBlock Classes="note" IsVisible="{Binding IsFolder}" Margin="0,0,0,8"
-                                   Text="Connections in this folder can inherit these credentials."/>
+                                   Text="{l:Tr ConnectionsInThisFolderCanInheritThese}"/>
                         <ItemsControl ItemsSource="{Binding CredentialsTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Protocol" IsVisible="{Binding ProtocolTab.IsVisible}">
+            <TabItem Header="{l:Tr Protocol}" IsVisible="{Binding ProtocolTab.IsVisible}">
                 <ScrollViewer Padding="4,8,24,8">
                     <ItemsControl ItemsSource="{Binding ProtocolTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Miscellaneous" IsVisible="{Binding MiscellaneousTab.IsVisible}">
+            <TabItem Header="{l:Tr Miscellaneous}" IsVisible="{Binding MiscellaneousTab.IsVisible}">
                 <ScrollViewer Padding="4,8,24,8">
                     <ItemsControl ItemsSource="{Binding MiscellaneousTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Inheritance" IsVisible="{Binding !IsRoot}">
+            <TabItem Header="{l:Tr Inheritance}" IsVisible="{Binding !IsRoot}">
                 <ScrollViewer Padding="4,8,24,8">
                     <StackPanel Spacing="8">
                         <TextBlock Classes="note" TextWrapping="Wrap"
-                                   Text="Checked properties take their value from the parent folder (all protocols are listed)."/>
-                        <CheckBox x:Name="InheritEverythingBox" Content="Inherit everything" FontWeight="SemiBold"
+                                   Text="{l:Tr CheckedPropertiesTakeTheirValueFromThe}"/>
+                        <CheckBox x:Name="InheritEverythingBox" Content="{l:Tr InheritEverything}" FontWeight="SemiBold"
                                   IsThreeState="False" IsEnabled="{Binding CanInherit}"
                                   IsChecked="{Binding InheritEverything}"/>
                         <ItemsControl ItemsSource="{Binding InheritanceSections}"
@@ -188,8 +189,8 @@
 
         <Border Grid.Row="2" BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0" Padding="16,10" Margin="0,8,0,0">
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                <Button Content="Cancel" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
-                <Button Content="OK" Classes="accent" MinWidth="80" IsDefault="True" Command="{Binding OkCommand}"/>
+                <Button Content="{l:Tr _Cancel}" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
+                <Button Content="{l:Tr _Ok}" Classes="accent" MinWidth="80" IsDefault="True" Command="{Binding OkCommand}"/>
             </StackPanel>
         </Border>
 

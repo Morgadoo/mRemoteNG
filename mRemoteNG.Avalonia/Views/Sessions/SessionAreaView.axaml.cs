@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
 using mRemoteNG.Avalonia.ViewModels.Docking;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 
 namespace mRemoteNG.Avalonia.Views.Sessions;
@@ -295,7 +296,7 @@ public partial class SessionAreaView : UserControl
                 Tag = panel,
             };
             button.Classes.Add("panel-tab");
-            ToolTip.SetTip(button, "Right-click for panel options");
+            ToolTip.SetTip(button, Localizer.Get("RightClickForPanelOptions"));
             button.Click += (_, _) =>
             {
                 _dock.ActivePanel = panel;
@@ -317,7 +318,7 @@ public partial class SessionAreaView : UserControl
             Padding = new Thickness(10, 2),
             VerticalAlignment = VerticalAlignment.Center,
         };
-        ToolTip.SetTip(add, "New panel");
+        ToolTip.SetTip(add, Localizer.Get("NewPanel", "New panel"));
         add.Click += (_, _) => _dock.NewPanel();
         PanelStrip.Children.Add(add);
     }

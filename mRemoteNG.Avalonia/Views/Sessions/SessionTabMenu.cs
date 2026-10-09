@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Avalonia.Views.Dialogs;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
 
 namespace mRemoteNG.Avalonia.Views.Sessions;
@@ -15,24 +16,25 @@ namespace mRemoteNG.Avalonia.Views.Sessions;
 /// </summary>
 public static class SessionTabMenu
 {
-    public const string Reconnect = "Reconnect";
-    public const string Duplicate = "Duplicate Tab";
-    public const string Rename = "Rename Tab...";
-    public const string SpecialKeys = "Send Special Keys";
+    // Headers in the current UI language (legacy translations where the legacy tab menu had the item).
+    public static string Reconnect => Localizer.Get("Reconnect");
+    public static string Duplicate => Localizer.Get("DuplicateTab");
+    public static string Rename => Localizer.Get("RenameTab") + "...";
+    public static string SpecialKeys => Localizer.Get("SendSpecialKeysMenu");
     public const string CtrlAltDel = "Ctrl+Alt+Del";
     public const string CtrlEsc = "Ctrl+Esc";
-    public const string SmartSize = "Smart Size";
-    public const string ViewOnly = "View Only";
-    public const string FullScreen = "Full Screen";
-    public const string RefreshScreen = "Refresh Screen";
-    public const string TransferFile = "Transfer File (SFTP)...";
-    public const string CopyHostname = "Copy Hostname";
-    public const string MultiSshTarget = "Include in Multi-SSH";
-    public const string MoveToPanel = "Move to Panel";
-    public const string NewPanel = "New Panel...";
-    public const string Close = "Close";
-    public const string CloseOthers = "Close Other Tabs";
-    public const string CloseRight = "Close Tabs to the Right";
+    public static string SmartSize => Localizer.Get("SmartSize", "Smart Size");
+    public static string ViewOnly => Localizer.Get("ViewOnly");
+    public static string FullScreen => Localizer.Get("Fullscreen", "Full Screen");
+    public static string RefreshScreen => Localizer.Get("RefreshScreen", "Refresh Screen");
+    public static string TransferFile => Localizer.Get("TransferFile", "Transfer File (SFTP)") + "...";
+    public static string CopyHostname => Localizer.Get("CopyHostname");
+    public static string MultiSshTarget => Localizer.Get("IncludeInMultiSsh");
+    public static string MoveToPanel => Localizer.Get("MoveToPanel");
+    public static string NewPanel => Localizer.Get("NewPanel") + "...";
+    public static string Close => Localizer.Get("_Close");
+    public static string CloseOthers => Localizer.Get("CloseOtherTabs");
+    public static string CloseRight => Localizer.Get("CloseTabsToTheRight");
 
     /// <summary>Builds the menu for <paramref name="session"/>; <paramref name="owner"/> parents dialogs.</summary>
     public static ContextMenu Build(SessionTabViewModel session, Window? owner)
@@ -171,7 +173,7 @@ public static class SessionTabMenu
         {
             var name = owner is null
                 ? dock.UniquePanelName(SessionsDockable.NewPanelBaseName)
-                : await new TextPromptDialog("New Panel", "Panel name:", false, null,
+                : await new TextPromptDialog(Localizer.Get("NewPanel"), Localizer.Get("PanelName", "Panel name") + ":", false, null,
                     dock.UniquePanelName(SessionsDockable.NewPanelBaseName)).ShowDialog<string?>(owner);
             if (!string.IsNullOrWhiteSpace(name))
                 dock.MoveSession(session, name);
@@ -182,7 +184,7 @@ public static class SessionTabMenu
     private static async Task RenameAsync(SessionTabViewModel session, Window? owner)
     {
         if (owner is null) return;
-        var name = await new TextPromptDialog("Rename Tab", "New tab name (leave empty for the default):", false,
+        var name = await new TextPromptDialog(Localizer.Get("RenameTab"), Localizer.Get("NewTabNamePrompt"), false,
             session.BaseTitle, session.DisplayTitle).ShowDialog<string?>(owner);
         if (name is not null)
             session.CustomTitle = name;

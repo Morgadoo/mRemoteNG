@@ -7,6 +7,7 @@ using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Core.Config.Serializers.Xml;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
@@ -114,8 +115,8 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     /// <summary>Status-bar text describing the open connection file.</summary>
     public string FileStatus => ConnectionTree.DatabaseName is { } database
-        ? $"SQL database: {database}"
-        : ConnectionTree.CurrentFilePath ?? "New connection file (not saved yet)";
+        ? Localizer.Format("SqlDatabaseStatusFormat", database)
+        : ConnectionTree.CurrentFilePath ?? Localizer.Get("NewConnectionFileNotSaved");
 
     /// <summary>Child ViewModel for the connection tree panel.</summary>
     public ConnectionTreeViewModel ConnectionTree { get; }
@@ -279,10 +280,11 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         var path = ConnectionTree.CurrentFilePath;
         var document = ConnectionTree.DatabaseName
-                       ?? (path is null ? "Untitled" : System.IO.Path.GetFileName(path));
+                       ?? (path is null ? Localizer.Get("Untitled") : System.IO.Path.GetFileName(path));
         var title = $"mRemoteNG — {document}{(ConnectionTree.IsDirty ? "*" : "")}";
         if (ActiveConnectionCount > 0)
-            title += $" ({ActiveConnectionCount} active connection{(ActiveConnectionCount == 1 ? "" : "s")})";
+            title += " " + Localizer.Format(ActiveConnectionCount == 1 ? "TitleOneActiveConnection" : "TitleActiveConnectionsFormat",
+                ActiveConnectionCount);
         Title = title;
     }
 
@@ -304,12 +306,12 @@ public sealed class MainWindowViewModel : ReactiveObject
         var files = await window.StorageProvider.OpenFilePickerAsync(
             new global::Avalonia.Platform.Storage.FilePickerOpenOptions
             {
-                Title = "Open Connection File",
+                Title = Localizer.Get("OpenConnectionFile", "Open Connection File"),
                 AllowMultiple = false,
                 FileTypeFilter =
                 [
                     new("mRemoteNG XML") { Patterns = ["*.xml"] },
-                    new("All files") { Patterns = ["*.*"] },
+                    new(Localizer.Get("FilterAll", "All files")) { Patterns = ["*.*"] },
                 ],
             });
         if (files.Count > 0)
@@ -354,10 +356,10 @@ public sealed class MainWindowViewModel : ReactiveObject
             catch (ConnectionFilePasswordException ex)
             {
                 if (ex.PasswordWasSupplied)
-                    error = "Incorrect password. Please try again.";
+                    error = Localizer.Get("IncorrectPasswordTryAgain");
 
                 var prompt = new PasswordPromptDialog(
-                    $"\"{System.IO.Path.GetFileName(path)}\" is protected by a password.", error);
+                    Localizer.Format("FileIsPasswordProtectedFormat", System.IO.Path.GetFileName(path)), error);
                 password = await prompt.ShowDialog<string?>(owner);
                 if (password is null)
                 {
@@ -416,7 +418,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         var file = await window.StorageProvider.SaveFilePickerAsync(
             new global::Avalonia.Platform.Storage.FilePickerSaveOptions
             {
-                Title = "Save Connection File",
+                Title = Localizer.Get("SaveConnectionFile"),
                 DefaultExtension = "xml",
                 SuggestedFileName = ConnectionTree.CurrentFilePath is { } current
                     ? System.IO.Path.GetFileName(current)
@@ -469,13 +471,14 @@ public sealed class MainWindowViewModel : ReactiveObject
         if (window is null) return;
         if (result is { IsUpdateAvailable: true, ReleaseUrl: { } url })
         {
-            if (await MessageDialog.ConfirmAsync(window, "Update available", $"{result.Message}\n\nOpen the release page?", "Open", "Later"))
+            if (await MessageDialog.ConfirmAsync(window, Localizer.Get("UpdateAvailableTitle"),
+                    $"{result.Message}\n\n{Localizer.Get("OpenReleasePageQuestion")}", Localizer.Get("Open"), Localizer.Get("Later")))
                 await OpenUrlAsync(url);
         }
         else
         {
-            await new MessageDialog("Check for Updates", result.Message,
-                new MessageDialogButton("OK", "ok", IsDefault: true, IsCancel: true)).ShowDialog<string?>(window);
+            await new MessageDialog(Localizer.Get("MenuItem_CheckForUpdates"), result.Message,
+                new MessageDialogButton(Localizer.Get("_Ok"), "ok", IsDefault: true, IsCancel: true)).ShowDialog<string?>(window);
         }
     }
 
@@ -501,12 +504,13 @@ public sealed class MainWindowViewModel : ReactiveObject
         var window = GetMainWindow();
         if (window is null) return true;
 
-        var document = ConnectionTree.CurrentFilePath is { } path ? System.IO.Path.GetFileName(path) : "the new connection file";
-        var dialog = new MessageDialog("Unsaved Changes",
-            $"Do you want to save the changes to {document}?",
-            new MessageDialogButton("Cancel", nameof(UnsavedChangesChoice.Cancel), IsCancel: true),
-            new MessageDialogButton("Don't Save", nameof(UnsavedChangesChoice.Discard)),
-            new MessageDialogButton("Save", nameof(UnsavedChangesChoice.Save), IsDefault: true));
+        var question = ConnectionTree.CurrentFilePath is { } path
+            ? Localizer.Format("SaveChangesToFormat", System.IO.Path.GetFileName(path))
+            : Localizer.Get("SaveChangesToNewFile");
+        var dialog = new MessageDialog(Localizer.Get("UnsavedChangesTitle"), question,
+            new MessageDialogButton(Localizer.Get("_Cancel"), nameof(UnsavedChangesChoice.Cancel), IsCancel: true),
+            new MessageDialogButton(Localizer.Get("DontSave"), nameof(UnsavedChangesChoice.Discard)),
+            new MessageDialogButton(Localizer.Get("Save"), nameof(UnsavedChangesChoice.Save), IsDefault: true));
         var answer = await dialog.ShowDialog<string?>(window);
 
         return answer switch
@@ -586,8 +590,8 @@ public sealed class MainWindowViewModel : ReactiveObject
             {
                 var fileName = System.IO.Path.GetFileName(request.Source);
                 var prompt = new PasswordPromptDialog(
-                    $"\"{fileName}\" is protected by a password.",
-                    ex.PasswordWasSupplied ? "Incorrect password. Please try again." : null);
+                    Localizer.Format("FileIsPasswordProtectedFormat", fileName),
+                    ex.PasswordWasSupplied ? Localizer.Get("IncorrectPasswordTryAgain") : null);
                 password = await prompt.ShowDialog<string?>(owner);
                 if (password is null)
                 {

@@ -1,5 +1,6 @@
 using System.Reactive;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.ExternalProviders;
 using ReactiveUI;
@@ -47,7 +48,7 @@ public sealed class ProviderSecretViewModel : ReactiveObject
     public bool IsSaved => _get().Length > 0;
 
     /// <summary>Shown as the input's placeholder; kept short so the page fits the Options window.</summary>
-    public string State => IsSaved ? "Saved (encrypted)" : "Not saved: asked when needed";
+    public string State => IsSaved ? Localizer.Get("SecretSavedEncrypted") : Localizer.Get("SecretNotSaved");
 
     public ReactiveCommand<Unit, Unit> ForgetCommand { get; }
 
@@ -80,7 +81,7 @@ public sealed class ProviderTestViewModel : ReactiveObject
             if (test is null)
                 return;
             Failed = false;
-            Status = "Testing…";
+            Status = Localizer.Get("TestingEllipsis");
             try
             {
                 Status = await test(ct);
@@ -93,7 +94,7 @@ public sealed class ProviderTestViewModel : ReactiveObject
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 Failed = true;
-                Status = $"Unexpected error: {ex.Message}";
+                Status = Localizer.Format("UnexpectedErrorFormat", ex.Message);
             }
         });
     }
@@ -142,7 +143,7 @@ public sealed class ExternalProvidersSettingsViewModel : SettingsPageViewModel
 
     public IReadOnlyList<Choice<ExternalCredentialProvider>> CredentialProviders { get; } =
     [
-        new(ExternalCredentialProvider.None, "None"),
+        new(ExternalCredentialProvider.None, Localizer.Get("None")),
         new(ExternalCredentialProvider.DelineaSecretServer, "Delinea Secret Server"),
         new(ExternalCredentialProvider.ClickstudiosPasswordState, "Passwordstate"),
         new(ExternalCredentialProvider.OnePassword, "1Password"),
@@ -273,7 +274,7 @@ public sealed class ExternalProvidersSettingsViewModel : SettingsPageViewModel
     public IReadOnlyList<Choice<VaultAuthMethod>> VaultAuthMethods { get; } =
     [
         new(VaultAuthMethod.Token, "Token"),
-        new(VaultAuthMethod.UserPass, "Username & password (userpass)"),
+        new(VaultAuthMethod.UserPass, Localizer.Get("VaultAuthUserPass")),
         new(VaultAuthMethod.Ldap, "LDAP"),
         new(VaultAuthMethod.AppRole, "AppRole"),
     ];
@@ -297,13 +298,13 @@ public sealed class ExternalProvidersSettingsViewModel : SettingsPageViewModel
 
     public bool VaultUsesLogin => Working.VaultAuthMethod != VaultAuthMethod.Token;
 
-    public string VaultUsernameLabel => Working.VaultAuthMethod == VaultAuthMethod.AppRole ? "Role ID" : "Username";
+    public string VaultUsernameLabel => Working.VaultAuthMethod == VaultAuthMethod.AppRole ? Localizer.Get("RoleId") : Localizer.Get("Username");
 
     public string VaultSecretLabel => Working.VaultAuthMethod switch
     {
-        VaultAuthMethod.Token => "Token",
-        VaultAuthMethod.AppRole => "Secret ID",
-        _ => "Password",
+        VaultAuthMethod.Token => Localizer.Get("Token"),
+        VaultAuthMethod.AppRole => Localizer.Get("SecretId"),
+        _ => Localizer.Get("Password"),
     };
 
     public string VaultAuthMountWatermark => Working.VaultAuthMethod switch
@@ -340,9 +341,9 @@ public sealed class ExternalProvidersSettingsViewModel : SettingsPageViewModel
 
     public IReadOnlyList<Choice<AwsCredentialSource>> AwsCredentialSources { get; } =
     [
-        new(AwsCredentialSource.DefaultChain, "Default AWS credential chain"),
-        new(AwsCredentialSource.Profile, "Named profile"),
-        new(AwsCredentialSource.AccessKey, "Access key saved in mRemoteNG"),
+        new(AwsCredentialSource.DefaultChain, Localizer.Get("AwsDefaultCredentialChain")),
+        new(AwsCredentialSource.Profile, Localizer.Get("AwsNamedProfile")),
+        new(AwsCredentialSource.AccessKey, Localizer.Get("AwsSavedAccessKey")),
     ];
 
     public Choice<AwsCredentialSource> SelectedAwsCredentialSource
@@ -383,10 +384,10 @@ public sealed class ExternalProvidersSettingsViewModel : SettingsPageViewModel
 
     public IReadOnlyList<Choice<AwsAddressKind>> AwsAddressKinds { get; } =
     [
-        new(AwsAddressKind.PublicIp, "Public IP address"),
-        new(AwsAddressKind.PrivateIp, "Private IP address"),
-        new(AwsAddressKind.PublicDnsName, "Public DNS name"),
-        new(AwsAddressKind.PrivateDnsName, "Private DNS name"),
+        new(AwsAddressKind.PublicIp, Localizer.Get("AwsPublicIp")),
+        new(AwsAddressKind.PrivateIp, Localizer.Get("AwsPrivateIp")),
+        new(AwsAddressKind.PublicDnsName, Localizer.Get("AwsPublicDnsName")),
+        new(AwsAddressKind.PrivateDnsName, Localizer.Get("AwsPrivateDnsName")),
     ];
 
     public Choice<AwsAddressKind> SelectedAwsAddressKind

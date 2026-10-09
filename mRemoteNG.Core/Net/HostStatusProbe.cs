@@ -1,5 +1,6 @@
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Core.Net
 {
@@ -26,10 +27,16 @@ namespace mRemoteNG.Core.Net
         {
             get
             {
-                var ping = PingSucceeded ? $"ping {PingRoundtripMs} ms" : $"no ping reply ({PingError})";
-                var port = Port <= 0 ? null : PortOpen ? $"port {Port} open" : $"port {Port} closed ({PortError})";
+                var ping = PingSucceeded
+                    ? Localizer.Format("HostStatusPingFormat", PingRoundtripMs)
+                    : Localizer.Format("HostStatusNoPingFormat", PingError);
+                var port = Port <= 0
+                    ? null
+                    : PortOpen
+                        ? Localizer.Format("HostStatusPortOpenFormat", Port)
+                        : Localizer.Format("HostStatusPortClosedFormat", Port, PortError);
                 var detail = port is null ? ping : $"{ping}, {port}";
-                return $"{(IsReachable ? "Online" : "Offline")} — {detail}";
+                return Localizer.Format(IsReachable ? "HostStatusOnlineFormat" : "HostStatusOfflineFormat", detail);
             }
         }
     }

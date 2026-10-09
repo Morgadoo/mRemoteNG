@@ -1,16 +1,17 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         xmlns:svc="using:mRemoteNG.Avalonia.Services"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ThemeEditorDialog"
         x:DataType="vm:ThemeEditorViewModel"
-        Title="Theme Editor"
+        Title="{l:Tr ThemeEditor}"
         Width="620" Height="640" MinWidth="480" MinHeight="420"
         WindowStartupLocation="CenterOwner">
     <Grid RowDefinitions="Auto,*,Auto" Margin="16">
         <StackPanel Spacing="10">
             <Grid ColumnDefinitions="140,*">
-                <TextBlock Text="Start from" VerticalAlignment="Center"/>
+                <TextBlock Text="{l:Tr StartFrom}" VerticalAlignment="Center"/>
                 <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" x:Name="BaseCombo"
                           ItemsSource="{Binding AllThemes}" SelectedItem="{Binding BaseTheme}">
                     <ComboBox.ItemTemplate>
@@ -21,10 +22,10 @@
                 </ComboBox>
             </Grid>
             <Grid ColumnDefinitions="140,*">
-                <TextBlock Text="Save as" VerticalAlignment="Center"/>
-                <TextBox Grid.Column="1" x:Name="NameBox" Text="{Binding Name}" Watermark="Name of your theme"/>
+                <TextBlock Text="{l:Tr SaveAs}" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" x:Name="NameBox" Text="{Binding Name}" Watermark="{l:Tr NameOfYourTheme}"/>
             </Grid>
-            <TextBlock Text="Colours change everywhere as you type (#rrggbb)." Opacity="0.7"/>
+            <TextBlock Text="{l:Tr ColoursChangeEverywhereAsYouTypeRrggbb}" Opacity="0.7"/>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" Margin="0,12">
@@ -48,9 +49,9 @@
         <StackPanel Grid.Row="2" Spacing="8">
             <TextBlock Text="{Binding Status}" TextWrapping="Wrap"/>
             <Grid ColumnDefinitions="Auto,*,Auto,8,Auto">
-                <Button Content="Delete theme" Classes="danger" Command="{Binding DeleteCommand}"/>
-                <Button Grid.Column="2" Content="Save and apply" Classes="accent" Click="OnSave"/>
-                <Button Grid.Column="4" Content="Close" IsCancel="True" Click="OnClose"/>
+                <Button Content="{l:Tr DeleteTheme}" Classes="danger" Command="{Binding DeleteCommand}"/>
+                <Button Grid.Column="2" Content="{l:Tr SaveAndApply}" Classes="accent" Click="OnSave"/>
+                <Button Grid.Column="4" Content="{l:Tr _Close}" IsCancel="True" Click="OnClose"/>
             </Grid>
         </StackPanel>
     </Grid>

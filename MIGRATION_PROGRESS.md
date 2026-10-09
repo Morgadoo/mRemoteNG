@@ -62,8 +62,10 @@ doesn't use yet are kept in the file, not dropped. Gaps, roughly by user impact:
    PuTTY sessions as a live tree root (import only today).
 10. **Security UI:** set/change/remove the master password and encryption settings of the open file
     (possible only via Export today).
-11. **App:** 24 UI translations (English only now), theme editor and extra themes, log to file, start
-    minimised, in-app update download, command-line switches.
+11. **App:** theme editor and extra themes, log to file, start minimised, in-app update download,
+    command-line switches. UI translations: the 24 legacy translations are used (Options > Appearance >
+    Language, applied at restart); strings new in this app (`mRemoteNG.Core/Localization/Strings.resx`)
+    are English only until translated, and log/diagnostic messages stay English.
 12. **Connection dialog:** many stored properties (see 1, 3, 8) have no editor yet.
 
 ## Summary Dashboard

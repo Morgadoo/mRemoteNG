@@ -1,6 +1,7 @@
 using Avalonia.Media;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Container;
+using mRemoteNG.Core.Localization;
 using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.ViewModels;
@@ -39,8 +40,8 @@ public abstract class PropertyFieldViewModel : ReactiveObject
         _originalValue = _own;
         _originalInherit = _inherit;
         InheritTip = alwaysEditable
-            ? "New connections inherit this property from their folder."
-            : CanInherit ? $"Use the value of the folder \"{parentName}\"." : "Nodes directly under the root have nothing to inherit from.";
+            ? Localizer.Get("InheritTipDefaultConnection")
+            : CanInherit ? Localizer.Format("InheritTipFolderFormat", parentName) : Localizer.Get("InheritTipRoot");
     }
 
     public ConnectionPropertyDescriptor Descriptor { get; }

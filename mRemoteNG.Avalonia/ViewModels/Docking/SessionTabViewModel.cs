@@ -7,6 +7,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
@@ -206,10 +207,10 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
                 return _reconnectStatus;
             var state = _state switch
             {
-                ConnectionState.Error => "Connection error",
-                ConnectionState.Reconnecting => "Reconnecting…",
-                ConnectionState.Connecting => "Connecting…",
-                _ => "Disconnected",
+                ConnectionState.Error => Localizer.Get("ConnectionError"),
+                ConnectionState.Reconnecting => Localizer.Get("ReconnectingEllipsis"),
+                ConnectionState.Connecting => Localizer.Get("ConnectingEllipsis"),
+                _ => Localizer.Get("Disconnected"),
             };
             // The last status message explains errors; after a plain disconnect it is stale ("Connected to …").
             return _state != ConnectionState.Error || string.IsNullOrWhiteSpace(_statusText) ? state : $"{state}: {_statusText}";
@@ -222,7 +223,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         {
             var text = $"{DisplayTitle}\n{SessionTabAppearance.ProtocolDisplayName(_connection, _parameters)} {DisplayHostname}:{DisplayPort}";
             if (_connection is { Panel.Length: > 0 } || _panel is not null)
-                text += $"\nPanel: {_panel?.Name ?? _connection?.Panel}";
+                text += "\n" + Localizer.Format("ToolTipPanelFormat", _panel?.Name ?? _connection?.Panel);
             if (_reconnectStatus is not null)
                 text += $"\n{_reconnectStatus}";
             else if (!string.IsNullOrWhiteSpace(_statusText))

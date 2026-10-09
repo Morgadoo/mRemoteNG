@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Dock.Model.Mvvm.Controls;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Abstractions;
 
@@ -612,10 +613,10 @@ public sealed class SessionsDockable : Document
             for (var attempt = 1; attempt <= attempts; attempt++)
             {
                 var delay = AutoReconnectDelay(attempt);
-                session.ReconnectStatus = $"Connection lost. Reconnecting in {Math.Ceiling(delay.TotalSeconds):0} s (attempt {attempt} of {attempts})";
+                session.ReconnectStatus = Localizer.Format("ReconnectingInFormat", Math.Ceiling(delay.TotalSeconds), attempt, attempts);
                 await Task.Delay(delay, cts.Token);
 
-                session.ReconnectStatus = $"Reconnecting (attempt {attempt} of {attempts})…";
+                session.ReconnectStatus = Localizer.Format("ReconnectingAttemptFormat", attempt, attempts);
                 if (await RestartAsync(session, cts.Token))
                 {
                     session.ReconnectStatus = null;
@@ -624,7 +625,7 @@ public sealed class SessionsDockable : Document
                 }
             }
 
-            session.ReconnectStatus = $"Could not reconnect after {attempts} attempt{(attempts == 1 ? "" : "s")}.";
+            session.ReconnectStatus = Localizer.Format(attempts == 1 ? "CouldNotReconnectOneAttempt" : "CouldNotReconnectFormat", attempts);
             Log($"Giving up reconnecting \"{session.DisplayTitle}\" after {attempts} attempts.", LogLevel.Error);
         }
         catch (OperationCanceledException)
