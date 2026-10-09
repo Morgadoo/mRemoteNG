@@ -62,6 +62,22 @@ public sealed class IntegratedProgramTests
     }
 
     [Fact]
+    public void SelectWindowByClass_PicksANewWindowNamedLikeTheProgram()
+    {
+        var candidates = new[]
+        {
+            Window(1, null) with { WmClassInstance = "xcalc", WmClassName = "XCalc" },  // already open before launch
+            Window(2, 500) with { WmClassInstance = "xcalc", WmClassName = "XCalc" },   // has a pid: not a fallback case
+            Window(3, null) with { WmClassInstance = "xterm", WmClassName = "XTerm" },  // another program
+            Window(4, null, viewable: false) with { WmClassInstance = "xcalc" },        // not shown yet
+            Window(5, null) with { WmClassInstance = "calc", WmClassName = "XCalc" },   // class matches
+        };
+
+        ForeignWindowDiscovery.SelectWindowByClass(candidates, new HashSet<nint> { 1 }, ["xcalc"]).Should().Be(5);
+        ForeignWindowDiscovery.SelectWindowByClass(candidates, new HashSet<nint> { 1 }, ["gedit"]).Should().Be(0);
+    }
+
+    [Fact]
     public void SelectWindow_WithoutAWindowManager_AcceptsRootChildren()
     {
         var candidates = new[] { Window(7, 42, wmState: false, rootChild: true) };

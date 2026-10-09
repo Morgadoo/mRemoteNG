@@ -11,7 +11,9 @@ internal readonly record struct WindowCandidate(
     bool OverrideRedirect,
     bool IsRootChild,
     int Width,
-    int Height);
+    int Height,
+    string? WmClassInstance = null,
+    string? WmClassName = null);
 
 /// <summary>
 /// Platform-neutral part of finding a launched program's top-level window: which processes belong to the program
@@ -60,6 +62,53 @@ internal static class ForeignWindowDiscovery
             .ThenByDescending(c => (long)c.Width * c.Height)
             .Select(c => c.Window)
             .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Fallback for programs that do not set _NET_WM_PID (e.g. Xt/Motif programs such as xcalc) when the X server
+    /// cannot tell the owning process either: a new window (not in <paramref name="preexisting"/>) without a pid whose
+    /// WM_CLASS instance or class is the name of one of the launched processes (<paramref name="processNames"/>).
+    /// 0 when none.
+    /// </summary>
+    public static nint SelectWindowByClass(IEnumerable<WindowCandidate> candidates, IReadOnlySet<nint> preexisting,
+        IReadOnlyCollection<string> processNames)
+    {
+        bool Matches(string? value) =>
+            !string.IsNullOrEmpty(value) && processNames.Any(n => string.Equals(n, value, StringComparison.OrdinalIgnoreCase));
+
+        return candidates
+            .Where(c => c.Pid is null && !preexisting.Contains(c.Window))
+            .Where(c => c.IsViewable && !c.OverrideRedirect && (c.HasWmState || c.IsRootChild))
+            .Where(c => c.Width > 1 && c.Height > 1)
+            .Where(c => Matches(c.WmClassInstance) || Matches(c.WmClassName))
+            .OrderByDescending(c => (long)c.Width * c.Height)
+            .Select(c => c.Window)
+            .FirstOrDefault();
+    }
+
+    /// <summary>Process names (Linux <c>/proc/&lt;pid&gt;/comm</c>) of <paramref name="pids"/>; empty elsewhere.</summary>
+    public static List<string> ReadLinuxProcessNames(IEnumerable<int> pids)
+    {
+        var result = new List<string>();
+        if (!OperatingSystem.IsLinux())
+            return result;
+        foreach (int pid in pids)
+        {
+            try
+            {
+                string name = File.ReadAllText($"/proc/{pid}/comm").Trim();
+                if (name.Length > 0)
+                    result.Add(name);
+            }
+            catch (IOException)
+            {
+                // The process exited meanwhile.
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+        return result;
     }
 
     /// <summary>Parses the parent pid out of a Linux <c>/proc/&lt;pid&gt;/stat</c> line ("pid (comm) state ppid …").</summary>

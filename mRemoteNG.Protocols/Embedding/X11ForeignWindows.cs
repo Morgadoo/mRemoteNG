@@ -5,7 +5,8 @@ using Microsoft.Extensions.Logging;
 namespace mRemoteNG.Protocols.Embedding;
 
 /// <summary>
-/// Finds the top-level X11 window of a launched program (by <c>_NET_WM_PID</c>) and moves it into one of our
+/// Finds the top-level X11 window of a launched program (by <c>_NET_WM_PID</c>, else the owning client's pid from the
+/// X-Resource extension, else a new window whose WM_CLASS is the program's name) and moves it into one of our
 /// native windows with XReparentWindow. Uses its own short-lived Xlib connection per operation; window ids are
 /// server-side, so they are valid on any connection. X errors (e.g. a window vanishing between two calls) go to the
 /// process-wide handler installed by Avalonia's X11 backend, which only records them — so this class must only be
@@ -23,27 +24,34 @@ internal static class X11ForeignWindows
     public static async Task<nint> WaitForProcessWindowAsync(int pid, Func<bool> hasExited, TimeSpan timeout, ILogger logger, CancellationToken ct)
     {
         var deadline = DateTime.UtcNow + timeout;
+        // Windows already shown when the program was started can never be its window (WM_CLASS fallback).
+        var preexisting = Scan(logger)?.Select(c => c.Window).ToHashSet() ?? [];
         while (true)
         {
             ct.ThrowIfCancellationRequested();
             var pids = ForeignWindowDiscovery.GetProcessTree(pid, ForeignWindowDiscovery.ReadLinuxProcessTable());
-            nint window = FindWindow(pids, pid, logger);
-            if (window != 0)
-                return window;
+            if (Scan(logger) is { } candidates)
+            {
+                nint window = ForeignWindowDiscovery.SelectWindow(candidates, pids, pid);
+                if (window == 0)
+                    window = ForeignWindowDiscovery.SelectWindowByClass(candidates, preexisting, ForeignWindowDiscovery.ReadLinuxProcessNames(pids));
+                if (window != 0)
+                    return window;
+            }
             if (hasExited() || DateTime.UtcNow >= deadline)
                 return 0;
             await Task.Delay(100, ct);
         }
     }
 
-    /// <summary>One scan of the window tree for a top-level window owned by one of <paramref name="pids"/>.</summary>
-    public static nint FindWindow(IReadOnlySet<int> pids, int rootPid, ILogger logger)
+    /// <summary>One scan of the window tree; null when the display cannot be opened.</summary>
+    private static List<WindowCandidate>? Scan(ILogger logger)
     {
         nint display = XOpenDisplay(0);
         if (display == 0)
         {
             logger.LogWarning("Could not open the X display to look for the program's window");
-            return 0;
+            return null;
         }
         try
         {
@@ -52,7 +60,7 @@ internal static class X11ForeignWindows
             nint wmStateAtom = XInternAtom(display, "WM_STATE", false);
             var candidates = new List<WindowCandidate>();
             Collect(display, root, root, 0, pidAtom, wmStateAtom, candidates);
-            return ForeignWindowDiscovery.SelectWindow(candidates, pids, rootPid);
+            return candidates;
         }
         finally
         {
@@ -70,8 +78,14 @@ internal static class X11ForeignWindows
                 continue;
             int? pid = ReadCardinal(display, child, pidAtom) is { } value ? (int)value : null;
             bool hasWmState = HasProperty(display, child, wmStateAtom);
+            string? instance = null, className = null;
+            if (pid is null && (hasWmState || window == root))
+            {
+                pid = XResClientPid(display, child);
+                (instance, className) = ReadClassHint(display, child);
+            }
             candidates.Add(new WindowCandidate(child, pid, hasWmState, attrs.MapState == IsViewable,
-                attrs.OverrideRedirect != 0, window == root, attrs.Width, attrs.Height));
+                attrs.OverrideRedirect != 0, window == root, attrs.Width, attrs.Height, instance, className));
             // A managed client window is a leaf for our purposes; frames and containers are searched further.
             if (!hasWmState)
                 Collect(display, root, child, depth + 1, pidAtom, wmStateAtom, candidates);
@@ -180,6 +194,60 @@ internal static class X11ForeignWindows
         return actualType != 0;
     }
 
+    private static (string? Instance, string? Class) ReadClassHint(nint display, nint window)
+    {
+        if (XGetClassHint(display, window, out XClassHint hint) == 0)
+            return (null, null);
+        try
+        {
+            return (Marshal.PtrToStringAnsi(hint.ResName), Marshal.PtrToStringAnsi(hint.ResClass));
+        }
+        finally
+        {
+            if (hint.ResName != 0)
+                XFree(hint.ResName);
+            if (hint.ResClass != 0)
+                XFree(hint.ResClass);
+        }
+    }
+
+    private static bool _xresUnavailable;
+
+    /// <summary>
+    /// The pid of the X client that created <paramref name="window"/>, as known to the X server (X-Resource extension
+    /// 1.2, local clients only). Null when unknown or when libXRes is not installed.
+    /// </summary>
+    private static int? XResClientPid(nint display, nint window)
+    {
+        if (_xresUnavailable)
+            return null;
+        try
+        {
+            var spec = new XResClientIdSpec { Client = (nuint)window, Mask = XResClientIdPidMask };
+            if (XResQueryClientIds(display, 1, ref spec, out nint count, out nint values) != 0 || values == 0)
+                return null;
+            try
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    int pid = XResGetClientPid(values + i * Marshal.SizeOf<XResClientIdValue>());
+                    if (pid > 0)
+                        return pid;
+                }
+                return null;
+            }
+            finally
+            {
+                XResClientIdsDestroy(count, values);
+            }
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+        {
+            _xresUnavailable = true;
+            return null;
+        }
+    }
+
     // ── Xlib interop ───────────────────────────────────────────────────────
 
     private const string LibX11 = "libX11.so.6";
@@ -197,6 +265,35 @@ internal static class X11ForeignWindows
         [FieldOffset(120)] public int OverrideRedirect;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XClassHint
+    {
+        public nint ResName;
+        public nint ResClass;
+    }
+
+    private const string LibXRes = "libXRes.so.1";
+    private const uint XResClientIdPidMask = 1 << 1;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XResClientIdSpec
+    {
+        public nuint Client;
+        public uint Mask;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XResClientIdValue
+    {
+        public XResClientIdSpec Spec;
+        public nint Length;
+        public nint Value;
+    }
+
+    [DllImport(LibXRes)] private static extern int XResQueryClientIds(nint display, nint specCount, ref XResClientIdSpec specs, out nint idCount, out nint ids);
+    [DllImport(LibXRes)] private static extern int XResGetClientPid(nint value);
+    [DllImport(LibXRes)] private static extern void XResClientIdsDestroy(nint idCount, nint ids);
+    [DllImport(LibX11)] private static extern int XGetClassHint(nint display, nint window, out XClassHint hint);
     [DllImport(LibX11)] private static extern nint XOpenDisplay(nint displayName);
     [DllImport(LibX11)] private static extern int XCloseDisplay(nint display);
     [DllImport(LibX11)] private static extern nint XDefaultRootWindow(nint display);
