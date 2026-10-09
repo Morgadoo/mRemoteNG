@@ -4,6 +4,7 @@ using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Avalonia.Views;
 using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Core.Config.Connections;
+using mRemoteNG.Core.Config.Serializers.Xml;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 using System.Reactive;
@@ -156,17 +157,41 @@ public sealed class MainWindowViewModel : ReactiveObject
                 ],
             });
         if (files.Count > 0)
+            await LoadConnectionFileAsync(window, files[0].Path.LocalPath);
+    }
+
+    /// <summary>Loads a connection file, prompting for the master password when the file has one.</summary>
+    private async Task LoadConnectionFileAsync(global::Avalonia.Controls.Window owner, string path)
+    {
+        string? password = null;
+        string? error = null;
+        while (true)
         {
             try
             {
-                var path = files[0].Path.LocalPath;
-                ConnectionTree.LoadFromFile(path);
+                ConnectionTree.LoadFromFile(path, password);
                 _log.Log($"Loaded connection file: {path}");
                 Title = $"mRemoteNG — {System.IO.Path.GetFileName(path)}";
+                return;
+            }
+            catch (ConnectionFilePasswordException ex)
+            {
+                if (ex.PasswordWasSupplied)
+                    error = "Incorrect password. Please try again.";
+
+                var prompt = new PasswordPromptDialog(
+                    $"\"{System.IO.Path.GetFileName(path)}\" is protected by a password.", error);
+                password = await prompt.ShowDialog<string?>(owner);
+                if (password is null)
+                {
+                    _log.Log($"Opening {path} cancelled: password required.", LogLevel.Warning);
+                    return;
+                }
             }
             catch (Exception ex)
             {
                 _log.Log($"Failed to load connection file: {ex.Message}", LogLevel.Error);
+                return;
             }
         }
     }

@@ -214,14 +214,16 @@
                         <DockPanel x:Name="ActiveSessionsPanel"
                                    IsVisible="False">
                             <!-- Tab bar -->
-                            <ItemsControl DockPanel.Dock="Top"
-                                          ItemsSource="{Binding Sessions.Sessions}">
-                                <ItemsControl.ItemsPanel>
+                            <ListBox DockPanel.Dock="Top"
+                                     Background="Transparent"
+                                     ItemsSource="{Binding Sessions.Sessions}"
+                                     SelectedItem="{Binding Sessions.ActiveSession}">
+                                <ListBox.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ItemTemplate>
                                     <DataTemplate x:DataType="dock:SessionTabViewModel">
                                         <Border Padding="8,4" Margin="1,0"
                                                 Background="#2d2d2d"
@@ -243,8 +245,8 @@
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
 
                             <!-- Active session content -->
                             <ContentControl Content="{Binding Sessions.ActiveSession.ContentView}">

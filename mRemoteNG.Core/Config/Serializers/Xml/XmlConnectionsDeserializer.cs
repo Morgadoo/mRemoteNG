@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Xml;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Connection.Protocol;
@@ -6,60 +7,176 @@ using mRemoteNG.Core.Connection.Protocol.RDP;
 using mRemoteNG.Core.Connection.Protocol.VNC;
 using mRemoteNG.Core.Container;
 using mRemoteNG.Core.Security;
+using mRemoteNG.Core.Security.Factories;
 using mRemoteNG.Core.Tree;
 using mRemoteNG.Core.Tree.Root;
 
 namespace mRemoteNG.Core.Config.Serializers.Xml
 {
     /// <summary>
-    /// Deserializes mRemoteNG XML connection files (versions 2.5–2.8) into a ConnectionTreeModel.
-    /// Backward-compatible with all known file format versions.
+    /// Deserializes mRemoteNG XML connection files (versions up to 2.8) into a ConnectionTreeModel.
+    /// Mirrors the legacy WinForms loader so existing files, passwords and master passwords keep working.
     /// </summary>
     public class XmlConnectionsDeserializer : IDeserializer<string, ConnectionTreeModel>
     {
-        private readonly ICryptographyProvider _cryptoProvider;
-        private readonly string _decryptionKey;
+        public const double MaxSupportedConfVersion = 2.8;
+        private const string NotProtectedMarker = "ThisIsNotProtected";
+        private const string ProtectedMarker = "ThisIsProtected";
 
-        public XmlConnectionsDeserializer(
-            ICryptographyProvider cryptoProvider,
-            string decryptionKey)
+        private readonly ICryptoProviderFactory _cryptoProviderFactory;
+        private readonly string? _password;
+        private ICryptographyProvider _cryptoProvider = null!;
+        private string _decryptionKey = "";
+        private bool _wasPre26FullFileEncrypted;
+
+        /// <summary>The encryption settings found in the last file deserialized.</summary>
+        public ConnectionFileEncryption Encryption { get; private set; } = new();
+
+        /// <param name="cryptoProviderFactory">Builds the cipher described by the file header.</param>
+        /// <param name="password">
+        /// The master password, or null to try the built-in default key. When the file needs a
+        /// different password a <see cref="ConnectionFilePasswordException"/> is thrown.
+        /// </param>
+        public XmlConnectionsDeserializer(ICryptoProviderFactory cryptoProviderFactory, string? password = null)
         {
-            _cryptoProvider = cryptoProvider ?? throw new ArgumentNullException(nameof(cryptoProvider));
-            _decryptionKey = decryptionKey ?? "";
+            _cryptoProviderFactory = cryptoProviderFactory ?? throw new ArgumentNullException(nameof(cryptoProviderFactory));
+            _password = string.IsNullOrEmpty(password) ? null : password;
         }
 
         public ConnectionTreeModel Deserialize(string xml)
         {
-            var doc = new XmlDocument();
-            doc.LoadXml(xml);
+            var defaultKey = new RootNodeInfo(RootNodeType.Connection).DefaultPassword;
+            _wasPre26FullFileEncrypted = false;
+            var doc = LoadDocument(DecryptPre26FullFile(xml, defaultKey));
 
             var rootElement = doc.DocumentElement
                 ?? throw new InvalidOperationException("XML document has no root element.");
 
-            var confVersion = rootElement.GetAttribute("ConfVersion");
-            var fullFileEncryption = bool.TryParse(rootElement.GetAttribute("FullFileEncryption"), out var ffe) && ffe;
+            var confVersion = ParseConfVersion(rootElement);
+            if (confVersion > MaxSupportedConfVersion)
+                throw new ConnectionFileVersionException(confVersion, MaxSupportedConfVersion);
 
-            if (fullFileEncryption)
+            if (confVersion >= 2.6)
             {
-                var decrypted = _cryptoProvider.Decrypt(rootElement.InnerText, _decryptionKey);
-                rootElement.InnerXml = decrypted;
+                var iterations = GetInt(rootElement, "KdfIterations", 1000);
+                Encryption = new ConnectionFileEncryption(
+                    GetEnum(rootElement, "EncryptionEngine", BlockCipherEngines.AES),
+                    GetEnum(rootElement, "BlockCipherMode", BlockCipherModes.GCM),
+                    iterations < 1000 ? 1000 : iterations,
+                    GetBool(rootElement, "FullFileEncryption", false));
+                _cryptoProvider = _cryptoProviderFactory.Build(Encryption.Engine, Encryption.Mode, Encryption.KeyDerivationIterations);
             }
+            else
+            {
+                // Saved back with the default AEAD cipher, keeping whole-file encryption if the user had it.
+                Encryption = new ConnectionFileEncryption(FullFileEncryption: _wasPre26FullFileEncrypted);
+                _cryptoProvider = _cryptoProviderFactory.BuildLegacy();
+            }
+
+            _decryptionKey = Authenticate(rootElement.GetAttribute("Protected"), defaultKey);
+
+            // Pre-2.6 whole-file encryption was already undone before parsing.
+            if (confVersion >= 2.6 && Encryption.FullFileEncryption)
+                rootElement.InnerXml = _cryptoProvider.Decrypt(rootElement.InnerText, _decryptionKey);
 
             var rootNodeInfo = new RootNodeInfo(RootNodeType.Connection)
             {
-                Name = rootElement.GetAttribute("Name")
+                Name = GetAttr(rootElement, "Name", "Connections")
             };
+            if (_decryptionKey != defaultKey)
+                rootNodeInfo.PasswordString = _decryptionKey;
 
             DeserializeChildren(rootElement, rootNodeInfo, confVersion);
 
             return new ConnectionTreeModel(rootNodeInfo);
         }
 
-        private void DeserializeChildren(XmlElement parentElement, ContainerInfo parentContainer, string confVersion)
+        /// <summary>
+        /// Files older than 2.6 with full-file encryption are a single base64 blob, not XML.
+        /// </summary>
+        private string DecryptPre26FullFile(string content, string defaultKey)
+        {
+            var trimmed = content.TrimStart('\uFEFF', ' ', '\t', '\r', '\n');
+            if (trimmed.StartsWith('<')) return content;
+
+            var legacy = _cryptoProviderFactory.BuildLegacy();
+            foreach (var key in CandidateKeys(defaultKey))
+            {
+                try
+                {
+                    var decrypted = legacy.Decrypt(trimmed, key);
+                    if (decrypted.TrimStart('\uFEFF').StartsWith('<'))
+                    {
+                        _wasPre26FullFileEncrypted = true;
+                        return decrypted;
+                    }
+                }
+                catch (EncryptionException)
+                {
+                }
+            }
+
+            throw new ConnectionFilePasswordException(_password is not null);
+        }
+
+        /// <summary>
+        /// Verifies the key against the file's "Protected" marker and returns the key to use.
+        /// </summary>
+        private string Authenticate(string protectedValue, string defaultKey)
+        {
+            if (string.IsNullOrEmpty(protectedValue))
+                return _password ?? defaultKey;
+
+            foreach (var key in CandidateKeys(defaultKey))
+            {
+                try
+                {
+                    var marker = _cryptoProvider.Decrypt(protectedValue, key);
+                    if (marker is NotProtectedMarker or ProtectedMarker)
+                        return key;
+                }
+                catch (EncryptionException)
+                {
+                }
+            }
+
+            throw new ConnectionFilePasswordException(_password is not null);
+        }
+
+        private IEnumerable<string> CandidateKeys(string defaultKey)
+        {
+            if (_password is not null)
+                yield return _password;
+            if (_password != defaultKey)
+                yield return defaultKey;
+        }
+
+        private static XmlDocument LoadDocument(string xml)
+        {
+            // Connection files are untrusted input: never process DTDs or resolve external entities.
+            var settings = new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null
+            };
+            var doc = new XmlDocument { XmlResolver = null };
+            using var stringReader = new StringReader(xml);
+            using var reader = XmlReader.Create(stringReader, settings);
+            doc.Load(reader);
+            return doc;
+        }
+
+        private static double ParseConfVersion(XmlElement root)
+        {
+            var value = root.GetAttribute("ConfVersion").Replace(",", ".");
+            return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var version) ? version : 0;
+        }
+
+        private void DeserializeChildren(XmlElement parentElement, ContainerInfo parentContainer, double confVersion)
         {
             foreach (XmlNode childNode in parentElement.ChildNodes)
             {
-                if (childNode is not XmlElement childElement || childElement.Name != "Node")
+                if (childNode is not XmlElement childElement || childElement.LocalName != "Node")
                     continue;
 
                 var nodeType = childElement.GetAttribute("Type");
@@ -78,15 +195,16 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             }
         }
 
-        private ContainerInfo DeserializeContainer(XmlElement element, string confVersion)
+        private ContainerInfo DeserializeContainer(XmlElement element, double confVersion)
         {
             var id = GetAttr(element, "Id", Guid.NewGuid().ToString());
             var container = new ContainerInfo(id);
             PopulateConnectionInfo(container, element, confVersion);
+            container.IsExpanded = GetBool(element, "Expanded", true);
             return container;
         }
 
-        private ConnectionInfo DeserializeConnection(XmlElement element, string confVersion)
+        private ConnectionInfo DeserializeConnection(XmlElement element, double confVersion)
         {
             var id = GetAttr(element, "Id", Guid.NewGuid().ToString());
             var connection = new ConnectionInfo(id);
@@ -94,7 +212,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             return connection;
         }
 
-        private void PopulateConnectionInfo(ConnectionInfo node, XmlElement e, string confVersion)
+        private void PopulateConnectionInfo(ConnectionInfo node, XmlElement e, double confVersion)
         {
             node.Name = GetAttr(e, "Name", "");
             node.Description = GetAttr(e, "Descr", "");
@@ -305,8 +423,9 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             {
                 return _cryptoProvider.Decrypt(value, _decryptionKey);
             }
-            catch
+            catch (EncryptionException)
             {
+                // The file key was verified above, so this is a single corrupt field.
                 return "";
             }
         }

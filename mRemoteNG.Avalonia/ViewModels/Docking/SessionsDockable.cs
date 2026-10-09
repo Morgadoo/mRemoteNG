@@ -38,15 +38,33 @@ public sealed class SessionsDockable : Document
 
     public void AddSession(SessionTabViewModel session)
     {
+        session.CloseRequested += OnCloseRequested;
         Sessions.Add(session);
         ActiveSession = session;
     }
 
-    public void CloseSession(SessionTabViewModel session)
+    /// <summary>Disconnects, removes and disposes a session tab.</summary>
+    public async Task CloseSessionAsync(SessionTabViewModel session)
     {
-        _ = session.DisconnectAsync();
-        Sessions.Remove(session);
-        ActiveSession = Sessions.LastOrDefault();
+        session.CloseRequested -= OnCloseRequested;
+        var index = Sessions.IndexOf(session);
+        if (index < 0) return;
+
+        Sessions.RemoveAt(index);
+        if (ReferenceEquals(ActiveSession, session))
+            ActiveSession = Sessions.Count == 0 ? null : Sessions[Math.Min(index, Sessions.Count - 1)];
+
+        await session.DisconnectAsync();
+        session.Dispose();
+    }
+
+    /// <summary>Writes a connection error to the log panel.</summary>
+    public void ReportError(string message) => _log?.Log(message, LogLevel.Error);
+
+    private void OnCloseRequested(object? sender, EventArgs e)
+    {
+        if (sender is SessionTabViewModel session)
+            _ = CloseSessionAsync(session);
     }
 
     /// <summary>
@@ -114,6 +132,9 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
 
     public ReactiveUI.ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> CloseCommand { get; }
 
+    /// <summary>Raised when the user closes this tab; the owning dock removes and disposes it.</summary>
+    public event EventHandler? CloseRequested;
+
     public SessionTabViewModel(IProtocol protocol, ConnectionParameters parameters)
     {
         _protocol = protocol;
@@ -130,11 +151,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         if (protocol is IVisualProtocol visual)
             ContentView = visual.CreateView();
 
-        CloseCommand = ReactiveUI.ReactiveCommand.CreateFromTask(async () =>
-        {
-            await DisconnectAsync();
-            // Parent ViewModel will remove this tab from Sessions collection
-        });
+        CloseCommand = ReactiveUI.ReactiveCommand.Create(() => CloseRequested?.Invoke(this, EventArgs.Empty));
     }
 
     public async Task ConnectAsync(CancellationToken ct = default)

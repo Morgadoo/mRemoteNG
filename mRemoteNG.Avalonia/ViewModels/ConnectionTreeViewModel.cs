@@ -97,20 +97,29 @@ public sealed class ConnectionNodeViewModel : ReactiveObject
 
         try
         {
-            var protocolType = ResolveProtocolType(Protocol);
-            var parameters = new ConnectionParameters
+            ConnectionParameters parameters;
+            if (Model is not null)
             {
-                Hostname = Hostname,
-                Port = Port == 0 ? DefaultPortFor(protocolType) : Port,
-                Protocol = protocolType,
-                Username = string.IsNullOrEmpty(Username) ? null : Username,
-            };
+                // Resolves inherited values and carries credentials and protocol options from the file.
+                parameters = ConnectionParametersFactory.FromConnectionInfo(Model);
+            }
+            else
+            {
+                var protocolType = ResolveProtocolType(Protocol);
+                parameters = new ConnectionParameters
+                {
+                    Hostname = Hostname,
+                    Port = Port == 0 ? DefaultPortFor(protocolType) : Port,
+                    Protocol = protocolType,
+                    Username = string.IsNullOrEmpty(Username) ? null : Username,
+                };
+            }
 
             await SessionsDock.OpenConnectionAsync(parameters, ProtocolFactory);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Trace.TraceError($"Connection failed: {ex.Message}");
+            SessionsDock.ReportError($"Could not connect to \"{Name}\": {ex.Message}");
         }
     }
 
@@ -287,17 +296,21 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     }
 
     /// <summary>Load connection tree from an XML file.</summary>
-    public void LoadFromFile(string filePath, string password = "mR3m")
+    /// <param name="password">Master password, or null to use the default key.</param>
+    /// <exception cref="mRemoteNG.Core.Config.Serializers.Xml.ConnectionFilePasswordException">
+    /// The file is protected and <paramref name="password"/> is missing or wrong.
+    /// </exception>
+    public void LoadFromFile(string filePath, string? password = null)
     {
         var model = _connectionsService.LoadFromFile(filePath, password);
         LoadFromModel(model);
     }
 
-    /// <summary>Save the current tree to file.</summary>
-    public void SaveToFile(string? filePath = null, string password = "mR3m")
+    /// <summary>Save the current tree to file, keeping the file's master password.</summary>
+    public void SaveToFile(string? filePath = null)
     {
         SyncToModel();
-        _connectionsService.SaveToFile(filePath, password);
+        _connectionsService.SaveToFile(filePath);
     }
 
     /// <summary>Create a fresh empty tree.</summary>

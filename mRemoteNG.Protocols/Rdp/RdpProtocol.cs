@@ -65,18 +65,38 @@ public sealed class RdpProtocol : ProtocolBase, IVisualProtocol
             return;
         }
 
-        string args = BuildFreeRdpArgs(parameters);
-        _logger.LogDebug("FreeRDP: {Binary} {Args}", freerdpBin, args);
+        var args = BuildFreeRdpArgs(parameters,
+            OperatingSystem.IsMacOS() ? "mac" : OperatingSystem.IsWindows() ? "winmm" : "pulse");
+        bool argsFromStdin = await SupportsArgsFromStdinAsync(freerdpBin, ct);
+
+        var startInfo = new ProcessStartInfo(freerdpBin)
+        {
+            UseShellExecute = false,
+            RedirectStandardInput = argsFromStdin,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = false,
+        };
+
+        if (argsFromStdin)
+        {
+            // FreeRDP 3: pass everything (including the password) over stdin so it never
+            // appears in the process list.
+            startInfo.ArgumentList.Add("/args-from:stdin");
+        }
+        else
+        {
+            foreach (string arg in args)
+                startInfo.ArgumentList.Add(arg);
+            if (!string.IsNullOrEmpty(parameters.Password))
+                _logger.LogWarning("FreeRDP 2.x does not support /args-from:stdin; the password is visible to local users in the process list. Upgrade to FreeRDP 3.");
+        }
+
+        _logger.LogDebug("FreeRDP: {Binary} {Args}", freerdpBin, string.Join(' ', args.Select(RedactPassword)));
 
         _rdpProcess = new Process
         {
-            StartInfo = new ProcessStartInfo(freerdpBin, args)
-            {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = false,
-            },
+            StartInfo = startInfo,
             EnableRaisingEvents = true,
         };
 
@@ -103,8 +123,22 @@ public sealed class RdpProtocol : ProtocolBase, IVisualProtocol
         _rdpProcess.BeginOutputReadLine();
         _rdpProcess.BeginErrorReadLine();
 
+        if (argsFromStdin)
+        {
+            foreach (string arg in args)
+                await _rdpProcess.StandardInput.WriteLineAsync(arg.AsMemory(), ct);
+            _rdpProcess.StandardInput.Close();
+        }
+
         // Wait briefly for the window to appear
         await Task.Delay(800, ct);
+
+        if (_rdpProcess.HasExited)
+        {
+            State = ConnectionState.Error;
+            RaiseStatus($"FreeRDP exited immediately with code {_rdpProcess.ExitCode}. Check the host, credentials and certificate.");
+            return;
+        }
 
         // Attempt to embed the FreeRDP window into our control
         bool embedded = await TryEmbedWindowAsync(ct);
@@ -137,7 +171,7 @@ public sealed class RdpProtocol : ProtocolBase, IVisualProtocol
             ? ["wfreerdp.exe", "xfreerdp.exe", @"C:\Program Files\FreeRDP\wfreerdp.exe"]
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
             ? ["xfreerdp", "/usr/local/bin/xfreerdp", "/opt/homebrew/bin/xfreerdp"]
-            : ["xfreerdp", "xfreerdp3", "/usr/bin/xfreerdp"];
+            : ["xfreerdp3", "xfreerdp", "/usr/bin/xfreerdp"];
 
         foreach (string candidate in candidates)
         {
@@ -166,47 +200,90 @@ public sealed class RdpProtocol : ProtocolBase, IVisualProtocol
         return null;
     }
 
-    private static string BuildFreeRdpArgs(ConnectionParameters p)
+    /// <summary>
+    /// Builds the FreeRDP 2.x/3.x argument list. Each element is one argument, so values are
+    /// never re-parsed by a shell and cannot inject additional options.
+    /// </summary>
+    internal static IReadOnlyList<string> BuildFreeRdpArgs(ConnectionParameters p, string audioBackend = "pulse")
     {
-        var sb = new System.Text.StringBuilder();
-
-        // Target
-        sb.Append($"/v:{p.Hostname}:{p.Port} ");
+        var args = new List<string> { $"/v:{p.Hostname}:{p.Port}" };
+        var extras = p.Extras;
+        bool Flag(string key, bool defaultValue) =>
+            extras.TryGetValue(key, out string? v) ? v.Equals("true", StringComparison.OrdinalIgnoreCase) : defaultValue;
 
         // Credentials
-        if (!string.IsNullOrEmpty(p.Username)) sb.Append($"/u:\"{p.Username}\" ");
-        if (!string.IsNullOrEmpty(p.Domain)) sb.Append($"/d:\"{p.Domain}\" ");
-        if (!string.IsNullOrEmpty(p.Password)) sb.Append($"/p:\"{p.Password}\" ");
+        if (!string.IsNullOrEmpty(p.Username)) args.Add($"/u:{p.Username}");
+        if (!string.IsNullOrEmpty(p.Domain)) args.Add($"/d:{p.Domain}");
+        if (!string.IsNullOrEmpty(p.Password)) args.Add($"/p:{p.Password}");
 
-        // Performance & features
-        sb.Append("/dynamic-resolution ");
-        sb.Append("/sound:sys:pulse ");
-        sb.Append("/microphone ");
-        sb.Append("/drive:home,/ ");   // Drive redirection
-        sb.Append("/clipboard ");
-        sb.Append("/fonts ");
-        sb.Append("+auto-reconnect ");
-        sb.Append("/network:auto ");
+        // Display & session
+        args.Add("/dynamic-resolution");
+        args.Add("+auto-reconnect");
+        args.Add("/network:auto");
+        args.Add(extras.TryGetValue(ConnectionParametersFactory.Keys.RdpColorDepth, out string? depth) ? $"/bpp:{depth}" : "/bpp:32");
+        if (Flag(ConnectionParametersFactory.Keys.RdpConsole, false)) args.Add("/admin");
+        if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpLoadBalanceInfo, out string? lb)) args.Add($"/load-balance-info:{lb}");
 
-        // Protocol extras
-        if (p.Extras.TryGetValue("rdp.colorDepth", out string? depth))
-            sb.Append($"/bpp:{depth} ");
-        else
-            sb.Append("/bpp:32 ");
+        // Redirection — opt-in per connection, never the whole filesystem.
+        if (Flag(ConnectionParametersFactory.Keys.RdpClipboard, true)) args.Add("/clipboard");
+        if (Flag(ConnectionParametersFactory.Keys.RdpHomeDrive, false)) args.Add("+home-drive");
+        if (Flag(ConnectionParametersFactory.Keys.RdpMicrophone, false)) args.Add($"/microphone:sys:{audioBackend}");
+        switch (extras.GetValueOrDefault(ConnectionParametersFactory.Keys.RdpSound, "local"))
+        {
+            case "local": args.Add($"/sound:sys:{audioBackend}"); break;
+            case "remote": args.Add("/audio-mode:1"); break;
+            default: args.Add("/audio-mode:2"); break;
+        }
 
-        if (p.Extras.TryGetValue("rdp.gateway", out string? gw))
-            sb.Append($"/g:{gw} ");
+        // Gateway
+        if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpGateway, out string? gw))
+        {
+            var gateway = $"/gateway:g:{gw}";
+            if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpGatewayUsername, out string? gu)) gateway += $",u:{gu}";
+            if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpGatewayDomain, out string? gd)) gateway += $",d:{gd}";
+            args.Add(gateway);
+        }
 
-        if (p.Extras.TryGetValue("rdp.nla", out string? nla) && nla == "false")
-            sb.Append("-nla ");
-        else
-            sb.Append("/sec:nla ");
+        // Security: NLA unless explicitly disabled.
+        args.Add(Flag(ConnectionParametersFactory.Keys.RdpNla, true) ? "/sec:nla" : "-sec-nla");
 
-        // Embedding: request the window to be embeddable
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            sb.Append("/parent:0 "); // XEmbed protocol (FreeRDP 3.x)
+        return args;
+    }
 
-        return sb.ToString().Trim();
+    private static string RedactPassword(string arg) => arg.StartsWith("/p:", StringComparison.Ordinal) ? "/p:********" : arg;
+
+    /// <summary>FreeRDP 3.x supports <c>/args-from:stdin</c>; 2.x does not.</summary>
+    private async Task<bool> SupportsArgsFromStdinAsync(string freerdpBin, CancellationToken ct)
+    {
+        try
+        {
+            using var probe = Process.Start(new ProcessStartInfo(freerdpBin, "/version")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            });
+            if (probe is null) return false;
+
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(TimeSpan.FromSeconds(5));
+            string output = await probe.StandardOutput.ReadToEndAsync(timeout.Token);
+            await probe.WaitForExitAsync(timeout.Token);
+            return ParseFreeRdpMajorVersion(output) >= 3;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
+        {
+            _logger.LogDebug(ex, "Could not determine FreeRDP version");
+            return false;
+        }
+    }
+
+    /// <summary>Parses output such as "This is FreeRDP version 3.5.1 (...)".</summary>
+    internal static int ParseFreeRdpMajorVersion(string versionOutput)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(versionOutput, @"version\s+(\d+)\.");
+        return match.Success ? int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) : 0;
     }
 
     private async Task<bool> TryEmbedWindowAsync(CancellationToken ct)

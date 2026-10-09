@@ -7,9 +7,50 @@
 > - Run `grep -r "\[~\]" MIGRATION_PROGRESS.md` to see active tasks
 > - Each PR should reference the task ID (e.g. "Implements P1-1.1.1")
 
-**Last updated:** 2026-03-10 (P1-1.1.1 Core extraction completed; Avalonia build fixed)
-**Current Phase:** Phase 1 complete — all Foundation tasks done
-**Branch:** `claude/analyze-cross-platform-portability-FndER`
+**Last updated:** 2026-10-09 (status audit; legacy file compatibility, Linux/macOS startup, RDP launch fixed)
+**Current Phase:** Phase 3 — protocol and UI features still being completed (see audit below)
+**Branch:** `dev`
+
+---
+
+## Status Audit — 2026-10-09
+
+Earlier entries marked many items done that were scaffolds or stubs. A code audit plus a real
+build/test/run on Linux (.NET 10.0.401, Xvfb) found the following, and items below were reopened (`[~]`).
+
+**Fixed in this pass**
+- `mRemoteNG.Platform.Linux` / `.Mac` did not compile (NU1008: versions in csproj under central package management).
+- The Linux/macOS platform DLL was never deployed next to the Avalonia app, so it crashed at startup with
+  `Could not load platform assembly 'mRemoteNG.Platform.Linux'` (reproduced). Now project-referenced; app starts and renders on Linux.
+- `mRemoteNG.Platform.Windows` now builds on non-Windows hosts (`EnableWindowsTargeting`).
+- **Core could not read passwords from any existing confCons.xml, and files it saved were unreadable by the
+  WinForms app.** Core's AEAD format differed from legacy (no salt, nonce-as-salt, UTF-8 KDF input). Rewritten to be
+  byte-compatible: `salt(16)‖nonce‖ciphertext+tag`, salt as associated data, PBKDF2-SHA1 over PKCS#5 password bytes.
+- Core now honours the file header (`EncryptionEngine`, `BlockCipherMode`, `KdfIterations`), reads pre-2.6 files
+  (legacy Rijndael, incl. whole-file encryption), verifies the `Protected` marker, supports master passwords
+  (Avalonia prompts for one) and full-file encryption, rejects files newer than 2.8, prohibits DTDs, and preserves
+  folder expand state. Saving writes `ThisIsNotProtected` for unprotected files and writes atomically.
+- Verified against the 8 legacy fixtures in `mRemoteNGTests/Resources` (v2.5/v2.6, master password, full-file, 5k iterations).
+- Connecting from the tree now passes password, domain, inherited values and RDP options
+  (`ConnectionParametersFactory`); unsupported protocols report an error in the log instead of silently doing nothing.
+- FreeRDP: arguments passed as an argument list (a quote in a username could inject options), password passed
+  via `/args-from:stdin` on FreeRDP 3 (hidden from the process list), no more `/drive:home,/` (shared the whole root
+  filesystem), redirection follows connection settings, immediate FreeRDP exit reported as an error.
+- Session tabs can be selected and closed (previously close only disconnected; the tab stayed). Double-click connects.
+- Protocol events fired only through `Dispatcher.Post`, so they never fired without a running UI loop (failing test).
+
+**Still stubbed / not functional (reopened below)**
+- VNC: no VNC library referenced; `VncProtocol` shows a placeholder and reports Connected after 200 ms.
+- HTTP/HTTPS: no WebView referenced; address bar only.
+- RDP embedding: FreeRDP runs in its own window.
+- Import / Export dialogs: buttons just close the dialog.
+- Options window and Credential Manager: nothing is persisted (`OnApply` is empty); theme is not saved.
+- Connection Edit / Duplicate: commands are empty; the add dialog drops password, domain and protocol options.
+- SFTP file transfer dialog: fake progress; not reachable from menus.
+- SSH: every host key is accepted (no known_hosts verification) — security issue.
+- Search box, several View/Help menu items: not wired.
+
+Test suite: `mRemoteNG.Tests.CrossPlatform` — 119 passed, 2 skipped (integration tests needing servers).
 
 ---
 
@@ -17,11 +58,11 @@
 
 | Phase | Tasks | Done | In Progress | Blocked | % Complete |
 |-------|-------|------|-------------|---------|------------|
-| Phase 1 — Foundation | 24 | 24 | 0 | 0 | 100% |
-| Phase 2 — Avalonia UI | 38 | 38 | 0 | 0 | 100% |
-| Phase 3 — Protocols | 22 | 20 | 0 | 2 | 91% |
+| Phase 1 — Foundation | 24 | 20 | 1 | 2 | 83% |
+| Phase 2 — Avalonia UI | 32 | 16 | 16 | 0 | 50% |
+| Phase 3 — Protocols | 17 | 11 | 4 | 2 | 65% |
 | Phase 4 — Packaging | 16 | 14 | 0 | 2 | 88% |
-| **TOTAL** | **100** | **96** | **0** | **4** | **96% done, 4% blocked** |
+| **TOTAL** | **89** | **61** | **21** | **6** | **69%** |
 
 ---
 
@@ -181,7 +222,9 @@
   - WinForms/WPF/COM/Windows-only packages wrapped with OS condition
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [ ] **P1-1.6.2** — Verify project builds on Ubuntu 22.04 CI agent — **UNBLOCKED** (P1-1.1.1 complete)
+- [~] **P1-1.6.2** — Verify project builds on Ubuntu 22.04 CI agent
+  > 2026-10-09: all cross-platform projects (Core, Platform.*, Protocols, Avalonia, tests) build and tests pass on
+  > Linux; the Avalonia app launches under Xvfb. Still to confirm on the CI agent. The WinForms project remains Windows-only.
   - Blocked by: P1-1.1.1 (main project TFM changed to net10.0 conditionally, but remaining
     Windows-only source files will cause compile errors on Linux until Core split is done)
   - CI YAML is ready (cross-platform.yml); job will be unblocked after P1-1.1.1 + P1-1.2.3
@@ -235,46 +278,52 @@
 - [x] **P2-2.3.1** — Connection tree view — @automated 2026-03-10
   - ConnectionTreeView.axaml: TreeDataTemplate, protocol badges, context menu
 
-- [x] **P2-2.3.2** — Connection tree ViewModel — @automated 2026-03-10
+- [~] **P2-2.3.2** — Connection tree ViewModel — @automated 2026-03-10
+  > Reopened 2026-10-09: search filter not applied; Edit/Duplicate commands empty.
   - ConnectionTreeViewModel: ObservableCollection, search filter, ReactiveCommands, demo data
 
 - [x] **P2-2.3.3** — Connection context menus — @automated 2026-03-10 (in ConnectionTreeView.axaml)
 
-- [x] **P2-2.4.1** — Session tab host — @automated 2026-03-10
+- [~] **P2-2.4.1** — Session tab host — @automated 2026-03-10
+  > 2026-10-09: tab selection and close fixed (tabs were never removed or disposed).
   - SessionsView.axaml: tab strip with protocol badges, connection state indicator, close button
   - SessionsDockable/SessionTabViewModel: ObservableCollection, AddSession/CloseSession
 
 - [x] **P2-2.4.2** — Embedded connection view — @automated 2026-03-10
   - Scaffolded in SessionsView; Phase 3 will add native window embedding
 
-- [x] **P2-2.5.1** — Options window shell — @automated 2026-03-10
+- [~] **P2-2.5.1** — Options window shell — @automated 2026-03-10
+  > Reopened 2026-10-09: settings are not persisted (`OnApply` empty); pages P2-2.5.2–2.5.11 are UI only.
   - OptionsWindow.axaml: left category nav + right page area + OK/Cancel/Apply/Reset
 
-- [x] **P2-2.5.2** — Appearance settings page — @automated 2026-03-10
-- [x] **P2-2.5.3** — Connection settings page — @automated 2026-03-10
-- [x] **P2-2.5.4** — Security settings page — @automated 2026-03-10
-- [x] **P2-2.5.5** — Advanced settings page — @automated 2026-03-10
-- [x] **P2-2.5.6** — Updates settings page — @automated 2026-03-10
-- [x] **P2-2.5.7** — Notifications settings page — @automated 2026-03-10
-- [x] **P2-2.5.8** — Theme settings page — @automated 2026-03-10
-- [x] **P2-2.5.9** — Tabs settings page — @automated 2026-03-10
-- [x] **P2-2.5.10** — Credentials settings page — @automated 2026-03-10
-- [x] **P2-2.5.11** — Protocols settings page — @automated 2026-03-10
+- [~] **P2-2.5.2** — Appearance settings page — @automated 2026-03-10
+- [~] **P2-2.5.3** — Connection settings page — @automated 2026-03-10
+- [~] **P2-2.5.4** — Security settings page — @automated 2026-03-10
+- [~] **P2-2.5.5** — Advanced settings page — @automated 2026-03-10
+- [~] **P2-2.5.6** — Updates settings page — @automated 2026-03-10
+- [~] **P2-2.5.7** — Notifications settings page — @automated 2026-03-10
+- [~] **P2-2.5.8** — Theme settings page — @automated 2026-03-10
+- [~] **P2-2.5.9** — Tabs settings page — @automated 2026-03-10
+- [~] **P2-2.5.10** — Credentials settings page — @automated 2026-03-10
+- [~] **P2-2.5.11** — Protocols settings page — @automated 2026-03-10
 
 - [x] **P2-2.6.1** — About dialog — @automated 2026-03-10
   - AboutDialog.axaml: logo, version, links to GitHub/docs, GitHub/Docs/OK buttons
 
-- [x] **P2-2.6.2** — Connection add/edit dialog — @automated 2026-03-10
+- [~] **P2-2.6.2** — Connection add/edit dialog — @automated 2026-03-10
+  > Reopened 2026-10-09: edit mode never used; password/domain/protocol options discarded on save.
   - ConnectionDialog.axaml: General/Protocol/Credentials/RDP/SSH cards
   - ConnectionDialogViewModel: per-protocol panels (IsRdp, IsSsh), port auto-fill
 
 - [x] **P2-2.6.4** — Quick connect dialog — @automated 2026-03-10
   - QuickConnectDialog.axaml: host, protocol, username, password fields
 
-- [x] **P2-2.6.7** — Import dialog — @automated 2026-03-10
+- [~] **P2-2.6.7** — Import dialog — @automated 2026-03-10
+  > Reopened 2026-10-09: dialog is a stub (Import button only closes it). `SshConfigImporter` exists but is unused.
   - Supports: mRemoteNG XML/CSV, PuTTY sessions, SSH config, RDM, SecureCRT
 
-- [x] **P2-2.6.8** — Export dialog — @automated 2026-03-10
+- [~] **P2-2.6.8** — Export dialog — @automated 2026-03-10
+  > Reopened 2026-10-09: dialog is a stub.
   - Supports: XML and CSV formats, all connections or selected folder
 
 - [x] **P2-2.7.1** — System tray — @automated 2026-03-10
@@ -296,7 +345,8 @@
 
 #### 3.1 SSH (PuTTYNG → SSH.NET)
 
-- [x] **P3-3.1.1** — Create `SshNetProtocol.cs` — @automated 2026-03-10
+- [~] **P3-3.1.1** — Create `SshNetProtocol.cs` — @automated 2026-03-10
+  > Reopened 2026-10-09: host keys are accepted unconditionally; needs known_hosts verification.
   - SSH.NET integration: password, public-key, keyboard-interactive auth
   - Shell stream, keepalive, reconnect on error
   - PR: claude/analyze-cross-platform-portability-FndER
@@ -312,7 +362,8 @@
   - `SessionTabViewModel` tracks `ConnectionState` + status messages
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [x] **P3-3.1.4** — SFTP browser view — @automated 2026-03-10
+- [~] **P3-3.1.4** — SFTP browser view — @automated 2026-03-10
+  > Reopened 2026-10-09: transfer dialog uses fake progress and is not reachable from the UI.
   - `SftpBrowserViewModel`: list, navigate, download, upload, delete
   - `SftpEntryViewModel`: name, size, type, last-modified
   - PR: claude/analyze-cross-platform-portability-FndER
@@ -366,7 +417,8 @@
 
 #### 3.4 VNC
 
-- [x] **P3-3.4.1** — Create Avalonia VNC view — @automated 2026-03-10
+- [~] **P3-3.4.1** — Create Avalonia VNC view — @automated 2026-03-10
+  > Reopened 2026-10-09: no VNC library is referenced; connection and framebuffer are simulated.
   - `VncProtocol.cs` + `VncView.cs`: MarcusW.VncClient architecture wired
   - Keyboard/mouse forwarding stubs (Phase 4: full RFB input events)
   - Framebuffer rendering via `WriteableBitmap` → Avalonia `Image`
@@ -376,7 +428,8 @@
 
 #### 3.5 HTTP/HTTPS
 
-- [x] **P3-3.5.1** — Integrate `Avalonia.WebView` — @automated 2026-03-10
+- [~] **P3-3.5.1** — Integrate `Avalonia.WebView` — @automated 2026-03-10
+  > Reopened 2026-10-09: no WebView package referenced; only an address bar is shown.
   - `WebViewProtocol.cs`: platform-agnostic wrapper
   - `WebBrowserView`: address bar, back/forward/refresh, Go button
   - Phase 4: wire actual WebView2/WebKitGtk/WKWebView control
@@ -414,6 +467,7 @@
     - macOS: NSView reparenting (requires ObjC interop from Avalonia NativeControlHost)
     - Windows: SetParent() via WindowsWindowService (already implemented)
   - Avalonia 11 `NativeControlHost` is the correct approach; needs a prototype PR
+  - 2026-10-09: removed the bogus `/parent:0` argument; FreeRDP runs in its own window until embedding exists
 
 ---
 
@@ -560,6 +614,7 @@
 | 2026-03-10 | P1-1.1.1 resumed: created `mRemoteNG.Core` scaffold and connected Avalonia bootstrap to core DI extension | codex |
 | 2026-03-10 | P1-1.1.1 increment: added cross-platform `ApplicationPaths` in Core and switched settings path consumers to it | codex |
 | 2026-03-10 | P1-1.1.1 hardening: ensure cross-platform settings directories are created before writing settings XML | codex |
+| 2026-10-09 | Status audit; reopened stubbed items; fixed Linux/macOS startup crash, legacy confCons crypto compatibility, master passwords, FreeRDP launch, session tabs | claude |
 
 ---
 

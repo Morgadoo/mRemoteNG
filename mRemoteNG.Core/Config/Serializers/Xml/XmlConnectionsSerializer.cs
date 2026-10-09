@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Xml;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Connection.Protocol;
@@ -15,21 +16,32 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
     public class XmlConnectionsSerializer : ISerializer<ConnectionTreeModel, string>
     {
         private readonly ICryptographyProvider _cryptoProvider;
-        private readonly string _encryptionKey;
+        private readonly string? _encryptionKeyOverride;
         private readonly SaveFilter _saveFilter;
+        private readonly bool _fullFileEncryption;
+        private string _encryptionKey = "";
 
+        /// <param name="cryptoProvider">Cipher used for passwords; its settings are written to the file header.</param>
+        /// <param name="encryptionKey">
+        /// Optional key override. When null, the root node's <see cref="RootNodeInfo.PasswordString"/> is used,
+        /// which is the default key unless the file has a master password.
+        /// </param>
         public XmlConnectionsSerializer(
             ICryptographyProvider cryptoProvider,
-            string encryptionKey,
-            SaveFilter? saveFilter = null)
+            string? encryptionKey = null,
+            SaveFilter? saveFilter = null,
+            bool fullFileEncryption = false)
         {
             _cryptoProvider = cryptoProvider ?? throw new ArgumentNullException(nameof(cryptoProvider));
-            _encryptionKey = encryptionKey ?? "";
+            _encryptionKeyOverride = string.IsNullOrEmpty(encryptionKey) ? null : encryptionKey;
             _saveFilter = saveFilter ?? new SaveFilter();
+            _fullFileEncryption = fullFileEncryption;
         }
 
         public string Serialize(ConnectionTreeModel model)
         {
+            _encryptionKey = _encryptionKeyOverride ?? model.RootNode.PasswordString;
+
             var doc = new XmlDocument();
             var declaration = doc.CreateXmlDeclaration("1.0", "utf-8", null);
             doc.AppendChild(declaration);
@@ -39,7 +51,10 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
 
             SerializeChildren(doc, root, model.RootNode);
 
-            using var sw = new StringWriter();
+            if (_fullFileEncryption)
+                root.InnerText = _cryptoProvider.Encrypt(root.InnerXml, _encryptionKey);
+
+            using var sw = new Utf8StringWriter();
             using var xw = XmlWriter.Create(sw, new XmlWriterSettings
             {
                 Indent = true,
@@ -56,16 +71,23 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             var element = doc.CreateElement("Connections");
             element.SetAttribute("Name", rootNode.Name);
             element.SetAttribute("Export", "false");
-            element.SetAttribute("EncryptionEngine", "AES");
-            element.SetAttribute("BlockCipherMode", "GCM");
-            element.SetAttribute("KdfIterations", "1000");
-            element.SetAttribute("FullFileEncryption", "false");
+            element.SetAttribute("EncryptionEngine", _cryptoProvider.CipherEngine.ToString());
+            element.SetAttribute("BlockCipherMode", _cryptoProvider.CipherMode.ToString());
+            element.SetAttribute("KdfIterations", _cryptoProvider.KeyDerivationIterations.ToString(CultureInfo.InvariantCulture));
+            element.SetAttribute("FullFileEncryption", _fullFileEncryption.ToString().ToLowerInvariant());
 
-            var protectedString = _cryptoProvider.Encrypt("ThisIsProtected", _encryptionKey);
-            element.SetAttribute("Protected", protectedString);
+            // Legacy readers decrypt this marker with the default key to decide whether to prompt for a password.
+            var isProtected = _encryptionKey != rootNode.DefaultPassword;
+            element.SetAttribute("Protected", _cryptoProvider.Encrypt(isProtected ? "ThisIsProtected" : "ThisIsNotProtected", _encryptionKey));
             element.SetAttribute("ConfVersion", "2.8");
 
             return element;
+        }
+
+        /// <summary>StringWriter reports UTF-16 by default, which would end up in the XML declaration.</summary>
+        private sealed class Utf8StringWriter : StringWriter
+        {
+            public override System.Text.Encoding Encoding => System.Text.Encoding.UTF8;
         }
 
         private void SerializeChildren(XmlDocument doc, XmlElement parentElement, ContainerInfo container)
@@ -88,8 +110,8 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("Name", node.Name);
             element.SetAttribute("Type", isContainer ? "Container" : "Connection");
 
-            if (isContainer && node is ContainerInfo container)
-                element.SetAttribute("Expanded", "true");
+            if (node is ContainerInfo container)
+                element.SetAttribute("Expanded", container.IsExpanded.ToString().ToLowerInvariant());
 
             element.SetAttribute("Descr", node.Description);
             element.SetAttribute("Icon", node.Icon);

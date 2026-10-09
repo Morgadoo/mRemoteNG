@@ -9,9 +9,14 @@ namespace mRemoteNG.Core.Security.Factories
             return new AeadCryptographyProvider();
         }
 
-        public ICryptographyProvider Build(BlockCipherEngines engine, BlockCipherModes mode)
+        public ICryptographyProvider Build(BlockCipherEngines engine, BlockCipherModes mode, int keyDerivationIterations = 1000)
         {
-            return new AeadCryptographyProvider(engine, mode);
+            return new AeadCryptographyProvider(engine, mode, keyDerivationIterations);
+        }
+
+        public ICryptographyProvider BuildLegacy()
+        {
+            return new LegacyRijndaelCryptographyProvider();
         }
     }
 }

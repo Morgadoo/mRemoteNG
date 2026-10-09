@@ -19,12 +19,13 @@
 
     <TreeView ItemsSource="{Binding Nodes}"
               SelectedItem="{Binding SelectedNode}"
+              DoubleTapped="OnTreeDoubleTapped"
               Background="#1e1e1e">
 
         <TreeView.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Connect" Command="{Binding ConnectSelectedCommand}" />
-                <MenuItem Header="Connect in New Tab" />
+                <MenuItem Header="Connect in New Tab" Command="{Binding ConnectSelectedCommand}" />
                 <Separator/>
                 <MenuItem Header="New Folder" Command="{Binding NewFolderCommand}" />
                 <MenuItem Header="New Connection" Command="{Binding NewConnectionCommand}" />

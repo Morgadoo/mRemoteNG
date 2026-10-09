@@ -16,22 +16,36 @@ namespace mRemoteNG.Core.Config.Connections
         public ConnectionTreeModel? ConnectionTreeModel { get; private set; }
         public string? CurrentFilePath { get; private set; }
 
+        /// <summary>
+        /// Encryption settings used when saving. Loaded files keep their cipher and KDF settings;
+        /// files older than 2.6 are upgraded to the default (AES-GCM) on save, as in the legacy app.
+        /// </summary>
+        public ConnectionFileEncryption Encryption { get; set; } = new();
+
         public ConnectionsService(ICryptoProviderFactory cryptoProviderFactory)
         {
             _cryptoProviderFactory = cryptoProviderFactory ?? throw new ArgumentNullException(nameof(cryptoProviderFactory));
         }
 
-        public ConnectionTreeModel LoadFromFile(string filePath, string password = "mR3m")
+        /// <summary>Loads a connection file.</summary>
+        /// <param name="password">Master password, or null to use the default key.</param>
+        /// <exception cref="ConnectionFilePasswordException">The file needs a (different) master password.</exception>
+        /// <exception cref="ConnectionFileVersionException">The file was written by a newer version.</exception>
+        public ConnectionTreeModel LoadFromFile(string filePath, string? password = null)
         {
             var xml = File.ReadAllText(filePath);
-            var cryptoProvider = _cryptoProviderFactory.Build();
-            var deserializer = new XmlConnectionsDeserializer(cryptoProvider, password);
+            var deserializer = new XmlConnectionsDeserializer(_cryptoProviderFactory, password);
             ConnectionTreeModel = deserializer.Deserialize(xml);
+            Encryption = deserializer.Encryption;
             CurrentFilePath = filePath;
             return ConnectionTreeModel;
         }
 
-        public void SaveToFile(string? filePath = null, string password = "mR3m")
+        /// <summary>
+        /// Saves the current tree. The file is encrypted with the root node's master password,
+        /// or the default key when none is set.
+        /// </summary>
+        public void SaveToFile(string? filePath = null)
         {
             if (ConnectionTreeModel is null)
                 throw new InvalidOperationException("No connection tree loaded.");
@@ -39,10 +53,16 @@ namespace mRemoteNG.Core.Config.Connections
             var targetPath = filePath ?? CurrentFilePath
                 ?? throw new InvalidOperationException("No file path specified.");
 
-            var cryptoProvider = _cryptoProviderFactory.Build();
-            var serializer = new XmlConnectionsSerializer(cryptoProvider, password);
+            var cryptoProvider = _cryptoProviderFactory.Build(Encryption.Engine, Encryption.Mode, Encryption.KeyDerivationIterations);
+            var serializer = new XmlConnectionsSerializer(cryptoProvider, fullFileEncryption: Encryption.FullFileEncryption);
             var xml = serializer.Serialize(ConnectionTreeModel);
-            File.WriteAllText(targetPath, xml);
+
+            // Write to a temp file first so a crash mid-write never truncates the user's connections.
+            var directory = Path.GetDirectoryName(Path.GetFullPath(targetPath))!;
+            Directory.CreateDirectory(directory);
+            var tempPath = Path.Combine(directory, $".{Path.GetFileName(targetPath)}.{Guid.NewGuid():N}.tmp");
+            File.WriteAllText(tempPath, xml);
+            File.Move(tempPath, targetPath, overwrite: true);
             CurrentFilePath = targetPath;
         }
 
@@ -53,6 +73,8 @@ namespace mRemoteNG.Core.Config.Connections
                 Name = name
             };
             ConnectionTreeModel = new ConnectionTreeModel(rootNode);
+            Encryption = new ConnectionFileEncryption();
+            CurrentFilePath = null;
             return ConnectionTreeModel;
         }
     }

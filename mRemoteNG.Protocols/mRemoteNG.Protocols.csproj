@@ -32,6 +32,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="mRemoteNG.Tests.CrossPlatform" />
   </ItemGroup>
 
 </Project>

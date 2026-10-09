@@ -9,13 +9,21 @@ namespace mRemoteNG.Core.Tree.Root
 
         public RootNodeType Type { get; }
 
+        /// <summary>
+        /// The key used to encrypt the connection file. Returns <see cref="DefaultPassword"/>
+        /// unless a custom master password has been set.
+        /// </summary>
         public string PasswordString
         {
-            get => _customPassword;
-            set => SetField(ref _customPassword, value);
+            get => IsPasswordProtected ? _customPassword : DefaultPassword;
+            set => SetField(ref _customPassword, value ?? "");
         }
 
-        public string DefaultPassword { get; set; } = "mR3m";
+        /// <summary>True when the file is protected by a user-supplied master password.</summary>
+        public bool IsPasswordProtected =>
+            !string.IsNullOrEmpty(_customPassword) && _customPassword != DefaultPassword;
+
+        public string DefaultPassword { get; } = "mR3m";
 
         public RootNodeInfo(RootNodeType type, string uniqueId = "")
             : base(uniqueId)

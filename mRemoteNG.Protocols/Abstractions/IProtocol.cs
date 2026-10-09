@@ -134,12 +134,23 @@ public abstract class ProtocolBase : IProtocol
     public abstract Task DisconnectAsync(CancellationToken ct = default);
 
     protected void RaiseStateChanged(ConnectionState state) =>
-        Avalonia.Threading.Dispatcher.UIThread.Post(
-            () => StateChanged?.Invoke(this, state));
+        InvokeOnUiThread(() => StateChanged?.Invoke(this, state));
 
     protected void RaiseStatus(string message) =>
-        Avalonia.Threading.Dispatcher.UIThread.Post(
-            () => StatusMessage?.Invoke(this, message));
+        InvokeOnUiThread(() => StatusMessage?.Invoke(this, message));
+
+    /// <summary>
+    /// Runs <paramref name="action"/> inline when already on the UI thread (or when no UI loop exists,
+    /// e.g. headless/tests), otherwise marshals it onto the UI thread.
+    /// </summary>
+    private static void InvokeOnUiThread(Action action)
+    {
+        var dispatcher = Avalonia.Threading.Dispatcher.UIThread;
+        if (dispatcher.CheckAccess())
+            action();
+        else
+            dispatcher.Post(action);
+    }
 
     protected virtual void Dispose(bool disposing) { }
 
