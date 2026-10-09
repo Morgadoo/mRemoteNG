@@ -1,0 +1,4 @@
+HostName=
+PortNumber=0
+Protocol=serial
+SerialLine=/dev/ttyUSB0

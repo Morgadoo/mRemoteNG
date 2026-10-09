@@ -1,0 +1,6 @@
+Present=1
+HostName=myserver.example.com
+LogFileName=putty.log
+PortNumber=2222
+Protocol=ssh
+UserName=alice

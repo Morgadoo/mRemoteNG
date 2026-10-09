@@ -246,14 +246,165 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task OnImport()
     {
-        var dialog = new ImportDialog();
-        await dialog.ShowDialog(GetMainWindow());
+        var window = GetMainWindow();
+        if (window is null) return;
+
+        var selectedFolder = GetSelectedImportExportFolder();
+        var request = await new ImportDialog(selectedFolder?.Name).ShowDialog<ImportRequest?>(window);
+        if (request is null) return;
+
+        var targetNode = request.IntoSelectedFolder && selectedFolder is not null
+            ? selectedFolder
+            : ConnectionTree.Nodes.FirstOrDefault();
+        if (targetNode?.Model is not global::mRemoteNG.Core.Container.ContainerInfo targetContainer)
+        {
+            _log.Log("Import failed: there is no connection tree to import into.", LogLevel.Error);
+            return;
+        }
+
+        var result = await RunImportAsync(window, request, targetContainer);
+        if (result is null) return;
+
+        // The tree view mirrors the model; add view nodes for the imported model nodes so the
+        // import shows up and is kept when the tree is saved.
+        foreach (var node in result.ImportedNodes)
+            targetNode.Children.Add(ConnectionNodeViewModel.FromModel(node));
+        targetNode.IsExpanded = true;
+        ConnectionTree.SetDependencies(_sessions, AppServices.GetRequired<IProtocolFactory>());
+
+        var sourceName = global::mRemoteNG.Core.Config.Import.ImportSourceDescriptor.For(request.Type).DisplayName;
+        var from = string.IsNullOrEmpty(request.Source) ? sourceName : $"{sourceName} \"{request.Source}\"";
+        _log.Log($"Imported {result.Summary} from {from} into \"{targetContainer.Name}\". Save the connection file to keep them.");
+        foreach (var warning in result.Warnings)
+            _log.Log($"Import: {warning}", LogLevel.Warning);
+    }
+
+    /// <summary>Runs the import, asking for the password of a protected mRemoteNG file. Returns null when it failed or was cancelled.</summary>
+    private async Task<global::mRemoteNG.Core.Config.Import.ImportResult?> RunImportAsync(
+        Window owner,
+        ImportRequest request,
+        global::mRemoteNG.Core.Container.ContainerInfo targetContainer)
+    {
+        var importService = new global::mRemoteNG.Core.Config.Import.ConnectionImportService(
+            AppServices.GetRequired<global::mRemoteNG.Core.Security.Factories.ICryptoProviderFactory>());
+        string? password = null;
+
+        while (true)
+        {
+            try
+            {
+                if (request.Type == global::mRemoteNG.Core.Config.Import.ImportSourceType.PuttySessions
+                    && string.IsNullOrEmpty(request.Source)
+                    && OperatingSystem.IsWindows())
+                {
+                    // PuTTY keeps sessions in the registry on Windows; that is read by the platform provider.
+                    if (AppServices.Provider.GetService(typeof(global::mRemoteNG.Platform.IPuttySessionsProvider))
+                        is not global::mRemoteNG.Platform.IPuttySessionsProvider puttyProvider)
+                    {
+                        _log.Log("Import failed: reading PuTTY sessions from the registry is not available. Select a sessions folder instead.", LogLevel.Error);
+                        return null;
+                    }
+                    var sessions = await puttyProvider.GetSessionsAsync();
+                    return importService.ImportPuttySessions(sessions, targetContainer);
+                }
+
+                return importService.Import(request.Type, request.Source, targetContainer, password);
+            }
+            catch (ConnectionFilePasswordException ex)
+            {
+                var fileName = System.IO.Path.GetFileName(request.Source);
+                var prompt = new PasswordPromptDialog(
+                    $"\"{fileName}\" is protected by a password.",
+                    ex.PasswordWasSupplied ? "Incorrect password. Please try again." : null);
+                password = await prompt.ShowDialog<string?>(owner);
+                if (password is null)
+                {
+                    _log.Log($"Import of {request.Source} cancelled: password required.", LogLevel.Warning);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Log($"Import failed: {ex.Message}", LogLevel.Error);
+                return null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// The folder selected in the tree (or the folder of the selected connection) for import/export;
+    /// null when nothing below the root is selected.
+    /// </summary>
+    private ConnectionNodeViewModel? GetSelectedImportExportFolder()
+    {
+        var selected = ConnectionTree.SelectedNode;
+        if (selected?.Model is null || ConnectionTree.Nodes.Contains(selected))
+            return null;
+        if (selected.IsFolder)
+            return selected;
+
+        var parentModel = selected.Model.Parent;
+        if (parentModel is null || parentModel is global::mRemoteNG.Core.Tree.Root.RootNodeInfo)
+            return null;
+        return FindNodeForModel(ConnectionTree.Nodes, parentModel);
+    }
+
+    private static ConnectionNodeViewModel? FindNodeForModel(
+        IEnumerable<ConnectionNodeViewModel> nodes,
+        global::mRemoteNG.Core.Connection.ConnectionInfo model)
+    {
+        foreach (var node in nodes)
+        {
+            if (ReferenceEquals(node.Model, model))
+                return node;
+            var found = FindNodeForModel(node.Children, model);
+            if (found is not null)
+                return found;
+        }
+        return null;
     }
 
     private async Task OnExport()
     {
-        var dialog = new ExportDialog();
-        await dialog.ShowDialog(GetMainWindow());
+        var window = GetMainWindow();
+        if (window is null) return;
+
+        var selectedFolder = GetSelectedImportExportFolder();
+        var request = await new ExportDialog(selectedFolder?.Name).ShowDialog<ExportRequest?>(window);
+        if (request is null) return;
+
+        global::mRemoteNG.Core.Connection.ConnectionInfo? exportTarget = request.SelectedFolderOnly
+            ? selectedFolder?.Model
+            : _connectionsService.ConnectionTreeModel?.RootNode;
+        if (exportTarget is null)
+        {
+            _log.Log("Export failed: nothing to export.", LogLevel.Error);
+            return;
+        }
+
+        try
+        {
+            var exporter = new global::mRemoteNG.Core.Config.Export.ConnectionExporter(
+                AppServices.GetRequired<global::mRemoteNG.Core.Security.Factories.ICryptoProviderFactory>());
+            exporter.ExportToFile(request.FilePath, exportTarget, new global::mRemoteNG.Core.Config.Export.ExportOptions
+            {
+                Format = request.Format,
+                SaveFilter = request.SaveFilter,
+                Password = request.Password,
+                // Same cipher settings as the open connection file.
+                Encryption = _connectionsService.Encryption,
+            });
+
+            var count = exportTarget is global::mRemoteNG.Core.Container.ContainerInfo container
+                ? container.GetRecursiveChildList().Count(n => n is not global::mRemoteNG.Core.Container.ContainerInfo)
+                : 1;
+            var protection = request.Password is null ? "" : ", password protected";
+            _log.Log($"Exported {count} connection{(count == 1 ? "" : "s")} to {request.FilePath} ({request.Format}{protection}).");
+        }
+        catch (Exception ex)
+        {
+            _log.Log($"Export failed: {ex.Message}", LogLevel.Error);
+        }
     }
 
     private async Task OnOpenOptions()
