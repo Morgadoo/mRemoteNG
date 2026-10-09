@@ -40,35 +40,20 @@ public sealed class RdpConnectionException : Exception
     public RdpConnectionException(string message) : base(message) { }
 }
 
-/// <summary>Options for <see cref="RdpProtocol.BuildFreeRdpArgs"/>.</summary>
-internal sealed record FreeRdpLaunchOptions
-{
-    /// <summary>Installed FreeRDP major version (2 or 3); decides the syntax of a few options.</summary>
-    public int MajorVersion { get; init; } = 3;
-
-    /// <summary>Native window (XID / HWND) FreeRDP should create its desktop window in, or null for a top-level window.</summary>
-    public nint? ParentWindow { get; init; }
-
-    /// <summary>Initial desktop size in device pixels.</summary>
-    public PixelSize? Size { get; init; }
-
-    /// <summary>Window title (only meaningful for a top-level window).</summary>
-    public string? Title { get; init; }
-}
-
 /// <summary>
 /// RDP via FreeRDP (xfreerdp3 / xfreerdp / wfreerdp) running as a child process.
 ///
 /// Embedding (Linux/X11 and Windows): <see cref="CreateView"/> returns an <see cref="RdpSessionView"/> whose
 /// <see cref="RdpNativeHost"/> (an Avalonia NativeControlHost) owns a native child window. ConnectAsync waits until
 /// that window exists and has a size, then starts FreeRDP with <c>/parent-window:&lt;XID|HWND&gt;</c> and
-/// <c>/size:WxH</c> (device pixels, i.e. scaled by the window's render scaling) plus <c>/dynamic-resolution</c>.
-/// FreeRDP creates its desktop window inside ours; <see cref="IEmbeddedWindowSupport"/> keeps it sized to the
-/// tab (which, through dynamic resolution, resizes the remote desktop) and moves keyboard focus into it when the
-/// tab is selected or clicked.
+/// <c>/size:WxH</c> (device pixels, i.e. scaled by the window's render scaling). FreeRDP creates its desktop
+/// window inside ours; <see cref="IEmbeddedWindowSupport"/> keeps it sized to the tab (which, with
+/// <c>/dynamic-resolution</c>, resizes the remote desktop) or at the fixed desktop size, and moves keyboard focus
+/// into it when the tab is selected or clicked. The connection's resolution decides between those (see
+/// <see cref="RdpDisplaySettings"/>).
 ///
-/// Separate window (macOS, Linux without an X11 handle, or no view): FreeRDP opens its own window and the tab
-/// says so, offering to bring that window to the front (where supported) or to end the session.
+/// Separate window (full screen, macOS, Linux without an X11 handle, or no view): FreeRDP opens its own window
+/// and the tab says so, offering to bring that window to the front (where supported) or to end the session.
 ///
 /// Connection state: Connected is reported only when FreeRDP's core logs the transition to
 /// CONNECTION_STATE_ACTIVE (FreeRDP 3, enabled with WLOG_FILTER — see <see cref="FreeRdpOutputParser"/>).
@@ -164,14 +149,23 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         _majorVersion = await GetFreeRdpMajorVersionAsync(freerdp, ct);
         bool argsFromEnvironment = _majorVersion >= 3;
 
-        var (parent, size) = await WaitForEmbedParentAsync(ct);
+        var display = RdpDisplaySettings.From(parameters);
+        // Full screen always means FreeRDP's own window.
+        var (parent, size) = display.CanEmbed ? await WaitForEmbedParentAsync(ct) : (null, null);
+        var extras = parameters.Extras;
+        var devices = await Task.Run(() => RdpLocalDevices.Discover(
+            ports: IsTrue(extras, ConnectionParametersFactory.Keys.RdpRedirectPorts),
+            fixedDrives: extras.GetValueOrDefault(ConnectionParametersFactory.Keys.RdpDrives) == "local"), ct);
         var args = BuildFreeRdpArgs(parameters, new FreeRdpLaunchOptions
         {
             MajorVersion = _majorVersion == 0 ? 3 : _majorVersion,
             ParentWindow = parent?.Handle,
             Size = size,
             Title = parent is null ? $"{parameters.Hostname} - mRemoteNG" : null,
+            LocalDevices = devices,
+            Warn = message => _logger.LogWarning("RDP {Host}: {Message}", parameters.Hostname, message),
         });
+        ConfigureDisplay(display, size);
 
         // One argument per line when passed via /args-from: a line break inside a value (e.g. from an
         // untrusted connection file) would smuggle in extra options.
@@ -213,11 +207,12 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         {
             foreach (string arg in args)
                 startInfo.ArgumentList.Add(arg);
-            if (!string.IsNullOrEmpty(parameters.Password))
-                _logger.LogWarning("FreeRDP 2.x does not support /args-from; the password is visible to local users in the process list. Upgrade to FreeRDP 3.");
+            if (!string.IsNullOrEmpty(parameters.Password) || extras.ContainsKey(ConnectionParametersFactory.Keys.RdpGatewayPassword)
+                || extras.ContainsKey(ConnectionParametersFactory.Keys.RdpGatewayAccessToken))
+                _logger.LogWarning("FreeRDP 2.x does not support /args-from; passwords are visible to local users in the process list. Upgrade to FreeRDP 3.");
         }
 
-        _logger.LogDebug("FreeRDP {Version}: {Binary} {Args}", _majorVersion, freerdp, string.Join(' ', args.Select(RedactPassword)));
+        _logger.LogDebug("FreeRDP {Version}: {Binary} {Args}", _majorVersion, freerdp, RedactArgs(args));
 
         _embedded = parent is not null;
         if (parent is not null)
@@ -225,15 +220,19 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
             // Create the glue before FreeRDP starts so it observes FreeRDP mapping its window.
             _embed = EmbeddedWindowSupport.Create(parent, _logger);
             if (_embed is not null)
+            {
                 _embed.RemoteWindowMapped += (_, _) => _logger.LogDebug("FreeRDP mapped its window inside the session tab");
+                ApplyRemoteSize();
+            }
             // FreeRDP blocks until its window is viewable, so the host must be shown before FreeRDP starts.
             await OnUiAsync(v => v.ShowEmbedded());
         }
         else
         {
-            OnUi(v => v.ShowMessage(
-                $"Connecting to {parameters.Hostname}…\nFreeRDP will open in a separate window.",
-                showDisconnect: true));
+            string where = display.Mode == RdpResolutionMode.Fullscreen
+                ? "FreeRDP will open full screen (Ctrl+Alt+Enter leaves full screen)."
+                : "FreeRDP will open in a separate window.";
+            OnUi(v => v.ShowMessage($"Connecting to {parameters.Hostname}…\n{where}", showDisconnect: true));
         }
 
         var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
@@ -282,6 +281,7 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
     public override async Task DisconnectAsync(CancellationToken ct = default)
     {
         _disconnectRequested = true;
+        StopIdleTimeout();
         Process? process;
         lock (_sync)
             process = _process;
@@ -375,6 +375,7 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         string host = _parameters?.Hostname ?? "host";
         RaiseStatus($"Connected to {host}");
         _connected.TrySetResult();
+        StartIdleTimeout();
 
         if (_embedded)
         {
@@ -402,6 +403,7 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         _logger.LogInformation("FreeRDP exited with code {Code}", exitCode);
 
         bool wasConnected = _connected.Task.IsCompleted;
+        StopIdleTimeout();
         DisposeEmbedSupport();
 
         if (_disconnectRequested)
@@ -592,92 +594,6 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         return null;
     }
 
-    /// <summary>Reads the certificate policy from <see cref="CertPolicyKey"/>; unknown values fall back to TOFU.</summary>
-    internal static RdpCertificatePolicy GetCertificatePolicy(ConnectionParameters p) =>
-        p.Extras.TryGetValue(CertPolicyKey, out string? value) && Enum.TryParse(value, ignoreCase: true, out RdpCertificatePolicy policy)
-            && Enum.IsDefined(policy)
-            ? policy
-            : RdpCertificatePolicy.Tofu;
-
-    /// <summary>
-    /// Builds the FreeRDP 2.x/3.x argument list. Each element is one argument, so values are
-    /// never re-parsed by a shell and cannot inject additional options.
-    /// </summary>
-    internal static IReadOnlyList<string> BuildFreeRdpArgs(ConnectionParameters p, FreeRdpLaunchOptions? options = null)
-    {
-        options ??= new FreeRdpLaunchOptions();
-        bool v3 = options.MajorVersion >= 3;
-        var args = new List<string> { $"/v:{p.Hostname}:{p.Port}" };
-        var extras = p.Extras;
-        bool Flag(string key, bool defaultValue) =>
-            extras.TryGetValue(key, out string? v) ? v.Equals("true", StringComparison.OrdinalIgnoreCase) : defaultValue;
-
-        // Credentials
-        if (!string.IsNullOrEmpty(p.Username)) args.Add($"/u:{p.Username}");
-        if (!string.IsNullOrEmpty(p.Domain)) args.Add($"/d:{p.Domain}");
-        // Without a password FreeRDP would ask for credentials on its terminal (there is none, so it gives up with
-        // "cancelled"). An explicit empty password makes it connect anyway: servers without NLA (xrdp, Windows with
-        // NLA disabled) then show their own login screen in the session; NLA servers report an authentication error.
-        args.Add(string.IsNullOrEmpty(p.Password) ? "/p:" : $"/p:{p.Password}");
-
-        // Window: embedded into our native window, sized to the tab in device pixels.
-        if (options.ParentWindow is { } parent)
-            args.Add(string.Create(CultureInfo.InvariantCulture, $"/parent-window:{(ulong)parent}"));
-        if (options.Size is { } size)
-            args.Add(string.Create(CultureInfo.InvariantCulture, $"/size:{size.Width}x{size.Height}"));
-        if (!string.IsNullOrEmpty(options.Title))
-            args.Add($"/title:{options.Title}");
-
-        // Display & session. Dynamic resolution makes the server follow window resizes.
-        args.Add("/dynamic-resolution");
-        args.Add("+auto-reconnect");
-        args.Add("/network:auto");
-        args.Add(extras.TryGetValue(ConnectionParametersFactory.Keys.RdpColorDepth, out string? depth) ? $"/bpp:{depth}" : "/bpp:32");
-        if (Flag(ConnectionParametersFactory.Keys.RdpConsole, false)) args.Add("/admin");
-        if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpLoadBalanceInfo, out string? lb)) args.Add($"/load-balance-info:{lb}");
-
-        // Redirection — opt-in per connection, never the whole filesystem.
-        // Audio backends are auto-detected: forcing one (e.g. sys:pulse) makes FreeRDP abort in post-connect
-        // when that sound server is not running.
-        if (Flag(ConnectionParametersFactory.Keys.RdpClipboard, true)) args.Add("/clipboard");
-        if (Flag(ConnectionParametersFactory.Keys.RdpHomeDrive, false)) args.Add("+home-drive");
-        if (Flag(ConnectionParametersFactory.Keys.RdpMicrophone, false)) args.Add("/microphone");
-        switch (extras.GetValueOrDefault(ConnectionParametersFactory.Keys.RdpSound, "local"))
-        {
-            case "local": args.Add("/sound"); break;
-            case "remote": args.Add("/audio-mode:1"); break;
-            default: args.Add("/audio-mode:2"); break;
-        }
-
-        // Gateway
-        if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpGateway, out string? gw))
-        {
-            var gateway = $"/gateway:g:{gw}";
-            if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpGatewayUsername, out string? gu)) gateway += $",u:{gu}";
-            if (extras.TryGetValue(ConnectionParametersFactory.Keys.RdpGatewayDomain, out string? gd)) gateway += $",d:{gd}";
-            args.Add(gateway);
-        }
-
-        // Security. "Use CredSSP" (mstsc semantics) allows NLA rather than forcing it: FreeRDP negotiates
-        // NLA > TLS > RDP by default. When disabled, NLA is switched off and TLS/RDP security remain.
-        if (!Flag(ConnectionParametersFactory.Keys.RdpNla, true))
-            args.Add(v3 ? "/sec:nla:off" : "-sec-nla");
-
-        // Certificate policy. FreeRDP 2 only understands the older /cert-* spellings reliably.
-        string policy = GetCertificatePolicy(p) switch
-        {
-            RdpCertificatePolicy.Ignore => "ignore",
-            RdpCertificatePolicy.Deny => "deny",
-            _ => "tofu",
-        };
-        args.Add(v3 ? $"/cert:{policy}" : $"/cert-{policy}");
-
-        return args;
-    }
-
-    private static string RedactPassword(string arg) =>
-        arg.StartsWith("/p:", StringComparison.Ordinal) && arg.Length > 3 ? "/p:********" : arg;
-
     private async Task<int> GetFreeRdpMajorVersionAsync(string freerdpBin, CancellationToken ct)
     {
         try
@@ -751,6 +667,7 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         if (!disposing || _disposed) return;
         _disposed = true;
         _disconnectRequested = true;
+        StopIdleTimeout();
 
         Process? process;
         lock (_sync)

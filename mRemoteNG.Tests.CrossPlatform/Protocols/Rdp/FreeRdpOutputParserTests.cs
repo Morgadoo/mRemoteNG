@@ -122,7 +122,7 @@ public class FreeRdpOutputParserTests
         string message = parser.DescribeFailure(143);
 
         message.Should().NotContain("has changed");
-        message.Should().Contain("not trusted").And.Contain("different host name").And.Contain("rdp.certPolicy");
+        message.Should().Contain("not trusted").And.Contain("different host name").And.Contain("Authentication level");
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using Avalonia;
 using Microsoft.Extensions.Logging;
 
 namespace mRemoteNG.Protocols.Rdp;
@@ -17,7 +18,10 @@ namespace mRemoteNG.Protocols.Rdp;
 ///     classic window-manager technique: on ButtonPress we give the FreeRDP window the input focus and
 ///     replay the click (XAllowEvents ReplayPointer) so FreeRDP still receives it;
 ///   • lets the host move focus to the FreeRDP window when its tab is activated, and back to the
-///     Avalonia top-level when the user clicks Avalonia UI.
+///     Avalonia top-level when the user clicks Avalonia UI;
+///   • keeps the FreeRDP window at a fixed size instead when asked to (smart sizing switched off);
+///   • sends key combinations to the FreeRDP window with XSendEvent (delivered to that window only, so the
+///     local window manager never sees e.g. Ctrl+Alt+Del) and reports the user's idle time (XScreenSaver).
 ///
 /// It uses its own Xlib connection (window ids are server-side, so any client may operate on them) and
 /// a dedicated event thread; every Xlib call on that connection is made under <see cref="_lock"/>, so
@@ -34,6 +38,8 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
     private readonly Thread _thread;
     private volatile bool _stopping;
     private bool _focusPending;
+    private PixelSize? _fixedSize;
+    private bool _idleUnavailable;
     private bool _disposed;
 
     public event EventHandler? RemoteWindowMapped;
@@ -124,6 +130,129 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
         // Resizes are driven by ConfigureNotify on the parent (see EventLoop); nothing to do here.
     }
 
+    public void SetFixedRemoteSize(PixelSize? size)
+    {
+        lock (_lock)
+        {
+            if (_disposed) return;
+            _fixedSize = size;
+            nint child = FindChild();
+            if (child == 0) return;
+            if (size is { } fixedSize)
+                ResizeAndRepaint(child, (uint)fixedSize.Width, (uint)fixedSize.Height);
+            else if (XGetWindowAttributes(_display, _parent, out XWindowAttributes attrs) != 0)
+                ResizeAndRepaint(child, (uint)Math.Max(1, attrs.Width), (uint)Math.Max(1, attrs.Height));
+            XFlush(_display);
+        }
+    }
+
+    public bool SendKeyChord(IReadOnlyList<ChordKey> keys)
+    {
+        lock (_lock)
+        {
+            if (_disposed) return false;
+            nint child = FindChild();
+            if (child == 0 || !IsViewable(child)) return false;
+
+            var codes = new uint[keys.Count];
+            for (int i = 0; i < keys.Count; i++)
+            {
+                codes[i] = XKeysymToKeycode(_display, KeySymOf(keys[i]));
+                if (codes[i] == 0) return false;
+            }
+
+            // FreeRDP releases its pressed keys and resynchronises modifiers on FocusIn; the X server delivers
+            // that FocusIn before the key events below because both come from this connection in order.
+            XSetInputFocus(_display, child, RevertToParent, CurrentTime);
+            nint root = XDefaultRootWindow(_display);
+            uint state = 0;
+            for (int i = 0; i < keys.Count; i++)
+            {
+                SendKey(child, root, codes[i], state, press: true);
+                state |= ModifierMaskOf(keys[i]);
+            }
+            for (int i = keys.Count - 1; i >= 0; i--)
+            {
+                SendKey(child, root, codes[i], state, press: false);
+                state &= ~ModifierMaskOf(keys[i]);
+            }
+            XFlush(_display);
+            return true;
+        }
+    }
+
+    // Called with _lock held. The state field is the modifier state just before the event, as for real input.
+    private void SendKey(nint window, nint root, uint keycode, uint state, bool press)
+    {
+        var ev = new XKeyEvent
+        {
+            Type = press ? KeyPress : KeyRelease,
+            SendEvent = 1,
+            Window = window,
+            Root = root,
+            State = state,
+            Keycode = keycode,
+            SameScreen = 1,
+        };
+        XSendEvent(_display, window, false, press ? KeyPressMask : KeyReleaseMask, ref ev);
+    }
+
+    private static nint KeySymOf(ChordKey key) => key switch
+    {
+        ChordKey.Control => 0xFFE3, // XK_Control_L
+        ChordKey.Alt => 0xFFE9,     // XK_Alt_L
+        ChordKey.Delete => 0xFFFF,  // XK_Delete
+        ChordKey.Escape => 0xFF1B,  // XK_Escape
+        _ => throw new ArgumentOutOfRangeException(nameof(key), key, null),
+    };
+
+    private static uint ModifierMaskOf(ChordKey key) => key switch
+    {
+        ChordKey.Control => ControlMask,
+        ChordKey.Alt => Mod1Mask,
+        _ => 0,
+    };
+
+    public TimeSpan? UserIdleTime
+    {
+        get
+        {
+            lock (_lock)
+            {
+                if (_disposed || _idleUnavailable) return null;
+                try
+                {
+                    if (XScreenSaverQueryExtension(_display, out _, out _)
+                        && XScreenSaverQueryInfo(_display, XDefaultRootWindow(_display), out XScreenSaverInfo info) != 0)
+                        return TimeSpan.FromMilliseconds(info.Idle);
+                }
+                catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+                {
+                    _logger.LogDebug(ex, "libXss is not available");
+                }
+                _idleUnavailable = true;
+                return null;
+            }
+        }
+    }
+
+    public bool PointerOverRemote
+    {
+        get
+        {
+            lock (_lock)
+            {
+                if (_disposed) return false;
+                nint child = FindChild();
+                if (child == 0 || !IsViewable(child)) return false;
+                if (!XQueryPointer(_display, child, out _, out _, out _, out _, out int x, out int y, out _))
+                    return false;
+                return XGetWindowAttributes(_display, child, out XWindowAttributes attrs) != 0
+                       && x >= 0 && y >= 0 && x < attrs.Width && y < attrs.Height;
+            }
+        }
+    }
+
     public bool RemoteHasFocus
     {
         get
@@ -191,13 +320,16 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
                 break;
             }
             case ConfigureNotify when ev.ConfigureWindow == _parent:
-                ResizeChildren(ev.ConfigureWidth, ev.ConfigureHeight);
+                if (_fixedSize is null)
+                    ResizeChildren(ev.ConfigureWidth, ev.ConfigureHeight);
                 break;
             case MapNotify when ev.MapWindow != _parent && ev.MapEvent == _parent:
             {
                 // FreeRDP mapped its desktop window inside our parent: match the parent's current size
-                // (the user may have resized the tab since /size was computed).
-                if (XGetWindowAttributes(_display, _parent, out XWindowAttributes attrs) != 0)
+                // (the user may have resized the tab since /size was computed), or the fixed size.
+                if (_fixedSize is { } fixedSize)
+                    XResizeWindow(_display, ev.MapWindow, (uint)fixedSize.Width, (uint)fixedSize.Height);
+                else if (XGetWindowAttributes(_display, _parent, out XWindowAttributes attrs) != 0)
                     XResizeWindow(_display, ev.MapWindow, (uint)Math.Max(1, attrs.Width), (uint)Math.Max(1, attrs.Height));
                 if (_focusPending)
                 {
@@ -211,6 +343,14 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
         }
     }
 
+    // Called with _lock held. With smart sizing FreeRDP only rescales what the server redraws afterwards;
+    // exposing the whole window makes it repaint the complete desktop at the new scale right away.
+    private void ResizeAndRepaint(nint child, uint width, uint height)
+    {
+        XResizeWindow(_display, child, width, height);
+        XClearArea(_display, child, 0, 0, 0, 0, true);
+    }
+
     // Called with _lock held.
     private void ResizeChildren(int width, int height)
     {
@@ -221,7 +361,7 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
             for (int i = 0; i < count; i++)
             {
                 nint child = Marshal.ReadIntPtr(children, i * IntPtr.Size);
-                XResizeWindow(_display, child, (uint)Math.Max(1, width), (uint)Math.Max(1, height));
+                ResizeAndRepaint(child, (uint)Math.Max(1, width), (uint)Math.Max(1, height));
             }
             XFlush(_display);
         }
@@ -268,10 +408,16 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
 
     private const string LibX11 = "libX11.so.6";
 
+    private const string LibXss = "libXss.so.1";
+
+    private const int KeyPress = 2;
+    private const int KeyRelease = 3;
     private const int ButtonPress = 4;
     private const int MapNotify = 19;
     private const int ConfigureNotify = 22;
 
+    private const nint KeyPressMask = 1 << 0;
+    private const nint KeyReleaseMask = 1 << 1;
     private const nint ButtonPressMask = 1 << 2;
     private const nint StructureNotifyMask = 1 << 17;
     private const nint SubstructureNotifyMask = 1 << 19;
@@ -284,6 +430,8 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
     private const int RevertToParent = 2;
     private const nint CurrentTime = 0;
     private const int IsViewableState = 2;
+    private const uint ControlMask = 1 << 2;
+    private const uint Mod1Mask = 1 << 3;
     private const short PollIn = 1;
 
     /// <summary>
@@ -305,6 +453,31 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
         [FieldOffset(40)] public nint ConfigureWindow;
         [FieldOffset(56)] public int ConfigureWidth;
         [FieldOffset(60)] public int ConfigureHeight;
+    }
+
+    /// <summary>XKeyEvent inside the 192-byte XEvent union (LP64 offsets).</summary>
+    [StructLayout(LayoutKind.Explicit, Size = 192)]
+    private struct XKeyEvent
+    {
+        [FieldOffset(0)] public int Type;
+        [FieldOffset(16)] public int SendEvent;
+        [FieldOffset(32)] public nint Window;
+        [FieldOffset(40)] public nint Root;
+        [FieldOffset(56)] public nint Time;
+        [FieldOffset(80)] public uint State;
+        [FieldOffset(84)] public uint Keycode;
+        [FieldOffset(88)] public int SameScreen;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XScreenSaverInfo
+    {
+        public nint Window;
+        public int State;
+        public int Kind;
+        public nuint TilOrSince;
+        public nuint Idle;
+        public nuint EventMask;
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 136)]
@@ -337,6 +510,27 @@ internal sealed class X11EmbedSupport : IEmbeddedWindowSupport
     [DllImport(LibX11)] private static extern int XGetInputFocus(nint display, out nint focus, out int revertTo);
     [DllImport(LibX11)] private static extern int XGetWindowAttributes(nint display, nint window, out XWindowAttributes attributes);
     [DllImport(LibX11)] private static extern int XAllowEvents(nint display, int eventMode, nint time);
+    [DllImport(LibX11)] private static extern nint XDefaultRootWindow(nint display);
+
+    [DllImport(LibX11)]
+    private static extern int XClearArea(nint display, nint window, int x, int y, uint width, uint height,
+        [MarshalAs(UnmanagedType.Bool)] bool exposures);
+    [DllImport(LibX11)] private static extern byte XKeysymToKeycode(nint display, nint keysym); // KeyCode is an unsigned char
+
+    [DllImport(LibX11)]
+    private static extern int XSendEvent(nint display, nint window, [MarshalAs(UnmanagedType.Bool)] bool propagate,
+        nint eventMask, ref XKeyEvent ev);
+
+    [DllImport(LibX11)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool XQueryPointer(nint display, nint window, out nint root, out nint child,
+        out int rootX, out int rootY, out int winX, out int winY, out uint mask);
+
+    [DllImport(LibXss)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool XScreenSaverQueryExtension(nint display, out int eventBase, out int errorBase);
+
+    [DllImport(LibXss)] private static extern int XScreenSaverQueryInfo(nint display, nint drawable, out XScreenSaverInfo info);
 
     [DllImport(LibX11)]
     private static extern int XGrabButton(nint display, uint button, uint modifiers, nint grabWindow,

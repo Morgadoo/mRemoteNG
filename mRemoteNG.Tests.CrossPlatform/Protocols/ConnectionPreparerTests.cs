@@ -87,4 +87,17 @@ public class ConnectionPreparerTests
         prepared.Parameters.Extras[ConnectionParametersFactory.Keys.RdpConsole].Should().Be("true");
         prepared.Parameters.Extras[ConnectionParametersFactory.Keys.VncViewOnly].Should().Be("true");
     }
+
+    [Fact]
+    public async Task ConnectOptions_Fullscreen_OverridesRdpResolutionOnly()
+    {
+        var preparer = new ConnectionPreparer([]);
+        var rdp = new ConnectionInfo { Name = "r", Protocol = CoreProtocol.RDP, Hostname = "h" };
+
+        var rdpPrepared = await preparer.PrepareAsync(rdp, new ConnectOptions { Fullscreen = true });
+        var sshPrepared = await preparer.PrepareAsync(Ssh(), new ConnectOptions { Fullscreen = true });
+
+        rdpPrepared.Parameters.Extras[ConnectionParametersFactory.Keys.RdpResolution].Should().Be("fullscreen");
+        sshPrepared.Parameters.Extras.Should().NotContainKey(ConnectionParametersFactory.Keys.RdpResolution);
+    }
 }

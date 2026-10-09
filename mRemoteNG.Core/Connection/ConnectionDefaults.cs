@@ -17,6 +17,7 @@ namespace mRemoteNG.Core.Connection
             info.Icon = "mRemoteNG";
             info.Panel = "General";
             info.Resolution = RDPResolutions.FitToWindow;
+            info.AutomaticResize = true;
             info.Colors = RDPColors.Colors16Bit;
             info.UseCredSsp = true;
             info.RedirectSound = RDPSounds.DoNotPlay;

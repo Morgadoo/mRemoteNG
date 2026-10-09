@@ -79,6 +79,7 @@ public class ConnectionEditingTests
 
         info.Colors.Should().Be(RDPColors.Colors16Bit);
         info.UseCredSsp.Should().BeTrue();
+        info.AutomaticResize.Should().BeTrue();
         info.RedirectSound.Should().Be(RDPSounds.DoNotPlay);
         info.Icon.Should().Be("mRemoteNG");
         info.Panel.Should().Be("General");

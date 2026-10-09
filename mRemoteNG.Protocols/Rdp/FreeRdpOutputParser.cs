@@ -150,7 +150,7 @@ internal sealed partial class FreeRdpOutputParser
                 : "The server's TLS certificate was not trusted and the connection was aborted.";
             if (_certificateNameMismatch)
                 reason += " The certificate was issued for a different host name.";
-            return reason + " See the rdp.certPolicy setting if this certificate is expected.";
+            return reason + " If this certificate is expected, lower the connection's \"Server authentication\" setting (Authentication level).";
         }
 
         if (_credentialPromptFailed)

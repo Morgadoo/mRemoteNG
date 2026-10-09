@@ -121,9 +121,11 @@ public sealed class ConnectionPreparer(IEnumerable<IConnectionPreparationStep> s
         if (options.NoCredentials)
             parameters = parameters with { Username = null, Password = null, Domain = null };
 
-        if (options.ConsoleSession is { } console || options.ViewOnly)
+        if (options.ConsoleSession is not null || options.ViewOnly || options.Fullscreen)
         {
             var extras = new Dictionary<string, string>(parameters.Extras);
+            if (options.Fullscreen && parameters.Protocol == ProtocolType.Rdp)
+                extras[ConnectionParametersFactory.Keys.RdpResolution] = "fullscreen";
             if (options.ConsoleSession is { } consoleSession)
                 extras[ConnectionParametersFactory.Keys.RdpConsole] = consoleSession ? "true" : "false";
             if (options.ViewOnly)

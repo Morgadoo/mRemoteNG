@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Platform;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +26,33 @@ internal interface IEmbeddedWindowSupport : IDisposable
 
     /// <summary>Called when the host control's size (in device pixels) changes.</summary>
     void ResizeRemote(int width, int height);
+
+    /// <summary>
+    /// Keeps the FreeRDP window at <paramref name="size"/> (device pixels, top-left of the parent), or makes it
+    /// follow the parent's size again when null (the default).
+    /// </summary>
+    void SetFixedRemoteSize(PixelSize? size);
+
+    /// <summary>
+    /// Focuses the FreeRDP window and sends it a key combination: the keys are pressed in order and released
+    /// in reverse order. Returns false when the window does not exist or the events could not be sent.
+    /// </summary>
+    bool SendKeyChord(IReadOnlyList<ChordKey> keys);
+
+    /// <summary>Time since the user's last keyboard/pointer input on this desktop, or null when unknown.</summary>
+    TimeSpan? UserIdleTime { get; }
+
+    /// <summary>True when the pointer is over the FreeRDP window.</summary>
+    bool PointerOverRemote { get; }
+}
+
+/// <summary>Keys used in the key combinations <see cref="IEmbeddedWindowSupport.SendKeyChord"/> sends.</summary>
+internal enum ChordKey
+{
+    Control,
+    Alt,
+    Delete,
+    Escape,
 }
 
 internal static class EmbeddedWindowSupport

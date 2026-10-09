@@ -84,7 +84,7 @@ public class ConnectionParametersFactoryTests
         extras[Keys.RdpNla].Should().Be("false");
         extras[Keys.RdpConsole].Should().Be("true");
         extras[Keys.RdpClipboard].Should().Be("false");
-        extras[Keys.RdpHomeDrive].Should().Be("true");
+        extras[Keys.RdpDrives].Should().Be("local");
         extras[Keys.RdpSound].Should().Be("off");
         extras[Keys.RdpGateway].Should().Be("gw.example");
     }
