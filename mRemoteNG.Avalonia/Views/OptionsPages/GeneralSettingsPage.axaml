@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.GeneralSettingsPage"
+             x:DataType="vm:GeneralSettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Startup &amp; Exit" FontSize="18" FontWeight="Bold"/>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Startup" Classes="section-header"/>
+                <Grid ColumnDefinitions="*,280">
+                    <TextBlock Text="When mRemoteNG starts" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding StartupChoices}"
+                              SelectedItem="{Binding SelectedStartupChoice}"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,8,Auto" IsEnabled="{Binding IsStartupFileEnabled}">
+                    <TextBox Text="{Binding StartupFilePath}" Watermark="Connection file to open at startup"/>
+                    <Button Grid.Column="2" Content="Browse…" Click="OnBrowseStartupFile"/>
+                </Grid>
+                <CheckBox IsChecked="{Binding SingleInstance}"
+                          Content="Allow only a single instance of mRemoteNG"/>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Exit" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding SaveConnectionsOnExit}"
+                          Content="Save the open connection file when exiting"/>
+                <Grid ColumnDefinitions="*,280">
+                    <TextBlock Text="Confirm closing connections" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding ConfirmCloseChoices}"
+                              SelectedItem="{Binding SelectedConfirmCloseChoice}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <TextBlock Text="System Tray" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding ShowTrayIcon}" Content="Show an icon in the system tray"/>
+                <CheckBox IsChecked="{Binding MinimizeToTray}" IsEnabled="{Binding ShowTrayIcon}"
+                          Content="Minimise to the system tray"
+                          ToolTip.Tip="Requires a desktop environment with a system tray (StatusNotifierItem on Linux)."/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

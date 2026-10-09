@@ -36,15 +36,19 @@ public sealed class TrayIconService : IDisposable
         var quickConnectItem = new NativeMenuItem("Quick Connect...");
         quickConnectItem.Click += async (_, _) =>
         {
+            // The owner must be visible; it may be hidden in the tray.
+            ShowMainWindow();
+            var owner = GetMainWindow();
+            if (owner is null) return;
             var dialog = new Views.Dialogs.QuickConnectDialog();
-            await dialog.ShowDialog(GetMainWindow());
+            await dialog.ShowDialog(owner);
         };
         menu.Add(quickConnectItem);
 
         menu.Add(new NativeMenuItemSeparator());
 
         var exitItem = new NativeMenuItem("Exit");
-        exitItem.Click += (_, _) => Environment.Exit(0);
+        exitItem.Click += (_, _) => RequestExit();
         menu.Add(exitItem);
 
         return menu;
@@ -52,7 +56,25 @@ public sealed class TrayIconService : IDisposable
 
     private void OnTrayIconClicked(object? sender, EventArgs e) => ShowMainWindow();
 
-    private static void ShowMainWindow()
+    /// <summary>
+    /// Exits through the main window's normal close path, so exit confirmation and
+    /// save-on-exit still run. The window is shown first because a confirmation dialog needs a visible owner.
+    /// </summary>
+    private static void RequestExit()
+    {
+        var window = GetMainWindow();
+        if (window is null)
+        {
+            Environment.Exit(0);
+            return;
+        }
+
+        ShowMainWindow();
+        window.Close();
+    }
+
+    /// <summary>Restores the main window (e.g. after it was minimised to the tray).</summary>
+    public static void ShowMainWindow()
     {
         var window = GetMainWindow();
         if (window is null) return;
@@ -69,6 +91,8 @@ public sealed class TrayIconService : IDisposable
         if (_trayIcon is not null)
             _trayIcon.ToolTipText = tooltip;
     }
+
+    public bool IsVisible => _trayIcon?.IsVisible ?? false;
 
     public void SetVisible(bool visible)
     {

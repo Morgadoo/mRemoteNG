@@ -32,7 +32,7 @@ public sealed class AesGcmCryptoProvider : ICryptoProvider
     {
         if (masterKey == null || masterKey.Length != KeySize)
             throw new ArgumentException($"Master key must be exactly {KeySize} bytes.", nameof(masterKey));
-        _masterKey = masterKey;
+        _masterKey = (byte[])masterKey.Clone();
     }
 
     /// <summary>
@@ -53,6 +53,7 @@ public sealed class AesGcmCryptoProvider : ICryptoProvider
     /// <inheritdoc/>
     public string Protect(string plaintext)
     {
+        ArgumentNullException.ThrowIfNull(plaintext);
         var plaintextBytes = Encoding.UTF8.GetBytes(plaintext);
         var nonce = RandomNumberGenerator.GetBytes(NonceSize);
 
@@ -74,10 +75,23 @@ public sealed class AesGcmCryptoProvider : ICryptoProvider
     /// <inheritdoc/>
     public string Unprotect(string ciphertext)
     {
+        ArgumentNullException.ThrowIfNull(ciphertext);
         if (!ciphertext.StartsWith(Prefix, StringComparison.Ordinal))
             throw new InvalidOperationException("Ciphertext is not in AES-GCM format. Use CanDecrypt() first.");
 
-        var combined = Convert.FromBase64String(ciphertext[Prefix.Length..]);
+        byte[] combined;
+        try
+        {
+            combined = Convert.FromBase64String(ciphertext[Prefix.Length..]);
+        }
+        catch (FormatException ex)
+        {
+            throw new CryptographicException("AES-GCM ciphertext is not valid Base64.", ex);
+        }
+
+        if (combined.Length < NonceSize + TagSize)
+            throw new CryptographicException("AES-GCM ciphertext is too short.");
+
         var nonce = combined[..NonceSize];
         var encryptedBytes = combined[NonceSize..];
 
@@ -85,8 +99,16 @@ public sealed class AesGcmCryptoProvider : ICryptoProvider
         cipher.Init(false, new AeadParameters(new KeyParameter(_masterKey), TagSize * 8, nonce));
 
         var plaintext = new byte[cipher.GetOutputSize(encryptedBytes.Length)];
-        var len = cipher.ProcessBytes(encryptedBytes, 0, encryptedBytes.Length, plaintext, 0);
-        cipher.DoFinal(plaintext, len);
+        try
+        {
+            var len = cipher.ProcessBytes(encryptedBytes, 0, encryptedBytes.Length, plaintext, 0);
+            cipher.DoFinal(plaintext, len);
+        }
+        catch (InvalidCipherTextException ex)
+        {
+            // Wrong key or tampered data: the authentication tag did not verify.
+            throw new CryptographicException("AES-GCM authentication failed: wrong key or tampered data.", ex);
+        }
 
         return Encoding.UTF8.GetString(plaintext);
     }

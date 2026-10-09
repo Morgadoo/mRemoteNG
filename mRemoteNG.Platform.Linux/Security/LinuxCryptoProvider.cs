@@ -1,49 +1,39 @@
+using Microsoft.Extensions.Logging;
 using mRemoteNG.Platform.Security;
 
 namespace mRemoteNG.Platform.Linux.Security;
 
 /// <summary>
-/// Linux crypto provider: uses AES-256-GCM via BouncyCastle.
-/// The master key is derived from a machine-unique secret stored in
-/// ~/.config/mRemoteNG/.keyfile (chmod 600).
-/// For production use, integrate libsecret (GNOME Keyring / KDE Wallet)
-/// via D-Bus to store the key securely.
+/// Linux crypto provider: AES-256-GCM (authenticated encryption) via BouncyCastle.
+/// The random 256-bit master key lives in ~/.config/mRemoteNG/.keyfile (mode 0600),
+/// managed by <see cref="KeyFileStore"/>.
+/// For stronger protection, a future version can store the key in libsecret
+/// (GNOME Keyring / KDE Wallet) via D-Bus.
 /// </summary>
 public sealed class LinuxCryptoProvider : ICryptoProvider
 {
+    public const string KeyFileName = ".keyfile";
+
     private readonly AesGcmCryptoProvider _inner;
 
-    public LinuxCryptoProvider(ISettingsProvider settingsProvider)
+    public LinuxCryptoProvider(ISettingsProvider settingsProvider, ILogger<LinuxCryptoProvider>? logger = null)
+        : this(Path.Combine(settingsProvider.ApplicationDataDirectory, KeyFileName), logger)
     {
-        var keyFilePath = Path.Combine(settingsProvider.ApplicationDataDirectory, ".keyfile");
-        var masterKey = LoadOrCreateKey(keyFilePath);
-        _inner = new AesGcmCryptoProvider(masterKey);
     }
+
+    private LinuxCryptoProvider(string keyFilePath, ILogger? logger)
+    {
+        KeyFilePath = keyFilePath;
+        _inner = new AesGcmCryptoProvider(KeyFileStore.LoadOrCreateKey(keyFilePath, logger));
+    }
+
+    /// <summary>Creates a provider using an explicit key file path.</summary>
+    public static LinuxCryptoProvider FromKeyFile(string keyFilePath, ILogger? logger = null) =>
+        new(keyFilePath, logger);
+
+    public string KeyFilePath { get; }
 
     public string Protect(string plaintext) => _inner.Protect(plaintext);
     public string Unprotect(string ciphertext) => _inner.Unprotect(ciphertext);
     public bool CanDecrypt(string ciphertext) => _inner.CanDecrypt(ciphertext);
-
-    private static byte[] LoadOrCreateKey(string keyFilePath)
-    {
-        if (File.Exists(keyFilePath))
-        {
-            var b64 = File.ReadAllText(keyFilePath).Trim();
-            return Convert.FromBase64String(b64);
-        }
-
-        // Generate a new 256-bit key.
-        var key = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
-        File.WriteAllText(keyFilePath, Convert.ToBase64String(key));
-
-        // Restrict permissions to owner-read-only (chmod 600).
-        try
-        {
-            File.SetUnixFileMode(keyFilePath,
-                UnixFileMode.UserRead | UnixFileMode.UserWrite);
-        }
-        catch { /* Not on a Unix FS — ignore */ }
-
-        return key;
-    }
 }
