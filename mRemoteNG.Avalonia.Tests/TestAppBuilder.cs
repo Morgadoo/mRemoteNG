@@ -22,6 +22,7 @@ public static class TestAppBuilder
         CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
 
         return AppBuilder.Configure<App>()
+            .WithInterFont()
             .UseReactiveUI()
             .UseHeadless(new AvaloniaHeadlessPlatformOptions());
     }

@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Primitives;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Platform;
@@ -15,11 +14,15 @@ namespace mRemoteNG.Avalonia.Services;
 /// Applies the appearance settings to the running application:
 /// <list type="bullet">
 ///   <item>Theme: swaps the mRemoteNG palette (Themes/DarkTheme.axaml ↔ Themes/LightTheme.axaml) and the
-///         Fluent theme variant. "System" follows the OS preference and updates when it changes.</item>
+///         Fluent theme variant. "System" follows the OS preference and updates when it changes. The control
+///         styles (Themes/Controls.axaml, declared in App.axaml) never change; they reference the palette's
+///         colours with DynamicResource, and each loaded palette also receives the Fluent resource aliases of
+///         <see cref="ThemeTokens"/> so the Fluent control states use the same brush instances.</item>
 ///   <item>Named themes (<see cref="ThemeCatalog"/>: VS2015 Blue, Darcula, user themes): a fresh copy of the
 ///         dark or light palette is loaded and its colours replaced, so there is still exactly one palette.
 ///         Brushes are changed in place, so the theme editor's edits show immediately.</item>
-///   <item>Font family/size for text and controls (local values in views still win).</item>
+///   <item>Font family/size (Options > Appearance) through the <c>UiFontFamily</c>/<c>UiFontSize</c> resources
+///         (local values and the type classes such as <c>h1</c> or <c>mono</c> still win).</item>
 ///   <item>Visibility of the main window's toolbar and status bar.</item>
 /// </list>
 /// Settings are persisted by <see cref="AppSettingsService"/>, not here.
@@ -27,11 +30,15 @@ namespace mRemoteNG.Avalonia.Services;
 public sealed class ThemeService : ReactiveObject
 {
     private const string ThemeFolder = "avares://mRemoteNG.Avalonia/Themes/";
+    private const string DarkPaletteFile = "DarkTheme.axaml";
+    private const string LightPaletteFile = "LightTheme.axaml";
     private static readonly Uri BaseUri = new("avares://mRemoteNG.Avalonia/");
+
+    /// <summary>The default UI font: the embedded Inter (Avalonia.Fonts.Inter), then the platform's UI font.</summary>
+    public const string DefaultUiFontFamily = "fonts:Inter#Inter, $Default";
 
     private ThemeMode _currentTheme = ThemeMode.Dark;
     private ThemeVariant? _effectiveVariant;
-    private Styles? _appearanceStyles;
     private bool _followingSystem;
     private bool _paletteCustomized;
     private string? _currentThemeName;
@@ -112,9 +119,10 @@ public sealed class ThemeService : ReactiveObject
         StopFollowingSystem(app);
         var variant = theme.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
         app.RequestedThemeVariant = variant;
-        var palette = SwapPalette(app, theme.IsDark ? "DarkTheme.axaml" : "LightTheme.axaml", force: true);
+        var palette = SwapPalette(app, theme.IsDark ? DarkPaletteFile : LightPaletteFile, force: true);
         _paletteCustomized = true;
-        foreach (var (key, value) in theme.Colors)
+        // Keys the theme does not define (older user themes) keep the base palette's value or a derived one.
+        foreach (var (key, value) in ThemeCatalog.ResolveColors(theme))
             SetPaletteColor(palette, key, value);
         _appliedThemeSignature = signature;
         EffectiveVariant = variant;
@@ -135,7 +143,7 @@ public sealed class ThemeService : ReactiveObject
         {
             // Never recolour the shared default palette: switch to a private copy first.
             var isDark = EffectiveVariant != ThemeVariant.Light;
-            palette = SwapPalette(app, isDark ? "DarkTheme.axaml" : "LightTheme.axaml", force: true);
+            palette = SwapPalette(app, isDark ? DarkPaletteFile : LightPaletteFile, force: true);
             _paletteCustomized = true;
         }
 
@@ -171,7 +179,7 @@ public sealed class ThemeService : ReactiveObject
         };
 
         app.RequestedThemeVariant = variant;
-        SwapPalette(app, variant == ThemeVariant.Light ? "LightTheme.axaml" : "DarkTheme.axaml", force: _paletteCustomized);
+        SwapPalette(app, variant == ThemeVariant.Light ? LightPaletteFile : DarkPaletteFile, force: _paletteCustomized);
         _paletteCustomized = false;
         _appliedThemeSignature = null;
         EffectiveVariant = variant;
@@ -186,32 +194,100 @@ public sealed class ThemeService : ReactiveObject
         }
     }
 
-    /// <summary>Sets the Color resource and recolours the matching "...Brush" in place.</summary>
+    /// <summary>
+    /// Sets the Color resource and recolours, in place, the matching "…Brush" and "…TintBrush" (which keeps its
+    /// opacity), the Fluent colour keys aliased to it, the focus ring (accent) and the protocol brushes.
+    /// </summary>
     private static bool SetPaletteColor(StyleInclude palette, string key, string value)
     {
         if (!ThemeDefinition.IsValidColor(value) || palette.Loaded is not Styles styles)
             return false;
 
         var color = Color.Parse(value.Trim());
+        var resources = styles.Resources;
         var changed = false;
-        if (styles.Resources.TryGetResource(key, null, out var existing) && existing is Color)
+        if (resources.TryGetResource(key, null, out var existing) && existing is Color)
         {
-            styles.Resources[key] = color;
+            resources[key] = color;
             changed = true;
         }
 
-        if (styles.Resources.TryGetResource(key + "Brush", null, out var brush) && brush is SolidColorBrush solid)
+        foreach (var suffix in new[] { "Brush", "TintBrush" })
         {
-            solid.Color = color;
-            changed = true;
+            if (resources.TryGetResource(key + suffix, null, out var brush) && brush is SolidColorBrush solid)
+            {
+                solid.Color = color;
+                changed = true;
+            }
         }
 
-        return changed;
+        if (!changed)
+            return false;
+
+        foreach (var (alias, token) in ThemeTokens.FluentColorAliases)
+        {
+            if (token == key)
+                resources[alias] = color;
+        }
+
+        if (key == "Accent")
+            resources[FocusRingKey] = FocusRing(color, IsDarkPalette(palette));
+        if (key.StartsWith("Proto", StringComparison.Ordinal))
+            ProtocolVisuals.SyncColors(k => ReadColor(resources, k));
+        return true;
+    }
+
+    private const string FocusRingKey = "FocusRingShadow";
+
+    /// <summary>2 px ring outside focused inputs: the accent at about a third of its strength.</summary>
+    private static BoxShadows FocusRing(Color accent, bool dark) =>
+        new(new BoxShadow { Spread = 2, Color = Color.FromArgb(dark ? (byte)0x59 : (byte)0x4D, accent.R, accent.G, accent.B) });
+
+    private static bool IsDarkPalette(StyleInclude palette) =>
+        palette.Source?.ToString().EndsWith(DarkPaletteFile, StringComparison.Ordinal) == true;
+
+    private static Color? ReadColor(IResourceDictionary resources, string key) =>
+        resources.TryGetResource(key, null, out var value) && value is Color color ? color : null;
+
+    /// <summary>
+    /// Makes a freshly loaded palette complete: the Fluent brush keys become aliases of the palette's brushes
+    /// (same instances, so in-place recolouring reaches every control state), the Fluent colour keys get the
+    /// palette's colours, and the protocol brushes handed out by <see cref="ProtocolVisuals"/> follow the palette.
+    /// </summary>
+    private static void PreparePalette(StyleInclude palette)
+    {
+        if (palette.Loaded is not Styles styles)
+            return;
+
+        var resources = styles.Resources;
+        foreach (var (alias, brushKey) in ThemeTokens.FluentBrushAliases)
+        {
+            if (resources.TryGetResource(brushKey, null, out var brush) && brush is IBrush)
+                resources[alias] = brush;
+        }
+
+        foreach (var (alias, colorKey) in ThemeTokens.FluentColorAliases)
+        {
+            if (ReadColor(resources, colorKey) is { } color)
+                resources[alias] = color;
+        }
+
+        if (ReadColor(resources, "Accent") is { } accent)
+            resources[FocusRingKey] = FocusRing(accent, IsDarkPalette(palette));
+        ProtocolVisuals.SyncColors(k => ReadColor(resources, k));
     }
 
     private static StyleInclude? FindPalette(Application app) =>
-        app.Styles.OfType<StyleInclude>()
-            .FirstOrDefault(s => s.Source?.ToString().StartsWith(ThemeFolder, StringComparison.Ordinal) == true);
+        app.Styles.OfType<StyleInclude>().FirstOrDefault(IsPaletteInclude);
+
+    /// <summary>True for the palette include (Themes/DarkTheme.axaml or Themes/LightTheme.axaml).</summary>
+    private static bool IsPaletteInclude(StyleInclude include)
+    {
+        var source = include.Source?.ToString();
+        return source is not null
+               && source.StartsWith(ThemeFolder, StringComparison.Ordinal)
+               && (source.EndsWith(DarkPaletteFile, StringComparison.Ordinal) || source.EndsWith(LightPaletteFile, StringComparison.Ordinal));
+    }
 
     private void OnPlatformColorsChanged(object? sender, PlatformColorValues e)
     {
@@ -229,8 +305,7 @@ public sealed class ThemeService : ReactiveObject
         var index = -1;
         for (var i = 0; i < app.Styles.Count; i++)
         {
-            if (app.Styles[i] is StyleInclude include
-                && include.Source?.ToString().StartsWith(ThemeFolder, StringComparison.Ordinal) == true)
+            if (app.Styles[i] is StyleInclude include && IsPaletteInclude(include))
             {
                 if (include.Source == target && !force)
                     return include; // already active
@@ -240,6 +315,7 @@ public sealed class ThemeService : ReactiveObject
         }
 
         var replacement = new StyleInclude(BaseUri) { Source = target };
+        PreparePalette(replacement);
         if (index >= 0)
             app.Styles[index] = replacement;
         else
@@ -247,39 +323,47 @@ public sealed class ThemeService : ReactiveObject
         return replacement;
     }
 
-    private void ApplyAppearance(AppSettings settings)
+    /// <summary>
+    /// Font family/size from Options > Appearance. The control styles read <c>UiFontFamily</c>/<c>UiFontSize</c>
+    /// (inherited from every window) and the Fluent templates read <c>ContentControlThemeFontFamily</c>/
+    /// <c>ControlContentThemeFontSize</c>; application resources override the defaults of Themes/Controls.axaml.
+    /// The type ramp (h1, h2, caption, overline, mono) keeps its own sizes and the mono family.
+    /// </summary>
+    private static void ApplyAppearance(AppSettings settings)
     {
         var app = Application.Current;
         if (app is null)
             return;
 
-        var styles = new Styles();
+        var resources = app.Resources;
         var defaults = new AppSettings();
 
         if (!string.IsNullOrWhiteSpace(settings.FontFamily))
         {
-            var family = new FontFamily(settings.FontFamily);
-            styles.Add(Setter<TextBlock>(TextBlock.FontFamilyProperty, family));
-            styles.Add(Setter<TemplatedControl>(TemplatedControl.FontFamilyProperty, family));
+            var family = new FontFamily(settings.FontFamily.Trim() + ", " + DefaultUiFontFamily);
+            resources["UiFontFamily"] = family;
+            resources["ContentControlThemeFontFamily"] = family;
+        }
+        else
+        {
+            resources.Remove("UiFontFamily");
+            resources.Remove("ContentControlThemeFontFamily");
         }
 
         // Only override sizes when the user changed them, so the default look stays as designed.
         if (Math.Abs(settings.FontSize - defaults.FontSize) > 0.01)
         {
-            styles.Add(Setter<TextBlock>(TextBlock.FontSizeProperty, settings.FontSize));
-            styles.Add(Setter<TemplatedControl>(TemplatedControl.FontSizeProperty, settings.FontSize));
+            resources["UiFontSize"] = settings.FontSize;
+            resources["ControlContentThemeFontSize"] = settings.FontSize;
         }
-
-        if (_appearanceStyles is not null)
-            app.Styles.Remove(_appearanceStyles);
-        _appearanceStyles = styles;
-        app.Styles.Add(styles);
+        else
+        {
+            resources.Remove("UiFontSize");
+            resources.Remove("ControlContentThemeFontSize");
+        }
 
         ApplyBarVisibility(app, settings);
     }
-
-    private static Style Setter<T>(AvaloniaProperty property, object value) where T : StyledElement =>
-        new(x => x.Is<T>()) { Setters = { new Setter(property, value) } };
 
     /// <summary>Shows/hides the bars (Border.toolbar / Border.statusbar) directly inside the main window's root panel.</summary>
     private static void ApplyBarVisibility(Application app, AppSettings settings)

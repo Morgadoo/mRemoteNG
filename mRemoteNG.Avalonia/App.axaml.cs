@@ -63,6 +63,10 @@ public partial class App : Application
 
             desktop.MainWindow = mainWindow;
 
+            // Developer tool: --design-gallery opens the design system showcase next to the main window.
+            if (Program.Arguments.DesignGallery)
+                mainWindow.Opened += (_, _) => new Views.Dev.DesignGalleryWindow().Show();
+
             // System tray (minimise-to-tray support).
             _trayService = new TrayIconService();
             _trayService.Initialize("mRemoteNG");

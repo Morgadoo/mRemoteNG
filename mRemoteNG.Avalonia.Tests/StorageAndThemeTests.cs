@@ -56,7 +56,7 @@ public class StorageAndThemeTests
         }
 
         PaletteCount().Should().Be(1);
-        PaletteColor("AppBg0Brush").Should().Be(Color.Parse("#1e1e1e"), "the plain dark palette is untouched");
+        PaletteColor("AppBg0Brush").Should().Be(Color.Parse(ThemeCatalog.Dark.Colors["AppBg0"]), "the plain dark palette is untouched");
     }
 
     [AvaloniaFact]

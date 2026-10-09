@@ -86,6 +86,14 @@ public sealed class StartupArgumentsTests
     }
 
     [Fact]
+    public void DesignGallery_IsADeveloperFlag()
+    {
+        StartupArguments.Parse(["--design-gallery"]).DesignGallery.Should().BeTrue();
+        StartupArguments.Parse(["--design-gallery"]).UnknownSwitches.Should().BeEmpty();
+        StartupArguments.Parse(["cons.xml"]).DesignGallery.Should().BeFalse();
+    }
+
+    [Fact]
     public void SwitchValueFalse_TurnsItOff()
     {
         StartupArguments.Parse(["/noreconnect:false", "--portable=0"]).Should().BeEquivalentTo(new { NoReconnect = false, Portable = false });

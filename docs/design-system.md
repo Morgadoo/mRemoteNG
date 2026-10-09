@@ -197,3 +197,34 @@ The built-in derived themes (VS2015 Blue, Darcula) and user themes override the 
   ("Delete 3 connections").
 - Long operations (port scan, import, SQL load) show inline progress, never a frozen UI.
 - Motion: 120–160 ms ease-out for hover/press colour changes and popups; no motion on session content.
+
+## 9. Implementation reference
+
+Where the vocabulary above lives in `mRemoteNG.Avalonia` (see the design gallery: run with `--design-gallery`).
+
+- **Palettes** `Themes/DarkTheme.axaml`, `Themes/LightTheme.axaml`: colours only. Every §2 token is a `Color` plus a
+  `…Brush` (`AppBg0Brush`, `AccentSubtleBrush`, `ProtoSshBrush`…); `SuccessTintBrush`, `WarningTintBrush`,
+  `DangerTintBrush` and `Proto…TintBrush` are the same colours at 16–18 % for status/chip backgrounds;
+  `PopupShadow` and `FocusRingShadow` are `BoxShadows`; `ToolTipBackground/Foreground/BorderBrush` style tooltips.
+  Always reference them with `{DynamicResource …}` so theme switches and the theme editor's live preview apply.
+- **Control styles** `Themes/Controls.axaml` (included once in `App.axaml`). Fluent's state brushes are aliased to
+  the palette by `Services/ThemeTokens.cs`, so new styles only need geometry. Style classes:
+  - `TextBlock`: `h1`, `h2`, `caption`, `overline`, `mono`, `section-header` (legacy), `muted`, `secondary`,
+    `success`, `warning`, `danger`, `link`. `TextBox`: `search`, `mono`, `error`.
+  - `Button`: default (secondary), `accent`, `subtle`, `icon` (28 × 28; put a 16 px `mi:MaterialIcon` inside),
+    `danger`, `accent danger` (filled, confirmations only), `link`. `ToggleButton`: `subtle`, `icon` (checked =
+    `AccentSubtle` + accent glyph).
+  - `Border`: `card`, `panel-header`, `toolbar`, `statusbar`, `dialog-footer`, `badge`, `chip`, `keycap`,
+    `dot` (+ `success`/`warning`/`danger`), `divider`, `overlay`, `elevated` (popover/toast surface with shadow).
+  - `Window.dialog`: `AppBg1` dialog background.
+  - Lists and trees get the 28 px rounded rows with the accent bar automatically; `ListBox.session-tabs` opts out.
+- **Fonts**: `UiFontFamily` (Inter, from `Avalonia.Fonts.Inter`), `MonoFontFamily`, `UiFontSize`; Options >
+  Appearance overrides `UiFontFamily`/`UiFontSize` through `ThemeService`.
+- **Icons**: `xmlns:mi="using:Material.Icons.Avalonia"`, `<mi:MaterialIcon Kind="Plus"/>` (16 px by default).
+  `Services/ProtocolVisuals.cs` maps protocols and connections to glyphs, labels and theme-following brushes; XAML
+  uses `xmlns:conv="using:mRemoteNG.Avalonia.Converters"`:
+  `{Binding Protocol, Converter={x:Static conv:ProtocolConverters.Icon}}` (also `.Brush`, `.TintBrush`, `.Label`),
+  `{Binding Converter={x:Static conv:ConnectionConverters.Icon}}` (also `.Brush`, and the multi-value
+  `.IconExpanded` taking the node and its `IsExpanded`).
+- **Controls**: `xmlns:ctl="using:mRemoteNG.Avalonia.Controls"`, `<ctl:ProtocolChip Protocol="{Binding Protocol}"/>`;
+  `TextBox.search` clears through `ctl:SearchBox.ClearCommand`.

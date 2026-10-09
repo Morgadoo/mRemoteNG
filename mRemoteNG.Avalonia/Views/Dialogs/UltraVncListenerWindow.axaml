@@ -11,11 +11,6 @@
         MinHeight="320"
         WindowStartupLocation="CenterOwner">
 
-    <Window.Styles>
-        <!-- The app theme does not include the DataGrid template; load it for this window. -->
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-    </Window.Styles>
-
     <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
             <TextBlock Text="{l:Tr UltraVNCSingleClickListener}" FontSize="16" FontWeight="Bold"/>

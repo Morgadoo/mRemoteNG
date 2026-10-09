@@ -2,146 +2,121 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ═══════════════════════════════════════════════════════
-         mRemoteNG Light Theme
-         Matches VS2015 Light palette.
+         mRemoteNG Light palette (docs/design-system.md §2).
+         Colours only: the control styles live in Themes/Controls.axaml and reference these keys with
+         DynamicResource. ThemeService loads exactly one palette (DarkTheme.axaml or this file), recolours
+         it in place for named/user themes (ThemeCatalog) and adds the Fluent resource aliases
+         (ThemeTokens.FluentBrushAliases) to it. Keep the keys in sync with ThemeCatalog.Light.
     ═══════════════════════════════════════════════════════ -->
 
     <Styles.Resources>
         <ResourceDictionary>
-            <Color x:Key="AppBg0">#f5f5f5</Color>
-            <Color x:Key="AppBg1">#eaeaea</Color>
-            <Color x:Key="AppBg2">#e1e1e1</Color>
-            <Color x:Key="AppBg3">#cce8ff</Color>
-            <Color x:Key="AppBg4">#d9d9d9</Color>
-            <Color x:Key="TextPrimary">#1e1e1e</Color>
-            <Color x:Key="TextSecondary">#444444</Color>
-            <Color x:Key="TextMuted">#909090</Color>
-            <Color x:Key="Accent">#007acc</Color>
-            <Color x:Key="Border0">#cccccc</Color>
+            <!-- Surfaces -->
+            <Color x:Key="AppBg0">#F5F6F8</Color>       <!-- Window / session area -->
+            <Color x:Key="AppBg1">#FFFFFF</Color>       <!-- Sidebar, panels, header bar, menus, cards -->
+            <Color x:Key="AppBg2">#F0F2F5</Color>       <!-- Raised: inputs, buttons, tab strip -->
+            <Color x:Key="AppBg3">#E4E8EE</Color>       <!-- Selected (neutral) / active tab / pressed -->
+            <Color x:Key="AppBg4">#EBEEF2</Color>       <!-- Hover -->
 
+            <!-- Text -->
+            <Color x:Key="TextPrimary">#1D2129</Color>
+            <Color x:Key="TextSecondary">#4D5566</Color>
+            <Color x:Key="TextMuted">#8A92A3</Color>
+            <Color x:Key="TextLink">#2F6FED</Color>
+
+            <!-- Accent -->
+            <Color x:Key="Accent">#2F6FED</Color>
+            <Color x:Key="AccentHover">#4A82F0</Color>
+            <Color x:Key="AccentActive">#2459C8</Color>
+            <Color x:Key="AccentSubtle">#1F2F6FED</Color> <!-- Accent @ 12 % -->
+            <Color x:Key="OnAccent">#FFFFFF</Color>
+
+            <!-- Borders -->
+            <Color x:Key="Border0">#E1E5EB</Color>
+            <Color x:Key="Border1">#CDD3DC</Color>
+
+            <!-- Status -->
+            <Color x:Key="Success">#1F8F3A</Color>
+            <Color x:Key="Warning">#B7791F</Color>
+            <Color x:Key="Danger">#D1242F</Color>
+            <Color x:Key="Overlay">#400F172A</Color>      <!-- Slate @ 25 % -->
+
+            <!-- Protocol colours (icons and chips only) -->
+            <Color x:Key="ProtoSsh">#3FB950</Color>
+            <Color x:Key="ProtoTelnet">#8B949E</Color>
+            <Color x:Key="ProtoRdp">#4C8DFF</Color>
+            <Color x:Key="ProtoVnc">#A371F7</Color>
+            <Color x:Key="ProtoHttp">#F0883E</Color>
+            <Color x:Key="ProtoPowerShell">#56B6F7</Color>
+            <Color x:Key="ProtoTerminal">#57606A</Color>
+            <Color x:Key="ProtoSerial">#D29922</Color>
+            <Color x:Key="ProtoIntApp">#DB61A2</Color>
+            <Color x:Key="ProtoAnyDesk">#EF443B</Color>
+
+            <!-- Legacy protocol badge colours (kept for user styles; chips now use the Proto…TintBrush) -->
+            <Color x:Key="BadgeSsh">#2E3FB950</Color>
+            <Color x:Key="BadgeRdp">#2E4C8DFF</Color>
+            <Color x:Key="BadgeVnc">#2EA371F7</Color>
+            <Color x:Key="BadgeTelnet">#2E8B949E</Color>
+            <Color x:Key="BadgeHttp">#2EF0883E</Color>
+
+            <!-- Brushes: "<key>Brush" for every colour; ThemeService recolours them in place. -->
             <SolidColorBrush x:Key="AppBg0Brush" Color="{StaticResource AppBg0}"/>
             <SolidColorBrush x:Key="AppBg1Brush" Color="{StaticResource AppBg1}"/>
             <SolidColorBrush x:Key="AppBg2Brush" Color="{StaticResource AppBg2}"/>
             <SolidColorBrush x:Key="AppBg3Brush" Color="{StaticResource AppBg3}"/>
+            <SolidColorBrush x:Key="AppBg4Brush" Color="{StaticResource AppBg4}"/>
             <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimary}"/>
             <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondary}"/>
             <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMuted}"/>
+            <SolidColorBrush x:Key="TextLinkBrush" Color="{StaticResource TextLink}"/>
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+            <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHover}"/>
+            <SolidColorBrush x:Key="AccentActiveBrush" Color="{StaticResource AccentActive}"/>
+            <SolidColorBrush x:Key="AccentSubtleBrush" Color="{StaticResource AccentSubtle}"/>
+            <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccent}"/>
             <SolidColorBrush x:Key="Border0Brush" Color="{StaticResource Border0}"/>
-            <SolidColorBrush x:Key="TextLinkBrush" Color="#0066b8"/>
-            <SolidColorBrush x:Key="WarningBrush" Color="#8a5a00"/>
+            <SolidColorBrush x:Key="Border1Brush" Color="{StaticResource Border1}"/>
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+            <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}"/>
+            <SolidColorBrush x:Key="OverlayBrush" Color="{StaticResource Overlay}"/>
+            <SolidColorBrush x:Key="ProtoSshBrush" Color="{StaticResource ProtoSsh}"/>
+            <SolidColorBrush x:Key="ProtoTelnetBrush" Color="{StaticResource ProtoTelnet}"/>
+            <SolidColorBrush x:Key="ProtoRdpBrush" Color="{StaticResource ProtoRdp}"/>
+            <SolidColorBrush x:Key="ProtoVncBrush" Color="{StaticResource ProtoVnc}"/>
+            <SolidColorBrush x:Key="ProtoHttpBrush" Color="{StaticResource ProtoHttp}"/>
+            <SolidColorBrush x:Key="ProtoPowerShellBrush" Color="{StaticResource ProtoPowerShell}"/>
+            <SolidColorBrush x:Key="ProtoTerminalBrush" Color="{StaticResource ProtoTerminal}"/>
+            <SolidColorBrush x:Key="ProtoSerialBrush" Color="{StaticResource ProtoSerial}"/>
+            <SolidColorBrush x:Key="ProtoIntAppBrush" Color="{StaticResource ProtoIntApp}"/>
+            <SolidColorBrush x:Key="ProtoAnyDeskBrush" Color="{StaticResource ProtoAnyDesk}"/>
+
+            <!-- Tints: "<key>TintBrush" = the colour at low opacity (hover/backgrounds of status and chips). -->
+            <SolidColorBrush x:Key="SuccessTintBrush" Color="{StaticResource Success}" Opacity="0.16"/>
+            <SolidColorBrush x:Key="WarningTintBrush" Color="{StaticResource Warning}" Opacity="0.16"/>
+            <SolidColorBrush x:Key="DangerTintBrush" Color="{StaticResource Danger}" Opacity="0.16"/>
+            <SolidColorBrush x:Key="ProtoSshTintBrush" Color="{StaticResource ProtoSsh}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoTelnetTintBrush" Color="{StaticResource ProtoTelnet}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoRdpTintBrush" Color="{StaticResource ProtoRdp}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoVncTintBrush" Color="{StaticResource ProtoVnc}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoHttpTintBrush" Color="{StaticResource ProtoHttp}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoPowerShellTintBrush" Color="{StaticResource ProtoPowerShell}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoTerminalTintBrush" Color="{StaticResource ProtoTerminal}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoSerialTintBrush" Color="{StaticResource ProtoSerial}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoIntAppTintBrush" Color="{StaticResource ProtoIntApp}" Opacity="0.18"/>
+            <SolidColorBrush x:Key="ProtoAnyDeskTintBrush" Color="{StaticResource ProtoAnyDesk}" Opacity="0.18"/>
+
+            <!-- Tooltips: inverted (dark surface, light text) -->
+            <StaticResource x:Key="ToolTipBackground" ResourceKey="TextPrimaryBrush"/>
+            <StaticResource x:Key="ToolTipForeground" ResourceKey="AppBg1Brush"/>
+            <StaticResource x:Key="ToolTipBorderBrush" ResourceKey="TextPrimaryBrush"/>
+
+            <!-- Elevation (menus, popups, tooltips, toasts, dialogs) and the input focus ring.
+                 ThemeService rebuilds FocusRingShadow from the accent when it is recoloured. -->
+            <BoxShadows x:Key="PopupShadow">0 8 24 0 #1F0F172A</BoxShadows>
+            <BoxShadows x:Key="FocusRingShadow">0 0 0 2 #4D2F6FED</BoxShadows>
         </ResourceDictionary>
     </Styles.Resources>
-
-    <Style Selector="Window">
-        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-    </Style>
-    <Style Selector="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        <Setter Property="FontFamily" Value="Segoe UI, SF Pro Display, Ubuntu, sans-serif"/>
-        <Setter Property="FontSize" Value="13"/>
-    </Style>
-    <Style Selector="Button">
-        <Setter Property="Background" Value="{StaticResource AppBg2Brush}"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="8,4"/>
-        <Setter Property="CornerRadius" Value="2"/>
-    </Style>
-    <Style Selector="TextBox">
-        <Setter Property="Background" Value="#ffffff"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-    </Style>
-    <Style Selector="TreeView">
-        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
-    </Style>
-    <Style Selector="TreeViewItem:selected /template/ Border#PART_LayoutRoot">
-        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
-    </Style>
-    <Style Selector="Menu">
-        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-    </Style>
-    <Style Selector="Border.panel-header">
-        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
-        <Setter Property="Padding" Value="8,6"/>
-    </Style>
-    <Style Selector="Border.toolbar">
-        <Setter Property="Background" Value="{StaticResource AppBg2Brush}"/>
-        <Setter Property="Padding" Value="4,2"/>
-    </Style>
-    <Style Selector="Border.statusbar">
-        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
-        <Setter Property="Padding" Value="8,3"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
-        <Setter Property="BorderThickness" Value="0,1,0,0"/>
-    </Style>
-    <Style Selector="Border.card">
-        <Setter Property="Background" Value="#ffffff"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="4"/>
-        <Setter Property="Padding" Value="12"/>
-    </Style>
-    <Style Selector="ContextMenu">
-        <Setter Property="Background" Value="#ffffff"/>
-        <Setter Property="BorderBrush" Value="{StaticResource Border0Brush}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-    </Style>
-
-    <!-- Accent / danger buttons -->
-    <Style Selector="Button.accent">
-        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-        <Setter Property="Foreground" Value="#ffffff"/>
-        <Setter Property="BorderThickness" Value="0"/>
-    </Style>
-    <!-- The global TextBlock style sets a theme foreground; keep text inside accent buttons white. -->
-    <Style Selector="Button.accent TextBlock">
-        <Setter Property="Foreground" Value="#ffffff"/>
-    </Style>
-    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#1c97ea"/>
-    </Style>
-    <Style Selector="Button.danger">
-        <Setter Property="Background" Value="#fbe3e3"/>
-        <Setter Property="Foreground" Value="#a4262c"/>
-        <Setter Property="BorderBrush" Value="#e8a3a3"/>
-    </Style>
-
-    <!-- TabControl / TabItem (same metrics as the dark theme) -->
-    <Style Selector="TabControl">
-        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
-    </Style>
-    <Style Selector="TabItem">
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-        <Setter Property="Background" Value="{StaticResource AppBg1Brush}"/>
-        <Setter Property="Padding" Value="12,6"/>
-        <Setter Property="FontSize" Value="12"/>
-    </Style>
-    <Style Selector="TabItem:selected">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
-        <Setter Property="Background" Value="{StaticResource AppBg0Brush}"/>
-    </Style>
-    <Style Selector="TabItem:pointerover">
-        <Setter Property="Background" Value="{StaticResource AppBg3Brush}"/>
-    </Style>
-
-    <!-- Section headers and protocol badges -->
-    <Style Selector="TextBlock.section-header">
-        <Setter Property="FontSize" Value="11"/>
-        <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-        <Setter Property="LetterSpacing" Value="1"/>
-    </Style>
-    <Style Selector="Border.badge">
-        <Setter Property="CornerRadius" Value="2"/>
-        <Setter Property="Padding" Value="4,1"/>
-        <Setter Property="VerticalAlignment" Value="Center"/>
-    </Style>
 
 </Styles>

@@ -11,11 +11,6 @@
         MinHeight="480"
         WindowStartupLocation="CenterOwner">
 
-    <Window.Styles>
-        <!-- The app theme does not include the DataGrid template; load it for this window. -->
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-    </Window.Styles>
-
     <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" Margin="16">
 
         <!-- Target card -->

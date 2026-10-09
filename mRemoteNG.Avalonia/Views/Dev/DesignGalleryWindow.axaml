@@ -1,0 +1,412 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+        xmlns:svc="using:mRemoteNG.Avalonia.Services"
+        xmlns:dev="using:mRemoteNG.Avalonia.Views.Dev"
+        x:Class="mRemoteNG.Avalonia.Views.Dev.DesignGalleryWindow"
+        x:DataType="dev:DesignGalleryWindow"
+        Title="mRemoteNG — Design gallery"
+        Width="1480" Height="960"
+        WindowStartupLocation="CenterScreen">
+
+    <!-- Developer tool (start with the design-gallery switch): every colour token and control state of
+         docs/design-system.md, in the active theme. Not reachable from the menus. -->
+
+    <Window.Styles>
+        <Style Selector="TreeViewItem" x:DataType="dev:GalleryNode">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+        </Style>
+        <Style Selector="TextBlock.gallery-label">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+        <Style Selector="WrapPanel.row > :is(Control)">
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <!-- Header -->
+        <Border DockPanel.Dock="Top" Classes="toolbar" Padding="24,10">
+            <Grid ColumnDefinitions="Auto,*,Auto,8,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <mi:MaterialIcon Kind="PaletteOutline" Width="22" Height="22" Foreground="{DynamicResource AccentBrush}"/>
+                    <StackPanel>
+                        <TextBlock Text="Design gallery" Classes="h1"/>
+                        <TextBlock Text="Tokens, type and components of docs/design-system.md in the active theme" Classes="caption"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="Theme" Classes="caption" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="4" x:Name="ThemePicker" Width="180" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="24" Spacing="24">
+
+                <!-- ═══ Colour tokens ═══ -->
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Colour tokens" Classes="h2"/>
+                    <WrapPanel x:Name="SwatchPanel"/>
+                </StackPanel>
+
+                <Grid ColumnDefinitions="*,24,*">
+                    <!-- ═══ Typography ═══ -->
+                    <Border Classes="card">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="TYPOGRAPHY" Classes="overline"/>
+                            <TextBlock Text="h1 · Dialog and page title (20 SemiBold)" Classes="h1"/>
+                            <TextBlock Text="h2 · Section title (15 SemiBold)" Classes="h2"/>
+                            <TextBlock Text="Body · The quick brown fox jumps over the lazy dog (13 Regular)"/>
+                            <TextBlock Text="caption · Descriptions and helper text (12, TextSecondary)" Classes="caption"/>
+                            <TextBlock Text="OVERLINE · SIDEBAR AND PANEL HEADERS" Classes="overline"/>
+                            <TextBlock Text="SECTION-HEADER (LEGACY CLASS)" Classes="section-header"/>
+                            <TextBlock Text="mono · ssh admin@10.0.12.34 -p 2222 · /var/log/syslog" Classes="mono"/>
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <TextBlock Text="muted" Classes="muted"/>
+                                <TextBlock Text="secondary" Classes="secondary"/>
+                                <TextBlock Text="link" Classes="link"/>
+                                <TextBlock Text="success" Classes="success"/>
+                                <TextBlock Text="warning" Classes="warning"/>
+                                <TextBlock Text="danger" Classes="danger"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ═══ Buttons ═══ -->
+                    <Border Grid.Column="2" Classes="card">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="BUTTONS" Classes="overline"/>
+                            <WrapPanel Classes="row">
+                                <Button Classes="accent" Content="Connect"/>
+                                <Button Content="Secondary"/>
+                                <Button Classes="subtle" Content="Subtle"/>
+                                <Button Classes="danger" Content="Delete"/>
+                                <Button Classes="accent danger" Content="Delete 3 connections"/>
+                                <Button Classes="link" Content="Reset to defaults"/>
+                            </WrapPanel>
+                            <WrapPanel Classes="row">
+                                <Button Classes="accent" Content="Disabled" IsEnabled="False"/>
+                                <Button Content="Disabled" IsEnabled="False"/>
+                                <Button Classes="subtle" Content="Disabled" IsEnabled="False"/>
+                                <Button Classes="danger" Content="Disabled" IsEnabled="False"/>
+                            </WrapPanel>
+                            <TextBlock Text="Icon buttons (28 × 28, tooltip with shortcut) and toggles" Classes="gallery-label"/>
+                            <WrapPanel Classes="row">
+                                <Button Classes="icon" ToolTip.Tip="New connection (Ctrl+N)"><mi:MaterialIcon Kind="Plus"/></Button>
+                                <Button Classes="icon" ToolTip.Tip="New folder"><mi:MaterialIcon Kind="FolderPlusOutline"/></Button>
+                                <Button Classes="icon" ToolTip.Tip="Open (Ctrl+O)"><mi:MaterialIcon Kind="FolderOpenOutline"/></Button>
+                                <Button Classes="icon" ToolTip.Tip="Save (Ctrl+S)"><mi:MaterialIcon Kind="ContentSaveOutline"/></Button>
+                                <Button Classes="icon" ToolTip.Tip="Options (Ctrl+,)"><mi:MaterialIcon Kind="CogOutline"/></Button>
+                                <ToggleButton Classes="icon" IsChecked="True" ToolTip.Tip="Connection tree (Ctrl+Shift+T)"><mi:MaterialIcon Kind="FileTreeOutline"/></ToggleButton>
+                                <ToggleButton Classes="icon" ToolTip.Tip="Log panel (Ctrl+Shift+L)"><mi:MaterialIcon Kind="TextBoxOutline"/></ToggleButton>
+                                <Button Classes="subtle">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <mi:MaterialIcon Kind="Plus"/>
+                                        <TextBlock Text="New"/>
+                                        <mi:MaterialIcon Kind="ChevronDown" Width="14" Height="14"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <mi:MaterialIcon Kind="LanConnect"/>
+                                        <TextBlock Text="With icon"/>
+                                    </StackPanel>
+                                </Button>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- ═══ Inputs ═══ -->
+                <Border Classes="card">
+                    <Grid ColumnDefinitions="*,24,*,24,*">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="TEXT INPUTS" Classes="overline"/>
+                            <TextBox Watermark="Placeholder (TextMuted)"/>
+                            <TextBox Text="server01.example.com"/>
+                            <TextBox Text="22" Classes="mono"/>
+                            <StackPanel Spacing="4">
+                                <TextBox Text="not a port" Classes="error"/>
+                                <TextBlock Text="Enter a number between 1 and 65535." Classes="caption danger"/>
+                            </StackPanel>
+                            <TextBox Text="Disabled" IsEnabled="False"/>
+                            <TextBlock Text="Search (class search)" Classes="gallery-label" Margin="0,8,0,0"/>
+                            <TextBox Classes="search" Watermark="Search connections"/>
+                            <TextBox Classes="search" Text="linux"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="8">
+                            <TextBlock Text="SELECTION" Classes="overline"/>
+                            <ComboBox x:Name="SampleCombo" HorizontalAlignment="Stretch"/>
+                            <ComboBox HorizontalAlignment="Stretch" PlaceholderText="Choose a protocol"/>
+                            <NumericUpDown Value="3389" Minimum="1" Maximum="65535" FormatString="0" HorizontalAlignment="Stretch"/>
+                            <ComboBox HorizontalAlignment="Stretch" IsEnabled="False" PlaceholderText="Disabled"/>
+                            <Slider Minimum="0" Maximum="100" Value="40"/>
+                            <ProgressBar Value="62" Height="4"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="4" Spacing="2">
+                            <TextBlock Text="CHOICES" Classes="overline" Margin="0,0,0,6"/>
+                            <CheckBox Content="Unchecked"/>
+                            <CheckBox Content="Checked" IsChecked="True"/>
+                            <CheckBox Content="Indeterminate" IsThreeState="True" IsChecked="{x:Null}"/>
+                            <CheckBox Content="Disabled" IsChecked="True" IsEnabled="False"/>
+                            <RadioButton Content="Tabbed" GroupName="g" IsChecked="True"/>
+                            <RadioButton Content="Side by side" GroupName="g"/>
+                            <ToggleSwitch Content="Reconnect on start" IsChecked="True" OnContent="" OffContent=""/>
+                            <ToggleSwitch Content="Minimise to tray" OnContent="" OffContent=""/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid ColumnDefinitions="320,24,*,24,*">
+                    <!-- ═══ Tree ═══ -->
+                    <Border Classes="card" Padding="0">
+                        <DockPanel>
+                            <Border DockPanel.Dock="Top" Classes="panel-header" CornerRadius="8,8,0,0">
+                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                    <TextBlock Text="CONNECTIONS" Classes="overline" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="1" Classes="icon" ToolTip.Tip="New folder"><mi:MaterialIcon Kind="FolderPlusOutline"/></Button>
+                                    <Button Grid.Column="2" Classes="icon" ToolTip.Tip="New connection (Ctrl+N)"><mi:MaterialIcon Kind="Plus"/></Button>
+                                </Grid>
+                            </Border>
+                            <Border DockPanel.Dock="Top" Padding="8,0,8,4">
+                                <TextBox Classes="search" Watermark="Search"/>
+                            </Border>
+                            <TreeView x:Name="SampleTree" Height="300">
+                                <TreeView.ItemTemplate>
+                                    <TreeDataTemplate x:DataType="dev:GalleryNode" ItemsSource="{Binding Children}">
+                                        <Grid ColumnDefinitions="Auto,8,*,Auto" VerticalAlignment="Center">
+                                            <mi:MaterialIcon Foreground="{Binding Model, Converter={x:Static conv:ConnectionConverters.Brush}}">
+                                                <mi:MaterialIcon.Kind>
+                                                    <MultiBinding Converter="{x:Static conv:ConnectionConverters.IconExpanded}">
+                                                        <Binding Path="Model"/>
+                                                        <Binding Path="IsExpanded"/>
+                                                    </MultiBinding>
+                                                </mi:MaterialIcon.Kind>
+                                            </mi:MaterialIcon>
+                                            <TextBlock Grid.Column="2" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            <ctl:ProtocolChip Grid.Column="3" Protocol="{Binding Protocol}" IsVisible="{Binding !IsFolder}" Margin="8,0,0,0"/>
+                                        </Grid>
+                                    </TreeDataTemplate>
+                                </TreeView.ItemTemplate>
+                            </TreeView>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- ═══ List + menu ═══ -->
+                    <StackPanel Grid.Column="2" Spacing="16">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="LIST" Classes="overline"/>
+                            <ListBox x:Name="SampleList">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate x:DataType="dev:GalleryNode">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <mi:MaterialIcon Kind="{Binding Protocol, Converter={x:Static conv:ProtocolConverters.Icon}}"
+                                                             Foreground="{Binding Protocol, Converter={x:Static conv:ProtocolConverters.Brush}}"/>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Host}" Classes="caption mono" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="MENU BAR" Classes="overline"/>
+                            <Border Classes="card" Padding="0" ClipToBounds="True">
+                                <Menu>
+                                    <MenuItem Header="_File"/>
+                                    <MenuItem Header="_View"/>
+                                    <MenuItem Header="_Sessions"/>
+                                    <MenuItem Header="F_avorites"/>
+                                    <MenuItem Header="_Tools"/>
+                                    <MenuItem Header="_Help"/>
+                                </Menu>
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="TABS (GENERIC)" Classes="overline"/>
+                            <TabControl>
+                                <TabItem Header="Log"><TextBlock Text="Log content" Classes="caption" Margin="0,8"/></TabItem>
+                                <TabItem Header="Terminal"/>
+                                <TabItem Header="Debug"/>
+                            </TabControl>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Menu (popup surface, shown inline) ═══ -->
+                    <StackPanel Grid.Column="4" Spacing="6">
+                        <TextBlock Text="CONTEXT MENU SURFACE" Classes="overline"/>
+                        <Border Classes="elevated" Padding="4" HorizontalAlignment="Left" Width="280">
+                            <StackPanel>
+                                <MenuItem Header="Connect" InputGesture="Enter">
+                                    <MenuItem.Icon><mi:MaterialIcon Kind="LanConnect"/></MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Connect with options">
+                                    <MenuItem Header="Placeholder"/>
+                                </MenuItem>
+                                <MenuItem Header="Disconnect" IsEnabled="False"/>
+                                <Separator/>
+                                <MenuItem Header="Properties…" InputGesture="Ctrl+E"/>
+                                <MenuItem Header="Rename" InputGesture="F2"/>
+                                <MenuItem Header="Duplicate" InputGesture="Ctrl+D"/>
+                                <MenuItem Header="Delete…" InputGesture="Delete"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="TOOLTIP" Classes="overline" Margin="0,12,0,0"/>
+                        <Border Background="{DynamicResource ToolTipBackground}" BorderBrush="{DynamicResource ToolTipBorderBrush}"
+                                BorderThickness="1" CornerRadius="6" Padding="8,5" HorizontalAlignment="Left"
+                                BoxShadow="{DynamicResource PopupShadow}">
+                            <TextBlock Text="New connection (Ctrl+N)" FontSize="12" Foreground="{DynamicResource ToolTipForeground}"/>
+                        </Border>
+                        <TextBlock Text="TOAST" Classes="overline" Margin="0,12,0,0"/>
+                        <Border Classes="elevated" Padding="12" Width="320" HorizontalAlignment="Left">
+                            <Grid ColumnDefinitions="Auto,10,*">
+                                <mi:MaterialIcon Kind="AlertCircleOutline" Width="20" Height="20" Foreground="{DynamicResource DangerBrush}" VerticalAlignment="Top"/>
+                                <StackPanel Grid.Column="2" Spacing="2">
+                                    <TextBlock Text="Connection failed" FontWeight="SemiBold"/>
+                                    <TextBlock Text="rdp-gateway: the remote computer refused the connection." Classes="caption" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,24,*">
+                    <!-- ═══ DataGrid ═══ -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="DATA GRID" Classes="overline"/>
+                        <DataGrid x:Name="SampleGrid" Height="190" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" x:DataType="dev:GalleryNode" Width="*"/>
+                                <DataGridTextColumn Header="Host" Binding="{Binding Host}" x:DataType="dev:GalleryNode" Width="*"/>
+                                <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" x:DataType="dev:GalleryNode" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+
+                    <!-- ═══ Expander ═══ -->
+                    <StackPanel Grid.Column="2" Spacing="6">
+                        <TextBlock Text="EXPANDER" Classes="overline"/>
+                        <Expander Header="Advanced settings" IsExpanded="True" HorizontalAlignment="Stretch">
+                            <TextBlock Text="Content of an expander sits on the panel surface." Classes="caption"/>
+                        </Expander>
+                        <Expander Header="Collapsed section" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ═══ Surfaces ═══ -->
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Surfaces, chips and status" Classes="h2"/>
+                    <Border Classes="card" Padding="0" ClipToBounds="True">
+                        <StackPanel>
+                            <Border Classes="toolbar">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Button Classes="subtle"><StackPanel Orientation="Horizontal" Spacing="6"><mi:MaterialIcon Kind="Plus"/><TextBlock Text="New"/></StackPanel></Button>
+                                    <Button Classes="icon" ToolTip.Tip="Open (Ctrl+O)"><mi:MaterialIcon Kind="FolderOpenOutline"/></Button>
+                                    <Button Classes="icon" ToolTip.Tip="Save (Ctrl+S)"><mi:MaterialIcon Kind="ContentSaveOutline"/></Button>
+                                    <Border Classes="divider" Width="1" Margin="6,4"/>
+                                    <TextBox Classes="search" Width="280" Watermark="Quick connect: host[:port]"/>
+                                    <ComboBox Width="96" x:Name="ProtocolCombo"/>
+                                    <Button Classes="accent" Content="Connect"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Height="64" Background="{DynamicResource AppBg0Brush}">
+                                <TextBlock Text="Border.toolbar (top) · session area (AppBg0) · Border.statusbar (bottom)" Classes="caption"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border Classes="statusbar">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <Border Classes="dot success"/>
+                                        <TextBlock Text="3 sessions · confCons.xml" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="v1.78.2-dev" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="card">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="PROTOCOL ICONS AND CHIPS" Classes="overline"/>
+                            <ItemsControl x:Name="ProtocolList">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="dev:GalleryNode">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,20,8" Width="170">
+                                            <mi:MaterialIcon Kind="{Binding Protocol, Converter={x:Static conv:ProtocolConverters.Icon}}"
+                                                             Foreground="{Binding Protocol, Converter={x:Static conv:ProtocolConverters.Brush}}"/>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Width="80"/>
+                                            <ctl:ProtocolChip Protocol="{Binding Protocol}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="LEGACY CONNECTION ICONS → MATERIAL GLYPHS" Classes="overline"/>
+                            <ItemsControl x:Name="LegacyIconList">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="dev:GalleryNode">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,20,8" Width="170">
+                                            <mi:MaterialIcon Kind="{Binding Model, Converter={x:Static conv:ConnectionConverters.Icon}}"
+                                                             Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding Name}" Classes="caption" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="BADGES, KEYCAPS, DOTS" Classes="overline"/>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Border Classes="badge"><TextBlock Text="badge"/></Border>
+                                <Border Classes="chip" Background="{DynamicResource SuccessTintBrush}"><TextBlock Text="Connected" Foreground="{DynamicResource SuccessBrush}"/></Border>
+                                <Border Classes="chip" Background="{DynamicResource WarningTintBrush}"><TextBlock Text="Reconnecting" Foreground="{DynamicResource WarningBrush}"/></Border>
+                                <Border Classes="chip" Background="{DynamicResource DangerTintBrush}"><TextBlock Text="Error" Foreground="{DynamicResource DangerBrush}"/></Border>
+                                <Border Classes="keycap"><TextBlock Text="Ctrl"/></Border>
+                                <Border Classes="keycap"><TextBlock Text="K"/></Border>
+                                <Border Classes="dot"/>
+                                <Border Classes="dot success"/>
+                                <Border Classes="dot warning"/>
+                                <Border Classes="dot danger"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Dialog anatomy -->
+                    <Border Classes="card" Padding="0" ClipToBounds="True" Width="560" HorizontalAlignment="Left">
+                        <StackPanel>
+                            <StackPanel Margin="24" Spacing="16">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <mi:MaterialIcon Kind="LanConnect" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Quick connect" Classes="h1"/>
+                                        <TextBlock Text="Dialog header: icon, h1 title and caption subtitle" Classes="caption"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,8,Auto">
+                                    <TextBlock Text="Host" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Column="1" Text="server01:2222"/>
+                                    <TextBlock Grid.Row="2" Text="Protocol" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="2" Grid.Column="1" x:Name="DialogCombo" HorizontalAlignment="Stretch"/>
+                                </Grid>
+                            </StackPanel>
+                            <Border Classes="dialog-footer">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                    <Button Content="Cancel"/>
+                                    <Button Classes="accent" Content="Connect"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

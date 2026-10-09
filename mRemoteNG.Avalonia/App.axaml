@@ -1,11 +1,18 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="using:Material.Icons.Avalonia"
              x:Class="mRemoteNG.Avalonia.App"
              RequestedThemeVariant="Dark">
 
     <Application.Styles>
         <!-- Base Fluent theme (provides all control templates) -->
         <FluentTheme />
+        <!-- DataGrid templates (used by several dialogs) -->
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <!-- Material Design Icons (<mi:MaterialIcon Kind="…"/>) -->
+        <mi:MaterialIconStyles />
+        <!-- mRemoteNG control styles (docs/design-system.md). Theme independent: colours come from the palette. -->
+        <StyleInclude Source="/Themes/Controls.axaml"/>
         <!-- The mRemoteNG palette (Themes/DarkTheme.axaml or LightTheme.axaml) is added by ThemeService
              at startup, before any window opens. It must not be declared here: the XAML compiler inlines
              a StyleInclude, so ThemeService could not find and replace it when the theme changes. -->
