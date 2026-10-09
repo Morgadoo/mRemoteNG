@@ -67,7 +67,6 @@ public static class ConnectionParametersFactory
         /// <summary>RDP: program started instead of the desktop (alternate shell).</summary>
         public const string RdpStartProgram = "rdp.startProgram";
         public const string RdpStartProgramWorkDir = "rdp.startProgramWorkDir";
-        public const string RdpGatewayPassword = "rdp.gatewayPassword";
         /// <summary>RD Gateway usage: "always" (default when a gateway is set) or "detect".</summary>
         public const string RdpGatewayUsage = "rdp.gatewayUsage";
         /// <summary>RD Gateway credentials: "connection" (default), "explicit", "smartcard" or "token".</summary>
