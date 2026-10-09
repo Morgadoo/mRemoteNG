@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Dock.Model.Mvvm.Controls;
+using Material.Icons;
 using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.ViewModels.Docking;
@@ -13,21 +14,21 @@ public sealed class LogEntry(LogLevel level, string message, DateTime timestamp)
     public DateTime Timestamp { get; } = timestamp;
     public string FormattedTime => Timestamp.ToString("HH:mm:ss");
 
-    public string LevelIcon => Level switch
+    /// <summary>Level glyph (docs/design-system.md §6 Panels): info, warning, error, debug.</summary>
+    public MaterialIconKind IconKind => Level switch
     {
-        LogLevel.Warning => "\u26a0",
-        LogLevel.Error => "\u2716",
-        LogLevel.Debug => "\u2699",
-        _ => "\u2139",
+        LogLevel.Warning => MaterialIconKind.AlertOutline,
+        LogLevel.Error => MaterialIconKind.AlertCircleOutline,
+        LogLevel.Debug => MaterialIconKind.BugOutline,
+        _ => MaterialIconKind.InformationOutline,
     };
 
-    public string LevelColor => Level switch
-    {
-        LogLevel.Warning => "#ffc107",
-        LogLevel.Error => "#f44336",
-        LogLevel.Debug => "#888888",
-        _ => "#569cd6",
-    };
+    public bool IsWarning => Level == LogLevel.Warning;
+
+    public bool IsError => Level == LogLevel.Error;
+
+    /// <summary>The line as copied to the clipboard.</summary>
+    public override string ToString() => $"{FormattedTime} [{Level}] {Message}";
 }
 
 /// <summary>Base class for dockable log panels with capped entry collections.</summary>

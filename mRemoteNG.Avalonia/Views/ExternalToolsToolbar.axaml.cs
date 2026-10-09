@@ -1,11 +1,13 @@
 using Avalonia.Controls;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views;
 
 /// <summary>
-/// External Tools toolbar: one button per tool marked "Show on toolbar", run for the selected tree connection.
-/// Without an explicit DataContext it uses the application's <see cref="ExternalToolsToolbarViewModel"/>.
+/// External Tools toolbar: one compact button per tool marked "Show on toolbar", run for the selected tree
+/// connection; beyond <see cref="ExternalToolsToolbarViewModel.MaxInlineButtons"/> tools the rest are listed in a
+/// "⋯" menu. Without an explicit DataContext it uses the application's <see cref="ExternalToolsToolbarViewModel"/>.
 /// Right-click: "Show Text" and "External Tools…" (opens <see cref="ExternalToolsWindow"/>).
 /// </summary>
 public partial class ExternalToolsToolbar : UserControl
@@ -15,6 +17,7 @@ public partial class ExternalToolsToolbar : UserControl
     public ExternalToolsToolbar()
     {
         InitializeComponent();
+        OverflowButton.Click += (_, _) => ShowOverflowMenu();
     }
 
     protected override void OnInitialized()
@@ -32,6 +35,27 @@ public partial class ExternalToolsToolbar : UserControl
         _subscribed = DataContext as ExternalToolsToolbarViewModel;
         if (_subscribed is not null)
             _subscribed.ManageRequested += OnManageRequested;
+    }
+
+    private void ShowOverflowMenu()
+    {
+        if (_subscribed is not { } vm)
+            return;
+        var flyout = new MenuFlyout { Placement = PlacementMode.BottomEdgeAlignedRight };
+        foreach (var tool in vm.OverflowButtons)
+        {
+            var item = new MenuItem
+            {
+                Header = tool.DisplayName,
+                Command = tool.RunCommand,
+                Icon = tool.Icon is null ? null : new Image { Source = tool.Icon, Width = 16, Height = 16 },
+            };
+            ToolTip.SetTip(item, tool.ToolTip);
+            flyout.Items.Add(item);
+        }
+        flyout.Items.Add(new Separator());
+        flyout.Items.Add(new MenuItem { Header = Localizer.Get("ExternalTools") + "…", Command = vm.ManageCommand });
+        flyout.ShowAt(OverflowButton);
     }
 
     private async void OnManageRequested(object? sender, EventArgs e)

@@ -1,0 +1,90 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:core="using:mRemoteNG.Core.Connection"
+             xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             x:Class="mRemoteNG.Avalonia.Views.Shell.SessionsEmptyState"
+             x:DataType="vm:MainWindowViewModel"
+             x:Name="Root">
+
+    <!-- The session area while nothing is open (docs/design-system.md §6 Empty states). -->
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24,32" MaxWidth="1000">
+            <mi:MaterialIcon Kind="MonitorMultiple" Width="56" Height="56"
+                             Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+            <TextBlock Classes="h2" Text="{l:Tr ShellNoOpenSessions}" HorizontalAlignment="Center" Margin="0,16,0,0"/>
+            <TextBlock Classes="caption" Text="{l:Tr ShellEmptyStateCaption}" HorizontalAlignment="Center"
+                       TextAlignment="Center" TextWrapping="Wrap" MaxWidth="520" Margin="0,6,0,0"/>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,20,0,0">
+                <Button x:Name="QuickConnectButton" Classes="accent" Command="{Binding FocusQuickConnectCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="LightningBoltOutline"/>
+                        <TextBlock Text="{l:Tr QuickConnect}"/>
+                    </StackPanel>
+                </Button>
+                <Button Command="{Binding NewConnectionCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="Plus"/>
+                        <TextBlock Text="{l:Tr ShellNewConnection}"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <!-- Keyboard hints -->
+            <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center" Margin="0,16,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Border Classes="keycap"><TextBlock Text="Ctrl"/></Border>
+                    <Border Classes="keycap"><TextBlock Text="K"/></Border>
+                    <TextBlock Classes="caption muted" Text="{l:Tr ShellHintSearch}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Border Classes="keycap"><TextBlock Text="Ctrl"/></Border>
+                    <Border Classes="keycap"><TextBlock Text="N"/></Border>
+                    <TextBlock Classes="caption muted" Text="{l:Tr ShellNewConnection}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Recent and favourite connections -->
+            <StackPanel IsVisible="{Binding HasHomeCards}" Margin="0,40,0,0">
+                <TextBlock Classes="overline" Text="{l:Tr ShellRecentAndFavorites, Upper=True}" Margin="0,0,0,10"/>
+                <ItemsControl x:Name="Cards" ItemsSource="{Binding HomeCards}" Margin="0,0,-12,0" MaxWidth="988">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="core:ConnectionInfo">
+                            <Button Classes="conn-card"
+                                    Command="{Binding #Root.((vm:MainWindowViewModel)DataContext).ConnectConnectionCommand}"
+                                    CommandParameter="{Binding}"
+                                    ToolTip.Tip="{Binding Description}">
+                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                    <Border Grid.RowSpan="2" Classes="icon-tile" Margin="0,0,10,0"
+                                            Background="{Binding Protocol, Converter={x:Static conv:ProtocolConverters.TintBrush}}">
+                                        <mi:MaterialIcon Kind="{Binding Converter={x:Static conv:ConnectionConverters.Icon}}"
+                                                         Foreground="{Binding Protocol, Converter={x:Static conv:ProtocolConverters.Brush}}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Medium"
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Bottom"/>
+                                    <mi:MaterialIcon Grid.Column="2" Kind="Star" Width="12" Height="12" Margin="6,0,0,0"
+                                                     VerticalAlignment="Center" IsVisible="{Binding Favorite}"
+                                                     Foreground="{DynamicResource WarningBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="mono muted"
+                                               Text="{Binding Hostname}" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" Margin="0,2,0,0"/>
+                                    <ctl:ProtocolChip Grid.Row="1" Grid.Column="2" Margin="6,2,0,0"
+                                                      HorizontalAlignment="Right" Protocol="{Binding Protocol}"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

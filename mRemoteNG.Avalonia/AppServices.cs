@@ -78,7 +78,9 @@ public static class AppServices
                 sp.GetRequiredService<ConnectionsService>(),
                 sp.GetRequiredService<ViewModels.Docking.SessionsDockable>(),
                 sp.GetRequiredService<ViewModels.Docking.LogPanelDockable>(),
-                sp.GetRequiredService<ViewModels.Docking.DebugConsoleDockable>()));
+                sp.GetRequiredService<ViewModels.Docking.DebugConsoleDockable>(),
+                sp.GetRequiredService<Services.ToastService>(),
+                sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>()));
 
         // Transient dialogs (new instance per open)
         services.AddTransient<ViewModels.OptionsWindowViewModel>();
@@ -88,6 +90,8 @@ public static class AppServices
         // Services
         services.AddSingleton<Services.ThemeService>(_ => Services.ThemeService.Instance);
         services.AddSingleton<Services.TrayIconService>();
+        // In-app toasts (bottom-right of the main window); errors written to the log panel become toasts.
+        services.AddSingleton<Services.ToastService>();
         // IconService is static — accessed directly, not via DI.
 
         // SSH host key / credential prompts shown as dialogs (replaces the non-interactive default)

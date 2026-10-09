@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:svc="using:mRemoteNG.Avalonia.Services"
+             x:Class="mRemoteNG.Avalonia.Views.Shell.ToastHost"
+             x:DataType="svc:ToastService"
+             HorizontalAlignment="Right"
+             VerticalAlignment="Bottom"
+             Margin="0,0,16,16">
+
+    <!-- Toasts (docs/design-system.md §6): stacked bottom-right, newest at the bottom, max 3. -->
+    <ItemsControl x:Name="Stack" ItemsSource="{Binding Toasts}">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <StackPanel Spacing="8"/>
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="svc:ToastItem">
+                <Border Classes="elevated toast">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <mi:MaterialIcon Grid.Column="0" Classes="toast-icon"
+                                         Classes.success="{Binding IsSuccess}"
+                                         Classes.warning="{Binding IsWarning}"
+                                         Classes.danger="{Binding IsError}"
+                                         Kind="{Binding Icon}"
+                                         VerticalAlignment="Top" Margin="0,1,10,0"/>
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Margin="0,2,0,0"/>
+                            <TextBlock Classes="caption" Text="{Binding Message}" IsVisible="{Binding HasMessage}"
+                                       TextWrapping="Wrap" MaxLines="4" TextTrimming="CharacterEllipsis"/>
+                            <Button Classes="link" Content="{Binding ActionText}" IsVisible="{Binding HasAction}"
+                                    Command="{Binding ActionCommand}" Padding="0" Margin="0,4,0,0"
+                                    HorizontalAlignment="Left" FontSize="12"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Classes="icon" Width="24" Height="24" VerticalAlignment="Top"
+                                Margin="8,0,0,0" Command="{Binding DismissCommand}"
+                                ToolTip.Tip="{l:Tr ShellDismiss}">
+                            <mi:MaterialIcon Kind="Close" Width="14" Height="14"/>
+                        </Button>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>
