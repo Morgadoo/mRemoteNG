@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace mRemoteNG.Platform.Settings;
@@ -42,26 +43,67 @@ public static class AtomicFile
     /// <summary>
     /// Writes <paramref name="contents"/> to <paramref name="path"/> only if no file exists there yet.
     /// Returns false (and leaves the existing file untouched) when another writer got there first.
+    /// Exactly one of several concurrent callers (threads or processes) succeeds.
     /// </summary>
     public static bool TryCreateNew(string path, byte[] contents, UnixFileMode? unixMode = null)
     {
         var tempPath = WriteTemp(path, contents, unixMode);
         try
         {
-            File.Move(tempPath, path, overwrite: false);
+            if (OperatingSystem.IsWindows())
+            {
+                // MoveFileEx without MOVEFILE_REPLACE_EXISTING fails atomically when the target exists.
+                try
+                {
+                    File.Move(tempPath, path, overwrite: false);
+                    return true;
+                }
+                catch (IOException) when (File.Exists(path))
+                {
+                    return false;
+                }
+            }
+
+            // On Unix, File.Move(overwrite: false) checks for the target and then renames, so two writers can both
+            // "win". link(2) publishes the complete temp file under the final name and fails with EEXIST if it exists.
+            if (link(tempPath, path) == 0)
+                return true;
+            var errno = Marshal.GetLastPInvokeError();
+            if (errno == EEXIST)
+                return false;
+
+            // No hard links on this file system (e.g. FAT, some network shares): exclusive create (O_EXCL).
+            // Readers may briefly see a partially written file here, which the atomic paths above avoid.
+            return TryCreateExclusive(path, contents, unixMode);
+        }
+        finally
+        {
+            TryDelete(tempPath);
+        }
+    }
+
+    private static bool TryCreateExclusive(string path, byte[] contents, UnixFileMode? unixMode)
+    {
+        var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None };
+        if (unixMode is { } mode && !OperatingSystem.IsWindows())
+            options.UnixCreateMode = mode;
+        try
+        {
+            using var stream = new FileStream(path, options);
+            stream.Write(contents, 0, contents.Length);
+            stream.Flush(flushToDisk: true);
             return true;
         }
         catch (IOException) when (File.Exists(path))
         {
-            TryDelete(tempPath);
             return false;
         }
-        catch
-        {
-            TryDelete(tempPath);
-            throw;
-        }
     }
+
+    private const int EEXIST = 17; // same value on Linux and macOS
+
+    [DllImport("libc", SetLastError = true)]
+    private static extern int link(string oldPath, string newPath);
 
     private static string WriteTemp(string path, byte[] contents, UnixFileMode? unixMode)
     {
