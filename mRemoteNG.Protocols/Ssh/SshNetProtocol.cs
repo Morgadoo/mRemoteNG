@@ -11,24 +11,27 @@ namespace mRemoteNG.Protocols.Ssh;
 /// Replaces the legacy PuTTYNG.exe-based SSH handler.
 ///
 /// Supports:
-///   • Password, keyboard-interactive, and public-key authentication
-///   • Shell (interactive terminal) sessions
-///   • Port forwarding (local + dynamic SOCKS)
-///   • Keep-alive
-///   • Reconnect on disconnect
+///   • Host key verification against known_hosts (<see cref="IHostKeyVerifier"/>)
+///   • Public-key, password and keyboard-interactive authentication
+///   • An interactive xterm-256color shell in a <see cref="TerminalView"/>, resized with the view
+///   • The connection's opening command, sent once the shell is open
+///   • Keep-alive messages every 30 seconds
 /// </summary>
 public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
 {
+    private static readonly TimeSpan KeepAliveInterval = TimeSpan.FromSeconds(30);
+
     private readonly ILogger<SshNetProtocol> _logger;
+    private readonly SshConnector _connector;
     private SshClient? _client;
     private ShellStream? _shellStream;
-    private ConnectionParameters? _parameters;
     private CancellationTokenSource? _readCts;
     private TerminalView? _terminalView;
 
-    public SshNetProtocol(ILogger<SshNetProtocol> logger)
+    public SshNetProtocol(ILogger<SshNetProtocol> logger, IHostKeyVerifier hostKeyVerifier, ISshUserPrompt userPrompt)
     {
         _logger = logger;
+        _connector = new SshConnector(hostKeyVerifier, userPrompt, logger);
     }
 
     // ── IVisualProtocol ────────────────────────────────────────────────────
@@ -43,60 +46,53 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
 
     public override async Task ConnectAsync(ConnectionParameters parameters, CancellationToken ct = default)
     {
-        _parameters = parameters;
         State = ConnectionState.Connecting;
-        RaiseStatus($"Connecting to {parameters.Hostname}:{parameters.Port}…");
+        RaiseStatus($"Connecting to {parameters.DisplayName}…");
+        WriteNotice($"Connecting to {parameters.DisplayName}…", "90");
 
         try
         {
-            var authMethods = BuildAuthMethods(parameters);
-            var connectionInfo = new ConnectionInfo(
-                parameters.Hostname,
-                parameters.Port,
-                parameters.Username ?? "root",
-                authMethods.ToArray());
-
-            _client = new SshClient(connectionInfo);
+            _client = await _connector.ConnectAsync(parameters, info => new SshClient(info), ct);
             _client.ErrorOccurred += OnErrorOccurred;
-            _client.HostKeyReceived += OnHostKeyReceived;
+            _client.KeepAliveInterval = KeepAliveInterval;
 
-            await Task.Run(() => _client.Connect(), ct);
-
-            // Open a shell stream sized to the terminal view
             int cols = _terminalView?.TerminalCols ?? 80;
             int rows = _terminalView?.TerminalRows ?? 24;
+            _shellStream = _client.CreateShellStream("xterm-256color", (uint)cols, (uint)rows, 0, 0, 32 * 1024);
 
-            _shellStream = _client.CreateShellStream(
-                "xterm-256color",
-                (uint)cols, (uint)rows,
-                0, 0,
-                4096);
-
-            // Wire terminal input (keystrokes) back to the SSH shell
             if (_terminalView is not null)
             {
                 _terminalView.DataToSend += OnTerminalDataToSend;
+                _terminalView.TerminalResized += OnTerminalResized;
+                // The view may have been laid out while we were connecting.
+                if (_terminalView.TerminalCols != cols || _terminalView.TerminalRows != rows)
+                    ResizeShell(_terminalView.TerminalCols, _terminalView.TerminalRows, 0, 0);
             }
 
             State = ConnectionState.Connected;
             RaiseStatus($"Connected to {parameters.Hostname}");
 
-            // Start background read loop
             _readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            _ = ReadLoopAsync(_readCts.Token);
-        }
-        catch (SshAuthenticationException ex)
-        {
-            _logger.LogError(ex, "SSH authentication failed for {Host}", parameters.Hostname);
-            State = ConnectionState.Error;
-            RaiseStatus($"Authentication failed: {ex.Message}");
-            throw;
+            _ = Task.Run(() => ReadLoop(_readCts.Token), CancellationToken.None);
+
+            SendOpeningCommand(parameters);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "SSH connection failed to {Host}", parameters.Hostname);
+            _client?.Dispose();
+            _client = null;
+
+            var message = ex switch
+            {
+                HostKeyVerificationException => $"Host key verification failed: {ex.Message}",
+                SshAuthenticationException => $"Authentication failed: {ex.Message}",
+                OperationCanceledException => "Connection cancelled.",
+                _ => $"Connection failed: {ex.Message}",
+            };
+            _logger.LogError(ex, "SSH connection to {Host} failed", parameters.DisplayName);
+            WriteNotice(message, ex is HostKeyVerificationException ? "1;97;41" : "1;31");
             State = ConnectionState.Error;
-            RaiseStatus($"Connection failed: {ex.Message}");
+            RaiseStatus(message);
             throw;
         }
     }
@@ -104,156 +100,90 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
     public override async Task DisconnectAsync(CancellationToken ct = default)
     {
         _readCts?.Cancel();
+        DetachView();
 
         if (_shellStream is not null)
         {
-            await _shellStream.FlushAsync(ct);
             _shellStream.Dispose();
             _shellStream = null;
         }
 
         if (_client is not null)
         {
-            await Task.Run(() => _client.Disconnect(), ct);
-            _client.Dispose();
+            var client = _client;
             _client = null;
+            await Task.Run(() =>
+            {
+                try { client.Disconnect(); }
+                catch (Exception ex) { _logger.LogDebug(ex, "SSH disconnect failed"); }
+                client.Dispose();
+            }, ct);
         }
 
         State = ConnectionState.Disconnected;
         RaiseStatus("Disconnected.");
     }
 
-    public Task SendKeepAliveAsync(CancellationToken ct = default)
-    {
-        if (_client?.IsConnected == true)
-        {
-            try { _client.SendKeepAlive(); }
-            catch (Exception ex) { _logger.LogWarning(ex, "KeepAlive failed"); }
-        }
-        return Task.CompletedTask;
-    }
-
     // ── Helpers ────────────────────────────────────────────────────────────
 
-    private static List<AuthenticationMethod> BuildAuthMethods(ConnectionParameters p)
+    /// <summary>Sends <see cref="ConnectionParametersFactory.Keys.OpeningCommand"/> line by line.</summary>
+    private void SendOpeningCommand(ConnectionParameters parameters)
     {
-        var methods = new List<AuthenticationMethod>();
-        string username = p.Username ?? "root";
-
-        // 1. Explicitly specified private key
-        if (!string.IsNullOrEmpty(p.PrivateKeyPath) && File.Exists(p.PrivateKeyPath))
+        if (!parameters.Extras.TryGetValue(ConnectionParametersFactory.Keys.OpeningCommand, out var command)
+            || string.IsNullOrWhiteSpace(command))
         {
-            var keyFile = LoadPrivateKey(p.PrivateKeyPath, p.PrivateKeyPassphrase);
-            if (keyFile is not null)
-                methods.Add(new PrivateKeyAuthenticationMethod(username, keyFile));
+            return;
         }
 
-        // 2. Auto-discover default SSH keys from ~/.ssh/
-        if (methods.Count == 0)
-        {
-            var keyFiles = DiscoverDefaultKeys(p.PrivateKeyPassphrase);
-            if (keyFiles.Count > 0)
-                methods.Add(new PrivateKeyAuthenticationMethod(username, [.. keyFiles]));
-        }
-
-        // 3. Password
-        if (!string.IsNullOrEmpty(p.Password))
-        {
-            methods.Add(new PasswordAuthenticationMethod(username, p.Password));
-            // Keyboard-interactive fallback with same password
-            methods.Add(new KeyboardInteractiveAuthenticationMethod(username) switch
-            {
-                var m => m.Also(ki =>
-                    ki.AuthenticationPrompt += (_, e) =>
-                    {
-                        foreach (var prompt in e.Prompts)
-                            prompt.Response = p.Password;
-                    })
-            });
-        }
-
-        // 4. None (will fail, but triggers list of accepted methods from server)
-        if (methods.Count == 0)
-            methods.Add(new NoneAuthenticationMethod(username));
-
-        return methods;
+        var lines = command.Replace("\r\n", "\n").Split('\n');
+        var payload = string.Concat(lines.Select(line => line + "\r"));
+        SendToShell(Encoding.UTF8.GetBytes(payload));
+        _logger.LogDebug("Sent opening command to {Host}", parameters.DisplayName);
     }
 
-    /// <summary>
-    /// Discover standard SSH private key files in ~/.ssh/.
-    /// Tries id_ed25519, id_rsa, id_ecdsa, id_dsa in order.
-    /// </summary>
-    private static List<PrivateKeyFile> DiscoverDefaultKeys(string? passphrase)
+    private void ReadLoop(CancellationToken ct)
     {
-        var sshDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".ssh");
+        var stream = _shellStream;
+        if (stream is null) return;
 
-        if (!Directory.Exists(sshDir))
-            return [];
-
-        string[] keyNames = ["id_ed25519", "id_rsa", "id_ecdsa", "id_dsa"];
-        var keys = new List<PrivateKeyFile>();
-
-        foreach (var name in keyNames)
-        {
-            var path = Path.Combine(sshDir, name);
-            var key = LoadPrivateKey(path, passphrase);
-            if (key is not null)
-                keys.Add(key);
-        }
-
-        return keys;
-    }
-
-    private static PrivateKeyFile? LoadPrivateKey(string path, string? passphrase)
-    {
-        if (!File.Exists(path))
-            return null;
-
+        var decoder = Encoding.UTF8.GetDecoder();
+        var buffer = new byte[32 * 1024];
+        var chars = new char[Encoding.UTF8.GetMaxCharCount(buffer.Length)];
         try
         {
-            return string.IsNullOrEmpty(passphrase)
-                ? new PrivateKeyFile(path)
-                : new PrivateKeyFile(path, passphrase);
-        }
-        catch
-        {
-            // Key may be in unsupported format or encrypted with a passphrase we don't have
-            return null;
-        }
-    }
-
-    private async Task ReadLoopAsync(CancellationToken ct)
-    {
-        if (_shellStream is null) return;
-
-        var buffer = new byte[4096];
-        try
-        {
-            while (!ct.IsCancellationRequested && _shellStream.CanRead)
+            while (!ct.IsCancellationRequested)
             {
-                int bytesRead = await _shellStream.ReadAsync(buffer, ct);
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 if (bytesRead == 0)
-                {
-                    await Task.Delay(10, ct);
-                    continue;
-                }
+                    break; // channel closed (e.g. the user typed "exit")
 
-                string text = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                _terminalView?.Write(text);
+                int charCount = decoder.GetChars(buffer, 0, bytesRead, chars, 0);
+                _terminalView?.Write(new string(chars, 0, charCount));
+            }
+
+            if (!ct.IsCancellationRequested)
+            {
+                WriteNotice("Session closed by the remote host.", "90");
+                State = ConnectionState.Disconnected;
+                RaiseStatus("Session closed by the remote host.");
             }
         }
-        catch (OperationCanceledException) { /* clean exit */ }
-        catch (Exception ex) when (State == ConnectionState.Connected)
+        catch (Exception ex) when (ex is ObjectDisposedException or OperationCanceledException && ct.IsCancellationRequested)
+        {
+            // Disconnect in progress.
+        }
+        catch (Exception ex)
         {
             _logger.LogWarning(ex, "SSH read loop ended unexpectedly");
+            WriteNotice($"Connection lost: {ex.Message}", "1;31");
             State = ConnectionState.Error;
             RaiseStatus($"Connection lost: {ex.Message}");
         }
     }
 
-    private void OnTerminalDataToSend(object? sender, byte[] data)
+    private void OnTerminalDataToSend(object? sender, byte[] data) => SendToShell(data);
+
+    private void SendToShell(byte[] data)
     {
         try
         {
@@ -266,6 +196,25 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
         }
     }
 
+    private void OnTerminalResized(object? sender, TerminalSizeEventArgs e) =>
+        ResizeShell(e.Columns, e.Rows, e.PixelWidth, e.PixelHeight);
+
+    private void ResizeShell(int columns, int rows, int pixelWidth, int pixelHeight)
+    {
+        try
+        {
+            _shellStream?.ChangeWindowSize((uint)columns, (uint)rows, (uint)pixelWidth, (uint)pixelHeight);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to send window-change to SSH shell");
+        }
+    }
+
+    /// <summary>Prints a local status line in the terminal using the given SGR attributes.</summary>
+    private void WriteNotice(string message, string sgr) =>
+        _terminalView?.Write($"\r\n\x1b[{sgr}m{message}\x1b[0m\r\n");
+
     private void OnErrorOccurred(object? sender, ExceptionEventArgs e)
     {
         _logger.LogError(e.Exception, "SSH client error");
@@ -273,31 +222,23 @@ public sealed class SshNetProtocol : ProtocolBase, IVisualProtocol
         RaiseStatus($"Error: {e.Exception.Message}");
     }
 
-    private void OnHostKeyReceived(object? sender, HostKeyEventArgs e)
+    private void DetachView()
     {
-        // Phase 4: implement known-hosts verification
-        e.CanTrust = true;
-        _logger.LogDebug("Host key accepted: {Type} {Fingerprint}",
-            e.HostKeyName,
-            Convert.ToHexString(e.FingerPrint));
+        if (_terminalView is null)
+            return;
+        _terminalView.DataToSend -= OnTerminalDataToSend;
+        _terminalView.TerminalResized -= OnTerminalResized;
     }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            if (_terminalView is not null)
-                _terminalView.DataToSend -= OnTerminalDataToSend;
+            DetachView();
             _readCts?.Cancel();
             _readCts?.Dispose();
             _shellStream?.Dispose();
             _client?.Dispose();
         }
     }
-}
-
-/// <summary>Extension helper for fluent Also() pattern.</summary>
-internal static class ObjectExtensions
-{
-    public static T Also<T>(this T self, Action<T> action) { action(self); return self; }
 }

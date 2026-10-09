@@ -61,6 +61,7 @@ public sealed class ProtocolFactory : IProtocolFactory
     /// <summary>Registers all protocol types as transient services.</summary>
     public static void Register(IServiceCollection services)
     {
+        SshServices.Register(services);
         services.AddTransient<SshNetProtocol>();
         services.AddTransient<TelnetProtocol>();
         services.AddTransient<RloginProtocol>();

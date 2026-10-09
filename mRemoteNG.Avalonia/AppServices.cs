@@ -78,6 +78,9 @@ public static class AppServices
         services.AddSingleton<Services.TrayIconService>();
         // IconService is static — accessed directly, not via DI.
 
+        // SSH host key / credential prompts shown as dialogs (replaces the non-interactive default)
+        services.AddSingleton<Protocols.Ssh.ISshUserPrompt, Services.AvaloniaSshUserPrompt>();
+
         // Protocol implementations (transient — one instance per session)
         ProtocolFactory.Register(services);
     }
