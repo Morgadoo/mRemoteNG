@@ -20,7 +20,10 @@ public sealed class ExternalToolCommandItem(ExternalTool tool, Bitmap? icon, Rea
 
     public string DisplayName => Tool.DisplayName;
 
+    /// <summary>The tool's own image; null when it has none and <see cref="IconKind"/> is shown instead.</summary>
     public Bitmap? Icon { get; } = icon;
+
+    public Material.Icons.MaterialIconKind IconKind { get; } = Services.ExternalToolIcons.KindFor(tool);
 
     public ReactiveCommand<Unit, Unit> RunCommand { get; } = command;
 
@@ -127,6 +130,6 @@ public sealed class ExternalToolsToolbarViewModel : ReactiveObject
 
     /// <summary>A command item that runs <paramref name="tool"/> for the connection <paramref name="target"/> returns.</summary>
     public static ExternalToolCommandItem CreateItem(ExternalToolsService service, ExternalTool tool, Func<ConnectionInfo?> target) =>
-        new(tool, ExternalToolIcons.Get(tool),
+        new(tool, ExternalToolIcons.GetCustom(tool),
             ReactiveCommand.CreateFromTask(async () => { await service.RunAsync(tool, target()); }));
 }

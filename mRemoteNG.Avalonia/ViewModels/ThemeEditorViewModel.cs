@@ -69,7 +69,7 @@ public sealed class ThemeEditorViewModel : ReactiveObject
         _catalog = themes.Catalog;
         _settings = settings;
         SaveCommand = ReactiveCommand.Create(() => { Save(); });
-        DeleteCommand = ReactiveCommand.Create(Delete, this.WhenAnyValue(x => x.CanDelete));
+        DeleteCommand = ReactiveCommand.CreateFromTask(DeleteAsync, this.WhenAnyValue(x => x.CanDelete));
         Reload(startFrom ?? themes.CurrentThemeName ?? (themes.EffectiveVariant == global::Avalonia.Styling.ThemeVariant.Light
             ? ThemeCatalog.LightName
             : ThemeCatalog.DarkName));
@@ -161,9 +161,14 @@ public sealed class ThemeEditorViewModel : ReactiveObject
         }
     }
 
-    private void Delete()
+    /// <summary>Asks before a user theme is deleted (set by the dialog); null deletes without asking.</summary>
+    public Func<string, Task<bool>>? ConfirmDelete { get; set; }
+
+    private async Task DeleteAsync()
     {
         if (_baseTheme is not { IsBuiltIn: false } theme)
+            return;
+        if (ConfirmDelete is { } confirm && !await confirm(theme.Name))
             return;
 
         _catalog.Delete(theme.Name);

@@ -58,8 +58,9 @@ public static class ExternalToolsMenu
                 Command = command.RunCommand,
                 IsEnabled = tool.IsAvailableOnCurrentPlatform,
             };
-            if (command.Icon is { } icon)
-                item.Icon = new Image { Source = icon, Width = 16, Height = 16 };
+            item.Icon = command.Icon is { } icon
+                ? new Image { Source = icon, Width = 16, Height = 16 }
+                : new Material.Icons.Avalonia.MaterialIcon { Kind = command.IconKind, Width = 16, Height = 16 };
             items.Add(item);
         }
         return items;

@@ -48,7 +48,9 @@ public partial class ExternalToolsToolbar : UserControl
             {
                 Header = tool.DisplayName,
                 Command = tool.RunCommand,
-                Icon = tool.Icon is null ? null : new Image { Source = tool.Icon, Width = 16, Height = 16 },
+                Icon = tool.Icon is null
+                    ? new Material.Icons.Avalonia.MaterialIcon { Kind = tool.IconKind, Width = 16, Height = 16 }
+                    : new Image { Source = tool.Icon, Width = 16, Height = 16 },
             };
             ToolTip.SetTip(item, tool.ToolTip);
             flyout.Items.Add(item);

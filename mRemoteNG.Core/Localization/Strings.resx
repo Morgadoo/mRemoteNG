@@ -2645,4 +2645,12 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
     <value>Reconnecting</value>
     <comment>Session banner title while auto-reconnect is running</comment>
   </data>
+  <data name="ConfirmDeleteThemeTitle" xml:space="preserve">
+    <value>Delete theme</value>
+    <comment>Title of the confirmation before a user theme is deleted</comment>
+  </data>
+  <data name="ConfirmDeleteThemeFormat" xml:space="preserve">
+    <value>Delete the theme "{0}"? This cannot be undone.</value>
+    <comment>Confirmation before a user theme is deleted; {0} = theme name</comment>
+  </data>
 </root>

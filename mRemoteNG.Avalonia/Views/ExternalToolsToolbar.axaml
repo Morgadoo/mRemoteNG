@@ -31,6 +31,9 @@
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <Image Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"
                                    IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                            <mi:MaterialIcon Kind="{Binding IconKind}" Width="16" Height="16" VerticalAlignment="Center"
+                                             Foreground="{DynamicResource ProtoIntAppBrush}"
+                                             IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNull}}"/>
                             <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"
                                        MaxWidth="140" TextTrimming="CharacterEllipsis"
                                        IsVisible="{Binding #Root.((vm:ExternalToolsToolbarViewModel)DataContext).ShowText, FallbackValue=True}"/>

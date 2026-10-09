@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.Dialogs;
 
@@ -18,6 +19,12 @@ public partial class ThemeEditorDialog : Window
     public ThemeEditorDialog(ThemeEditorViewModel viewModel) : this()
     {
         DataContext = viewModel;
+        viewModel.ConfirmDelete = name => MessageDialog.ConfirmAsync(this,
+            Localizer.Get("ConfirmDeleteThemeTitle"),
+            Localizer.Format("ConfirmDeleteThemeFormat", name),
+            yesLabel: Localizer.Get("Delete"),
+            noLabel: Localizer.Get("_Cancel"),
+            confirmIsDefault: false);
         // Unsaved edits are only a preview: show the theme from the settings again.
         Closing += (_, _) => viewModel.RevertPreview();
     }
