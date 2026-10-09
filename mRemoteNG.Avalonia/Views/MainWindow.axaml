@@ -1,10 +1,14 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:mi="using:Material.Icons.Avalonia"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
         xmlns:views="using:mRemoteNG.Avalonia.Views"
+        xmlns:shell="using:mRemoteNG.Avalonia.Views.Shell"
         xmlns:sessions="using:mRemoteNG.Avalonia.Views.Sessions"
+        xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+        xmlns:proto="using:mRemoteNG.Core.Connection.Protocol"
         x:Class="mRemoteNG.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
@@ -15,52 +19,76 @@
         WindowStartupLocation="CenterScreen"
         Icon="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico">
 
-    <Window.KeyBindings>
-        <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding NewFileCommand}"/>
-        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewConnectionCommand}"/>
-        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenConnectionFileCommand}"/>
-        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveConnectionFileCommand}"/>
-        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAsConnectionFileCommand}"/>
-        <KeyBinding Gesture="Ctrl+Q" Command="{Binding OpenQuickConnectDialogCommand}"/>
-        <KeyBinding Gesture="Ctrl+Shift+T" Command="{Binding ToggleConnectionTreeCommand}"/>
-        <KeyBinding Gesture="Ctrl+Shift+L" Command="{Binding ToggleLogPanelCommand}"/>
-        <KeyBinding Gesture="F11" Command="{Binding ToggleFullScreenCommand}"/>
-    </Window.KeyBindings>
+    <Window.Styles>
+        <StyleInclude Source="/Views/Shell/ShellStyles.axaml"/>
+    </Window.Styles>
+
+    <!-- Keyboard shortcuts: every InputGesture shown in the menus below is registered as a window key binding
+         at startup (AppShortcuts.RegisterMenu), guarded by ShortcutPolicy so terminals, remote sessions and text
+         fields keep their keys. Extra gestures (Ctrl+Shift+P) are added in MainWindow.axaml.cs. -->
 
     <DockPanel>
 
         <!-- MENU BAR -->
-        <Menu DockPanel.Dock="Top" FontSize="13">
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top" Classes="main-menu">
             <MenuItem Header="{l:Tr _File}">
-                <MenuItem Header="{l:Tr NewConnectionFile, English='_New Connection File'}" Command="{Binding NewFileCommand}" InputGesture="Ctrl+Shift+N"/>
-                <MenuItem Header="{l:Tr OpenConnectionFile, English='_Open Connection File...'}" Command="{Binding OpenConnectionFileCommand}" InputGesture="Ctrl+O"/>
-                <MenuItem Header="{l:Tr SaveConnectionFile, English='_Save Connection File'}" Command="{Binding SaveConnectionFileCommand}" InputGesture="Ctrl+S"/>
+                <MenuItem Header="{l:Tr NewConnectionFile, English='_New Connection File'}" Command="{Binding NewFileCommand}" InputGesture="Ctrl+Shift+N">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="FileOutline"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr OpenConnectionFile, English='_Open Connection File...'}" Command="{Binding OpenConnectionFileCommand}" InputGesture="Ctrl+O">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="FolderOpenOutline"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr SaveConnectionFile, English='_Save Connection File'}" Command="{Binding SaveConnectionFileCommand}" InputGesture="Ctrl+S">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="ContentSaveOutline"/></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="{l:Tr SaveConnectionFileAs, English='Save Connection File _As...'}" Command="{Binding SaveAsConnectionFileCommand}" InputGesture="Ctrl+Shift+S"/>
-                <MenuItem Header="{l:Tr OpenFromSQLDatabase}" Command="{Binding OpenDatabaseCommand}"/>
+                <MenuItem Header="{l:Tr OpenFromSQLDatabase}" Command="{Binding OpenDatabaseCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="DatabaseOutline"/></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="{l:Tr ReloadFromSQLDatabase}" Command="{Binding ReloadDatabaseCommand}"/>
                 <Separator/>
-                <MenuItem Header="{l:Tr NewConnection, Suffix='...', English='New _Connection'}" Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N"/>
-                <MenuItem Header="{l:Tr NewFolder, Suffix='...', English='New _Folder'}" Command="{Binding ConnectionTree.NewFolderCommand}"/>
-                <MenuItem Header="{l:Tr EditSelected, Suffix='...'}" Command="{Binding ConnectionTree.EditSelectedCommand}" InputGesture="Ctrl+E"/>
+                <MenuItem Header="{l:Tr NewConnection, Suffix='...', English='New _Connection'}" Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="Plus"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr NewFolder, Suffix='...', English='New _Folder'}" Command="{Binding ConnectionTree.NewFolderCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="FolderPlusOutline"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr EditSelected, Suffix='...'}" Command="{Binding ConnectionTree.EditSelectedCommand}" InputGesture="Ctrl+E">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="PencilOutline"/></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="{l:Tr DuplicateSelected}" Command="{Binding ConnectionTree.DuplicateSelectedCommand}" InputGesture="Ctrl+D"/>
                 <MenuItem Header="{l:Tr DeleteSelected, Suffix='...'}" Command="{Binding ConnectionTree.DeleteSelectedCommand}" InputGesture="Delete"/>
                 <Separator/>
                 <MenuItem Header="{l:Tr DefaultConnectionProperties, Suffix='...'}" Command="{Binding ConnectionTree.EditDefaultConnectionCommand}"/>
                 <MenuItem Header="{l:Tr ConnectionFileProperties, Suffix='...'}" Command="{Binding ConnectionTree.FilePropertiesCommand}"/>
                 <Separator/>
-                <MenuItem Header="{l:Tr ImportConnections, Suffix='...'}" Command="{Binding ImportCommand}"/>
-                <MenuItem Header="{l:Tr ExportConnections, Suffix='...'}" Command="{Binding ExportCommand}"/>
+                <MenuItem Header="{l:Tr ImportConnections, Suffix='...'}" Command="{Binding ImportCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="Import"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr ExportConnections, Suffix='...'}" Command="{Binding ExportCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="Export"/></MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
-                <MenuItem Header="{l:Tr Exit, English='E_xit'}" Command="{Binding ExitCommand}" InputGesture="Alt+F4"/>
+                <MenuItem Header="{l:Tr Exit, English='E_xit'}" Command="{Binding ExitCommand}" InputGesture="Alt+F4">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="ExitToApp"/></MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="{l:Tr _View}" x:Name="ViewMenu">
+                <MenuItem Header="{l:Tr ShellCommandPalette, Suffix='...'}" Command="{Binding OpenCommandPaletteCommand}" InputGesture="Ctrl+K">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="Magnify"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr ShellFindConnection}" Command="{Binding FindConnectionCommand}" InputGesture="Ctrl+F"/>
+                <Separator/>
                 <MenuItem Header="{l:Tr ConnectionTree}" ToggleType="CheckBox"
                           IsChecked="{Binding IsConnectionTreeVisible, Mode=OneWay}"
                           Command="{Binding ToggleConnectionTreeCommand}" InputGesture="Ctrl+Shift+T"/>
                 <MenuItem Header="{l:Tr LogPanel}" ToggleType="CheckBox"
                           IsChecked="{Binding IsLogPanelVisible, Mode=OneWay}"
                           Command="{Binding ToggleLogPanelCommand}" InputGesture="Ctrl+Shift+L"/>
+                <MenuItem Header="{l:Tr ShellExpandBottomPanel}" ToggleType="CheckBox"
+                          IsChecked="{Binding IsBottomPanelExpanded, Mode=OneWay}"
+                          Command="{Binding ToggleBottomPanelCommand}" InputGesture="Ctrl+J"/>
                 <MenuItem Header="{l:Tr MultiSshToolbar, English='Multi-SSH Toolbar'}" ToggleType="CheckBox"
                           IsChecked="{Binding IsMultiSshToolbarVisible, Mode=OneWay}"
                           Command="{Binding ToggleMultiSshToolbarCommand}"/>
@@ -69,7 +97,7 @@
                 <MenuItem Header="{l:Tr CollapseAllFolders, English='Collapse All Folders'}" Command="{Binding ConnectionTree.CollapseAllCommand}"/>
                 <MenuItem Header="{l:Tr RefreshPuTTYSessions}" Command="{Binding ConnectionTree.RefreshPuttySessionsCommand}"/>
                 <Separator/>
-                <MenuItem Header="{l:Tr NewPanel}" Command="{Binding NewPanelCommand}"/>
+                <MenuItem Header="{l:Tr NewPanel, Suffix='...'}" Command="{Binding NewPanelCommand}"/>
                 <MenuItem Header="{l:Tr ArrangePanels}">
                     <MenuItem x:Name="ArrangeTabbedItem" Header="{l:Tr TabbedOnePanelAtATime}" ToggleType="Radio"
                               Command="{Binding ArrangePanelsCommand}"
@@ -83,6 +111,9 @@
                 </MenuItem>
                 <MenuItem Header="{l:Tr ResetLayout, English='Reset Layout'}" Command="{Binding ResetLayoutCommand}"/>
                 <Separator/>
+                <MenuItem Header="{l:Tr ShellToggleTheme}" Command="{Binding ToggleThemeCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="ThemeLightDark"/></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="{l:Tr Fullscreen, English='Full Screen'}" ToggleType="CheckBox"
                           IsChecked="{Binding IsFullScreen, Mode=OneWay}"
                           Command="{Binding ToggleFullScreenCommand}" InputGesture="F11"/>
@@ -92,12 +123,16 @@
                 <MenuItem Header="{l:Tr NextSession}" Command="{Binding NextSessionCommand}" InputGesture="Ctrl+Tab"/>
                 <MenuItem Header="{l:Tr PreviousSession}" Command="{Binding PreviousSessionCommand}" InputGesture="Ctrl+Shift+Tab"/>
                 <Separator/>
-                <MenuItem Header="{l:Tr ReconnectAllConnections, English='Reconnect All'}" Command="{Binding ReconnectAllCommand}"/>
-                <MenuItem Header="{l:Tr DisconnectAll}" Command="{Binding DisconnectAllCommand}"/>
+                <MenuItem Header="{l:Tr ReconnectAllConnections, English='Reconnect All'}" Command="{Binding ReconnectAllCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="Refresh"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr DisconnectAll}" Command="{Binding DisconnectAllCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="LanDisconnect"/></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="{l:Tr CloseAllSessions}" Command="{Binding CloseAllSessionsCommand}"/>
                 <Separator/>
                 <MenuItem Header="{l:Tr ConnectSelectedToPanel, Suffix='...'}" Command="{Binding ConnectSelectedToPanelCommand}"/>
-                <MenuItem Header="{l:Tr NewPanel}" Command="{Binding NewPanelCommand}"/>
+                <MenuItem Header="{l:Tr NewPanel, Suffix='...'}" Command="{Binding NewPanelCommand}"/>
                 <Separator x:Name="SessionListSeparator"/>
             </MenuItem>
 
@@ -106,18 +141,26 @@
             </MenuItem>
 
             <MenuItem Header="{l:Tr _Tools}">
-                <MenuItem Header="{l:Tr QuickConnect, Suffix='...'}" Command="{Binding OpenQuickConnectDialogCommand}" InputGesture="Ctrl+Q"/>
-                <MenuItem Header="{l:Tr SshFileTransfer, Suffix='...', English='SFTP File Transfer'}" Command="{Binding OpenSftpCommand}"/>
+                <MenuItem Header="{l:Tr QuickConnect, Suffix='...'}" Command="{Binding OpenQuickConnectDialogCommand}" InputGesture="Ctrl+Q">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="LightningBoltOutline"/></MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="{l:Tr SshFileTransfer, Suffix='...', English='SFTP File Transfer'}" Command="{Binding OpenSftpCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="FolderNetworkOutline"/></MenuItem.Icon>
+                </MenuItem>
                 <Separator/>
                 <MenuItem Header="{l:Tr PortScan, Suffix='...', English='Port Scanner'}" Command="{Binding PortScannerCommand}"/>
                 <MenuItem Header="{l:Tr ExternalTools, Suffix='...'}" Command="{Binding ExternalToolsCommand}"/>
                 <MenuItem Header="{l:Tr UltraVNCSingleClickListener, Suffix='...'}" Command="{Binding UltraVncListenerCommand}"/>
                 <Separator/>
-                <MenuItem Header="{l:Tr Options, Suffix='...', English='_Options'}" Command="{Binding OpenOptionsCommand}" InputGesture="Ctrl+,"/>
+                <MenuItem Header="{l:Tr Options, Suffix='...', English='_Options'}" Command="{Binding OpenOptionsCommand}" InputGesture="Ctrl+,">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="CogOutline"/></MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
 
             <MenuItem Header="{l:Tr _Help}">
-                <MenuItem Header="{l:Tr AboutMRemoteNG, Suffix='...'}" Command="{Binding AboutCommand}"/>
+                <MenuItem Header="{l:Tr AboutMRemoteNG, Suffix='...'}" Command="{Binding AboutCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="InformationOutline"/></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="{l:Tr MenuItem_CheckForUpdates, Suffix='...'}" Command="{Binding CheckForUpdatesCommand}"
                           ToolTip.Tip="{l:Tr OpensTheMRemoteNGReleasesPage}"/>
                 <Separator/>
@@ -128,114 +171,198 @@
             </MenuItem>
         </Menu>
 
-        <!-- TOOLBAR -->
-        <Border DockPanel.Dock="Top" Classes="toolbar">
-            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+        <!-- HEADER BAR (Options > "show toolbar" toggles Border.toolbar) -->
+        <Border x:Name="HeaderBar" DockPanel.Dock="Top" Classes="toolbar header">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" VerticalAlignment="Center">
 
-                <Button ToolTip.Tip="{l:Tr NewConnectionCtrlN}"
-                        Command="{Binding NewConnectionCommand}"
-                        Padding="8,3">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="+" FontSize="14" FontWeight="Bold" Foreground="#4caf50"/>
-                        <TextBlock Text="{l:Tr _New}" FontSize="12"/>
+                <!-- New ▾ / Open / Save -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="NewConnectionButton" Classes="icon header-icon"
+                                Command="{Binding NewConnectionCommand}"
+                                CornerRadius="6,0,0,6"
+                                ToolTip.Tip="{l:Tr NewConnectionCtrlN}">
+                            <mi:MaterialIcon Kind="Plus"/>
+                        </Button>
+                        <Button x:Name="NewMenuButton" Classes="icon header-chevron"
+                                CornerRadius="0,6,6,0"
+                                ToolTip.Tip="{l:Tr ShellMoreNewItems}">
+                            <mi:MaterialIcon Kind="ChevronDown"/>
+                            <Button.Flyout>
+                                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuItem Header="{l:Tr NewConnection, Suffix='...', English='New _Connection'}" Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N">
+                                        <MenuItem.Icon><mi:MaterialIcon Kind="Plus"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Header="{l:Tr NewFolder, Suffix='...', English='New _Folder'}" Command="{Binding ConnectionTree.NewFolderCommand}">
+                                        <MenuItem.Icon><mi:MaterialIcon Kind="FolderPlusOutline"/></MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator/>
+                                    <MenuItem Header="{l:Tr NewConnectionFile, English='_New Connection File'}" Command="{Binding NewFileCommand}" InputGesture="Ctrl+Shift+N">
+                                        <MenuItem.Icon><mi:MaterialIcon Kind="FileOutline"/></MenuItem.Icon>
+                                    </MenuItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
                     </StackPanel>
-                </Button>
+                    <Button Classes="icon header-icon" Command="{Binding OpenConnectionFileCommand}"
+                            ToolTip.Tip="{l:Tr OpenConnectionFileCtrlO}">
+                        <mi:MaterialIcon Kind="FolderOpenOutline"/>
+                    </Button>
+                    <Button Classes="icon header-icon" Command="{Binding SaveConnectionFileCommand}"
+                            ToolTip.Tip="{l:Tr SaveCtrlS}">
+                        <mi:MaterialIcon Kind="ContentSaveOutline"/>
+                    </Button>
+                    <Border Classes="header-divider"/>
+                </StackPanel>
 
-                <Button ToolTip.Tip="{l:Tr OpenConnectionFileCtrlO}"
-                        Command="{Binding OpenConnectionFileCommand}"
-                        Padding="8,3">
-                    <TextBlock Text="{l:Tr Open}" FontSize="12"/>
-                </Button>
+                <!-- Quick connect: an address bar (protocol glyph · host[:port] · protocol) + Connect -->
+                <Grid Grid.Column="1" ColumnDefinitions="*,Auto" MaxWidth="600" MinWidth="280"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="4,0">
+                    <Border x:Name="QuickConnectBar" Classes="address-bar">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                            <mi:MaterialIcon Grid.Column="0" Margin="10,0,0,0"
+                                             Kind="{Binding QuickConnectProtocol, Converter={x:Static conv:ProtocolConverters.Icon}}"
+                                             Foreground="{Binding QuickConnectProtocol, Converter={x:Static conv:ProtocolConverters.Brush}}"/>
+                            <TextBox x:Name="QuickConnectHostBox" Grid.Column="1" Classes="bare"
+                                     Text="{Binding QuickConnectHost}"
+                                     Watermark="{l:Tr ShellQuickConnectWatermark}"
+                                     ToolTip.Tip="{l:Tr ShellQuickConnectTip}"/>
+                            <Border Grid.Column="2" Width="1" Height="18" Background="{DynamicResource Border1Brush}"/>
+                            <ComboBox x:Name="QuickConnectProtocolBox" Grid.Column="3" Classes="bare" MinWidth="84"
+                                      ItemsSource="{Binding QuickConnectProtocols}"
+                                      SelectedItem="{Binding QuickConnectProtocol}"
+                                      ToolTip.Tip="{l:Tr ShellProtocol}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="proto:ProtocolType">
+                                        <TextBlock Text="{Binding Converter={x:Static conv:ProtocolConverters.Label}}"
+                                                   FontWeight="Medium"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+                    <Button Grid.Column="1" Classes="accent" Margin="8,0,0,0" Height="32"
+                            Command="{Binding QuickConnectCommand}"
+                            ToolTip.Tip="{l:Tr ConnectEnter}">
+                        <TextBlock Text="{l:Tr Connect}"/>
+                    </Button>
+                </Grid>
 
-                <Button ToolTip.Tip="{l:Tr SaveCtrlS}"
-                        Command="{Binding SaveConnectionFileCommand}"
-                        Padding="8,3">
-                    <TextBlock Text="{l:Tr Save}" FontSize="12"/>
-                </Button>
+                <!-- External tools -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Classes="header-divider" IsVisible="{Binding #ExternalTools.((vm:ExternalToolsToolbarViewModel)DataContext).HasButtons, FallbackValue=False}"/>
+                    <views:ExternalToolsToolbar x:Name="ExternalTools"/>
+                </StackPanel>
 
-                <Button ToolTip.Tip="{l:Tr EditTheSelectedConnectionOrFolderCtrl}"
-                        Command="{Binding ConnectionTree.EditSelectedCommand}"
-                        Padding="8,3">
-                    <TextBlock Text="{l:Tr Edit}" FontSize="12"/>
-                </Button>
-
-                <!-- Vertical separator -->
-                <Border Width="1" Background="{DynamicResource Border0Brush}" Margin="4,2"/>
-
-                <!-- Quick connect bar -->
-                <TextBlock Text="{l:Tr QuickConnect, Suffix=':'}"
-                           FontSize="12"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center"/>
-                <TextBox Width="200"
-                         Text="{Binding QuickConnectHost}"
-                         Watermark="host[:port]"
-                         FontSize="12"
-                         x:Name="QuickConnectHostBox"/>
-                <ComboBox Width="100"
-                          ItemsSource="{Binding QuickConnectProtocols}"
-                          SelectedItem="{Binding QuickConnectProtocol}"
-                          FontSize="12"/>
-                <Button Padding="8,3"
-                        Classes="accent"
-                        Command="{Binding QuickConnectCommand}"
-                        ToolTip.Tip="{l:Tr ConnectEnter}">
-                    <TextBlock Text="{l:Tr Connect}" FontSize="12"/>
-                </Button>
-
-                <Border Width="1" Background="{DynamicResource Border0Brush}" Margin="4,2"/>
-                <views:ExternalToolsToolbar/>
-
-            </StackPanel>
+                <!-- Command palette, theme, options -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <Border Classes="header-divider"/>
+                    <Button x:Name="PaletteButton" Classes="subtle palette-pill"
+                            Command="{Binding OpenCommandPaletteCommand}"
+                            ToolTip.Tip="{l:Tr ShellCommandPaletteTip}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <mi:MaterialIcon Kind="Magnify" Width="18" Height="18"/>
+                            <StackPanel Orientation="Horizontal" Spacing="3">
+                                <Border Classes="keycap"><TextBlock Text="Ctrl"/></Border>
+                                <Border Classes="keycap"><TextBlock Text="K"/></Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="ThemeButton" Classes="icon header-icon" Command="{Binding ToggleThemeCommand}"
+                            ToolTip.Tip="{Binding ThemeToggleTip}">
+                        <Panel>
+                            <mi:MaterialIcon Kind="WeatherSunny" IsVisible="{Binding IsDarkTheme}"/>
+                            <mi:MaterialIcon Kind="WeatherNight" IsVisible="{Binding !IsDarkTheme}"/>
+                        </Panel>
+                    </Button>
+                    <Button Classes="icon header-icon" Command="{Binding OpenOptionsCommand}"
+                            ToolTip.Tip="{l:Tr ShellOptionsTip}">
+                        <mi:MaterialIcon Kind="CogOutline"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- MULTI-SSH TOOLBAR -->
         <!-- Not Classes="toolbar": Options > "show toolbar" toggles those. -->
-        <Border DockPanel.Dock="Top" x:Name="MultiSshBar" Background="{DynamicResource AppBg2Brush}" Padding="4,2"
+        <Border DockPanel.Dock="Top" x:Name="MultiSshBar" Background="{DynamicResource AppBg1Brush}"
+                BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,0,0,1"
+                Height="40" Padding="12,0"
                 IsVisible="{Binding IsMultiSshToolbarVisible}">
-            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                <TextBlock Text="{l:Tr MultiSsh}" FontSize="12" VerticalAlignment="Center"
-                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <mi:MaterialIcon Kind="ConsoleNetworkOutline" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBlock Classes="caption" Text="{l:Tr MultiSsh}" VerticalAlignment="Center"/>
                 <TextBox x:Name="MultiSshBox"
+                         Classes="mono"
                          Width="420"
-                         FontSize="12"
+                         MinHeight="30"
                          Text="{Binding MultiSsh.CommandText}"
                          Watermark="{l:Tr TypeACommandEnterSendsItTo}"
                          ToolTip.Tip="{l:Tr EnterSendsTheLineUpDownBrowse}"/>
-                <ComboBox Width="130" FontSize="12"
+                <ComboBox Width="140" MinHeight="30"
                           ItemsSource="{Binding MultiSsh.ScopeChoices}"
                           SelectedItem="{Binding MultiSsh.SelectedScope}"/>
-                <TextBlock Text="{Binding MultiSsh.TargetSummary, StringFormat='→ {0}'}" FontSize="12"
-                           VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"/>
+                <TextBlock Classes="caption muted" Text="{Binding MultiSsh.TargetSummary, StringFormat='→ {0}'}"
+                           VerticalAlignment="Center"/>
             </StackPanel>
         </Border>
 
-        <!-- STATUS BAR -->
-        <Border DockPanel.Dock="Bottom" Classes="statusbar">
-            <Grid ColumnDefinitions="Auto,16,*,Auto,16,Auto">
-                <TextBlock Grid.Column="0"
-                           Text="{Binding ActiveConnectionCount, StringFormat={l:Tr ActiveConnectionsFormat}}"
-                           FontSize="11"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2"
-                           Text="{Binding FileStatus}"
-                           FontSize="11"
-                           Foreground="{DynamicResource TextMutedBrush}"
-                           TextTrimming="CharacterEllipsis"
-                           VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3"
-                           Text="{l:Tr UnsavedChangesIndicator}"
-                           IsVisible="{Binding ConnectionTree.IsDirty}"
-                           Foreground="{DynamicResource WarningBrush}"
-                           FontSize="11"
-                           VerticalAlignment="Center"
-                           ToolTip.Tip="{l:Tr TheConnectionFileHasChangesThatAre}"/>
-                <TextBlock Grid.Column="5"
-                           Text="mRemoteNG 1.78.2-dev (Avalonia)"
-                           FontSize="11"
-                           Foreground="{DynamicResource TextMutedBrush}"
-                           VerticalAlignment="Center"/>
+        <!-- STATUS BAR (24 px; Options > "show status bar" toggles Border.statusbar) -->
+        <Border x:Name="StatusBar" DockPanel.Dock="Bottom" Classes="statusbar" Height="24" Padding="6,0">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+                <!-- Open sessions -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" Margin="4,0,10,0"
+                            VerticalAlignment="Center" IsVisible="{Binding HasSessions}">
+                    <Border Classes="dot success"/>
+                    <TextBlock x:Name="SessionCountText" Text="{Binding SessionCountText}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <!-- Connection file (or SQL database) + unsaved dot -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="4,0"
+                            VerticalAlignment="Center" Background="Transparent"
+                            ToolTip.Tip="{Binding FileStatus}">
+                    <Panel VerticalAlignment="Center">
+                        <mi:MaterialIcon Kind="FileDocumentOutline" IsVisible="{Binding !IsSqlSource}"
+                                         Foreground="{DynamicResource TextMutedBrush}"/>
+                        <mi:MaterialIcon Kind="DatabaseOutline" IsVisible="{Binding IsSqlSource}"
+                                         Foreground="{DynamicResource TextMutedBrush}"/>
+                    </Panel>
+                    <TextBlock x:Name="FileNameText" Text="{Binding FileStatusName}" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" MaxWidth="360"/>
+                    <Border x:Name="UnsavedDot" Classes="dot warning" IsVisible="{Binding ConnectionTree.IsDirty}"
+                            ToolTip.Tip="{l:Tr TheConnectionFileHasChangesThatAre}"/>
+                </StackPanel>
+
+                <!-- Warnings / errors since the log was last viewed -->
+                <Button x:Name="LogIndicator" Grid.Column="3" Classes="subtle status-item"
+                        Command="{Binding ShowLogCommand}"
+                        ToolTip.Tip="{l:Tr ShellLogIndicatorTip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Panel VerticalAlignment="Center">
+                            <mi:MaterialIcon Kind="BellOutline" IsVisible="{Binding !HasUnseenLogProblems}"/>
+                            <mi:MaterialIcon Kind="AlertOutline" Foreground="{DynamicResource WarningBrush}">
+                                <mi:MaterialIcon.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="HasUnseenLogProblems"/>
+                                        <Binding Path="!UnseenLogHasErrors"/>
+                                    </MultiBinding>
+                                </mi:MaterialIcon.IsVisible>
+                            </mi:MaterialIcon>
+                            <mi:MaterialIcon Kind="AlertCircleOutline" Foreground="{DynamicResource DangerBrush}"
+                                             IsVisible="{Binding UnseenLogHasErrors}"/>
+                        </Panel>
+                        <TextBlock Text="{Binding UnseenLogProblems}" IsVisible="{Binding HasUnseenLogProblems}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="4" Classes="subtle status-item" Command="{Binding ToggleThemeCommand}"
+                        ToolTip.Tip="{l:Tr ShellToggleTheme}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <mi:MaterialIcon Kind="ThemeLightDark"/>
+                        <TextBlock x:Name="ThemeNameText" Text="{Binding ThemeDisplayName}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Grid.Column="5" Classes="muted" Text="{Binding VersionText}" VerticalAlignment="Center"
+                           Margin="6,0,4,0"/>
             </Grid>
         </Border>
 
@@ -245,6 +372,7 @@
             <!-- LEFT: Connection Tree -->
             <Border x:Name="TreePanel"
                     Grid.Column="0" Grid.RowSpan="3"
+                    Background="{DynamicResource AppBg1Brush}"
                     BorderBrush="{DynamicResource Border0Brush}"
                     BorderThickness="0,0,1,0">
                 <DockPanel>
@@ -252,46 +380,26 @@
                         <Grid ColumnDefinitions="*,Auto,Auto">
                             <TextBlock Grid.Column="0"
                                        Text="{l:Tr Connections, Upper=True}"
-                                       Classes="section-header"
+                                       Classes="overline"
                                        VerticalAlignment="Center"/>
-                            <Button Grid.Column="1"
-                                    Content="&#x1F4C1;"
-                                    FontSize="14"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Foreground="{DynamicResource TextLinkBrush}"
+                            <Button Grid.Column="1" Classes="icon"
                                     ToolTip.Tip="{l:Tr NewFolder, English='New folder'}"
-                                    Command="{Binding ConnectionTree.NewFolderCommand}"/>
-                            <Button Grid.Column="2"
-                                    Content="+"
-                                    FontSize="16"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Foreground="#4caf50"
-                                    ToolTip.Tip="{l:Tr NewConnection, English='New connection'}"
-                                    Command="{Binding NewConnectionCommand}"/>
+                                    Command="{Binding ConnectionTree.NewFolderCommand}">
+                                <mi:MaterialIcon Kind="FolderPlusOutline"/>
+                            </Button>
+                            <Button Grid.Column="2" Classes="icon"
+                                    ToolTip.Tip="{l:Tr NewConnectionCtrlN}"
+                                    Command="{Binding NewConnectionCommand}">
+                                <mi:MaterialIcon Kind="Plus"/>
+                            </Button>
                         </Grid>
                     </Border>
 
-                    <Border DockPanel.Dock="Top" Padding="6,4" Background="{DynamicResource AppBg0Brush}">
+                    <Border DockPanel.Dock="Top" Padding="8,0,8,6">
                         <TextBox x:Name="SearchBox"
+                                 Classes="search"
                                  Text="{Binding ConnectionTree.SearchFilter}"
-                                 Watermark="{l:Tr SearchConnectionsWatermark}"
-                                 FontSize="12"
-                                 Background="{DynamicResource AppBg2Brush}"
-                                 BorderThickness="0">
-                            <TextBox.InnerRightContent>
-                                <Button Content="✕"
-                                        FontSize="10"
-                                        Padding="6,0"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                        ToolTip.Tip="{l:Tr ClearSearchEsc}"
-                                        IsVisible="{Binding ConnectionTree.SearchFilter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                        Command="{Binding ConnectionTree.ClearSearchCommand}"/>
-                            </TextBox.InnerRightContent>
-                        </TextBox>
+                                 Watermark="{l:Tr SearchConnectionsWatermark}"/>
                     </Border>
 
                     <views:ConnectionTreeView DataContext="{Binding ConnectionTree}"/>
@@ -308,24 +416,7 @@
             <Border Grid.Column="2" Grid.Row="0" Background="{DynamicResource AppBg0Brush}">
                 <Grid>
                     <!-- Empty state (no sessions, single panel) -->
-                    <StackPanel x:Name="EmptySessionsPanel"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Spacing="8">
-                        <TextBlock Text="{l:Tr NoActiveSessions}"
-                                   FontSize="16"
-                                   Foreground="{DynamicResource TextMutedBrush}"
-                                   HorizontalAlignment="Center"/>
-                        <TextBlock Text="{l:Tr DoubleClickAConnectionToStartA}"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource TextMutedBrush}"
-                                   HorizontalAlignment="Center"/>
-                        <Button Content="{l:Tr QuickConnect, Suffix='...'}"
-                                Classes="accent"
-                                HorizontalAlignment="Center"
-                                Margin="0,8,0,0"
-                                Command="{Binding OpenQuickConnectDialogCommand}"/>
-                    </StackPanel>
+                    <shell:SessionsEmptyState x:Name="EmptySessionsPanel"/>
 
                     <!-- Named session panels: tabbed, side by side or stacked; floating ones get their own window -->
                     <sessions:SessionAreaView x:Name="SessionArea" DataContext="{Binding Sessions}" IsVisible="False"/>
@@ -339,86 +430,77 @@
                           ResizeBehavior="PreviousAndNext"
                           Height="4"/>
 
-            <!-- BOTTOM: Tabbed panel (Log / Terminal / Debug Console) -->
+            <!-- BOTTOM: Log / Terminal / Debug Console (collapsible) -->
             <Border x:Name="BottomPanel"
                     Grid.Column="2" Grid.Row="2"
                     BorderBrush="{DynamicResource Border0Brush}"
                     BorderThickness="0,1,0,0"
                     Background="{DynamicResource AppBg0Brush}">
-                <TabControl x:Name="BottomTabs" FontSize="12">
-
-                    <!-- Log Tab -->
-                    <TabItem Header="{l:Tr Log}">
-                        <DockPanel>
-                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
-                                        HorizontalAlignment="Right" Margin="0,2,8,2">
-                                <Button Content="{l:Tr Copy}" Padding="6,1" FontSize="11"
-                                        Background="Transparent" BorderThickness="0"
-                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnCopyLog"/>
-                                <Button Content="{l:Tr Clear}" Padding="6,1" FontSize="11"
-                                        Background="Transparent" BorderThickness="0"
-                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnClearLog"/>
+                <DockPanel>
+                    <Border DockPanel.Dock="Top" Classes="bottom-header">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                                <Button x:Name="BottomChevron" Classes="icon compact" Command="{Binding ToggleBottomPanelCommand}"
+                                        ToolTip.Tip="{l:Tr ShellToggleBottomPanelTip}">
+                                    <mi:MaterialIcon Kind="ChevronDown" Classes="collapse-chevron"
+                                                     Classes.collapsed="{Binding !IsBottomPanelExpanded}"/>
+                                </Button>
+                                <ToggleButton x:Name="LogTabButton" Classes="panel-tab" IsChecked="{Binding IsLogTabSelected}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <mi:MaterialIcon Kind="TextBoxOutline" Width="14" Height="14"/>
+                                        <TextBlock Text="{l:Tr Log}" VerticalAlignment="Center"/>
+                                        <Border Classes="badge log-badge" IsVisible="{Binding HasUnseenLogProblems}"
+                                                Classes.danger="{Binding UnseenLogHasErrors}">
+                                            <TextBlock Text="{Binding UnseenLogProblems}"/>
+                                        </Border>
+                                    </StackPanel>
+                                </ToggleButton>
+                                <ToggleButton x:Name="TerminalTabButton" Classes="panel-tab" IsChecked="{Binding IsTerminalTabSelected}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <mi:MaterialIcon Kind="Console" Width="14" Height="14"/>
+                                        <TextBlock Text="{l:Tr Terminal}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ToggleButton>
+                                <ToggleButton x:Name="DebugTabButton" Classes="panel-tab" IsChecked="{Binding IsDebugTabSelected}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <mi:MaterialIcon Kind="BugOutline" Width="14" Height="14"/>
+                                        <TextBlock Text="{l:Tr DebugConsole}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </ToggleButton>
                             </StackPanel>
-                            <ScrollViewer x:Name="LogScroller">
-                                <ItemsControl ItemsSource="{Binding LogPanel.Entries}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="dock:LogEntry">
-                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,1">
-                                                <TextBlock Text="{Binding FormattedTime}"
-                                                           FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                <TextBlock Text="{Binding LevelIcon}" FontSize="11"/>
-                                                <TextBlock Text="{Binding Message}"
-                                                           FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </DockPanel>
-                    </TabItem>
-
-                    <!-- Local Terminal Tab -->
-                    <TabItem Header="{l:Tr Terminal}">
-                        <Border x:Name="LocalTerminalHost" Background="{DynamicResource AppBg0Brush}"/>
-                    </TabItem>
-
-                    <!-- Debug Console Tab -->
-                    <TabItem Header="{l:Tr DebugConsole}">
-                        <DockPanel>
-                            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
-                                        HorizontalAlignment="Right" Margin="0,2,8,2">
-                                <Button Content="{l:Tr Copy}" Padding="6,1" FontSize="11"
-                                        Background="Transparent" BorderThickness="0"
-                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnCopyDebug"/>
-                                <Button Content="{l:Tr Clear}" Padding="6,1" FontSize="11"
-                                        Background="Transparent" BorderThickness="0"
-                                        Foreground="{DynamicResource TextSecondaryBrush}" Click="OnClearDebug"/>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                                <Button x:Name="CopyLogButton" Classes="icon compact" Click="OnCopyLog"
+                                        IsVisible="{Binding !IsTerminalTabSelected}"
+                                        ToolTip.Tip="{l:Tr ShellCopyLogTip}">
+                                    <mi:MaterialIcon Kind="ContentCopy" Width="14" Height="14"/>
+                                </Button>
+                                <Button x:Name="ClearLogButton" Classes="icon compact" Click="OnClearLog"
+                                        IsVisible="{Binding !IsTerminalTabSelected}"
+                                        ToolTip.Tip="{l:Tr ShellClearLogTip}">
+                                    <mi:MaterialIcon Kind="DeleteSweepOutline" Width="16" Height="16"/>
+                                </Button>
+                                <Button Classes="icon compact" Command="{Binding ToggleLogPanelCommand}"
+                                        ToolTip.Tip="{l:Tr ShellHideBottomPanelTip}">
+                                    <mi:MaterialIcon Kind="Close" Width="14" Height="14"/>
+                                </Button>
                             </StackPanel>
-                            <ScrollViewer x:Name="DebugScroller">
-                                <ItemsControl ItemsSource="{Binding DebugConsole.Entries}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate x:DataType="dock:LogEntry">
-                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,1">
-                                                <TextBlock Text="{Binding FormattedTime}"
-                                                           FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                <TextBlock Text="{Binding LevelIcon}" FontSize="11"/>
-                                                <TextBlock Text="{Binding Message}"
-                                                           FontFamily="Consolas,Cascadia Code,monospace"
-                                                           FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </DockPanel>
-                    </TabItem>
+                        </Grid>
+                    </Border>
 
-                </TabControl>
+                    <Panel x:Name="BottomContent" IsVisible="{Binding IsBottomPanelExpanded}">
+                        <shell:LogView x:Name="LogList" DataContext="{Binding LogPanel}"
+                                       IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsLogTabSelected, FallbackValue=True}"/>
+                        <Border x:Name="LocalTerminalHost" Background="{DynamicResource AppBg0Brush}"
+                                IsVisible="{Binding IsTerminalTabSelected}"/>
+                        <shell:LogView x:Name="DebugList" DataContext="{Binding DebugConsole}"
+                                       IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsDebugTabSelected, FallbackValue=False}"/>
+                    </Panel>
+                </DockPanel>
             </Border>
 
+            <!-- OVERLAYS: command palette (top centre) and toasts (bottom right) -->
+            <shell:ToastHost x:Name="Toasts" Grid.ColumnSpan="3" Grid.RowSpan="3"/>
+            <shell:CommandPalette x:Name="Palette" Grid.ColumnSpan="3" Grid.RowSpan="3" DataContext="{Binding Palette}"/>
         </Grid>
 
     </DockPanel>

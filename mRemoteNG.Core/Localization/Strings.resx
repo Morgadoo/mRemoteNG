@@ -2259,4 +2259,156 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
     <value>Offline — {0}</value>
     <comment>Host status; {0} = details</comment>
   </data>
+  <data name="ShellToastErrorTitle" xml:space="preserve">
+    <value>Error</value>
+    <comment>Toast title for an error written to the log</comment>
+  </data>
+  <data name="ShellShowLog" xml:space="preserve">
+    <value>Show log</value>
+    <comment>Toast action that opens the log panel</comment>
+  </data>
+  <data name="ShellDismiss" xml:space="preserve">
+    <value>Dismiss</value>
+    <comment>Tooltip of a toast's close button</comment>
+  </data>
+  <data name="ShellSavedFormat" xml:space="preserve">
+    <value>Saved {0}</value>
+    <comment>Toast after saving; {0} = file or database name</comment>
+  </data>
+  <data name="ShellCommandPalette" xml:space="preserve">
+    <value>Command Palette</value>
+    <comment>View menu item and palette name</comment>
+  </data>
+  <data name="ShellCommandPaletteTip" xml:space="preserve">
+    <value>Search connections and commands (Ctrl+K)</value>
+    <comment>Tooltip of the header's command palette button</comment>
+  </data>
+  <data name="ShellPaletteWatermark" xml:space="preserve">
+    <value>Search connections and commands…</value>
+    <comment>Command palette search box placeholder</comment>
+  </data>
+  <data name="ShellPaletteHintNavigate" xml:space="preserve">
+    <value>navigate</value>
+    <comment>Command palette footer hint after the arrow keys</comment>
+  </data>
+  <data name="ShellPaletteHintOpen" xml:space="preserve">
+    <value>connect / run</value>
+    <comment>Command palette footer hint after Enter</comment>
+  </data>
+  <data name="ShellPaletteHintOptions" xml:space="preserve">
+    <value>connect with options</value>
+    <comment>Command palette footer hint after Ctrl+Enter</comment>
+  </data>
+  <data name="ShellPaletteNoMatches" xml:space="preserve">
+    <value>No matching connections or commands</value>
+    <comment>Command palette: nothing matches the query</comment>
+  </data>
+  <data name="ShellRecent" xml:space="preserve">
+    <value>Recently opened</value>
+    <comment>Tooltip of the recent marker in the command palette</comment>
+  </data>
+  <data name="ShellFindConnection" xml:space="preserve">
+    <value>Find Connection</value>
+    <comment>View menu: focus the connection tree's search box</comment>
+  </data>
+  <data name="ShellExpandBottomPanel" xml:space="preserve">
+    <value>Expand Bottom Panel</value>
+    <comment>View menu: expand / collapse the Log/Terminal/Debug panel</comment>
+  </data>
+  <data name="ShellToggleTheme" xml:space="preserve">
+    <value>Switch Dark / Light Theme</value>
+    <comment>View menu and status bar: switch between the dark and light theme</comment>
+  </data>
+  <data name="ShellSwitchToLightTheme" xml:space="preserve">
+    <value>Switch to the light theme</value>
+    <comment>Tooltip of the header's theme button (dark theme shown)</comment>
+  </data>
+  <data name="ShellSwitchToDarkTheme" xml:space="preserve">
+    <value>Switch to the dark theme</value>
+    <comment>Tooltip of the header's theme button (light theme shown)</comment>
+  </data>
+  <data name="ShellThemeDark" xml:space="preserve">
+    <value>Dark</value>
+    <comment>Status bar theme name</comment>
+  </data>
+  <data name="ShellThemeLight" xml:space="preserve">
+    <value>Light</value>
+    <comment>Status bar theme name</comment>
+  </data>
+  <data name="ShellThemeSystemFormat" xml:space="preserve">
+    <value>System ({0})</value>
+    <comment>Status bar theme name when following the OS; {0} = Dark or Light</comment>
+  </data>
+  <data name="ShellMoreNewItems" xml:space="preserve">
+    <value>New folder, new connection file…</value>
+    <comment>Tooltip of the header's New ▾ menu button</comment>
+  </data>
+  <data name="ShellQuickConnectWatermark" xml:space="preserve">
+    <value>Quick connect: host[:port]</value>
+    <comment>Placeholder of the header's quick connect field</comment>
+  </data>
+  <data name="ShellQuickConnectTip" xml:space="preserve">
+    <value>Host or host:port, optionally user@host or ssh://, rdp://, vnc://… — Enter connects</value>
+    <comment>Tooltip of the header's quick connect field</comment>
+  </data>
+  <data name="ShellProtocol" xml:space="preserve">
+    <value>Protocol</value>
+    <comment>Tooltip of the quick connect protocol selector</comment>
+  </data>
+  <data name="ShellOptionsTip" xml:space="preserve">
+    <value>Options (Ctrl+,)</value>
+    <comment>Tooltip of the header's options button</comment>
+  </data>
+  <data name="ShellMoreExternalTools" xml:space="preserve">
+    <value>More external tools</value>
+    <comment>Tooltip of the external tools overflow button</comment>
+  </data>
+  <data name="ShellLogIndicatorTip" xml:space="preserve">
+    <value>Warnings and errors since the log was last viewed — click to show the log</value>
+    <comment>Status bar log indicator tooltip</comment>
+  </data>
+  <data name="ShellOneSession" xml:space="preserve">
+    <value>1 session</value>
+    <comment>Status bar: one open session</comment>
+  </data>
+  <data name="ShellSessionsFormat" xml:space="preserve">
+    <value>{0} sessions</value>
+    <comment>Status bar: open sessions; {0} = count</comment>
+  </data>
+  <data name="ShellToggleBottomPanelTip" xml:space="preserve">
+    <value>Collapse / expand the panel (Ctrl+J)</value>
+    <comment>Tooltip of the bottom panel's chevron</comment>
+  </data>
+  <data name="ShellCopyLogTip" xml:space="preserve">
+    <value>Copy all</value>
+    <comment>Tooltip of the bottom panel's copy button</comment>
+  </data>
+  <data name="ShellClearLogTip" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Tooltip of the bottom panel's clear button</comment>
+  </data>
+  <data name="ShellHideBottomPanelTip" xml:space="preserve">
+    <value>Hide the panel (Ctrl+Shift+L)</value>
+    <comment>Tooltip of the bottom panel's close button</comment>
+  </data>
+  <data name="ShellNoOpenSessions" xml:space="preserve">
+    <value>No open sessions</value>
+    <comment>Empty session area title</comment>
+  </data>
+  <data name="ShellEmptyStateCaption" xml:space="preserve">
+    <value>Open a saved connection from the tree, or type a host to connect right away.</value>
+    <comment>Empty session area text</comment>
+  </data>
+  <data name="ShellNewConnection" xml:space="preserve">
+    <value>New connection</value>
+    <comment>Empty session area secondary button</comment>
+  </data>
+  <data name="ShellHintSearch" xml:space="preserve">
+    <value>Search &amp; commands</value>
+    <comment>Empty session area keyboard hint after Ctrl K</comment>
+  </data>
+  <data name="ShellRecentAndFavorites" xml:space="preserve">
+    <value>Recent and favorites</value>
+    <comment>Empty session area: heading of the connection cards</comment>
+  </data>
 </root>

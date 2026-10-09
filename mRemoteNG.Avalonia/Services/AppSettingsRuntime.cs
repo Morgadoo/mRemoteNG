@@ -285,7 +285,11 @@ public sealed class AppSettingsRuntime : IDisposable
                 return;
 
             if (result.IsUpdateAvailable)
+            {
                 _log.Log($"{result.Message} Download: {result.ReleaseUrl}", LogLevel.Info);
+                (AppServices.Provider.GetService(typeof(ToastService)) as ToastService)?.Show(
+                    Localizer.Get("UpdateAvailableTitle"), result.Message, ToastLevel.Info, TimeSpan.FromSeconds(10));
+            }
             else if (!result.Succeeded)
                 _log.Log($"Update check: {result.Message}", LogLevel.Warning);
         }

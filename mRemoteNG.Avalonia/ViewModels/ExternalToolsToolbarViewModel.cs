@@ -61,6 +61,17 @@ public sealed class ExternalToolsToolbarViewModel : ReactiveObject
 
     public bool HasButtons => Buttons.Count > 0;
 
+    /// <summary>At most this many tools get their own button; the rest go to the "⋯" overflow menu.</summary>
+    public const int MaxInlineButtons = 4;
+
+    /// <summary>The tools shown as buttons (the first <see cref="MaxInlineButtons"/>, or all when one more would overflow).</summary>
+    public IReadOnlyList<ExternalToolCommandItem> InlineButtons { get; private set; } = [];
+
+    /// <summary>The tools listed in the overflow menu.</summary>
+    public IReadOnlyList<ExternalToolCommandItem> OverflowButtons { get; private set; } = [];
+
+    public bool HasOverflow => OverflowButtons.Count > 0;
+
     /// <summary>Show the tools' names next to their icons (persisted in the options).</summary>
     public bool ShowText
     {
@@ -104,7 +115,14 @@ public sealed class ExternalToolsToolbarViewModel : ReactiveObject
         Buttons.Clear();
         foreach (var tool in _service.ToolbarTools)
             Buttons.Add(CreateItem(_service, tool, _selectedConnection));
+        // An overflow menu holding a single tool would save nothing: show it inline instead.
+        var inline = Buttons.Count <= MaxInlineButtons + 1 ? Buttons.Count : MaxInlineButtons;
+        InlineButtons = Buttons.Take(inline).ToList();
+        OverflowButtons = Buttons.Skip(inline).ToList();
         this.RaisePropertyChanged(nameof(HasButtons));
+        this.RaisePropertyChanged(nameof(InlineButtons));
+        this.RaisePropertyChanged(nameof(OverflowButtons));
+        this.RaisePropertyChanged(nameof(HasOverflow));
     }
 
     /// <summary>A command item that runs <paramref name="tool"/> for the connection <paramref name="target"/> returns.</summary>

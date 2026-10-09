@@ -25,6 +25,14 @@ public enum UnsavedChangesChoice
     Cancel,
 }
 
+/// <summary>The tabs of the main window's bottom panel.</summary>
+public enum BottomPanelTab
+{
+    Log,
+    Terminal,
+    Debug,
+}
+
 /// <summary>
 /// ViewModel for the main application window.
 /// Owns top-level navigation state, docking layout, and all menu commands.
@@ -48,6 +56,13 @@ public sealed class MainWindowViewModel : ReactiveObject
     private bool _isLogPanelVisible = true;
     private bool _isFullScreen;
     private bool _isMultiSshToolbarVisible;
+    private bool _isBottomPanelExpanded = true;
+    private BottomPanelTab _bottomTab = BottomPanelTab.Log;
+    private int _unseenLogProblems;
+    private bool _unseenLogHasErrors;
+    private IReadOnlyList<ConnectionInfo> _homeCards = [];
+    private readonly ToastService? _toasts;
+    private readonly AppSettingsService? _settings;
 
     public string Title
     {
@@ -61,6 +76,8 @@ public sealed class MainWindowViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _activeConnectionCount, value);
+            this.RaisePropertyChanged(nameof(HasSessions));
+            this.RaisePropertyChanged(nameof(SessionCountText));
             UpdateTitle();
         }
     }
@@ -107,16 +124,143 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _isMultiSshToolbarVisible, value);
     }
 
+    /// <summary>The bottom panel shows its content (true) or only its header strip (Ctrl+J).</summary>
+    public bool IsBottomPanelExpanded
+    {
+        get => _isBottomPanelExpanded;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isBottomPanelExpanded, value);
+            UpdateLogSeen();
+        }
+    }
+
+    /// <summary>The bottom panel's selected tab.</summary>
+    public BottomPanelTab BottomTab
+    {
+        get => _bottomTab;
+        set
+        {
+            if (_bottomTab == value) return;
+            this.RaiseAndSetIfChanged(ref _bottomTab, value);
+            this.RaisePropertyChanged(nameof(IsLogTabSelected));
+            this.RaisePropertyChanged(nameof(IsTerminalTabSelected));
+            this.RaisePropertyChanged(nameof(IsDebugTabSelected));
+            UpdateLogSeen();
+        }
+    }
+
+    public bool IsLogTabSelected
+    {
+        get => _bottomTab == BottomPanelTab.Log;
+        set => SelectTab(BottomPanelTab.Log, value);
+    }
+
+    public bool IsTerminalTabSelected
+    {
+        get => _bottomTab == BottomPanelTab.Terminal;
+        set => SelectTab(BottomPanelTab.Terminal, value);
+    }
+
+    public bool IsDebugTabSelected
+    {
+        get => _bottomTab == BottomPanelTab.Debug;
+        set => SelectTab(BottomPanelTab.Debug, value);
+    }
+
+    /// <summary>Warnings and errors logged since the log was last on screen (status bar indicator).</summary>
+    public int UnseenLogProblems
+    {
+        get => _unseenLogProblems;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _unseenLogProblems, value);
+            this.RaisePropertyChanged(nameof(HasUnseenLogProblems));
+        }
+    }
+
+    public bool HasUnseenLogProblems => _unseenLogProblems > 0;
+
+    /// <summary>At least one of the unseen problems is an error (the indicator turns red).</summary>
+    public bool UnseenLogHasErrors
+    {
+        get => _unseenLogHasErrors;
+        private set => this.RaiseAndSetIfChanged(ref _unseenLogHasErrors, value);
+    }
+
+    /// <summary>The command palette (Ctrl+K / Ctrl+Shift+P).</summary>
+    public CommandPaletteViewModel Palette { get; }
+
+    /// <summary>Connections opened most recently (persisted in the settings).</summary>
+    public RecentConnections Recent { get; } = new();
+
+    /// <summary>Cards of the empty session area: recent connections, then favourites (at most <see cref="MaxHomeCards"/>).</summary>
+    public IReadOnlyList<ConnectionInfo> HomeCards
+    {
+        get => _homeCards;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _homeCards, value);
+            this.RaisePropertyChanged(nameof(HasHomeCards));
+        }
+    }
+
+    public bool HasHomeCards => _homeCards.Count > 0;
+
+    public const int MaxHomeCards = 8;
+
+    /// <summary>Raised by the empty state's "Quick connect": the view focuses the header's address field.</summary>
+    public event EventHandler? QuickConnectFocusRequested;
+
+    /// <summary>Raised by Ctrl+F: the view focuses the tree's search box.</summary>
+    public event EventHandler? FindConnectionRequested;
+
     /// <summary>The Multi-SSH toolbar (types into every open terminal session).</summary>
     public MultiSshViewModel MultiSsh { get; }
 
     /// <summary>Raised by View → Reset Layout; the view restores panel sizes.</summary>
     public event EventHandler? LayoutResetRequested;
 
-    /// <summary>Status-bar text describing the open connection file.</summary>
+    /// <summary>Status-bar text describing the open connection file (full path; the tooltip of <see cref="FileStatusName"/>).</summary>
     public string FileStatus => ConnectionTree.DatabaseName is { } database
         ? Localizer.Format("SqlDatabaseStatusFormat", database)
         : ConnectionTree.CurrentFilePath ?? Localizer.Get("NewConnectionFileNotSaved");
+
+    /// <summary>Status bar: the file name only, or the SQL database name.</summary>
+    public string FileStatusName => ConnectionTree.DatabaseName
+                                    ?? (ConnectionTree.CurrentFilePath is { } path ? System.IO.Path.GetFileName(path) : Localizer.Get("Untitled"));
+
+    /// <summary>The connections come from an SQL database (the status bar shows a database icon).</summary>
+    public bool IsSqlSource => ConnectionTree.DatabaseName is not null;
+
+    public bool HasSessions => ActiveConnectionCount > 0;
+
+    /// <summary>Status bar: "1 session" / "3 sessions".</summary>
+    public string SessionCountText => ActiveConnectionCount == 1
+        ? Localizer.Get("ShellOneSession")
+        : Localizer.Format("ShellSessionsFormat", ActiveConnectionCount);
+
+    /// <summary>Status bar: the theme in use ("Dark", "Light", "Darcula"…).</summary>
+    public string ThemeDisplayName
+    {
+        get
+        {
+            var themes = ThemeService.Instance;
+            if (!string.IsNullOrEmpty(themes.CurrentThemeName))
+                return themes.CurrentThemeName;
+            var effective = IsDarkTheme ? Localizer.Get("ShellThemeDark") : Localizer.Get("ShellThemeLight");
+            return themes.CurrentTheme == ThemeMode.System ? Localizer.Format("ShellThemeSystemFormat", effective) : effective;
+        }
+    }
+
+    /// <summary>The theme shown is dark (the header's theme button offers light).</summary>
+    public bool IsDarkTheme => ThemeService.Instance.EffectiveVariant != global::Avalonia.Styling.ThemeVariant.Light;
+
+    /// <summary>Tooltip of the header's theme button.</summary>
+    public string ThemeToggleTip => Localizer.Get(IsDarkTheme ? "ShellSwitchToLightTheme" : "ShellSwitchToDarkTheme");
+
+    /// <summary>Status bar: "v1.78.2-dev".</summary>
+    public string VersionText { get; } = "v" + UpdateCheckServiceVersion();
 
     /// <summary>Child ViewModel for the connection tree panel.</summary>
     public ConnectionTreeViewModel ConnectionTree { get; }
@@ -167,14 +311,25 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenDatabaseCommand { get; }
     public ReactiveCommand<Unit, Unit> ReloadDatabaseCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLogFileCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleBottomPanelCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowLogCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleThemeCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenCommandPaletteCommand { get; }
+    public ReactiveCommand<Unit, Unit> FocusQuickConnectCommand { get; }
+    public ReactiveCommand<Unit, Unit> FindConnectionCommand { get; }
+    public ReactiveCommand<ConnectionInfo, Unit> ConnectConnectionCommand { get; }
 
     public MainWindowViewModel(
         ConnectionTreeViewModel connectionTree,
         ConnectionsService connectionsService,
         SessionsDockable sessions,
         LogPanelDockable logPanel,
-        DebugConsoleDockable debugConsole)
+        DebugConsoleDockable debugConsole,
+        ToastService? toasts = null,
+        AppSettingsService? settings = null)
     {
+        _toasts = toasts;
+        _settings = settings;
         ConnectionTree = connectionTree;
         _connectionsService = connectionsService;
         _sessions = sessions;
@@ -220,7 +375,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         ReconnectAllCommand = ReactiveCommand.CreateFromTask(() => _sessions.ReconnectAllAsync(), hasSessions);
         DisconnectAllCommand = ReactiveCommand.CreateFromTask(() => _sessions.DisconnectAllAsync(), hasSessions);
         CloseAllSessionsCommand = ReactiveCommand.CreateFromTask(() => _sessions.CloseAllSessionsAsync(), hasSessions);
-        NewPanelCommand = ReactiveCommand.Create(() => { _sessions.NewPanel(); });
+        NewPanelCommand = ReactiveCommand.CreateFromTask(OnNewPanelAsync);
         ConnectSelectedToPanelCommand = ReactiveCommand.CreateFromTask(OnConnectSelectedToPanelAsync,
             ConnectionTree.WhenAnyValue(t => t.SelectedNode).Select(n => n is { IsFolder: false }));
         ArrangePanelsCommand = ReactiveCommand.Create<PanelArrangement>(mode => _sessions.Arrangement = mode);
@@ -248,9 +403,55 @@ public sealed class MainWindowViewModel : ReactiveObject
                 _log.Log($"Could not open the log file {path}", LogLevel.Warning);
         });
 
-        // Track active connection count
-        sessions.Sessions.CollectionChanged += (_, _) =>
+        // Shell: bottom panel, theme, palette, empty state
+        ToggleBottomPanelCommand = ReactiveCommand.Create(ToggleBottomPanel);
+        ShowLogCommand = ReactiveCommand.Create(ShowLog);
+        ToggleThemeCommand = ReactiveCommand.Create(ToggleTheme);
+        Palette = new CommandPaletteViewModel(AllConnections, () => Recent.Resolve(ConnectionTree.Root))
+        {
+            Connect = ConnectFromPaletteAsync,
+        };
+        OpenCommandPaletteCommand = ReactiveCommand.Create(() => Palette.Toggle());
+        FocusQuickConnectCommand = ReactiveCommand.Create(() => QuickConnectFocusRequested?.Invoke(this, EventArgs.Empty));
+        FindConnectionCommand = ReactiveCommand.Create(() =>
+        {
+            IsConnectionTreeVisible = true;
+            FindConnectionRequested?.Invoke(this, EventArgs.Empty);
+        });
+        ConnectConnectionCommand = ReactiveCommand.CreateFromTask<ConnectionInfo>(connection => ConnectionTree.ConnectAsync(connection, null));
+
+        Recent.Load(_settings?.Current.RecentConnections);
+        Recent.Changed += (_, _) =>
+        {
+            _settings?.Update(s => s.RecentConnections = Recent.Serialize());
+            RefreshHomeCards();
+        };
+        ConnectionTree.WhenAnyValue(t => t.CurrentFilePath, t => t.DatabaseName, t => t.IsDirty)
+            .Subscribe(_ => RefreshHomeCards());
+
+        // The status bar's warning/error count, cleared while the log is on screen.
+        logPanel.Entries.CollectionChanged += OnLogEntriesChanged;
+        this.WhenAnyValue(x => x.IsLogPanelVisible).Subscribe(_ => UpdateLogSeen());
+        _toasts?.AttachLog(logPanel, ShowLog);
+
+        ThemeService.Instance.WhenAnyValue(t => t.CurrentThemeName, t => t.CurrentTheme, t => t.EffectiveVariant)
+            .Subscribe(_ =>
+            {
+                this.RaisePropertyChanged(nameof(ThemeDisplayName));
+                this.RaisePropertyChanged(nameof(IsDarkTheme));
+                this.RaisePropertyChanged(nameof(ThemeToggleTip));
+            });
+
+        // Track the open session count and the most recently opened connections
+        sessions.Sessions.CollectionChanged += (_, e) =>
+        {
             ActiveConnectionCount = sessions.Sessions.Count;
+            foreach (SessionTabViewModel session in e.NewItems ?? Array.Empty<SessionTabViewModel>())
+            {
+                if (session.Connection is { } connection)
+                    Recent.Add(connection);
+            }
+        };
 
         // Title and status bar follow the file name and unsaved-changes state.
         ConnectionTree.WhenAnyValue(t => t.IsDirty, t => t.CurrentFilePath, t => t.DatabaseName)
@@ -258,6 +459,8 @@ public sealed class MainWindowViewModel : ReactiveObject
             {
                 UpdateTitle();
                 this.RaisePropertyChanged(nameof(FileStatus));
+                this.RaisePropertyChanged(nameof(FileStatusName));
+                this.RaisePropertyChanged(nameof(IsSqlSource));
             });
 
         // Route any unhandled command errors to the log panel
@@ -269,7 +472,8 @@ public sealed class MainWindowViewModel : ReactiveObject
                      OpenSftpCommand, OpenGitHubCommand, OpenDocumentationCommand, ReportBugCommand,
                      CheckForUpdatesCommand, ReconnectAllCommand, DisconnectAllCommand, CloseAllSessionsCommand,
                      ConnectSelectedToPanelCommand, ExternalToolsCommand, UltraVncListenerCommand,
-                     OpenDatabaseCommand, ReloadDatabaseCommand, OpenLogFileCommand,
+                     OpenDatabaseCommand, ReloadDatabaseCommand, OpenLogFileCommand, NewPanelCommand,
+                     ConnectConnectionCommand,
                  })
         {
             command.ThrownExceptions.Subscribe(ex => _log.Log($"Error: {ex.Message}", LogLevel.Error));
@@ -384,6 +588,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             {
                 ConnectionTree.SaveToFile();
                 _log.Log($"Saved connections to SQL database {database}");
+                ToastSaved(database);
                 return true;
             }
             catch (Exception ex)
@@ -401,6 +606,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             ConnectionTree.SaveToFile();
             _log.Log($"Saved connection file: {ConnectionTree.CurrentFilePath}");
             RememberOpenFile();
+            ToastSaved(System.IO.Path.GetFileName(ConnectionTree.CurrentFilePath));
             return true;
         }
         catch (Exception ex)
@@ -435,6 +641,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             ConnectionTree.SaveToFile(file.Path.LocalPath);
             _log.Log($"Saved connection file: {file.Path.LocalPath}");
             RememberOpenFile();
+            ToastSaved(System.IO.Path.GetFileName(file.Path.LocalPath));
             return true;
         }
         catch (Exception ex)
@@ -696,7 +903,48 @@ public sealed class MainWindowViewModel : ReactiveObject
     private async Task OnQuickConnect()
     {
         if (string.IsNullOrWhiteSpace(QuickConnectHost)) return;
-        await QuickConnectAsync(QuickConnectHost, QuickConnectProtocol, null, null);
+        var (host, protocol, username) = ParseQuickConnectInput(QuickConnectHost, QuickConnectProtocol);
+        QuickConnectProtocol = protocol;
+        await QuickConnectAsync(host, protocol, username, null);
+    }
+
+    private static readonly Dictionary<string, CoreProtocolType> QuickConnectSchemes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["ssh"] = CoreProtocolType.SSH2,
+        ["rdp"] = CoreProtocolType.RDP,
+        ["vnc"] = CoreProtocolType.VNC,
+        ["telnet"] = CoreProtocolType.Telnet,
+        ["rlogin"] = CoreProtocolType.Rlogin,
+        ["raw"] = CoreProtocolType.RAW,
+        ["http"] = CoreProtocolType.HTTP,
+        ["https"] = CoreProtocolType.HTTPS,
+    };
+
+    /// <summary>
+    /// Reads the header's quick connect field: "host[:port]" with the selected protocol, a scheme that picks the
+    /// protocol ("ssh://host", "rdp://host:3390"; http/https URLs stay URLs) and an optional "user@" prefix.
+    /// </summary>
+    public static (string Host, CoreProtocolType Protocol, string? Username) ParseQuickConnectInput(string input, CoreProtocolType selected)
+    {
+        var text = input.Trim();
+        var protocol = selected;
+        var scheme = text.IndexOf("://", StringComparison.Ordinal);
+        if (scheme > 0 && QuickConnectSchemes.TryGetValue(text[..scheme], out var fromScheme))
+        {
+            protocol = fromScheme;
+            if (protocol is CoreProtocolType.HTTP or CoreProtocolType.HTTPS)
+                return (text, protocol, null);
+            text = text[(scheme + 3)..].TrimEnd('/');
+        }
+
+        string? username = null;
+        var at = text.LastIndexOf('@');
+        if (at > 0 && protocol is not (CoreProtocolType.HTTP or CoreProtocolType.HTTPS))
+        {
+            username = text[..at];
+            text = text[(at + 1)..];
+        }
+        return (text, protocol, username);
     }
 
     private async Task QuickConnectAsync(string hostInput, CoreProtocolType protocol, string? username, string? password)
@@ -843,6 +1091,159 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             _log.Log($"Could not connect to \"{connection.Name}\": {ex.Message}", LogLevel.Error);
         }
+    }
+
+    // ── Shell: bottom panel, log indicator, theme, palette, empty state ──
+
+    private void SelectTab(BottomPanelTab tab, bool selected)
+    {
+        if (selected)
+            BottomTab = tab;
+        else
+            RaiseTabSelection(); // a tab button cannot be unchecked: re-check the current one
+    }
+
+    private void RaiseTabSelection()
+    {
+        this.RaisePropertyChanged(nameof(IsLogTabSelected));
+        this.RaisePropertyChanged(nameof(IsTerminalTabSelected));
+        this.RaisePropertyChanged(nameof(IsDebugTabSelected));
+    }
+
+    /// <summary>Ctrl+J: collapses the bottom panel to its header or expands it (showing it when hidden).</summary>
+    private void ToggleBottomPanel()
+    {
+        if (!IsLogPanelVisible)
+        {
+            IsLogPanelVisible = true;
+            IsBottomPanelExpanded = true;
+            return;
+        }
+        IsBottomPanelExpanded = !IsBottomPanelExpanded;
+    }
+
+    /// <summary>Shows the log tab of the bottom panel (status bar indicator, toasts' "Show log").</summary>
+    public void ShowLog()
+    {
+        IsLogPanelVisible = true;
+        IsBottomPanelExpanded = true;
+        BottomTab = BottomPanelTab.Log;
+        UpdateLogSeen();
+    }
+
+    private bool IsLogOnScreen => IsLogPanelVisible && IsBottomPanelExpanded && BottomTab == BottomPanelTab.Log;
+
+    private void UpdateLogSeen()
+    {
+        if (!IsLogOnScreen) return;
+        UnseenLogProblems = 0;
+        UnseenLogHasErrors = false;
+    }
+
+    private void OnLogEntriesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+        {
+            UnseenLogProblems = 0;
+            UnseenLogHasErrors = false;
+            return;
+        }
+        if (e.NewItems is null || IsLogOnScreen) return;
+        foreach (LogEntry entry in e.NewItems)
+        {
+            if (entry.Level is LogLevel.Warning or LogLevel.Error)
+                UnseenLogProblems++;
+            if (entry.Level == LogLevel.Error)
+                UnseenLogHasErrors = true;
+        }
+    }
+
+    /// <summary>The header's theme button: switches between the dark and light theme and saves the choice.</summary>
+    private void ToggleTheme()
+    {
+        var target = IsDarkTheme ? ThemeMode.Light : ThemeMode.Dark;
+        if (_settings is not null)
+        {
+            _settings.Update(s =>
+            {
+                s.Theme = target;
+                s.ThemeName = string.Empty;
+            });
+            ThemeService.Instance.ApplySettings(_settings.Current);
+        }
+        else
+        {
+            ThemeService.Instance.Apply(target);
+        }
+    }
+
+    private void ToastSaved(string? name)
+    {
+        if (!string.IsNullOrEmpty(name))
+            _toasts?.Show(Localizer.Format("ShellSavedFormat", name), level: ToastLevel.Success);
+    }
+
+    /// <summary>Every connection of the loaded tree (no folders), in tree order.</summary>
+    private IEnumerable<ConnectionInfo> AllConnections() =>
+        ConnectionTree.Root is { } root
+            ? root.GetRecursiveChildList().Where(c => c is not global::mRemoteNG.Core.Container.ContainerInfo)
+            : [];
+
+    /// <summary>Command palette: Enter connects, Ctrl+Enter opens "connect with options" for the connection.</summary>
+    private async Task ConnectFromPaletteAsync(ConnectionInfo connection, bool withOptions)
+    {
+        if (!withOptions)
+        {
+            await ConnectionTree.ConnectAsync(connection, null);
+            return;
+        }
+        if (FindNodeForModel(ConnectionTree.Nodes, connection) is not { } node)
+            return;
+        ConnectionTree.SelectedNode = node;
+        if (await ConnectionTree.ConnectWithOptionsCommand.CanExecute.FirstAsync())
+            await ConnectionTree.ConnectWithOptionsCommand.Execute();
+    }
+
+    /// <summary>Recomputes the empty state's cards: recent connections, then favourites.</summary>
+    public void RefreshHomeCards()
+    {
+        var recent = Recent.Resolve(ConnectionTree.Root);
+        var cards = recent.Concat(GetFavorites().Where(f => !recent.Contains(f))).Take(MaxHomeCards).ToList();
+        if (!cards.SequenceEqual(_homeCards))
+            HomeCards = cards;
+    }
+
+    /// <summary>
+    /// Asks for a new panel's name given a suggestion (the main window shows a <see cref="TextPromptDialog"/>);
+    /// null = cancelled. Without it the suggestion is used.
+    /// </summary>
+    public Func<string, Task<string?>>? PanelNamePrompt { get; set; }
+
+    /// <summary>Sessions ▸ New Panel: asks for the name (like "Move to Panel ▸ New Panel…").</summary>
+    private async Task OnNewPanelAsync()
+    {
+        var suggestion = _sessions.UniquePanelName(SessionsDockable.NewPanelBaseName);
+        var name = PanelNamePrompt is { } prompt ? await prompt(suggestion) : suggestion;
+        if (string.IsNullOrWhiteSpace(name)) return;
+        var existing = _sessions.FindPanel(name.Trim());
+        if (existing is not null)
+            _sessions.ActivePanel = existing;
+        else
+            _sessions.NewPanel(name);
+    }
+
+    private static string UpdateCheckServiceVersion()
+    {
+        try
+        {
+            if (AppServices.Provider.GetService(typeof(UpdateCheckService)) is UpdateCheckService updates)
+                return updates.CurrentVersionText;
+        }
+        catch (InvalidOperationException)
+        {
+            // No container (designer): the assembly version.
+        }
+        return typeof(MainWindowViewModel).Assembly.GetName().Version?.ToString(3) ?? string.Empty;
     }
 
     private async Task OpenUrlAsync(string url)

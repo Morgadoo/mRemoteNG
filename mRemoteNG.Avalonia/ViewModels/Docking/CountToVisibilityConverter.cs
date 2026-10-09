@@ -20,14 +20,3 @@ public sealed class CountToVisibilityConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }
-
-public sealed class BoolToColorConverter : IValueConverter
-{
-    public static readonly BoolToColorConverter ConnectedColor = new();
-
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is true ? "#4caf50" : "#888888";
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
-}

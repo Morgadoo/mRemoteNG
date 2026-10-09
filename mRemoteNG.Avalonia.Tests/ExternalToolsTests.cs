@@ -65,7 +65,18 @@ public class ExternalToolsTests
         var window = new Window { Content = control };
         window.Show();
         Dispatcher.UIThread.RunJobs();
-        control.GetVisualDescendants().OfType<Button>().Should().HaveCount(2);
+        control.GetVisualDescendants().OfType<Button>().Count(b => b.DataContext is ExternalToolCommandItem).Should().Be(2);
+        control.FindControl<Button>("OverflowButton")!.IsVisible.Should().BeFalse("two tools fit on the toolbar");
+
+        // Beyond the inline limit the rest go to the "⋯" menu.
+        for (var i = 0; i < ExternalToolsToolbarViewModel.MaxInlineButtons + 1; i++)
+            service.Tools.Add(new ExternalTool($"Extra {i}", "x") { ShowOnToolbar = true });
+        Dispatcher.UIThread.RunJobs();
+        toolbar.InlineButtons.Should().HaveCount(ExternalToolsToolbarViewModel.MaxInlineButtons);
+        toolbar.OverflowButtons.Should().HaveCount(toolbar.Buttons.Count - ExternalToolsToolbarViewModel.MaxInlineButtons);
+        control.GetVisualDescendants().OfType<Button>().Count(b => b.DataContext is ExternalToolCommandItem)
+            .Should().Be(ExternalToolsToolbarViewModel.MaxInlineButtons);
+        control.FindControl<Button>("OverflowButton")!.IsVisible.Should().BeTrue();
         window.Close();
     }
 

@@ -288,6 +288,9 @@ public sealed class AppSettings
     /// <summary>Main window and session panel layout as JSON (not shown in the UI); empty for the default layout.</summary>
     [PersistedSetting("Layout")] public string WindowLayout { get; set; } = string.Empty;
 
+    /// <summary>Constant ids of the connections opened most recently, one per line, most recent first (not shown in the UI).</summary>
+    [PersistedSetting("Layout")] public string RecentConnections { get; set; } = string.Empty;
+
     // ── Update proxy ─────────────────────────────────────────────────────
 
     /// <summary>Use a custom proxy for the update check and download (otherwise the system proxy).</summary>

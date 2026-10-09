@@ -5,14 +5,18 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using mRemoteNG.Avalonia.ViewModels;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Avalonia.Views.Sessions;
+using mRemoteNG.Avalonia.Views.Shell;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Ssh;
+using Material.Icons;
+using Material.Icons.Avalonia;
 using ReactiveUI;
 using System.Reactive.Linq;
 
@@ -27,11 +31,12 @@ public partial class MainWindow : Window
     private System.Diagnostics.Process? _localShellProcess;
     private DebugConsoleTraceListener? _traceListener;
     private NotifyCollectionChangedEventHandler? _sessionsHandler;
-    private EventHandler<SelectionChangedEventArgs>? _bottomTabsHandler;
     private MainWindowViewModel? _boundViewModel;
     private readonly List<IDisposable> _vmSubscriptions = [];
     private GridLength _treeWidth = DefaultTreeWidth;
     private GridLength _bottomHeight = DefaultBottomHeight;
+    private bool _bottomVisible = true;
+    private bool _bottomExpanded = true;
     private WindowState _stateBeforeFullScreen = WindowState.Normal;
     private bool _closeConfirmed;
     private bool _closePromptOpen;
@@ -45,10 +50,17 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
 
+        // Every shortcut shown in the menus works (guarded by ShortcutPolicy), plus Ctrl+Shift+P for the palette.
+        AppShortcuts.RegisterMenu(this, MainMenu);
+        AppShortcuts.Register(this, new KeyGesture(Key.P, KeyModifiers.Control | KeyModifiers.Shift),
+            () => (DataContext as MainWindowViewModel)?.OpenCommandPaletteCommand);
+
         // Enter key on quick connect textbox triggers connect
         QuickConnectHostBox.KeyDown += OnQuickConnectKeyDown;
         SearchBox.KeyDown += OnSearchKeyDown;
         AddHandler(KeyDownEvent, OnWindowKeyDown, RoutingStrategies.Tunnel);
+        if (!Design.IsDesignMode && AppServices.Provider.GetService(typeof(ToastService)) is ToastService toasts)
+            Toasts.DataContext = toasts;
 
         MultiSshBox.AddHandler(KeyDownEvent, OnMultiSshKeyDown, RoutingStrategies.Tunnel);
         MultiSshBox.GotFocus += (_, _) => (DataContext as MainWindowViewModel)?.MultiSsh.RefreshTargets();
@@ -122,16 +134,6 @@ public partial class MainWindow : Window
             _traceListener = new DebugConsoleTraceListener(vm.DebugConsole);
             Trace.Listeners.Add(_traceListener);
 
-            // Initialize local terminal when the tab is first selected
-            if (_bottomTabsHandler is null)
-            {
-                _bottomTabsHandler = (_, _) =>
-                {
-                    if (BottomTabs.SelectedIndex == 1 && _localTerminal is null)
-                        InitializeLocalTerminal();
-                };
-                BottomTabs.SelectionChanged += _bottomTabsHandler;
-            }
         }
     }
 
@@ -143,14 +145,30 @@ public partial class MainWindow : Window
             subscription.Dispose();
         _vmSubscriptions.Clear();
         if (_boundViewModel is not null)
+        {
             _boundViewModel.LayoutResetRequested -= OnLayoutResetRequested;
+            _boundViewModel.QuickConnectFocusRequested -= OnQuickConnectFocusRequested;
+            _boundViewModel.FindConnectionRequested -= OnFindConnectionRequested;
+        }
         _boundViewModel = vm;
 
         _vmSubscriptions.Add(vm.WhenAnyValue(x => x.IsConnectionTreeVisible).Subscribe(SetTreeVisible));
         _vmSubscriptions.Add(vm.WhenAnyValue(x => x.IsLogPanelVisible).Subscribe(SetBottomPanelVisible));
+        _vmSubscriptions.Add(vm.WhenAnyValue(x => x.IsBottomPanelExpanded).Subscribe(SetBottomPanelExpanded));
         _vmSubscriptions.Add(vm.WhenAnyValue(x => x.IsFullScreen).Subscribe(SetFullScreen));
+        // The local terminal starts the first time its tab is shown.
+        _vmSubscriptions.Add(vm.WhenAnyValue(x => x.BottomTab, x => x.IsBottomPanelExpanded, x => x.IsLogPanelVisible)
+            .Subscribe(state =>
+            {
+                if (state is { Item1: BottomPanelTab.Terminal, Item2: true, Item3: true } && _localTerminal is null)
+                    InitializeLocalTerminal();
+            }));
         vm.LayoutResetRequested += OnLayoutResetRequested;
+        vm.QuickConnectFocusRequested += OnQuickConnectFocusRequested;
+        vm.FindConnectionRequested += OnFindConnectionRequested;
+        vm.Palette.Commands = () => PaletteCommands();
         vm.Sessions.PanelChooser = ChoosePanelAsync;
+        vm.PanelNamePrompt = AskPanelNameAsync;
 
         if (!_layoutRestored)
         {
@@ -184,13 +202,31 @@ public partial class MainWindow : Window
 
     private void SetBottomPanelVisible(bool visible)
     {
+        _bottomVisible = visible;
+        ApplyBottomPanelLayout();
+    }
+
+    private void SetBottomPanelExpanded(bool expanded)
+    {
+        _bottomExpanded = expanded;
+        ApplyBottomPanelLayout();
+    }
+
+    /// <summary>
+    /// The bottom row: hidden (View ▸ Log Panel off), collapsed to its 32 px header (Ctrl+J) or expanded to the
+    /// remembered height. A splitter-resized height is remembered whenever the panel stops being expanded.
+    /// </summary>
+    private void ApplyBottomPanelLayout()
+    {
         var row = MainGrid.RowDefinitions[2];
-        if (!visible && row.Height.Value > 0)
+        if (row.Height is { IsAbsolute: true, Value: > 0 } && BottomSplitter.IsVisible)
             _bottomHeight = row.Height;
-        row.Height = visible ? _bottomHeight : new GridLength(0);
-        MainGrid.RowDefinitions[1].Height = visible ? new GridLength(4) : new GridLength(0);
-        BottomPanel.IsVisible = visible;
-        BottomSplitter.IsVisible = visible;
+
+        var expanded = _bottomVisible && _bottomExpanded;
+        row.Height = !_bottomVisible ? new GridLength(0) : expanded ? _bottomHeight : GridLength.Auto;
+        MainGrid.RowDefinitions[1].Height = expanded ? new GridLength(4) : new GridLength(0);
+        BottomPanel.IsVisible = _bottomVisible;
+        BottomSplitter.IsVisible = expanded;
     }
 
     private void SetFullScreen(bool fullScreen)
@@ -219,24 +255,58 @@ public partial class MainWindow : Window
     private void OnLayoutResetRequested(object? sender, EventArgs e)
     {
         _treeWidth = DefaultTreeWidth;
-        _bottomHeight = DefaultBottomHeight;
         SetTreeVisible(true);
+        BottomSplitter.IsVisible = false; // do not remember the current height
+        _bottomHeight = DefaultBottomHeight;
+        if (DataContext is MainWindowViewModel vm)
+            vm.IsBottomPanelExpanded = true;
+        _bottomExpanded = true;
         SetBottomPanelVisible(true);
     }
 
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
         if (DataContext is MainWindowViewModel sessionsVm && SessionKeyboard.Handle(sessionsVm.Sessions, e))
-        {
             e.Handled = true;
-            return;
-        }
-        if (e.Key == Key.F && e.KeyModifiers == KeyModifiers.Control && DataContext is MainWindowViewModel vm)
+    }
+
+    /// <summary>Empty state ▸ Quick connect: the header's address field, or the dialog when the header is hidden.</summary>
+    private void OnQuickConnectFocusRequested(object? sender, EventArgs e)
+    {
+        if (HeaderBar.IsVisible && QuickConnectHostBox.IsEffectivelyVisible)
         {
-            vm.IsConnectionTreeVisible = true;
+            QuickConnectHostBox.Focus();
+            QuickConnectHostBox.SelectAll();
+        }
+        else if (DataContext is MainWindowViewModel vm)
+        {
+            vm.OpenQuickConnectDialogCommand.Execute().Subscribe(_ => { }, _ => { });
+        }
+    }
+
+    /// <summary>View ▸ Find Connection (Ctrl+F): the tree's search box.</summary>
+    private void OnFindConnectionRequested(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
             SearchBox.Focus();
             SearchBox.SelectAll();
-            e.Handled = true;
+        }, DispatcherPriority.Loaded);
+    }
+
+    /// <summary>The command palette's commands: every menu command (not toggles of dynamic lists), with its shortcut.</summary>
+    private IEnumerable<PaletteCommand> PaletteCommands()
+    {
+        foreach (var (item, path) in AppShortcuts.MenuItems(MainMenu))
+        {
+            if (item.Command is not { } command || path.Count == 0 || item.Items.Count > 0)
+                continue;
+            var label = AppShortcuts.HeaderText(item);
+            if (path.Count > 1)
+                label = string.Join(" ▸ ", path.Skip(1).Append(label));
+            var icon = item.Icon is MaterialIcon glyph ? glyph.Kind : MaterialIconKind.ChevronRight;
+            yield return new PaletteCommand(label, path[0], item.InputGesture is { } gesture ? AppShortcuts.Format(gesture) : null,
+                command, item.CommandParameter, icon);
         }
     }
 
@@ -340,8 +410,10 @@ public partial class MainWindow : Window
 
     private void UpdateSessionPanelVisibility(MainWindowViewModel vm)
     {
-        // The welcome text only while nothing is open and there is at most one docked panel.
+        // The empty state only while nothing is open and there is at most one docked panel.
         var showArea = vm.Sessions.Sessions.Count > 0 || vm.Sessions.Panels.Count(p => !p.IsFloating) > 1;
+        if (!showArea && !EmptySessionsPanel.IsVisible)
+            vm.RefreshHomeCards();
         EmptySessionsPanel.IsVisible = !showArea;
         SessionArea.IsVisible = showArea;
     }
@@ -353,6 +425,14 @@ public partial class MainWindow : Window
     {
         if (!IsVisible) return suggestion;
         return await new ChoosePanelDialog(panels, suggestion).ShowDialog<string?>(this);
+    }
+
+    /// <summary>Sessions ▸ New Panel…: the name of the new panel (like "Move to Panel ▸ New Panel…").</summary>
+    private async Task<string?> AskPanelNameAsync(string suggestion)
+    {
+        if (!IsVisible) return suggestion;
+        return await new TextPromptDialog(Localizer.Get("NewPanel"), Localizer.Get("PanelName", "Panel name") + ":", false, null, suggestion)
+            .ShowDialog<string?>(this);
     }
 
     /// <summary>Lists the open sessions (grouped by panel) at the end of the Sessions menu.</summary>
@@ -384,7 +464,6 @@ public partial class MainWindow : Window
                     Header = session.Title,
                     ToggleType = MenuItemToggleType.Radio,
                     IsChecked = ReferenceEquals(dock.ActiveSession, session),
-                    Icon = new Image { Source = session.Icon, Width = 16, Height = 16 },
                 };
                 if (ReferenceEquals(panel, dock.ActivePanel) && i < 9)
                     item.InputGesture = new KeyGesture(Key.D1 + i, KeyModifiers.Control);
@@ -412,7 +491,11 @@ public partial class MainWindow : Window
             var item = new MenuItem
             {
                 Header = connection.Name,
-                Icon = new Image { Source = IconService.GetProtocolIcon(connection.Protocol.ToString()), Width = 16, Height = 16 },
+                Icon = new MaterialIcon
+                {
+                    Kind = ProtocolVisuals.IconForConnection(connection),
+                    Foreground = ProtocolVisuals.BrushFor(connection.Protocol),
+                },
             };
             ToolTip.SetTip(item, $"{connection.Protocol} {connection.Hostname}");
             item.Click += async (_, _) => await vm.ConnectFavoriteAsync(connection);
@@ -504,6 +587,7 @@ public partial class MainWindow : Window
         // Collapse first (re-applies the sizes even when the visibility flag does not change).
         SetTreeVisible(false);
         SetBottomPanelVisible(false);
+        BottomSplitter.IsVisible = false; // keep the saved height, not the current one
         _treeWidth = new GridLength(state.TreeWidth);
         _bottomHeight = new GridLength(state.BottomHeight);
         vm.IsConnectionTreeVisible = state.TreeVisible;
@@ -556,7 +640,7 @@ public partial class MainWindow : Window
     private GridLength CurrentBottomHeight()
     {
         var height = MainGrid.RowDefinitions[2].Height;
-        return BottomPanel.IsVisible && height.Value > 0 ? height : _bottomHeight;
+        return BottomSplitter.IsVisible && height is { IsAbsolute: true, Value: > 0 } ? height : _bottomHeight;
     }
 
     private void RememberNormalBounds()
@@ -582,41 +666,38 @@ public partial class MainWindow : Window
 
     private void OnQuickConnectKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && DataContext is MainWindowViewModel vm)
+        if (DataContext is not MainWindowViewModel vm) return;
+        if (e.Key == Key.Enter)
         {
-            vm.QuickConnectCommand.Execute().Subscribe();
+            vm.QuickConnectCommand.Execute().Subscribe(_ => { }, _ => { });
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && !string.IsNullOrEmpty(vm.QuickConnectHost))
+        {
+            vm.QuickConnectHost = string.Empty;
             e.Handled = true;
         }
     }
 
+    /// <summary>The log shown in the bottom panel (Log or Debug Console).</summary>
+    private LogDockableBase? SelectedLog(MainWindowViewModel vm) => vm.BottomTab switch
+    {
+        BottomPanelTab.Log => vm.LogPanel,
+        BottomPanelTab.Debug => vm.DebugConsole,
+        _ => null,
+    };
+
     private async void OnCopyLog(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainWindowViewModel vm) return;
-        var text = string.Join(Environment.NewLine,
-            vm.LogPanel.Entries.Select(entry => $"{entry.FormattedTime} [{entry.Level}] {entry.Message}"));
+        if (DataContext is not MainWindowViewModel vm || SelectedLog(vm) is not { } log) return;
         if (Clipboard is not null)
-            await Clipboard.SetTextAsync(text);
+            await Clipboard.SetTextAsync(LogView.Format(log));
     }
 
     private void OnClearLog(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)
-            vm.LogPanel.Clear();
-    }
-
-    private async void OnCopyDebug(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is not MainWindowViewModel vm) return;
-        var text = string.Join(Environment.NewLine,
-            vm.DebugConsole.Entries.Select(entry => $"{entry.FormattedTime} [{entry.Level}] {entry.Message}"));
-        if (Clipboard is not null)
-            await Clipboard.SetTextAsync(text);
-    }
-
-    private void OnClearDebug(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is MainWindowViewModel vm)
-            vm.DebugConsole.Clear();
+            SelectedLog(vm)?.Clear();
     }
 }
 
