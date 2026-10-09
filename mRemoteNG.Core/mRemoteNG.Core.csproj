@@ -17,5 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="BouncyCastle.Cryptography" />
+    <!-- LDAP for the Active Directory importer (wldap32 on Windows, libldap on Linux and macOS) -->
+    <PackageReference Include="System.DirectoryServices.Protocols" />
   </ItemGroup>
 </Project>

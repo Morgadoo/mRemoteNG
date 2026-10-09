@@ -123,6 +123,9 @@ public sealed class AppSettings
     [PersistedSetting("DefaultPorts")] public int HttpPort { get; set; } = 80;
     [PersistedSetting("DefaultPorts")] public int HttpsPort { get; set; } = 443;
 
+    /// <summary>Port the UltraVNC SingleClick listener accepts reverse VNC connections on (legacy UVNCSCPort).</summary>
+    [PersistedSetting("DefaultPorts")] public int UltraVncSingleClickPort { get; set; } = 5500;
+
     // ── Notifications ────────────────────────────────────────────────────
 
     [PersistedSetting("Notifications")] public bool NotifyOnConnect { get; set; }
@@ -209,6 +212,7 @@ public sealed class AppSettings
         Port("VNC", VncPort);
         Port("HTTP", HttpPort);
         Port("HTTPS", HttpsPort);
+        Port("UltraVNC SingleClick", UltraVncSingleClickPort);
 
         if (ConnectTimeoutSeconds is < MinConnectTimeoutSeconds or > MaxConnectTimeoutSeconds)
             errors.Add($"Connect timeout must be between {MinConnectTimeoutSeconds} and {MaxConnectTimeoutSeconds} seconds.");
@@ -255,6 +259,8 @@ public sealed class AppSettings
         Fix<int>(nameof(VncPort), VncPort is < MinPort or > MaxPort, v => VncPort = v, defaults.VncPort);
         Fix<int>(nameof(HttpPort), HttpPort is < MinPort or > MaxPort, v => HttpPort = v, defaults.HttpPort);
         Fix<int>(nameof(HttpsPort), HttpsPort is < MinPort or > MaxPort, v => HttpsPort = v, defaults.HttpsPort);
+        Fix<int>(nameof(UltraVncSingleClickPort), UltraVncSingleClickPort is < MinPort or > MaxPort,
+            v => UltraVncSingleClickPort = v, defaults.UltraVncSingleClickPort);
         Fix<int>(nameof(ConnectTimeoutSeconds),
             ConnectTimeoutSeconds is < MinConnectTimeoutSeconds or > MaxConnectTimeoutSeconds,
             v => ConnectTimeoutSeconds = v, defaults.ConnectTimeoutSeconds);

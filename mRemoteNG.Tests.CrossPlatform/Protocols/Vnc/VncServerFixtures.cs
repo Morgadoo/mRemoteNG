@@ -216,7 +216,7 @@ public sealed class X11VncFixture : IDisposable
             return;
         }
         Directory.CreateDirectory(_directory);
-        _xvfb = ExternalProcess.Start(xvfb, [$":{DisplayNumber}", "-screen", "0", "800x600x24", "-nolisten", "tcp"], _log);
+        _xvfb = ExternalProcess.Start(xvfb, [$":{DisplayNumber}", "-screen", "0", "800x600x24", "-nolisten", "tcp", "-noreset"], _log);
         if (!ExternalProcess.WaitUntil(() => File.Exists($"/tmp/.X11-unix/X{DisplayNumber}"), TimeSpan.FromSeconds(10), _xvfb))
         {
             lock (_log) SkipReason = $"Xvfb did not start: {_log}";
