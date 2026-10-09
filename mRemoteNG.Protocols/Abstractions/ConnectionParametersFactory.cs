@@ -2,6 +2,7 @@ using System.Globalization;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Connection.Protocol.RDP;
 using mRemoteNG.Core.Connection.Protocol.VNC;
+using mRemoteNG.Protocols.Rdp;
 using CoreProtocol = mRemoteNG.Core.Connection.Protocol.ProtocolType;
 
 namespace mRemoteNG.Protocols.Abstractions;
@@ -25,10 +26,54 @@ public static class ConnectionParametersFactory
         public const string RdpNla = "rdp.nla";
         public const string RdpConsole = "rdp.console";
         public const string RdpClipboard = "rdp.clipboard";
+        /// <summary>RDP: redirect the user's home folder. Only read when <see cref="RdpDrives"/> is absent.</summary>
         public const string RdpHomeDrive = "rdp.homeDrive";
         public const string RdpSound = "rdp.sound";
         public const string RdpMicrophone = "rdp.microphone";
         public const string RdpLoadBalanceInfo = "rdp.loadBalanceInfo";
+        /// <summary>RDP desktop size: "fit" (default), "smartsize", "fullscreen" or a fixed "WIDTHxHEIGHT".</summary>
+        public const string RdpResolution = "rdp.resolution";
+        /// <summary>RDP: resize the remote desktop when the tab is resized ("fit"/"fullscreen" only; default true).</summary>
+        public const string RdpAutoResize = "rdp.autoResize";
+        public const string RdpWallpaper = "rdp.wallpaper";
+        public const string RdpThemes = "rdp.themes";
+        public const string RdpFontSmoothing = "rdp.fontSmoothing";
+        public const string RdpDesktopComposition = "rdp.desktopComposition";
+        /// <summary>RDP: show window contents while dragging (the inverse of the legacy DisableFullWindowDrag).</summary>
+        public const string RdpFullWindowDrag = "rdp.fullWindowDrag";
+        /// <summary>RDP: menu and window animations (the inverse of the legacy DisableMenuAnimations).</summary>
+        public const string RdpMenuAnimations = "rdp.menuAnimations";
+        /// <summary>RDP: keep the bitmap cache on disk between sessions (legacy CacheBitmaps).</summary>
+        public const string RdpPersistentBitmapCache = "rdp.persistentBitmapCache";
+        /// <summary>RDP: send Windows key combinations (Alt+Tab, Win…) to the remote session (legacy RedirectKeys).</summary>
+        public const string RdpRedirectKeys = "rdp.redirectKeys";
+        public const string RdpRedirectPorts = "rdp.redirectPorts";
+        public const string RdpRedirectPrinters = "rdp.redirectPrinters";
+        public const string RdpRedirectSmartCards = "rdp.redirectSmartCards";
+        /// <summary>RDP drive redirection: "none", "local", "all" or "custom" (see <see cref="RdpDrivesCustom"/>).</summary>
+        public const string RdpDrives = "rdp.drives";
+        /// <summary>Drives for "custom" redirection, separated by ',' or ';': drive letters (C,D) or paths, optionally "Name=path".</summary>
+        public const string RdpDrivesCustom = "rdp.drivesCustom";
+        /// <summary>RDP audio quality: "dynamic", "medium" or "high".</summary>
+        public const string RdpSoundQuality = "rdp.soundQuality";
+        public const string RdpRestrictedAdmin = "rdp.restrictedAdmin";
+        public const string RdpRemoteCredentialGuard = "rdp.remoteCredentialGuard";
+        /// <summary>RDP: disconnect after this many minutes without user input (0 = never).</summary>
+        public const string RdpIdleTimeoutMinutes = "rdp.idleTimeoutMinutes";
+        /// <summary>RDP: tell the user when the session was disconnected for inactivity.</summary>
+        public const string RdpIdleTimeoutAlert = "rdp.idleTimeoutAlert";
+        /// <summary>RDP: program started instead of the desktop (alternate shell).</summary>
+        public const string RdpStartProgram = "rdp.startProgram";
+        public const string RdpStartProgramWorkDir = "rdp.startProgramWorkDir";
+        public const string RdpGatewayPassword = "rdp.gatewayPassword";
+        /// <summary>RD Gateway usage: "always" (default when a gateway is set) or "detect".</summary>
+        public const string RdpGatewayUsage = "rdp.gatewayUsage";
+        /// <summary>RD Gateway credentials: "connection" (default), "explicit", "smartcard" or "token".</summary>
+        public const string RdpGatewayCredentials = "rdp.gatewayCredentials";
+        public const string RdpGatewayAccessToken = "rdp.gatewayAccessToken";
+        /// <summary>Hyper-V VM id: connect to the VM console through the Hyper-V host (port 2179).</summary>
+        public const string RdpVmId = "rdp.vmId";
+        public const string RdpVmEnhancedMode = "rdp.vmEnhancedMode";
         public const string OpeningCommand = "shell.openingCommand";
         /// <summary>VNC scaling: "none", "fit" (keep aspect ratio) or "stretch".</summary>
         public const string VncScaling = "vnc.scaling";
@@ -104,8 +149,40 @@ public static class ConnectionParametersFactory
         extras[Keys.RdpColorDepth] = ((int)info.Colors).ToString(CultureInfo.InvariantCulture);
         extras[Keys.RdpNla] = Bool(info.UseCredSsp);
         extras[Keys.RdpConsole] = Bool(info.UseConsoleSession);
+
+        // Display
+        extras[Keys.RdpResolution] = info.Resolution switch
+        {
+            RDPResolutions.FitToWindow => "fit",
+            RDPResolutions.Fullscreen => "fullscreen",
+            RDPResolutions.SmartSize => "smartsize",
+            // Res1024x768 → "1024x768"
+            var fixedSize => fixedSize.ToString()["Res".Length..],
+        };
+        extras[Keys.RdpAutoResize] = Bool(info.AutomaticResize);
+        extras[Keys.RdpWallpaper] = Bool(info.DisplayWallpaper);
+        extras[Keys.RdpThemes] = Bool(info.DisplayThemes);
+        extras[Keys.RdpFontSmoothing] = Bool(info.EnableFontSmoothing);
+        extras[Keys.RdpDesktopComposition] = Bool(info.EnableDesktopComposition);
+        extras[Keys.RdpFullWindowDrag] = Bool(!info.DisableFullWindowDrag);
+        extras[Keys.RdpMenuAnimations] = Bool(!info.DisableMenuAnimations);
+        extras[Keys.RdpPersistentBitmapCache] = Bool(info.CacheBitmaps);
+
+        // Redirection
+        extras[Keys.RdpRedirectKeys] = Bool(info.RedirectKeys);
         extras[Keys.RdpClipboard] = Bool(info.RedirectClipboard);
-        extras[Keys.RdpHomeDrive] = Bool(info.RedirectDiskDrives != RDPDiskDrives.None);
+        extras[Keys.RdpRedirectPorts] = Bool(info.RedirectPorts);
+        extras[Keys.RdpRedirectPrinters] = Bool(info.RedirectPrinters);
+        extras[Keys.RdpRedirectSmartCards] = Bool(info.RedirectSmartCards);
+        extras[Keys.RdpDrives] = info.RedirectDiskDrives switch
+        {
+            RDPDiskDrives.Local => "local",
+            RDPDiskDrives.All => "all",
+            RDPDiskDrives.Custom => "custom",
+            _ => "none",
+        };
+        if (info.RedirectDiskDrives == RDPDiskDrives.Custom && !string.IsNullOrWhiteSpace(info.RedirectDiskDrivesCustom))
+            extras[Keys.RdpDrivesCustom] = info.RedirectDiskDrivesCustom;
         extras[Keys.RdpMicrophone] = Bool(info.RedirectAudioCapture);
         extras[Keys.RdpSound] = info.RedirectSound switch
         {
@@ -113,22 +190,76 @@ public static class ConnectionParametersFactory
             RDPSounds.LeaveAtRemoteComputer => "remote",
             _ => "off",
         };
+        extras[Keys.RdpSoundQuality] = info.SoundQuality switch
+        {
+            RDPSoundQuality.Medium => "medium",
+            RDPSoundQuality.High => "high",
+            _ => "dynamic",
+        };
+
+        // Security. The legacy "server authentication" level decides what happens to a certificate that
+        // cannot be validated, exactly like mstsc's AuthenticationLevel.
+        extras[RdpProtocol.CertPolicyKey] = info.RDPAuthenticationLevel switch
+        {
+            AuthenticationLevel.AuthRequired => "deny",
+            AuthenticationLevel.WarnOnFailedAuth => "tofu",
+            _ => "ignore",
+        };
+        extras[Keys.RdpRestrictedAdmin] = Bool(info.UseRestrictedAdmin);
+        extras[Keys.RdpRemoteCredentialGuard] = Bool(info.UseRCG);
+        if (info.RDPMinutesToIdleTimeout > 0)
+        {
+            extras[Keys.RdpIdleTimeoutMinutes] = info.RDPMinutesToIdleTimeout.ToString(CultureInfo.InvariantCulture);
+            extras[Keys.RdpIdleTimeoutAlert] = Bool(info.RDPAlertIdleTimeout);
+        }
 
         if (!string.IsNullOrEmpty(info.LoadBalanceInfo))
             extras[Keys.RdpLoadBalanceInfo] = info.LoadBalanceInfo;
+        if (!string.IsNullOrWhiteSpace(info.RDPStartProgram))
+        {
+            extras[Keys.RdpStartProgram] = info.RDPStartProgram;
+            if (!string.IsNullOrWhiteSpace(info.RDPStartProgramWorkDir))
+                extras[Keys.RdpStartProgramWorkDir] = info.RDPStartProgramWorkDir;
+        }
+
+        if (info.UseVmId && !string.IsNullOrEmpty(info.VmId))
+        {
+            extras[Keys.RdpVmId] = info.VmId;
+            extras[Keys.RdpVmEnhancedMode] = Bool(info.UseEnhancedMode);
+        }
 
         if (info.RDGatewayUsageMethod != RDGatewayUsageMethod.Never && !string.IsNullOrEmpty(info.RDGatewayHostname))
         {
             extras[Keys.RdpGateway] = info.RDGatewayHostname;
-            if (info.RDGatewayUseConnectionCredentials == RDGatewayUseConnectionCredentials.No)
+            extras[Keys.RdpGatewayUsage] = info.RDGatewayUsageMethod == RDGatewayUsageMethod.Detect ? "detect" : "always";
+            switch (info.RDGatewayUseConnectionCredentials)
             {
-                if (!string.IsNullOrEmpty(info.RDGatewayUsername))
-                    extras[Keys.RdpGatewayUsername] = info.RDGatewayUsername;
-                if (!string.IsNullOrEmpty(info.RDGatewayDomain))
-                    extras[Keys.RdpGatewayDomain] = info.RDGatewayDomain;
+                case RDGatewayUseConnectionCredentials.Yes:
+                    extras[Keys.RdpGatewayCredentials] = "connection";
+                    break;
+                case RDGatewayUseConnectionCredentials.SmartCard:
+                    extras[Keys.RdpGatewayCredentials] = "smartcard";
+                    break;
+                case RDGatewayUseConnectionCredentials.AccessToken:
+                    extras[Keys.RdpGatewayCredentials] = "token";
+                    if (!string.IsNullOrEmpty(info.RDGatewayAccessToken))
+                        extras[Keys.RdpGatewayAccessToken] = info.RDGatewayAccessToken;
+                    break;
+                default:
+                    // "No" (separate gateway credentials) and external credential providers, whose
+                    // preparation step fills the gateway user name, domain and password.
+                    extras[Keys.RdpGatewayCredentials] = "explicit";
+                    if (!string.IsNullOrEmpty(info.RDGatewayUsername))
+                        extras[Keys.RdpGatewayUsername] = info.RDGatewayUsername;
+                    if (!string.IsNullOrEmpty(info.RDGatewayDomain))
+                        extras[Keys.RdpGatewayDomain] = info.RDGatewayDomain;
+                    if (!string.IsNullOrEmpty(info.RDGatewayPassword))
+                        extras[Keys.RdpGatewayPassword] = info.RDGatewayPassword;
+                    break;
             }
         }
     }
+
 
     private static void AddVncExtras(ConnectionInfo info, Dictionary<string, string> extras)
     {

@@ -73,7 +73,8 @@ public class FreeRdpArgsTests
             RDGatewayUsername = "gwuser",
         };
 
-        var args = RdpProtocol.BuildFreeRdpArgs(ConnectionParametersFactory.FromConnectionInfo(info));
+        var args = RdpProtocol.BuildFreeRdpArgs(ConnectionParametersFactory.FromConnectionInfo(info),
+            new FreeRdpLaunchOptions { WindowsClient = false });
 
         args.Should().Contain("+home-drive").And.Contain("/sec:nla:off").And.Contain("/gateway:g:gw,u:gwuser");
         args.Should().NotContain("/clipboard");
