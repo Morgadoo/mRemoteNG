@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.FilePropertiesDialog"
+        x:DataType="vm:FilePropertiesViewModel"
+        Title="{Binding FileName, StringFormat='Connection File Properties — {0}'}"
+        Width="520"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+        <Style Selector="TextBlock.note">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Margin="20" Spacing="12">
+        <Grid ColumnDefinitions="170,*">
+            <TextBlock Classes="label" Text="Root name"/>
+            <TextBox Grid.Column="1" x:Name="RootNameBox" Text="{Binding RootName}"/>
+        </Grid>
+
+        <TextBlock Classes="section-header" Text="Master password" Margin="0,6,0,0"/>
+        <TextBlock Classes="note" Text="{Binding PasswordStatus}"/>
+        <CheckBox x:Name="UsePasswordBox" Content="Protect this file with a master password" IsChecked="{Binding UsePassword}"/>
+        <CheckBox x:Name="ChangePasswordBox" Content="Change the master password" Margin="24,0,0,0"
+                  IsChecked="{Binding ChangePassword}" IsVisible="{Binding CanChangePassword}"/>
+
+        <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,8,Auto,8,Auto">
+            <TextBlock Classes="label" Text="Current password" IsVisible="{Binding NeedsCurrentPassword}"/>
+            <TextBox Grid.Column="1" x:Name="CurrentPasswordBox" PasswordChar="●" Text="{Binding CurrentPassword}"
+                     IsVisible="{Binding NeedsCurrentPassword}"/>
+
+            <TextBlock Grid.Row="2" Classes="label" Text="New password" IsVisible="{Binding NeedsNewPassword}"/>
+            <TextBox Grid.Row="2" Grid.Column="1" x:Name="NewPasswordBox" PasswordChar="●" Text="{Binding NewPassword}"
+                     IsVisible="{Binding NeedsNewPassword}"/>
+
+            <TextBlock Grid.Row="4" Classes="label" Text="Confirm password" IsVisible="{Binding NeedsNewPassword}"/>
+            <TextBox Grid.Row="4" Grid.Column="1" x:Name="ConfirmPasswordBox" PasswordChar="●" Text="{Binding ConfirmPassword}"
+                     IsVisible="{Binding NeedsNewPassword}"/>
+        </Grid>
+
+        <TextBlock Classes="section-header" Text="Encryption" Margin="0,6,0,0"/>
+        <Grid ColumnDefinitions="170,*" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto">
+            <TextBlock Classes="label" Text="Cipher engine"/>
+            <ComboBox Grid.Column="1" x:Name="EngineBox" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Engines}" SelectedItem="{Binding Engine}"/>
+
+            <TextBlock Grid.Row="2" Classes="label" Text="Block cipher mode"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ModeBox" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}"/>
+
+            <TextBlock Grid.Row="4" Classes="label" Text="Key derivation iterations"/>
+            <NumericUpDown Grid.Row="4" Grid.Column="1" x:Name="IterationsBox" HorizontalAlignment="Left" MinWidth="180"
+                           Value="{Binding KeyDerivationIterations}" Minimum="{Binding MinIterations}"
+                           Maximum="{Binding MaxIterations}" Increment="1000" FormatString="0"/>
+
+            <CheckBox Grid.Row="6" Grid.Column="1" x:Name="FullFileBox" Content="Encrypt the complete file"
+                      IsChecked="{Binding FullFileEncryption}"/>
+        </Grid>
+
+        <TextBlock Classes="note" Text="Changes are written the next time the file is saved. Files keep working in the Windows (WinForms) mRemoteNG."/>
+        <TextBlock x:Name="ErrorTextBlock" Text="{Binding ErrorText}" Foreground="#E05252" TextWrapping="Wrap"
+                   IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="Cancel" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
+            <Button x:Name="OkButton" Content="OK" Classes="accent" MinWidth="80" IsDefault="True" Command="{Binding OkCommand}"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

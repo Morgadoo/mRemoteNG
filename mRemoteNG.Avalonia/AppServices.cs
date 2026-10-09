@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Protocols.Abstractions;
 
@@ -60,7 +61,14 @@ public static class AppServices
 
         services.AddSingleton<ViewModels.ConnectionTreeViewModel>(sp =>
             new ViewModels.ConnectionTreeViewModel(
-                sp.GetRequiredService<ConnectionsService>()));
+                sp.GetRequiredService<ConnectionsService>(),
+                sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>(),
+                sp.GetService<mRemoteNG.Platform.IPuttySessionsProvider>()));
+
+        // Saved PuTTY sessions for the "PuTTY Sessions" tree root: the Windows platform registers a
+        // registry-backed provider; elsewhere PuTTY keeps one file per session in ~/.putty/sessions.
+        services.TryAddSingleton<mRemoteNG.Platform.IPuttySessionsProvider>(_ =>
+            new mRemoteNG.Core.Config.Import.PuttySessionFilesProvider());
 
         // Main window — explicit factory so DI resolves constructor args.
         services.AddSingleton<ViewModels.MainWindowViewModel>(sp =>

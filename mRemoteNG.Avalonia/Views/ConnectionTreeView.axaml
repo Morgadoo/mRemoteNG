@@ -23,6 +23,12 @@
             <Setter Property="Margin" Value="4,0,0,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
+        <Style Selector="TextBox.rename">
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="MinWidth" Value="140"/>
+        </Style>
     </UserControl.Styles>
 
     <TreeView x:Name="Tree"
@@ -34,22 +40,54 @@
               Background="{DynamicResource AppBg0Brush}">
 
         <TreeView.ContextMenu>
-            <ContextMenu>
-                <MenuItem Header="Connect" Command="{Binding ConnectSelectedCommand}" />
+            <ContextMenu x:Name="TreeMenu">
+                <MenuItem Header="Connect" Command="{Binding ConnectSelectedCommand}" InputGesture="Enter"/>
+                <MenuItem Header="Connect (with options)">
+                    <MenuItem Header="Connect with Options..." Command="{Binding ConnectWithOptionsCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Connect to console session" Command="{Binding ConnectWithPresetCommand}"
+                              CommandParameter="{x:Static vm:ConnectPreset.ConsoleSession}"/>
+                    <MenuItem Header="Don't connect to console session" Command="{Binding ConnectWithPresetCommand}"
+                              CommandParameter="{x:Static vm:ConnectPreset.NoConsoleSession}"/>
+                    <MenuItem Header="Connect in full screen" Command="{Binding ConnectWithPresetCommand}"
+                              CommandParameter="{x:Static vm:ConnectPreset.Fullscreen}"/>
+                    <MenuItem Header="Connect without credentials" Command="{Binding ConnectWithPresetCommand}"
+                              CommandParameter="{x:Static vm:ConnectPreset.NoCredentials}"/>
+                    <MenuItem Header="Choose panel before connecting..." Command="{Binding ConnectChoosePanelCommand}"/>
+                    <MenuItem Header="Connect in view-only mode" Command="{Binding ConnectWithPresetCommand}"
+                              CommandParameter="{x:Static vm:ConnectPreset.ViewOnly}"/>
+                </MenuItem>
+                <MenuItem Header="Disconnect" Command="{Binding DisconnectCommand}"/>
+                <MenuItem Header="Wake on LAN" Command="{Binding WakeOnLanCommand}"/>
                 <Separator/>
-                <MenuItem Header="New Connection..." Command="{Binding NewConnectionCommand}" />
-                <MenuItem Header="New Folder..." Command="{Binding NewFolderCommand}" />
+                <MenuItem Header="New Connection..." Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N"/>
+                <MenuItem Header="New Folder..." Command="{Binding NewFolderCommand}"/>
                 <Separator/>
-                <MenuItem Header="Edit..." Command="{Binding EditSelectedCommand}" InputGesture="F2" />
-                <MenuItem Header="Duplicate" Command="{Binding DuplicateSelectedCommand}" InputGesture="Ctrl+D" />
-                <MenuItem Header="Delete..." Command="{Binding DeleteSelectedCommand}" InputGesture="Delete" />
+                <MenuItem Header="Properties..." Command="{Binding EditSelectedCommand}" InputGesture="Ctrl+E"/>
+                <MenuItem Header="Rename" Command="{Binding RenameSelectedCommand}" InputGesture="F2"/>
+                <MenuItem Header="Duplicate" Command="{Binding DuplicateSelectedCommand}" InputGesture="Ctrl+D"/>
+                <MenuItem Header="Delete..." Command="{Binding DeleteSelectedCommand}" InputGesture="Delete"/>
+                <MenuItem Header="Copy Host Name" Command="{Binding CopyHostnameCommand}" InputGesture="Ctrl+Shift+C"/>
                 <Separator/>
-                <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGesture="Ctrl+X" />
-                <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGesture="Ctrl+V" />
-                <MenuItem Header="Move Up" Command="{Binding MoveUpCommand}" InputGesture="Ctrl+Up" />
-                <MenuItem Header="Move Down" Command="{Binding MoveDownCommand}" InputGesture="Ctrl+Down" />
+                <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGesture="Ctrl+X"/>
+                <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGesture="Ctrl+V"/>
+                <MenuItem Header="Move Up" Command="{Binding MoveUpCommand}" InputGesture="Ctrl+Up"/>
+                <MenuItem Header="Move Down" Command="{Binding MoveDownCommand}" InputGesture="Ctrl+Down"/>
+                <MenuItem Header="Sort">
+                    <MenuItem Header="Ascending (A-Z)" Command="{Binding SortAscendingCommand}"/>
+                    <MenuItem Header="Descending (Z-A)" Command="{Binding SortDescendingCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Expand All" Command="{Binding ExpandAllCommand}"/>
+                <MenuItem Header="Collapse All" Command="{Binding CollapseAllCommand}"/>
                 <Separator/>
-                <MenuItem Header="Sort Alphabetically" Command="{Binding SortCommand}" />
+                <MenuItem Header="Inheritance">
+                    <MenuItem Header="Apply inheritance to children" Command="{Binding ApplyInheritanceToChildrenCommand}"/>
+                    <MenuItem Header="Apply default inheritance" Command="{Binding ApplyDefaultInheritanceCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Default Connection Properties..." Command="{Binding EditDefaultConnectionCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Refresh PuTTY Sessions" Command="{Binding RefreshPuttySessionsCommand}"/>
+                <MenuItem Header="Connection File Properties..." Command="{Binding FilePropertiesCommand}"/>
             </ContextMenu>
         </TreeView.ContextMenu>
 
@@ -71,11 +109,19 @@
                            Width="16" Height="16"
                            VerticalAlignment="Center"/>
 
-                    <!-- Node name -->
+                    <!-- Node name, or the in-place editor while renaming (F2) -->
                     <TextBlock Text="{Binding Name}"
+                               IsVisible="{Binding !IsEditing}"
                                VerticalAlignment="Center"
                                FontSize="13"
+                               FontStyle="{Binding IsReadOnly, Converter={x:Static vm:ConnectionTreeConverters.ReadOnlyFontStyle}}"
                                Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBox Classes="rename"
+                             Text="{Binding EditName}"
+                             IsVisible="{Binding IsEditing}"
+                             KeyDown="OnRenameKeyDown"
+                             LostFocus="OnRenameLostFocus"
+                             PropertyChanged="OnRenameBoxPropertyChanged"/>
 
                     <!-- Protocol badge (only for leaf nodes) -->
                     <Border Classes="protocol-badge"
