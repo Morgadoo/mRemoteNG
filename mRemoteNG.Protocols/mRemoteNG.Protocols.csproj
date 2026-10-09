@@ -18,6 +18,10 @@
     <!-- Avalonia (visual protocol controls) -->
     <PackageReference Include="Avalonia" />
 
+    <!-- JPEG decoding for the VNC Tight encoding (the same SkiaSharp Avalonia renders with) -->
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
+
     <!-- Serial port support -->
     <PackageReference Include="System.IO.Ports" />
 

@@ -98,6 +98,15 @@ public sealed class RfbReader
         return BinaryPrimitives.ReadUInt32LittleEndian(b) | 0xFF000000u;
     }
 
+    /// <summary>Reads one pixel in the negotiated format as opaque BGRA.</summary>
+    public uint ReadPixel(PixelConverter converter)
+    {
+        Span<byte> b = stackalloc byte[4];
+        var pixel = b[..converter.BytesPerPixel];
+        ReadExactly(pixel);
+        return converter.ReadPixel(pixel);
+    }
+
     /// <summary>Reads a u32 length-prefixed Latin-1 string, as used for reasons, names and cut text.</summary>
     public string ReadString(int maxLength = 16 * 1024 * 1024)
     {

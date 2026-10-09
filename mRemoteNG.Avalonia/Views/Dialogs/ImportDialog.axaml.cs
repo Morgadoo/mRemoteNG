@@ -1,13 +1,21 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Core.Config.Import;
+using mRemoteNG.Core.Config.Import.ActiveDirectory;
 
 namespace mRemoteNG.Avalonia.Views.Dialogs;
 
 /// <summary>What the user chose in the <see cref="ImportDialog"/>.</summary>
 /// <param name="Source">File or folder to import; empty means the source's default location.</param>
 /// <param name="IntoSelectedFolder">Import into the selected folder instead of the root.</param>
-public sealed record ImportRequest(ImportSourceType Type, string Source, bool IntoSelectedFolder);
+public sealed record ImportRequest(ImportSourceType Type, string Source, bool IntoSelectedFolder)
+{
+    /// <summary>
+    /// Password that goes with <see cref="Source"/> when the source is not a file: the LDAP bind password of an
+    /// Active Directory import. Pass it to <c>ConnectionImportService.Import</c> as the password.
+    /// </summary>
+    public string? Password { get; init; }
+}
 
 /// <summary>
 /// Lets the user pick an import source and target folder.
@@ -16,6 +24,7 @@ public sealed record ImportRequest(ImportSourceType Type, string Source, bool In
 public partial class ImportDialog : Window
 {
     private readonly bool _hasSelectedFolder;
+    private ActiveDirectoryImportRequest? _directoryRequest;
 
     public ImportDialog() : this(null)
     {
@@ -51,7 +60,11 @@ public partial class ImportDialog : Window
     {
         var source = SelectedSource;
         ErrorText.IsVisible = false;
-        FilePathBox.Text = ConnectionImportService.GetDefaultSource(source.Type) ?? "";
+        FilePathBox.Text = source.SourceIsDirectory
+            ? _directoryRequest?.ToUrl() ?? ""
+            : ConnectionImportService.GetDefaultSource(source.Type) ?? "";
+        FilePathBox.IsReadOnly = source.SourceIsDirectory;
+        BrowseButton.Content = source.SourceIsDirectory ? "Browse directory..." : "Browse...";
 
         (FilePathBox.Watermark, SourceHintText.Text) = source.Type switch
         {
@@ -70,6 +83,9 @@ public partial class ImportDialog : Window
             ImportSourceType.RemoteDesktopConnectionManager =>
                 ("Select a file to import...",
                  "Passwords encrypted by RDCMan (Windows DPAPI) cannot be imported."),
+            ImportSourceType.ActiveDirectory =>
+                ("Browse the directory to choose an OU...",
+                 "Connect to a domain controller, pick an OU and its computers; they are imported as RDP connections."),
             ImportSourceType.MRemoteNGCsv or ImportSourceType.RemoteDesktopManager =>
                 ("Select a file to import...",
                  "Passwords in CSV files are stored in clear text."),
@@ -81,6 +97,11 @@ public partial class ImportDialog : Window
     private async Task BrowseAsync()
     {
         var source = SelectedSource;
+        if (source.SourceIsDirectory)
+        {
+            await BrowseDirectoryAsync();
+            return;
+        }
         if (source.SourceIsFolder)
         {
             var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
@@ -107,9 +128,31 @@ public partial class ImportDialog : Window
             FilePathBox.Text = files[0].Path.LocalPath;
     }
 
-    private void OnImport()
+    /// <summary>Opens the Active Directory browser; returns false when it was cancelled.</summary>
+    private async Task<bool> BrowseDirectoryAsync()
+    {
+        var request = await new ActiveDirectoryImportDialog().ShowDialog<ActiveDirectoryImportRequest?>(this);
+        if (request is null) return false;
+        _directoryRequest = request;
+        FilePathBox.Text = request.ToUrl();
+        ErrorText.IsVisible = false;
+        return true;
+    }
+
+    private async void OnImport()
     {
         var source = SelectedSource;
+        if (source.SourceIsDirectory)
+        {
+            if (_directoryRequest is null && !await BrowseDirectoryAsync())
+                return;
+            Close(new ImportRequest(source.Type, _directoryRequest!.ToUrl(), _hasSelectedFolder && TargetFolderBox.SelectedIndex == 1)
+            {
+                Password = _directoryRequest.Server.Password,
+            });
+            return;
+        }
+
         var path = FilePathBox.Text?.Trim() ?? "";
 
         var error = (source.Type, path.Length == 0) switch

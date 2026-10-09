@@ -55,6 +55,8 @@ namespace mRemoteNG.Core.Config.Import
             ImportSourceType.RemoteDesktopConnectionFile => new RemoteDesktopConnectionImporter(),
             ImportSourceType.RemoteDesktopManager => new RemoteDesktopManagerImporter(),
             ImportSourceType.SecureCrt => new SecureCrtImporter(),
+            // The source is an LDAP URL (ActiveDirectoryImportRequest.ToUrl); the password is the bind password.
+            ImportSourceType.ActiveDirectory => new ActiveDirectoryImporter(password: password),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 

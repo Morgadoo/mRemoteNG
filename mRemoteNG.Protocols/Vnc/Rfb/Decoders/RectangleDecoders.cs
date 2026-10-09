@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace mRemoteNG.Protocols.Vnc.Rfb.Decoders;
 
 /// <summary>Decodes one FramebufferUpdate rectangle of a given encoding into the framebuffer.</summary>
@@ -8,36 +6,26 @@ internal interface IRectangleDecoder
     void Decode(RfbReader reader, Framebuffer framebuffer, RfbRect rect);
 }
 
-internal static class Pixels
-{
-    /// <summary>
-    /// Reinterprets little-endian 32bpp wire pixels as BGRA and forces them opaque.
-    /// All platforms .NET 10 supports for this app (x64, ARM64) are little-endian, so a cast suffices.
-    /// </summary>
-    public static Span<uint> ToOpaque(Span<byte> wire)
-    {
-        var pixels = MemoryMarshal.Cast<byte, uint>(wire);
-        for (var i = 0; i < pixels.Length; i++)
-            pixels[i] |= 0xFF000000u;
-        return pixels;
-    }
-}
-
 /// <summary>Encoding 0: width × height uncompressed pixels.</summary>
-internal sealed class RawDecoder : IRectangleDecoder
+internal sealed class RawDecoder(PixelConverter? converter = null) : IRectangleDecoder
 {
+    private readonly PixelConverter _converter = converter ?? PixelConverter.Bgra32;
     private byte[] _row = [];
+    private uint[] _pixels = [];
 
     public void Decode(RfbReader reader, Framebuffer framebuffer, RfbRect rect)
     {
-        var rowBytes = rect.Width * 4;
+        var rowBytes = rect.Width * _converter.BytesPerPixel;
         if (_row.Length < rowBytes) _row = new byte[rowBytes];
+        if (_pixels.Length < rect.Width) _pixels = new uint[rect.Width];
         var row = _row.AsSpan(0, rowBytes);
+        var pixels = _pixels.AsSpan(0, rect.Width);
 
         for (var y = 0; y < rect.Height; y++)
         {
             reader.ReadExactly(row);
-            framebuffer.Write(rect.X, rect.Y + y, rect.Width, 1, Pixels.ToOpaque(row));
+            _converter.ConvertRow(row, pixels);
+            framebuffer.Write(rect.X, rect.Y + y, rect.Width, 1, pixels);
         }
     }
 }
@@ -54,16 +42,18 @@ internal sealed class CopyRectDecoder : IRectangleDecoder
 }
 
 /// <summary>Encoding 2: background colour followed by solid sub-rectangles.</summary>
-internal sealed class RreDecoder : IRectangleDecoder
+internal sealed class RreDecoder(PixelConverter? converter = null) : IRectangleDecoder
 {
+    private readonly PixelConverter _converter = converter ?? PixelConverter.Bgra32;
+
     public void Decode(RfbReader reader, Framebuffer framebuffer, RfbRect rect)
     {
         var count = reader.ReadUInt32();
-        framebuffer.Fill(rect.X, rect.Y, rect.Width, rect.Height, reader.ReadPixel());
+        framebuffer.Fill(rect.X, rect.Y, rect.Width, rect.Height, reader.ReadPixel(_converter));
 
         for (uint i = 0; i < count; i++)
         {
-            var colour = reader.ReadPixel();
+            var colour = reader.ReadPixel(_converter);
             int x = reader.ReadUInt16();
             int y = reader.ReadUInt16();
             int w = reader.ReadUInt16();
@@ -77,9 +67,35 @@ internal sealed class RreDecoder : IRectangleDecoder
     }
 }
 
-/// <summary>Encoding 5: 16×16 tiles, each raw or background + (coloured) sub-rectangles.</summary>
-internal sealed class HextileDecoder : IRectangleDecoder
+/// <summary>Encoding 4 (CoRRE): RRE with one-byte sub-rectangle coordinates (rectangles of at most 255×255).</summary>
+internal sealed class CoRreDecoder(PixelConverter? converter = null) : IRectangleDecoder
 {
+    private readonly PixelConverter _converter = converter ?? PixelConverter.Bgra32;
+
+    public void Decode(RfbReader reader, Framebuffer framebuffer, RfbRect rect)
+    {
+        var count = reader.ReadUInt32();
+        framebuffer.Fill(rect.X, rect.Y, rect.Width, rect.Height, reader.ReadPixel(_converter));
+
+        for (uint i = 0; i < count; i++)
+        {
+            var colour = reader.ReadPixel(_converter);
+            int x = reader.ReadByte();
+            int y = reader.ReadByte();
+            int w = reader.ReadByte();
+            int h = reader.ReadByte();
+            var right = Math.Min(x + w, rect.Width);
+            var bottom = Math.Min(y + h, rect.Height);
+            if (right > x && bottom > y)
+                framebuffer.Fill(rect.X + x, rect.Y + y, right - x, bottom - y, colour);
+        }
+    }
+}
+
+/// <summary>Encoding 5: 16×16 tiles, each raw or background + (coloured) sub-rectangles.</summary>
+internal sealed class HextileDecoder(PixelConverter? converter = null) : IRectangleDecoder
+{
+    private readonly PixelConverter _converter = converter ?? PixelConverter.Bgra32;
     private const byte Raw = 1;
     private const byte BackgroundSpecified = 2;
     private const byte ForegroundSpecified = 4;
@@ -87,6 +103,7 @@ internal sealed class HextileDecoder : IRectangleDecoder
     private const byte SubrectsColoured = 16;
 
     private readonly byte[] _rawTile = new byte[16 * 16 * 4];
+    private readonly uint[] _rawPixels = new uint[16 * 16];
     private readonly uint[] _tile = new uint[16 * 16];
 
     public void Decode(RfbReader reader, Framebuffer framebuffer, RfbRect rect)
@@ -105,14 +122,16 @@ internal sealed class HextileDecoder : IRectangleDecoder
 
                 if ((subencoding & Raw) != 0)
                 {
-                    var wire = _rawTile.AsSpan(0, tw * th * 4);
+                    var wire = _rawTile.AsSpan(0, tw * th * _converter.BytesPerPixel);
                     reader.ReadExactly(wire);
-                    framebuffer.Write(tx, ty, tw, th, Pixels.ToOpaque(wire));
+                    var raw = _rawPixels.AsSpan(0, tw * th);
+                    _converter.ConvertRow(wire, raw);
+                    framebuffer.Write(tx, ty, tw, th, raw);
                     continue;
                 }
 
-                if ((subencoding & BackgroundSpecified) != 0) background = reader.ReadPixel();
-                if ((subencoding & ForegroundSpecified) != 0) foreground = reader.ReadPixel();
+                if ((subencoding & BackgroundSpecified) != 0) background = reader.ReadPixel(_converter);
+                if ((subencoding & ForegroundSpecified) != 0) foreground = reader.ReadPixel(_converter);
 
                 var tile = _tile.AsSpan(0, tw * th);
                 tile.Fill(background);
@@ -123,7 +142,7 @@ internal sealed class HextileDecoder : IRectangleDecoder
                     var coloured = (subencoding & SubrectsColoured) != 0;
                     for (var i = 0; i < count; i++)
                     {
-                        var colour = coloured ? reader.ReadPixel() : foreground;
+                        var colour = coloured ? reader.ReadPixel(_converter) : foreground;
                         var xy = reader.ReadByte();
                         var wh = reader.ReadByte();
                         int sx = xy >> 4, sy = xy & 0x0F;

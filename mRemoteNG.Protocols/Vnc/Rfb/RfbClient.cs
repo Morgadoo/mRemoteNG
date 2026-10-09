@@ -12,8 +12,11 @@ public sealed class RfbClientOptions
     public static IReadOnlyList<int> DefaultEncodings { get; } =
     [
         RfbEncoding.CopyRect,
+        RfbEncoding.Tight,
         RfbEncoding.Zrle,
         RfbEncoding.Hextile,
+        RfbEncoding.Zlib,
+        RfbEncoding.CoRre,
         RfbEncoding.Rre,
         RfbEncoding.Raw,
         RfbEncoding.DesktopSize,
@@ -22,13 +25,57 @@ public sealed class RfbClientOptions
         RfbEncoding.Cursor,
     ];
 
-    /// <summary>Password for VNC Authentication; null when none is configured.</summary>
+    /// <summary>Security types this client implements, in the default order of preference.</summary>
+    public static IReadOnlyList<byte> DefaultSecurityTypes { get; } =
+    [
+        RfbSecurityType.None,
+        RfbSecurityType.VncAuthentication,
+        RfbSecurityType.AppleRemoteDesktop,
+        RfbSecurityType.MsLogon2,
+    ];
+
+    /// <summary>
+    /// Builds an encoding list: <paramref name="preferred"/> first (servers use the first encoding they support),
+    /// then the other defaults, then the optional compression and JPEG quality pseudo-encodings (levels 0-9).
+    /// A JPEG quality is what allows Tight to send lossy JPEG rectangles; without one Tight stays lossless.
+    /// </summary>
+    public static IReadOnlyList<int> BuildEncodings(int? preferred = null, int? compressionLevel = null, int? jpegQuality = null)
+    {
+        // CopyRect is always cheapest for moved content, so it stays ahead of the preferred encoding.
+        var encodings = new List<int> { RfbEncoding.CopyRect };
+        if (preferred is { } p && p != RfbEncoding.CopyRect)
+            encodings.Add(p);
+        foreach (var encoding in DefaultEncodings)
+        {
+            if (!encodings.Contains(encoding))
+                encodings.Add(encoding);
+        }
+        if (compressionLevel is { } level)
+            encodings.Add(RfbEncoding.CompressLevel(level));
+        if (jpegQuality is { } quality)
+            encodings.Add(RfbEncoding.QualityLevel(quality));
+        return encodings;
+    }
+
+    /// <summary>User name for Apple Remote Desktop and MS-Logon authentication.</summary>
+    public string? Username { get; init; }
+
+    /// <summary>Password for VNC, Apple Remote Desktop or MS-Logon authentication; null when none is configured.</summary>
     public string? Password { get; init; }
 
     /// <summary>ClientInit shared flag: leave other viewers connected.</summary>
     public bool Shared { get; init; } = true;
 
     public IReadOnlyList<int> Encodings { get; init; } = DefaultEncodings;
+
+    /// <summary>Pixel format requested from the server (true colour 8, 16 or 32 bpp); pixels are converted to BGRA.</summary>
+    public PixelFormat PixelFormat { get; init; } = PixelFormat.Bgra32;
+
+    /// <summary>
+    /// Security types in order of preference. The first one the server offers and the configured credentials can
+    /// satisfy is used (Apple Remote Desktop and MS-Logon need a user name).
+    /// </summary>
+    public IReadOnlyList<byte> SecurityTypes { get; init; } = DefaultSecurityTypes;
 }
 
 /// <summary>Cursor shape sent through the Cursor pseudo-encoding; transparent pixels are 0.</summary>
@@ -50,14 +97,8 @@ public sealed class RfbClient : IDisposable
     private readonly IReadOnlyList<int> _encodings;
     private readonly Channel<byte[]> _sendQueue =
         Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions { SingleReader = true });
-    private readonly Dictionary<int, IRectangleDecoder> _decoders = new()
-    {
-        [RfbEncoding.Raw] = new RawDecoder(),
-        [RfbEncoding.CopyRect] = new CopyRectDecoder(),
-        [RfbEncoding.Rre] = new RreDecoder(),
-        [RfbEncoding.Hextile] = new HextileDecoder(),
-        [RfbEncoding.Zrle] = new ZrleDecoder(),
-    };
+    private readonly Dictionary<int, IRectangleDecoder> _decoders = new();
+    private PixelConverter _converter = PixelConverter.Bgra32;
     private readonly ConcurrentDictionary<int, long> _rectangleCounts = new();
     private Task _receiveTask = Task.CompletedTask;
     private Task _sendTask = Task.CompletedTask;
@@ -77,7 +118,13 @@ public sealed class RfbClient : IDisposable
     public byte SecurityType { get; private set; }
     public string DesktopName { get; private set; } = string.Empty;
     public PixelFormat ServerPixelFormat { get; private set; }
+
+    /// <summary>The pixel format the client asked the server to use.</summary>
+    public PixelFormat PixelFormat => _converter.Format;
     public Framebuffer Framebuffer { get; }
+
+    /// <summary>Tight method counts, for diagnostics and tests.</summary>
+    internal TightStatistics TightStatistics => ((TightDecoder)_decoders[RfbEncoding.Tight]).Statistics;
 
     /// <summary>Number of rectangles received per encoding (including pseudo-encodings), for diagnostics.</summary>
     public IReadOnlyDictionary<int, long> RectangleCounts => _rectangleCounts;
@@ -218,7 +265,7 @@ public sealed class RfbClient : IDisposable
     private void Handshake(RfbClientOptions options)
     {
         NegotiateVersion();
-        NegotiateSecurity(options.Password);
+        NegotiateSecurity(options);
 
         _stream.Write([(byte)(options.Shared ? 1 : 0)]);
 
@@ -228,9 +275,19 @@ public sealed class RfbClient : IDisposable
         DesktopName = _reader.ReadString(maxLength: 64 * 1024);
         Framebuffer.Resize(width, height);
 
-        var setPixelFormat = new byte[4 + PixelFormat.Size];
+        _converter = new PixelConverter(options.PixelFormat);
+        _decoders[RfbEncoding.Raw] = new RawDecoder(_converter);
+        _decoders[RfbEncoding.CopyRect] = new CopyRectDecoder();
+        _decoders[RfbEncoding.Rre] = new RreDecoder(_converter);
+        _decoders[RfbEncoding.CoRre] = new CoRreDecoder(_converter);
+        _decoders[RfbEncoding.Hextile] = new HextileDecoder(_converter);
+        _decoders[RfbEncoding.Zlib] = new ZlibDecoder(_converter);
+        _decoders[RfbEncoding.Tight] = new TightDecoder(_converter);
+        _decoders[RfbEncoding.Zrle] = new ZrleDecoder(_converter);
+
+        var setPixelFormat = new byte[4 + Rfb.PixelFormat.Size];
         setPixelFormat[0] = RfbClientMessage.SetPixelFormat;
-        PixelFormat.Bgra32.Write(setPixelFormat.AsSpan(4));
+        options.PixelFormat.Write(setPixelFormat.AsSpan(4));
         _stream.Write(setPixelFormat);
 
         var setEncodings = new byte[4 + 4 * _encodings.Count];
@@ -259,16 +316,17 @@ public sealed class RfbClient : IDisposable
         _stream.Write(Encoding.ASCII.GetBytes($"RFB 003.00{chosen}\n"));
     }
 
-    private void NegotiateSecurity(string? password)
+    private void NegotiateSecurity(RfbClientOptions options)
     {
         var minor = ProtocolVersion.Minor;
         byte type;
         if (minor == 3)
         {
+            // RFB 3.3: the server dictates the type.
             var offered = _reader.ReadUInt32();
             if (offered == RfbSecurityType.Invalid)
                 throw new RfbAuthenticationException($"The server refused the connection: {_reader.ReadString()}");
-            if (offered is not (RfbSecurityType.None or RfbSecurityType.VncAuthentication))
+            if (offered > byte.MaxValue || !RfbClientOptions.DefaultSecurityTypes.Contains((byte)offered))
                 throw new RfbProtocolException($"The server requires unsupported security type {SecurityTypeName((byte)offered)}.");
             type = (byte)offered;
         }
@@ -278,24 +336,46 @@ public sealed class RfbClient : IDisposable
             if (count == 0)
                 throw new RfbAuthenticationException($"The server refused the connection: {_reader.ReadString()}");
             var offered = _reader.ReadBytes(count);
-            if (offered.Contains(RfbSecurityType.None))
-                type = RfbSecurityType.None;
-            else if (offered.Contains(RfbSecurityType.VncAuthentication))
-                type = RfbSecurityType.VncAuthentication;
-            else
-                throw new RfbProtocolException("The server offers no supported security type (offered: "
-                    + string.Join(", ", offered.Select(SecurityTypeName)) + "). Supported: None, VNC Authentication.");
+            type = ChooseSecurityType(offered, options)
+                ?? throw new RfbProtocolException("The server offers no supported security type (offered: "
+                    + string.Join(", ", offered.Select(SecurityTypeName)) + "). Supported: "
+                    + string.Join(", ", options.SecurityTypes.Select(SecurityTypeName)) + ".");
             _stream.Write([type]);
         }
         SecurityType = type;
 
-        if (type == RfbSecurityType.VncAuthentication)
+        switch (type)
         {
-            var challenge = _reader.ReadBytes(VncAuthentication.ChallengeLength);
-            if (password is null)
-                throw new RfbAuthenticationException("The VNC server requires a password, but none is configured for this connection.");
-            _stream.Write(VncAuthentication.ComputeResponse(password, challenge));
+            case RfbSecurityType.VncAuthentication:
+            {
+                var challenge = _reader.ReadBytes(VncAuthentication.ChallengeLength);
+                if (options.Password is null)
+                    throw new RfbAuthenticationException("The VNC server requires a password, but none is configured for this connection.");
+                _stream.Write(VncAuthentication.ComputeResponse(options.Password, challenge));
+                break;
+            }
+
+            case RfbSecurityType.AppleRemoteDesktop:
+            {
+                var challenge = AppleRemoteDesktopAuthentication.ReadChallenge(_reader);
+                if (string.IsNullOrEmpty(options.Username))
+                    throw new RfbAuthenticationException("The server requires Apple Remote Desktop authentication: configure a user name and password for this connection.");
+                _stream.Write(AppleRemoteDesktopAuthentication.ComputeResponse(challenge, options.Username, options.Password ?? ""));
+                break;
+            }
+
+            case RfbSecurityType.MsLogon2:
+            {
+                var generator = ReadUInt64();
+                var modulus = ReadUInt64();
+                var serverPublic = ReadUInt64();
+                if (string.IsNullOrEmpty(options.Username))
+                    throw new RfbAuthenticationException("The server requires MS-Logon (Windows) authentication: configure a user name and password for this connection.");
+                _stream.Write(MsLogon2Authentication.ComputeResponse(generator, modulus, serverPublic, options.Username, options.Password ?? ""));
+                break;
+            }
         }
+        _stream.Flush();
 
         // RFB 3.3 and 3.7 send no SecurityResult for security type None.
         if (type == RfbSecurityType.None && minor < 8)
@@ -312,21 +392,51 @@ public sealed class RfbClient : IDisposable
             catch (IOException) { /* some servers just close the connection */ }
         }
         reason ??= result == 2 ? "too many authentication attempts" : "the server rejected the credentials";
-        throw new RfbAuthenticationException(type == RfbSecurityType.VncAuthentication
-            ? $"VNC authentication failed: {reason}"
-            : $"The server rejected the connection: {reason}");
+        throw new RfbAuthenticationException(type == RfbSecurityType.None
+            ? $"The server rejected the connection: {reason}"
+            : $"{SecurityTypeName(type)} failed: {reason}");
     }
 
-    private static string SecurityTypeName(byte type) => type switch
+    /// <summary>
+    /// The first preferred type the server offers that the credentials can satisfy; failing that, the first
+    /// preferred type offered (so the error names the missing credential); null when nothing is supported.
+    /// </summary>
+    internal static byte? ChooseSecurityType(IReadOnlyCollection<byte> offered, RfbClientOptions options)
+    {
+        var candidates = options.SecurityTypes
+            .Where(t => offered.Contains(t) && RfbClientOptions.DefaultSecurityTypes.Contains(t))
+            .ToList();
+        if (candidates.Count == 0) return null;
+        foreach (var type in candidates)
+        {
+            var usable = type switch
+            {
+                RfbSecurityType.AppleRemoteDesktop or RfbSecurityType.MsLogon2 => !string.IsNullOrEmpty(options.Username),
+                RfbSecurityType.VncAuthentication => options.Password is not null,
+                _ => true,
+            };
+            if (usable) return type;
+        }
+        return candidates[0];
+    }
+
+    private ulong ReadUInt64()
+    {
+        Span<byte> b = stackalloc byte[8];
+        _reader.ReadExactly(b);
+        return BinaryPrimitives.ReadUInt64BigEndian(b);
+    }
+
+    internal static string SecurityTypeName(byte type) => type switch
     {
         RfbSecurityType.None => "None",
-        RfbSecurityType.VncAuthentication => "VNC Authentication",
+        RfbSecurityType.VncAuthentication => "VNC authentication",
         5 or 6 => $"RA2 ({type})",
         16 => "Tight (16)",
         18 => "TLS (18)",
         19 => "VeNCrypt (19)",
-        30 => "Apple Remote Desktop (30)",
-        113 => "MSLogon II (113)",
+        RfbSecurityType.AppleRemoteDesktop => "Apple Remote Desktop authentication",
+        RfbSecurityType.MsLogon2 => "MS-Logon II authentication",
         _ => type.ToString(System.Globalization.CultureInfo.InvariantCulture),
     };
 
@@ -435,7 +545,8 @@ public sealed class RfbClient : IDisposable
     private RfbCursor ReadCursor(RfbRect rect)
     {
         var pixels = new uint[rect.Width * rect.Height];
-        var wire = new byte[pixels.Length * 4];
+        var bpp = _converter.BytesPerPixel;
+        var wire = new byte[pixels.Length * bpp];
         _reader.ReadExactly(wire);
         var maskStride = (rect.Width + 7) / 8;
         var mask = _reader.ReadBytes(maskStride * rect.Height);
@@ -446,7 +557,7 @@ public sealed class RfbClient : IDisposable
             {
                 var visible = (mask[y * maskStride + x / 8] & (0x80 >> (x % 8))) != 0;
                 var i = y * rect.Width + x;
-                pixels[i] = visible ? BinaryPrimitives.ReadUInt32LittleEndian(wire.AsSpan(i * 4)) | 0xFF000000u : 0;
+                pixels[i] = visible ? _converter.ReadPixel(wire.AsSpan(i * bpp, bpp)) : 0;
             }
         }
         // For the Cursor pseudo-encoding the rectangle position is the hotspot.

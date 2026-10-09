@@ -21,6 +21,14 @@ public readonly record struct PixelFormat(
     /// </summary>
     public static PixelFormat Bgra32 { get; } = new(32, 24, false, true, 255, 255, 255, 16, 8, 0);
 
+    /// <summary>16bpp true colour, little-endian RGB 5-6-5 ("high colour").</summary>
+    public static PixelFormat Rgb565 { get; } = new(16, 16, false, true, 31, 63, 31, 11, 5, 0);
+
+    /// <summary>8bpp true colour BGR 2-3-3 (the classic "bgr233" low-colour format, 256 colours).</summary>
+    public static PixelFormat Bgr233 { get; } = new(8, 8, false, true, 7, 7, 3, 0, 3, 6);
+
+    public int BytesPerPixel => BitsPerPixel / 8;
+
     public static PixelFormat Read(RfbReader reader)
     {
         Span<byte> b = stackalloc byte[Size];
