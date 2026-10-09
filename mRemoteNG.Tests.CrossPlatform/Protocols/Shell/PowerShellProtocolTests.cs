@@ -93,4 +93,26 @@ public sealed class PowerShellProtocolTests
 
         Encoding.ASCII.GetString([.. first, .. second]).Should().Be("ls\npwd\n");
     }
+
+    [Theory]
+    [InlineData("a\nb\n", "a\r\nb\r\n")]       // pwsh on Unix: bare LF
+    [InlineData("a\r\nb", "a\r\nb")]            // already CR LF (pwsh on Windows): unchanged
+    [InlineData("\r", "\r")]
+    public void TranslateNewlines_AddsTheCarriageReturnATtyWouldAdd(string input, string expected)
+    {
+        bool lastWasCr = false;
+
+        PowerShellProtocol.TranslateNewlines(input, ref lastWasCr).Should().Be(expected);
+    }
+
+    [Fact]
+    public void TranslateNewlines_CrLfSplitAcrossReads_IsNotDoubled()
+    {
+        bool lastWasCr = false;
+
+        var text = PowerShellProtocol.TranslateNewlines("x\r", ref lastWasCr)
+                   + PowerShellProtocol.TranslateNewlines("\ny\n", ref lastWasCr);
+
+        text.Should().Be("x\r\ny\r\n");
+    }
 }

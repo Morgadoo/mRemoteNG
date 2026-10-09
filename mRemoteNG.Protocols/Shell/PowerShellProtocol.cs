@@ -240,13 +240,16 @@ public sealed class PowerShellProtocol : ProtocolBase, IVisualProtocol, ITermina
     private async Task ReadLoopAsync(StreamReader reader, CancellationToken ct)
     {
         char[] buf = new char[4096];
+        bool lastWasCr = false;
         try
         {
             while (!ct.IsCancellationRequested)
             {
                 int read = await reader.ReadAsync(buf, ct);
                 if (read == 0) break;
-                _view?.Write(new string(buf, 0, read));
+                var text = new string(buf, 0, read);
+                // A terminal moves to column 0 only on CR; without a pty nothing adds it (pwsh on Unix writes bare LF).
+                _view?.Write(_mode == PowerShellHostMode.Pipes ? TranslateNewlines(text, ref lastWasCr) : text);
             }
         }
         catch (OperationCanceledException) { }
@@ -306,6 +309,20 @@ public sealed class PowerShellProtocol : ProtocolBase, IVisualProtocol, ITermina
         {
             _logger.LogWarning(ex, "PowerShell write error");
         }
+    }
+
+    /// <summary>Turns bare LF into CR LF for the terminal view (what a pty's ONLCR would do), across chunk boundaries.</summary>
+    internal static string TranslateNewlines(string text, ref bool lastWasCr)
+    {
+        var output = new System.Text.StringBuilder(text.Length + 16);
+        foreach (char c in text)
+        {
+            if (c == '\n' && !lastWasCr)
+                output.Append('\r');
+            output.Append(c);
+            lastWasCr = c == '\r';
+        }
+        return output.ToString();
     }
 
     /// <summary>Maps the terminal's Enter (CR, or CR LF) to the LF a line-reading pwsh expects.</summary>
