@@ -14,6 +14,7 @@ namespace mRemoteNG.Core.App;
 ///   <item><c>/resetsettings</c>: restore the default options (the old settings file is kept as a backup).</item>
 ///   <item><c>--portable</c>: keep settings, credentials and connections next to the executable.</item>
 ///   <item><c>/minimized</c>, <c>/min</c>: start minimised (to the tray when minimise-to-tray is on).</item>
+///   <item><c>--design-gallery</c>: developer tool; also opens the design gallery (every colour token and control style).</item>
 /// </list>
 /// A token starting with <c>/</c> that is not a known switch is a (Unix) file path, not a switch.
 /// </summary>
@@ -24,7 +25,7 @@ public sealed record StartupArguments
     private static readonly string[] FlagSwitches =
     [
         "noreconnect", "norc", "resetpos", "rp", "resetpanels", "rpnl", "resettoolbar", "rtbr",
-        "reset", "resetsettings", "portable", "minimized", "minimised", "min",
+        "reset", "resetsettings", "portable", "minimized", "minimised", "min", "design-gallery",
     ];
 
     public static StartupArguments Empty { get; } = new();
@@ -46,6 +47,9 @@ public sealed record StartupArguments
 
     public bool StartMinimized { get; init; }
 
+    /// <summary>Developer switch: open the design gallery window (not reachable from the menus).</summary>
+    public bool DesignGallery { get; init; }
+
     /// <summary>Switches that were not recognised (without their prefix).</summary>
     public IReadOnlyList<string> UnknownSwitches { get; init; } = [];
 
@@ -56,7 +60,7 @@ public sealed record StartupArguments
 
         string? connectionFile = null;
         bool noReconnect = false, resetPos = false, resetPanels = false, resetToolbar = false;
-        bool resetSettings = false, portable = false, minimized = false;
+        bool resetSettings = false, portable = false, minimized = false, designGallery = false;
         var unknown = new List<string>();
         string? pendingValueSwitch = null;
         var endOfOptions = false;
@@ -118,6 +122,9 @@ public sealed record StartupArguments
                 case "minimized" or "minimised" or "min":
                     minimized = IsTrue(value);
                     break;
+                case "design-gallery":
+                    designGallery = IsTrue(value);
+                    break;
                 default:
                     unknown.Add(name);
                     break;
@@ -134,6 +141,7 @@ public sealed record StartupArguments
             ResetSettings = resetSettings,
             Portable = portable,
             StartMinimized = minimized,
+            DesignGallery = designGallery,
             UnknownSwitches = unknown,
         };
     }

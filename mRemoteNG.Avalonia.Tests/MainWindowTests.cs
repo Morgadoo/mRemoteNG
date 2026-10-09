@@ -117,7 +117,7 @@ public class MainWindowTests
             Application.Current!.Styles.Count(st => (st as IResourceProvider)?.TryGetResource("AppBg0Brush", null, out _) == true)
                 .Should().Be(1, "exactly one palette may be active");
             window.TryFindResource("AppBg0Brush", out var light).Should().BeTrue();
-            ((ISolidColorBrush)light!).Color.Should().Be(Color.Parse("#f5f5f5"));
+            ((ISolidColorBrush)light!).Color.Should().Be(Color.Parse(ThemeCatalog.Light.Colors["AppBg0"]));
             Application.Current!.ActualThemeVariant.Should().Be(ThemeVariant.Light);
         }
         finally

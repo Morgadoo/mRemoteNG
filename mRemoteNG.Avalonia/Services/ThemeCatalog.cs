@@ -2,32 +2,56 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Avalonia.Media;
 using mRemoteNG.Core.App.Info;
 
 namespace mRemoteNG.Avalonia.Services;
 
 /// <summary>
-/// A colour theme: a base palette (Themes/DarkTheme.axaml or LightTheme.axaml, which supply all control styles)
-/// plus colours for the palette keys (<see cref="PaletteKeys"/>). Built-in themes ship with the app; user themes
+/// A colour theme: a base palette (Themes/DarkTheme.axaml or LightTheme.axaml; the control styles in
+/// Themes/Controls.axaml only reference its colours) plus colours for the palette keys (<see cref="PaletteKeys"/>). Built-in themes ship with the app; user themes
 /// are JSON files in the settings folder's Themes directory.
 /// </summary>
 public sealed class ThemeDefinition
 {
-    /// <summary>The colour keys of the palette that a theme can change, with what they colour.</summary>
+    /// <summary>
+    /// The colour keys of the palette that a theme can change, with what they colour (docs/design-system.md §2).
+    /// Each key is a <c>Color</c> resource with a <c>…Brush</c> of the same name; the theme editor lists them in
+    /// this order. Themes written before a key existed simply lack it and get the base palette's (or a derived)
+    /// value, see <see cref="ThemeCatalog.ResolveColors"/>.
+    /// </summary>
     public static IReadOnlyList<(string Key, string Description)> PaletteKeys { get; } =
     [
-        ("AppBg0", "Window and tree background"),
-        ("AppBg1", "Panel headers, menus, status bar"),
-        ("AppBg2", "Toolbars and buttons"),
-        ("AppBg3", "Selection and hover"),
-        ("AppBg4", "Strong hover"),
+        ("AppBg0", "Window and session area background"),
+        ("AppBg1", "Sidebar, panels, header bar, menus, cards"),
+        ("AppBg2", "Raised surfaces: inputs, buttons, tab strip"),
+        ("AppBg3", "Selected (neutral) row, active tab, pressed"),
+        ("AppBg4", "Hover"),
         ("TextPrimary", "Text"),
-        ("TextSecondary", "Secondary text, inactive tabs"),
-        ("TextMuted", "Muted text, hints"),
-        ("Accent", "Accent (default buttons, focus)"),
-        ("Border0", "Borders"),
+        ("TextSecondary", "Labels, secondary text, inactive tabs"),
+        ("TextMuted", "Hints, placeholders, disabled text"),
+        ("Accent", "Accent: primary buttons, focus, selection marker"),
+        ("Border0", "Borders and dividers"),
         ("TextLink", "Links"),
-        ("Warning", "Warnings"),
+        ("Warning", "Warnings, reconnecting"),
+        ("AccentHover", "Accent under the pointer"),
+        ("AccentActive", "Accent when pressed"),
+        ("AccentSubtle", "Selected row background (translucent accent)"),
+        ("OnAccent", "Text and icons on the accent colour"),
+        ("Border1", "Strong borders: inputs, popups"),
+        ("Success", "Connected, OK"),
+        ("Danger", "Errors, destructive actions"),
+        ("Overlay", "Modal scrim (translucent)"),
+        ("ProtoSsh", "SSH icons and chips"),
+        ("ProtoTelnet", "Telnet, Rlogin and Raw icons and chips"),
+        ("ProtoRdp", "RDP icons and chips"),
+        ("ProtoVnc", "VNC and ARD icons and chips"),
+        ("ProtoHttp", "HTTP/HTTPS icons and chips"),
+        ("ProtoPowerShell", "PowerShell icons and chips"),
+        ("ProtoTerminal", "Terminal and WSL icons and chips"),
+        ("ProtoSerial", "Serial icons and chips"),
+        ("ProtoIntApp", "External application icons and chips"),
+        ("ProtoAnyDesk", "AnyDesk icons and chips"),
     ];
 
     public string Name { get; set; } = string.Empty;
@@ -62,7 +86,7 @@ public sealed class ThemeDefinition
 /// <summary>
 /// The available themes: the built-in Dark and Light palettes, the legacy themes ported from the WinForms
 /// app's <c>Themes/*.vstheme</c> files (VS2015 Blue and Darcula; their environment colours mapped onto the
-/// palette keys), and user themes from <see cref="ApplicationPaths.UserThemesDirectory"/>.
+/// palette keys of the design system), and user themes from <see cref="ApplicationPaths.UserThemesDirectory"/>.
 /// </summary>
 public sealed class ThemeCatalog
 {
@@ -87,27 +111,57 @@ public sealed class ThemeCatalog
 
     public string UserThemesDirectory => _userThemesDirectory ?? ApplicationPaths.UserThemesDirectory;
 
-    /// <summary>Colours of Themes/DarkTheme.axaml (VS2015 Dark).</summary>
-    public static ThemeDefinition Dark { get; } = BuiltIn(DarkName, true,
-        "#1e1e1e", "#252526", "#2d2d2d", "#3e3e42", "#555558", "#d4d4d4", "#a0a0a0", "#606060", "#007acc", "#3f3f46", "#569cd6", "#d7ba7d");
+    /// <summary>Colours of Themes/DarkTheme.axaml (the default dark palette, docs/design-system.md §2).</summary>
+    public static ThemeDefinition Dark { get; } = BuiltIn(DarkName, true, new()
+    {
+        ["AppBg0"] = "#14161B", ["AppBg1"] = "#1A1D23", ["AppBg2"] = "#21252D", ["AppBg3"] = "#2A2F39", ["AppBg4"] = "#252A33",
+        ["TextPrimary"] = "#E6E8EE", ["TextSecondary"] = "#A2A9B6", ["TextMuted"] = "#6B7385", ["TextLink"] = "#7AA7FF",
+        ["Accent"] = "#4C8DFF", ["AccentHover"] = "#6AA0FF", ["AccentActive"] = "#3A78E6", ["AccentSubtle"] = "#2E4C8DFF",
+        ["OnAccent"] = "#FFFFFF", ["Border0"] = "#2B303A", ["Border1"] = "#363C48",
+        ["Success"] = "#3FB950", ["Warning"] = "#D29922", ["Danger"] = "#F85149", ["Overlay"] = "#73000000",
+        ["ProtoSsh"] = "#3FB950", ["ProtoTelnet"] = "#8B949E", ["ProtoRdp"] = "#4C8DFF", ["ProtoVnc"] = "#A371F7",
+        ["ProtoHttp"] = "#F0883E", ["ProtoPowerShell"] = "#56B6F7", ["ProtoTerminal"] = "#C9D1D9", ["ProtoSerial"] = "#D29922",
+        ["ProtoIntApp"] = "#DB61A2", ["ProtoAnyDesk"] = "#EF443B",
+    });
 
-    /// <summary>Colours of Themes/LightTheme.axaml (VS2015 Light).</summary>
-    public static ThemeDefinition Light { get; } = BuiltIn(LightName, false,
-        "#f5f5f5", "#eaeaea", "#e1e1e1", "#cce8ff", "#d9d9d9", "#1e1e1e", "#444444", "#909090", "#007acc", "#cccccc", "#0066b8", "#8a5a00");
+    /// <summary>Colours of Themes/LightTheme.axaml (the default light palette, docs/design-system.md §2).</summary>
+    public static ThemeDefinition Light { get; } = BuiltIn(LightName, false, new()
+    {
+        ["AppBg0"] = "#F5F6F8", ["AppBg1"] = "#FFFFFF", ["AppBg2"] = "#F0F2F5", ["AppBg3"] = "#E4E8EE", ["AppBg4"] = "#EBEEF2",
+        ["TextPrimary"] = "#1D2129", ["TextSecondary"] = "#4D5566", ["TextMuted"] = "#8A92A3", ["TextLink"] = "#2F6FED",
+        ["Accent"] = "#2F6FED", ["AccentHover"] = "#4A82F0", ["AccentActive"] = "#2459C8", ["AccentSubtle"] = "#1F2F6FED",
+        ["OnAccent"] = "#FFFFFF", ["Border0"] = "#E1E5EB", ["Border1"] = "#CDD3DC",
+        ["Success"] = "#1F8F3A", ["Warning"] = "#B7791F", ["Danger"] = "#D1242F", ["Overlay"] = "#400F172A",
+        ["ProtoSsh"] = "#3FB950", ["ProtoTelnet"] = "#8B949E", ["ProtoRdp"] = "#4C8DFF", ["ProtoVnc"] = "#A371F7",
+        ["ProtoHttp"] = "#F0883E", ["ProtoPowerShell"] = "#56B6F7", ["ProtoTerminal"] = "#57606A", ["ProtoSerial"] = "#D29922",
+        ["ProtoIntApp"] = "#DB61A2", ["ProtoAnyDesk"] = "#EF443B",
+    });
 
     /// <summary>
-    /// Legacy vs2015blue.vstheme: tool windows #FFFFFF, window caption/shelf #D6DBE9, command bar #CFD6E5,
-    /// selection #FDF4BF / #FFF29D, text #1B293E, borders #8E9BBC, status bar #007ACC, links #0066CC.
+    /// Legacy vs2015blue.vstheme on the light palette: white tool windows, blue-grey chrome #D6DBE9,
+    /// yellow selection #FDF4BF / #FFF29D, text #1B293E, borders #8E9BBC, accent #007ACC, links #0066CC.
     /// </summary>
-    public static ThemeDefinition Vs2015Blue { get; } = BuiltIn(Vs2015BlueName, false,
-        "#ffffff", "#d6dbe9", "#cfd6e5", "#fdf4bf", "#fff29d", "#1b293e", "#3c4b66", "#8e9bbc", "#007acc", "#8e9bbc", "#0066cc", "#8a5a00");
+    public static ThemeDefinition Vs2015Blue { get; } = BuiltIn(Vs2015BlueName, false, new()
+    {
+        ["AppBg0"] = "#FFFFFF", ["AppBg1"] = "#D6DBE9", ["AppBg2"] = "#FFFFFF", ["AppBg3"] = "#FDF4BF", ["AppBg4"] = "#FFF8D9",
+        ["TextPrimary"] = "#1B293E", ["TextSecondary"] = "#3C4B66", ["TextMuted"] = "#6D7A99", ["TextLink"] = "#0066CC",
+        ["Accent"] = "#007ACC", ["AccentHover"] = "#1C97EA", ["AccentActive"] = "#0062A3", ["AccentSubtle"] = "#FFF29D",
+        ["OnAccent"] = "#FFFFFF", ["Border0"] = "#C3CCDF", ["Border1"] = "#8E9BBC",
+        ["Success"] = "#2E7D32", ["Warning"] = "#8A5A00", ["Danger"] = "#C42B1C", ["Overlay"] = "#40293955",
+    });
 
     /// <summary>
-    /// Legacy darcula.vstheme: window #3C3F41, tabs #353739, command bar #464A4D, selection #4B6EAF,
-    /// selected tab #5A6D9E, text #BBBBBB / gray #999999, borders #2D2D2D, links #589DF6.
+    /// Legacy darcula.vstheme on the dark palette: window #3C3F41, tabs #353739, fields #45494A, selection #4B6EAF,
+    /// text #BBBBBB / gray #999999, borders #2D2D2D / #646464, links #589DF6.
     /// </summary>
-    public static ThemeDefinition Darcula { get; } = BuiltIn(DarculaName, true,
-        "#3c3f41", "#353739", "#464a4d", "#4b6eaf", "#5a6d9e", "#bbbbbb", "#999999", "#787878", "#4b6eaf", "#2d2d2d", "#589df6", "#d7ba7d");
+    public static ThemeDefinition Darcula { get; } = BuiltIn(DarculaName, true, new()
+    {
+        ["AppBg0"] = "#3C3F41", ["AppBg1"] = "#353739", ["AppBg2"] = "#45494A", ["AppBg3"] = "#4E5254", ["AppBg4"] = "#464A4D",
+        ["TextPrimary"] = "#BBBBBB", ["TextSecondary"] = "#999999", ["TextMuted"] = "#787878", ["TextLink"] = "#589DF6",
+        ["Accent"] = "#4B6EAF", ["AccentHover"] = "#5A7FC2", ["AccentActive"] = "#3F5E99", ["AccentSubtle"] = "#804B6EAF",
+        ["OnAccent"] = "#FFFFFF", ["Border0"] = "#2D2D2D", ["Border1"] = "#646464",
+        ["Success"] = "#499C54", ["Warning"] = "#D7BA7D", ["Danger"] = "#C75450", ["Overlay"] = "#73000000",
+    });
 
     public static IReadOnlyList<ThemeDefinition> BuiltInThemes { get; } = [Dark, Light, Vs2015Blue, Darcula];
 
@@ -201,11 +255,47 @@ public sealed class ThemeCatalog
         return safe.ToLower(CultureInfo.InvariantCulture) + ".json";
     }
 
-    private static ThemeDefinition BuiltIn(string name, bool isDark, params string[] colors)
+    /// <summary>
+    /// Every palette colour <paramref name="theme"/> shows: the base palette (<see cref="Dark"/> or <see cref="Light"/>)
+    /// overlaid with the theme's own colours. Keys a theme does not define (themes saved by older versions only know
+    /// the first twelve keys) fall back to the base palette, except the accent variants, which are derived from the
+    /// theme's accent so that a custom accent is not paired with the default blue hover and selection.
+    /// </summary>
+    public static Dictionary<string, string> ResolveColors(ThemeDefinition theme)
     {
-        var map = new Dictionary<string, string>(StringComparer.Ordinal);
-        for (var i = 0; i < ThemeDefinition.PaletteKeys.Count; i++)
-            map[ThemeDefinition.PaletteKeys[i].Key] = colors[i];
-        return new ThemeDefinition { Name = name, IsDark = isDark, Colors = map, IsBuiltIn = true };
+        ArgumentNullException.ThrowIfNull(theme);
+        var basis = theme.IsDark ? Dark : Light;
+        var colors = new Dictionary<string, string>(basis.Colors, StringComparer.Ordinal);
+        foreach (var (key, value) in theme.Colors)
+        {
+            if (ThemeDefinition.IsValidColor(value))
+                colors[key] = value.Trim();
+        }
+
+        if (ReferenceEquals(theme, basis) || theme.GetColor("Accent") is not { } accentText || !ThemeDefinition.IsValidColor(accentText))
+            return colors;
+
+        var accent = Color.Parse(accentText.Trim());
+        if (theme.GetColor("AccentHover") is null)
+            colors["AccentHover"] = ToHex(Mix(accent, Colors.White, theme.IsDark ? 0.15 : 0.12));
+        if (theme.GetColor("AccentActive") is null)
+            colors["AccentActive"] = ToHex(Mix(accent, Colors.Black, 0.12));
+        if (theme.GetColor("AccentSubtle") is null)
+            colors["AccentSubtle"] = ToHex(Color.FromArgb(theme.IsDark ? (byte)0x2E : (byte)0x1F, accent.R, accent.G, accent.B));
+        return colors;
     }
+
+    /// <summary>Linear mix of two colours (the alpha of <paramref name="from"/> is kept).</summary>
+    internal static Color Mix(Color from, Color to, double amount) => Color.FromArgb(
+        from.A,
+        (byte)Math.Round(from.R + ((to.R - from.R) * amount)),
+        (byte)Math.Round(from.G + ((to.G - from.G) * amount)),
+        (byte)Math.Round(from.B + ((to.B - from.B) * amount)));
+
+    internal static string ToHex(Color color) => color.A == 0xFF
+        ? $"#{color.R:X2}{color.G:X2}{color.B:X2}"
+        : $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+
+    private static ThemeDefinition BuiltIn(string name, bool isDark, Dictionary<string, string> colors) =>
+        new() { Name = name, IsDark = isDark, Colors = new Dictionary<string, string>(colors, StringComparer.Ordinal), IsBuiltIn = true };
 }

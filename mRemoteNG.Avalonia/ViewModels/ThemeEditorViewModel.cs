@@ -191,10 +191,11 @@ public sealed class ThemeEditorViewModel : ReactiveObject
     private void LoadColors(ThemeDefinition theme)
     {
         Colors.Clear();
-        var fallback = theme.IsDark ? ThemeCatalog.Dark : ThemeCatalog.Light;
+        // Keys the theme lacks (themes saved by older versions) show the value the theme is displayed with.
+        var resolved = ThemeCatalog.ResolveColors(theme);
         foreach (var (key, description) in ThemeDefinition.PaletteKeys)
         {
-            var value = theme.GetColor(key) ?? fallback.GetColor(key) ?? "#000000";
+            var value = resolved.GetValueOrDefault(key) ?? "#000000";
             Colors.Add(new ThemeColorEntry(key, description, value, OnColorChanged));
         }
     }
