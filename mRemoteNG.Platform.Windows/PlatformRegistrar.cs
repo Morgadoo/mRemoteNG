@@ -24,5 +24,6 @@ public static class PlatformRegistrar
         services.AddSingleton<ICryptoProvider, DpapiCryptoProvider>();
         services.AddSingleton<INotificationService, WindowsNotificationService>();
         services.AddSingleton<ISystemTrayService, WindowsSystemTrayService>();
+        services.AddSingleton<IPuttySessionsProvider, WindowsPuttySessionsProvider>();
     }
 }

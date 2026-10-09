@@ -226,7 +226,6 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("VNCViewOnly", node.VNCViewOnly.ToString().ToLowerInvariant());
 
             // HTTP
-            element.SetAttribute("RenderingEngine", node.RenderingEngine.ToString());
 
             // Misc
             element.SetAttribute("ExtApp", node.ExtApp);
@@ -269,7 +268,6 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("InheritUsername", inh.Username.ToString().ToLowerInvariant());
             element.SetAttribute("InheritResolution", inh.Resolution.ToString().ToLowerInvariant());
             element.SetAttribute("InheritAutomaticResize", inh.AutomaticResize.ToString().ToLowerInvariant());
-            element.SetAttribute("InheritColors", inh.Colors.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRedirectKeys", inh.RedirectKeys.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRedirectDiskDrives", inh.RedirectDiskDrives.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRedirectDiskDrivesCustom", inh.RedirectDiskDrivesCustom.ToString().ToLowerInvariant());
