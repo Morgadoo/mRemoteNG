@@ -59,6 +59,10 @@ once those features are used.
 Settings from the WinForms app's registry keys are **not** imported; the cross-platform app starts with
 default settings. Review **Tools > Options** after the first start.
 
+**Language:** the app uses the WinForms app's 24 translations. Pick one in **Tools > Options > Appearance >
+Language** (default: the system language); it applies after a restart. Texts that exist only in the
+cross-platform app are shown in English until they are translated.
+
 ---
 
 ## 4. Credential Manager
