@@ -32,6 +32,7 @@
     <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
     <ProjectReference Include="..\mRemoteNG.Protocols\mRemoteNG.Protocols.csproj" />
     <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
+    <ProjectReference Include="..\mRemoteNG.ExternalProviders\mRemoteNG.ExternalProviders.csproj" />
     <ProjectReference Include="..\mRemoteNG.Platform.Linux\mRemoteNG.Platform.Linux.csproj" />
     <ProjectReference Include="..\mRemoteNG.Platform.Mac\mRemoteNG.Platform.Mac.csproj" />
   </ItemGroup>

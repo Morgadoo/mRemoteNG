@@ -154,6 +154,63 @@ public sealed class AppSettings
     /// <summary>When the last automatic update check ran (not shown in the UI).</summary>
     [PersistedSetting("Updates")] public DateTime? LastUpdateCheckUtc { get; set; }
 
+    // ── External credential / address providers ──────────────────────────
+    // Properties ending in "Protected" hold ICryptoProvider ciphertext; empty means
+    // "not saved — ask once per session" (the legacy app's behaviour).
+
+    /// <summary>Provider used for connections without a username (legacy "UserViaAPIDefault").</summary>
+    [PersistedSetting("ExternalProviders")] public Connection.ExternalCredentialProvider DefaultExternalCredentialProvider { get; set; }
+
+    /// <summary>Secret reference used with <see cref="DefaultExternalCredentialProvider"/>.</summary>
+    [PersistedSetting("ExternalProviders")] public string DefaultUserViaApi { get; set; } = string.Empty;
+
+    /// <summary>Delinea (Thycotic) Secret Server base URL, e.g. https://cred.domain.local/SecretServer.</summary>
+    [PersistedSetting("DelineaSecretServer")] public string DelineaUrl { get; set; } = string.Empty;
+    [PersistedSetting("DelineaSecretServer")] public string DelineaUsername { get; set; } = string.Empty;
+    /// <summary>Optional login domain sent with the OAuth2 password grant.</summary>
+    [PersistedSetting("DelineaSecretServer")] public string DelineaDomain { get; set; } = string.Empty;
+    /// <summary>Use integrated Windows / Kerberos authentication (winauthwebservices).</summary>
+    [PersistedSetting("DelineaSecretServer")] public bool DelineaUseSso { get; set; }
+    /// <summary>Ask for a one-time password when logging in.</summary>
+    [PersistedSetting("DelineaSecretServer")] public bool DelineaRequireOtp { get; set; }
+    [PersistedSetting("DelineaSecretServer")] public string DelineaPasswordProtected { get; set; } = string.Empty;
+
+    /// <summary>Clickstudios Passwordstate base URL, e.g. https://passwordstate.domain.local.</summary>
+    [PersistedSetting("Passwordstate")] public string PasswordstateUrl { get; set; } = string.Empty;
+    /// <summary>Use integrated Windows / Kerberos authentication (/winapi) instead of an API key.</summary>
+    [PersistedSetting("Passwordstate")] public bool PasswordstateUseSso { get; set; }
+    [PersistedSetting("Passwordstate")] public bool PasswordstateRequireOtp { get; set; }
+    [PersistedSetting("Passwordstate")] public string PasswordstateApiKeyProtected { get; set; } = string.Empty;
+
+    /// <summary>Path of the 1Password CLI; empty runs "op" from PATH.</summary>
+    [PersistedSetting("OnePassword")] public string OnePasswordCliPath { get; set; } = string.Empty;
+    /// <summary>Default --account for references that do not name one.</summary>
+    [PersistedSetting("OnePassword")] public string OnePasswordAccount { get; set; } = string.Empty;
+
+    /// <summary>Vault/OpenBao address, e.g. https://vault.domain.local:8200.</summary>
+    [PersistedSetting("VaultOpenbao")] public string VaultUrl { get; set; } = string.Empty;
+    /// <summary>Optional namespace (X-Vault-Namespace).</summary>
+    [PersistedSetting("VaultOpenbao")] public string VaultNamespace { get; set; } = string.Empty;
+    [PersistedSetting("VaultOpenbao")] public VaultAuthMethod VaultAuthMethod { get; set; } = VaultAuthMethod.Token;
+    /// <summary>Mount path of the auth method; empty uses the method's default ("userpass", "ldap", "approle").</summary>
+    [PersistedSetting("VaultOpenbao")] public string VaultAuthMount { get; set; } = string.Empty;
+    /// <summary>Username (userpass/LDAP) or role ID (AppRole).</summary>
+    [PersistedSetting("VaultOpenbao")] public string VaultUsername { get; set; } = string.Empty;
+    /// <summary>Token, password or secret ID, depending on <see cref="VaultAuthMethod"/>.</summary>
+    [PersistedSetting("VaultOpenbao")] public string VaultSecretProtected { get; set; } = string.Empty;
+    /// <summary>Optional PEM file with the CA that signed the server certificate.</summary>
+    [PersistedSetting("VaultOpenbao")] public string VaultCaCertificatePath { get; set; } = string.Empty;
+
+    [PersistedSetting("AwsEc2")] public AwsCredentialSource AwsCredentialSource { get; set; } = AwsCredentialSource.DefaultChain;
+    [PersistedSetting("AwsEc2")] public string AwsProfile { get; set; } = string.Empty;
+    [PersistedSetting("AwsEc2")] public string AwsAccessKeyId { get; set; } = string.Empty;
+    [PersistedSetting("AwsEc2")] public string AwsSecretAccessKeyProtected { get; set; } = string.Empty;
+    /// <summary>Region used when a connection's EC2Region is empty.</summary>
+    [PersistedSetting("AwsEc2")] public string AwsDefaultRegion { get; set; } = string.Empty;
+    [PersistedSetting("AwsEc2")] public AwsAddressKind AwsAddressKind { get; set; } = AwsAddressKind.PublicIp;
+    /// <summary>Optional EC2 endpoint override (VPC endpoint, LocalStack…).</summary>
+    [PersistedSetting("AwsEc2")] public string AwsServiceUrl { get; set; } = string.Empty;
+
     // ── Helpers ──────────────────────────────────────────────────────────
 
     /// <summary>All persisted properties with their section.</summary>
@@ -243,6 +300,8 @@ public sealed class AppSettings
             || !Enum.IsDefined(Theme) || !Enum.IsDefined(UpdateChannel))
             errors.Add("An option has an unknown value.");
 
+        ValidateExternalProviders(errors);
+
         return errors;
     }
 
@@ -290,6 +349,44 @@ public sealed class AppSettings
             StartupBehavior == StartupFileBehavior.OpenSpecificFile && string.IsNullOrWhiteSpace(StartupFilePath),
             v => StartupBehavior = v, defaults.StartupBehavior);
 
+        foreach (var property in ExternalProviderStringProperties)
+            Fix<string>(property.Name, property.GetValue(this) is null, v => property.SetValue(this, v), string.Empty);
+        Fix<Connection.ExternalCredentialProvider>(nameof(DefaultExternalCredentialProvider),
+            !Enum.IsDefined(DefaultExternalCredentialProvider), v => DefaultExternalCredentialProvider = v, defaults.DefaultExternalCredentialProvider);
+        Fix<VaultAuthMethod>(nameof(VaultAuthMethod), !Enum.IsDefined(VaultAuthMethod), v => VaultAuthMethod = v, defaults.VaultAuthMethod);
+        Fix<AwsCredentialSource>(nameof(AwsCredentialSource), !Enum.IsDefined(AwsCredentialSource), v => AwsCredentialSource = v, defaults.AwsCredentialSource);
+        Fix<AwsAddressKind>(nameof(AwsAddressKind), !Enum.IsDefined(AwsAddressKind), v => AwsAddressKind = v, defaults.AwsAddressKind);
+
         return reset;
+    }
+
+    private static readonly IReadOnlyList<PropertyInfo> ExternalProviderStringProperties =
+        PersistedProperties
+            .Where(p => p.Property.PropertyType == typeof(string)
+                && p.Section is "ExternalProviders" or "DelineaSecretServer" or "Passwordstate" or "OnePassword" or "VaultOpenbao" or "AwsEc2")
+            .Select(p => p.Property)
+            .ToList();
+
+    private void ValidateExternalProviders(List<string> errors)
+    {
+        void Url(string name, string value)
+        {
+            if (value.Length == 0)
+                return;
+            if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+                errors.Add($"{name} must be an http:// or https:// address.");
+        }
+
+        Url("Delinea Secret Server URL", DelineaUrl ?? string.Empty);
+        Url("Passwordstate URL", PasswordstateUrl ?? string.Empty);
+        Url("Vault/OpenBao URL", VaultUrl ?? string.Empty);
+        Url("AWS EC2 endpoint URL", AwsServiceUrl ?? string.Empty);
+
+        if (AwsCredentialSource == AwsCredentialSource.Profile && string.IsNullOrWhiteSpace(AwsProfile))
+            errors.Add("Enter the AWS profile name, or choose another AWS credential source.");
+
+        if (!Enum.IsDefined(DefaultExternalCredentialProvider) || !Enum.IsDefined(VaultAuthMethod)
+            || !Enum.IsDefined(AwsCredentialSource) || !Enum.IsDefined(AwsAddressKind))
+            errors.Add("An external provider option has an unknown value.");
     }
 }

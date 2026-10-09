@@ -341,21 +341,31 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     private readonly AppSettingsService _settings;
     private readonly UpdateCheckService _updates;
     private readonly Func<int> _credentialCount;
+    private readonly mRemoteNG.ExternalProviders.ExternalProviderFactory? _externalProviders;
     private readonly AppSettings _working;
     private SettingsCategoryViewModel? _selectedCategory;
     private object? _currentPage;
     private string _validationMessage = string.Empty;
 
-    public OptionsWindowViewModel(AppSettingsService settings, UpdateCheckService updates, mRemoteNG.Core.Credential.FileCredentialRepository credentials)
-        : this(settings, updates, () => credentials.CredentialRecords.Count)
+    public OptionsWindowViewModel(
+        AppSettingsService settings,
+        UpdateCheckService updates,
+        mRemoteNG.Core.Credential.FileCredentialRepository credentials,
+        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders = null)
+        : this(settings, updates, () => credentials.CredentialRecords.Count, externalProviders)
     {
     }
 
-    private OptionsWindowViewModel(AppSettingsService settings, UpdateCheckService updates, Func<int> credentialCount)
+    private OptionsWindowViewModel(
+        AppSettingsService settings,
+        UpdateCheckService updates,
+        Func<int> credentialCount,
+        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders)
     {
         _settings = settings;
         _updates = updates;
         _credentialCount = credentialCount;
+        _externalProviders = externalProviders;
         _working = settings.CreateEditableCopy();
         CreatePages();
 
@@ -373,6 +383,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     public CredentialsSettingsViewModel Credentials { get; private set; } = null!;
     public NotificationsSettingsViewModel Notifications { get; private set; } = null!;
     public UpdatesSettingsViewModel Updates { get; private set; } = null!;
+    public ExternalProvidersSettingsViewModel ExternalProviders { get; private set; } = null!;
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
@@ -380,6 +391,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         new("Appearance", "appearance"),
         new("Connections", "connections"),
         new("Credentials", "credentials"),
+        new("External Providers", "externalProviders"),
         new("Notifications", "notifications"),
         new("Updates", "updates"),
     ];
@@ -453,6 +465,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         Credentials = new CredentialsSettingsViewModel(_working, _credentialCount);
         Notifications = new NotificationsSettingsViewModel(_working);
         Updates = new UpdatesSettingsViewModel(_working, _updates);
+        ExternalProviders = new ExternalProvidersSettingsViewModel(_working, _externalProviders);
     }
 
     private object? ResolvePageViewModel(string? key) => key switch
@@ -463,6 +476,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         "credentials" => Credentials,
         "notifications" => Notifications,
         "updates" => Updates,
+        "externalProviders" => ExternalProviders,
         _ => null,
     };
 
@@ -492,6 +506,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(Credentials));
         this.RaisePropertyChanged(nameof(Notifications));
         this.RaisePropertyChanged(nameof(Updates));
+        this.RaisePropertyChanged(nameof(ExternalProviders));
         CurrentPage = ResolvePageViewModel(SelectedCategory?.Key);
     }
 }
