@@ -1,0 +1,137 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:tools="using:mRemoteNG.Core.Tools"
+        x:Class="mRemoteNG.Avalonia.Views.ExternalToolsWindow"
+        x:DataType="vm:ExternalToolsWindowViewModel"
+        Title="External Tools"
+        Width="900"
+        Height="620"
+        MinWidth="700"
+        MinHeight="480"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="260,*" Margin="16,16,16,8">
+
+            <!-- Left: tool list -->
+            <Border Classes="card" Margin="0,0,8,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="External Tools" Classes="section-header" Margin="0,0,0,8"/>
+                    <WrapPanel DockPanel.Dock="Bottom" Margin="0,4,0,0">
+                        <Button Margin="0,4,6,0" Content="Add" Command="{Binding AddCommand}" ToolTip.Tip="Add a new tool"/>
+                        <Button Margin="0,4,6,0" Content="Duplicate" Command="{Binding DuplicateCommand}"/>
+                        <Button Margin="0,4,6,0" Content="Delete" Command="{Binding DeleteCommand}"/>
+                        <Button Margin="0,4,6,0" Content="▲" Command="{Binding MoveUpCommand}" ToolTip.Tip="Move up"/>
+                        <Button Margin="0,4,6,0" Content="▼" Command="{Binding MoveDownCommand}" ToolTip.Tip="Move down"/>
+                    </WrapPanel>
+                    <ListBox x:Name="ToolList" ItemsSource="{Binding Tools}" SelectedItem="{Binding Selected}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="tools:ExternalTool">
+                                <StackPanel Spacing="2" Margin="2">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding FileName}" FontSize="11" Opacity="0.65" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Right: properties of the selected tool -->
+            <Border Grid.Column="1" Classes="card" Margin="8,0,0,0">
+                <ScrollViewer>
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Tool Properties" Classes="section-header"/>
+
+                        <Grid ColumnDefinitions="120,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+                              IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <Grid.Styles>
+                                <Style Selector="Grid > :is(Control)">
+                                    <Setter Property="Margin" Value="0,0,8,8"/>
+                                </Style>
+                            </Grid.Styles>
+                            <TextBlock Grid.Row="0" Text="Display name" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" x:Name="DisplayNameBox"
+                                     Text="{Binding Selected.DisplayName, FallbackValue=''}"/>
+
+                            <TextBlock Grid.Row="1" Text="Filename" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="FileNameBox"
+                                     Text="{Binding Selected.FileName, FallbackValue=''}"
+                                     Watermark="Program name or path, e.g. ping, /usr/bin/xterm, C:\Tools\tool.exe"/>
+                            <Button Grid.Row="1" Grid.Column="2" Content="Browse…" Click="OnBrowseFileName"/>
+
+                            <TextBlock Grid.Row="2" Text="Arguments" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" x:Name="ArgumentsBox"
+                                     Text="{Binding Selected.Arguments, FallbackValue=''}"
+                                     Watermark="e.g. -e ssh %USERNAME%@%HOSTNAME%"/>
+
+                            <TextBlock Grid.Row="3" Text="Working directory" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="3" Grid.Column="1"
+                                     Text="{Binding Selected.WorkingDir, FallbackValue=''}"
+                                     Watermark="Optional"/>
+                            <Button Grid.Row="3" Grid.Column="2" Content="Browse…" Click="OnBrowseWorkingDir"/>
+
+                            <TextBlock Grid.Row="4" Text="Icon" VerticalAlignment="Center"/>
+                            <TextBox Grid.Row="4" Grid.Column="1"
+                                     Text="{Binding Selected.IconPath, FallbackValue=''}"
+                                     Watermark="Optional image file (PNG, ICO…)"/>
+                            <Button Grid.Row="4" Grid.Column="2" Content="Browse…" Click="OnBrowseIcon"/>
+
+                            <TextBlock Grid.Row="5" Text="Operating system" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Row="5" Grid.Column="1" MinWidth="160"
+                                      ItemsSource="{Binding Platforms}"
+                                      SelectedItem="{Binding Selected.Platform, FallbackValue={x:Static tools:ExternalToolPlatform.Any}}"
+                                      ToolTip.Tip="Tools for another operating system stay in the list but are not offered to run"/>
+                        </Grid>
+
+                        <WrapPanel IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <CheckBox Margin="0,0,18,4" Content="Wait for exit"
+                                      IsChecked="{Binding Selected.WaitForExit, FallbackValue=False}"
+                                      IsEnabled="{Binding !Selected.TryIntegrate, FallbackValue=True}"
+                                      ToolTip.Tip="Wait until the program exits (e.g. before connecting, when used as 'External tool before')"/>
+                            <CheckBox Margin="0,0,18,4" Content="Try to integrate"
+                                      IsChecked="{Binding Selected.TryIntegrate, FallbackValue=False}"
+                                      ToolTip.Tip="Show the program's window inside a session tab (Linux/X11 and Windows)"/>
+                            <CheckBox Margin="0,0,18,4" Content="Show on toolbar"
+                                      IsChecked="{Binding Selected.ShowOnToolbar, FallbackValue=False}"/>
+                            <CheckBox Margin="0,0,18,4" Content="Run elevated"
+                                      IsChecked="{Binding Selected.RunElevated, FallbackValue=False}"
+                                      ToolTip.Tip="Windows: UAC prompt. Linux: pkexec. macOS: administrator password prompt."/>
+                        </WrapPanel>
+
+                        <TextBlock Text="Command" Classes="section-header" Margin="0,6,0,0"/>
+                        <TextBlock Text="{Binding TargetDescription}" Opacity="0.75" TextWrapping="Wrap"/>
+                        <Border BorderBrush="{DynamicResource Border0Brush}" BorderThickness="1" Padding="8,6" CornerRadius="3">
+                            <SelectableTextBlock x:Name="PreviewText" Text="{Binding Preview}" FontFamily="monospace"
+                                                 TextWrapping="Wrap"/>
+                        </Border>
+                        <TextBlock Text="{Binding VariablesHelp}" FontSize="11" Opacity="0.65" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Button bar -->
+        <Border Grid.Row="1" BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0" Padding="16,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" Content="Launch" MinWidth="80" Command="{Binding LaunchCommand}"
+                        ToolTip.Tip="Run the selected tool (as edited) for the connection shown above"/>
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="12,0"
+                           TextWrapping="Wrap" Classes.error="{Binding StatusIsError}">
+                    <TextBlock.Styles>
+                        <Style Selector="TextBlock.error">
+                            <Setter Property="Foreground" Value="#f44336"/>
+                        </Style>
+                    </TextBlock.Styles>
+                </TextBlock>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Cancel" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
+                    <Button Content="Save" Classes="accent" MinWidth="80" Command="{Binding SaveCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

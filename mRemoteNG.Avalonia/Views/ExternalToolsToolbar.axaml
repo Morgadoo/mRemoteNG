@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             x:Class="mRemoteNG.Avalonia.Views.ExternalToolsToolbar"
+             x:DataType="vm:ExternalToolsToolbarViewModel"
+             x:Name="Root">
+
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Header="Show Text" ToggleType="CheckBox"
+                      IsChecked="{Binding ShowText, Mode=OneWay}"
+                      Command="{Binding ToggleShowTextCommand}"/>
+            <MenuItem Header="External Tools…" Command="{Binding ManageCommand}"/>
+        </ContextMenu>
+    </UserControl.ContextMenu>
+
+    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Background="Transparent">
+        <ItemsControl ItemsSource="{Binding Buttons}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="4"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ExternalToolCommandItem">
+                    <Button Command="{Binding RunCommand}" Padding="6,3" ToolTip.Tip="{Binding ToolTip}">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Image Source="{Binding Icon}" Width="16" Height="16"
+                                   IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                            <TextBlock Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
+                                       IsVisible="{Binding #Root.((vm:ExternalToolsToolbarViewModel)DataContext).ShowText, FallbackValue=True}"/>
+                        </StackPanel>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="No external tools on the toolbar" FontSize="11" Opacity="0.6" VerticalAlignment="Center"
+                   IsVisible="{Binding !HasButtons}"/>
+    </StackPanel>
+</UserControl>

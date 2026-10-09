@@ -55,6 +55,9 @@ public sealed class ProtocolFactory : IProtocolFactory
         ProtocolType.LocalShell
             => _services.GetRequiredService<LocalShellProtocol>(),
 
+        ProtocolType.IntApp
+            => _services.GetRequiredService<IntegratedProgramProtocol>(),
+
         _ => throw new NotSupportedException($"No protocol handler for {type}.")
     };
 
@@ -74,6 +77,8 @@ public sealed class ProtocolFactory : IProtocolFactory
         services.AddTransient<ExternalAppProtocol>();
         services.AddTransient<RawSocketProtocol>();
         services.AddTransient<LocalShellProtocol>();
+        ExternalToolsRegistration.Register(services);
+        services.AddTransient<IntegratedProgramProtocol>();
         services.AddSingleton<IProtocolFactory, ProtocolFactory>();
     }
 }

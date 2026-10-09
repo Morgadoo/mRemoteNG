@@ -37,6 +37,14 @@ public static class ConnectionParametersFactory
         public const string ExternalCommand = "external.command";
         /// <summary>Local shell flavour for <see cref="ProtocolType.LocalShell"/>: "terminal" or "wsl".</summary>
         public const string LocalShellMode = "shell.mode";
+        /// <summary>Display name of the external tool an <see cref="ProtocolType.IntApp"/> session runs (ConnectionInfo.ExtApp).</summary>
+        public const string IntAppTool = "intapp.tool";
+        /// <summary>Connection values for the external tool variables (%NAME%, %DESCRIPTION%, …) of an IntApp session.</summary>
+        public const string ToolName = "tool.name";
+        public const string ToolDescription = "tool.description";
+        public const string ToolMacAddress = "tool.macAddress";
+        public const string ToolUserField = "tool.userField";
+        public const string ToolProtocol = "tool.protocol";
     }
 
     /// <summary>Command used for AnyDesk connections; the hostname holds the AnyDesk ID or alias.</summary>
@@ -63,7 +71,8 @@ public static class ConnectionParametersFactory
         // AnyDesk has no embeddable client: launch the installed AnyDesk app with the ID.
         CoreProtocol.AnyDesk => ProtocolType.ExternalApp,
         CoreProtocol.Terminal or CoreProtocol.WSL => ProtocolType.LocalShell,
-        // IntApp needs the legacy "External Tools" feature, which is not ported yet.
+        // An external tool whose window is embedded in the session tab (see IntegratedProgramProtocol).
+        CoreProtocol.IntApp => ProtocolType.IntApp,
         _ => null,
     };
 
@@ -86,6 +95,8 @@ public static class ConnectionParametersFactory
             extras[Keys.ExternalCommand] = AnyDeskCommand;
         if (protocol == ProtocolType.LocalShell)
             extras[Keys.LocalShellMode] = info.Protocol == CoreProtocol.WSL ? "wsl" : "terminal";
+        if (protocol == ProtocolType.IntApp)
+            AddIntAppExtras(info, extras);
 
         return new ConnectionParameters
         {
@@ -128,6 +139,16 @@ public static class ConnectionParametersFactory
                     extras[Keys.RdpGatewayDomain] = info.RDGatewayDomain;
             }
         }
+    }
+
+    private static void AddIntAppExtras(ConnectionInfo info, Dictionary<string, string> extras)
+    {
+        extras[Keys.IntAppTool] = info.ExtApp ?? string.Empty;
+        extras[Keys.ToolName] = info.Name ?? string.Empty;
+        extras[Keys.ToolDescription] = info.Description ?? string.Empty;
+        extras[Keys.ToolMacAddress] = info.MacAddress ?? string.Empty;
+        extras[Keys.ToolUserField] = info.UserField ?? string.Empty;
+        extras[Keys.ToolProtocol] = info.Protocol.ToString();
     }
 
     private static void AddVncExtras(ConnectionInfo info, Dictionary<string, string> extras)

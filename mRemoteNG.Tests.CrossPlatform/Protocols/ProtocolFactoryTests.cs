@@ -37,6 +37,7 @@ public sealed class ProtocolFactoryTests
     [InlineData(ProtocolType.ExternalApp)]
     [InlineData(ProtocolType.Raw)]
     [InlineData(ProtocolType.LocalShell)]
+    [InlineData(ProtocolType.IntApp)]
     public void Create_ShouldReturnProtocol_ForAllTypes(ProtocolType type)
     {
         var factory = _services.GetRequiredService<IProtocolFactory>();

@@ -54,7 +54,7 @@ public class ConnectionParametersFactoryTests
     }
 
     [Theory]
-    [InlineData(CoreProtocol.IntApp)]
+    [InlineData((CoreProtocol)999)]
     public void FromConnectionInfo_UnsupportedProtocol_Throws(CoreProtocol protocol)
     {
         var act = () => ConnectionParametersFactory.FromConnectionInfo(new ConnectionInfo { Protocol = protocol, Hostname = "srv" });

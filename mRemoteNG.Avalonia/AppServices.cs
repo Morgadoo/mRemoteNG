@@ -114,6 +114,18 @@ public static class AppServices
             sp.GetRequiredService<mRemoteNG.Core.Credential.FileCredentialRepository>());
         services.AddTransient<ViewModels.CredentialManagerViewModel>();
 
+        // External tools: log panel, IntApp tabs and default user name wired in (registered before the protocol
+        // defaults, which only add what is missing).
+        services.AddSingleton<Protocols.External.ExternalToolsService>(Services.ExternalToolsIntegration.Create);
+        services.AddSingleton<ViewModels.ExternalToolsToolbarViewModel>(sp =>
+        {
+            var tree = sp.GetRequiredService<ViewModels.ConnectionTreeViewModel>();
+            return new ViewModels.ExternalToolsToolbarViewModel(
+                sp.GetRequiredService<Protocols.External.ExternalToolsService>(),
+                () => tree.SelectedNode?.Model,
+                sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>());
+        });
+
         // Protocol implementations (transient — one instance per session)
         ProtocolFactory.Register(services);
     }
