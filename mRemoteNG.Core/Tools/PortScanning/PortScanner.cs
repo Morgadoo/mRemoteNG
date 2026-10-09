@@ -122,7 +122,6 @@ namespace mRemoteNG.Core.Tools.PortScanning
                     if (open is not null)
                         found.GetOrAdd(item.Host, _ => []).Add(open);
 
-                    var done = Interlocked.Increment(ref completed);
                     bool hostDone;
                     lock (remaining) hostDone = --remaining[item.Host] == 0;
                     if (hostDone)
@@ -132,6 +131,10 @@ namespace mRemoteNG.Core.Tools.PortScanning
                         Interlocked.Increment(ref hostsCompleted);
                         hostScanned?.Invoke(host);
                     }
+
+                    // Counted only after the host's own completion so the report with done == total also
+                    // includes every completed host.
+                    var done = Interlocked.Increment(ref completed);
                     progress?.Report(new PortScanProgress(done, total, Volatile.Read(ref hostsCompleted), hosts.Count));
                 }).ConfigureAwait(false);
 

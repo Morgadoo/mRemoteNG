@@ -273,8 +273,16 @@ public sealed class RollingFileLoggerTests : IDisposable
         provider.FilePath = _dir.Combine("sub", "b.log");
         provider.Write(LogLevel.Warning, "", "second");
 
-        File.ReadAllText(_dir.Combine("a.log")).Should().Contain("first").And.NotContain("second");
-        File.ReadAllText(_dir.Combine("sub", "b.log")).Should().Contain("WARN  - second");
+        ReadShared(_dir.Combine("a.log")).Should().Contain("first").And.NotContain("second");
+        ReadShared(_dir.Combine("sub", "b.log")).Should().Contain("WARN  - second");
+    }
+
+    /// <summary>Reads a log the provider still has open, as a log viewer would (Windows refuses File.ReadAllText).</summary>
+    private static string ReadShared(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }
 

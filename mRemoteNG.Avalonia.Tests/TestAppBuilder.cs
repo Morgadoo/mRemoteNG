@@ -41,8 +41,11 @@ internal static class TestHost
             if (_window is not null && ReferenceEquals(_app, Application.Current)) return _window;
             _app = Application.Current;
 
-            // Linux/macOS settings providers honour XDG_CONFIG_HOME / HOME; keep tests isolated.
+            // Keep every data file (settings, extApps.xml, credentials, logs) out of the real profile:
+            // the portable-mode override routes all platforms' settings providers to the test directory
+            // (on Windows they would otherwise use %APPDATA%). XDG/HOME also cover code that reads them directly.
             Directory.CreateDirectory(ConfigDirectory);
+            mRemoteNG.Platform.Settings.AppDataLocation.UsePortableDirectory(ConfigDirectory);
             Environment.SetEnvironmentVariable("XDG_CONFIG_HOME", ConfigDirectory);
             if (!OperatingSystem.IsWindows())
                 Environment.SetEnvironmentVariable("HOME", ConfigDirectory);
