@@ -1,6 +1,7 @@
 using System.Globalization;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Connection.Protocol.RDP;
+using mRemoteNG.Core.Connection.Protocol.VNC;
 using CoreProtocol = mRemoteNG.Core.Connection.Protocol.ProtocolType;
 
 namespace mRemoteNG.Protocols.Abstractions;
@@ -25,6 +26,9 @@ public static class ConnectionParametersFactory
         public const string RdpMicrophone = "rdp.microphone";
         public const string RdpLoadBalanceInfo = "rdp.loadBalanceInfo";
         public const string OpeningCommand = "shell.openingCommand";
+        /// <summary>VNC scaling: "none", "fit" (keep aspect ratio) or "stretch".</summary>
+        public const string VncScaling = "vnc.scaling";
+        public const string VncViewOnly = "vnc.viewOnly";
     }
 
     /// <summary>
@@ -58,6 +62,8 @@ public static class ConnectionParametersFactory
             extras[Keys.OpeningCommand] = info.OpeningCommand;
         if (protocol == ProtocolType.Rdp)
             AddRdpExtras(info, extras);
+        else if (protocol == ProtocolType.Vnc)
+            AddVncExtras(info, extras);
 
         return new ConnectionParameters
         {
@@ -100,6 +106,17 @@ public static class ConnectionParametersFactory
                     extras[Keys.RdpGatewayDomain] = info.RDGatewayDomain;
             }
         }
+    }
+
+    private static void AddVncExtras(ConnectionInfo info, Dictionary<string, string> extras)
+    {
+        extras[Keys.VncScaling] = info.VNCSmartSizeMode switch
+        {
+            VncSmartSizeMode.SmartSNo => "none",
+            VncSmartSizeMode.SmartSFree => "stretch",
+            _ => "fit",
+        };
+        extras[Keys.VncViewOnly] = Bool(info.VNCViewOnly);
     }
 
     private static string Bool(bool value) => value ? "true" : "false";
