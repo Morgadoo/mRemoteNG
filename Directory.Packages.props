@@ -114,6 +114,8 @@
     <PackageVersion Include="Avalonia.ReactiveUI" Version="11.2.7" />
     <PackageVersion Include="Avalonia.Controls.DataGrid" Version="11.2.7" />
     <PackageVersion Include="Avalonia.Headless.XUnit" Version="11.2.7" />
+    <!-- Transitive (Avalonia.FreeDesktop): 0.20.0 is flagged by NU1903 (GHSA-xrw6-gwf8-vvr9). -->
+    <PackageVersion Include="Tmds.DBus.Protocol" Version="0.21.3" />
     <PackageVersion Include="ReactiveUI.Fody" Version="19.5.41" />
     <PackageVersion Include="Dock.Avalonia" Version="11.0.0" />
     <PackageVersion Include="Dock.Model.Mvvm" Version="11.0.0" />
