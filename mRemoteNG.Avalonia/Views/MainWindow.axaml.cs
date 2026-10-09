@@ -29,6 +29,7 @@ public partial class MainWindow : Window
     private GridLength _bottomHeight = DefaultBottomHeight;
     private WindowState _stateBeforeFullScreen = WindowState.Normal;
     private bool _closeConfirmed;
+    private bool _closePromptOpen;
     private bool _startupFileOpened;
 
     public MainWindow()
@@ -55,15 +56,27 @@ public partial class MainWindow : Window
 
     private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
     {
-        if (_closeConfirmed || DataContext is not MainWindowViewModel { ConnectionTree.IsDirty: true } vm)
+        if (_closeConfirmed || DataContext is not MainWindowViewModel vm)
             return;
 
-        // Ask first; close again once the user saved or discarded.
+        // Closing can't be awaited: cancel, ask (unsaved changes, then open sessions), and close
+        // again once everything is confirmed.
         e.Cancel = true;
-        if (await vm.ConfirmDiscardOrSaveAsync())
+        if (_closePromptOpen)
+            return;
+
+        _closePromptOpen = true;
+        try
         {
-            _closeConfirmed = true;
-            Close();
+            if (await vm.ConfirmExitAsync())
+            {
+                _closeConfirmed = true;
+                Close();
+            }
+        }
+        finally
+        {
+            _closePromptOpen = false;
         }
     }
 
@@ -126,7 +139,7 @@ public partial class MainWindow : Window
         _vmSubscriptions.Add(vm.ConnectionTree.Confirm.RegisterHandler(async context =>
         {
             var (title, message) = context.Input;
-            context.SetOutput(await MessageDialog.ConfirmAsync(this, title, message, "Delete", "Cancel"));
+            context.SetOutput(await MessageDialog.ConfirmAsync(this, title, message, "Delete", "Cancel", confirmIsDefault: false));
         }));
     }
 

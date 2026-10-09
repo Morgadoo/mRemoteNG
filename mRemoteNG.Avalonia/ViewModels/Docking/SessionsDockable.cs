@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Dock.Model.Mvvm.Controls;
+using mRemoteNG.Avalonia.Services;
+using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 
@@ -11,6 +13,8 @@ public sealed class SessionsDockable : Document
 {
     private SessionTabViewModel? _activeSession;
     private readonly LogPanelDockable? _log;
+    private readonly AppSettingsService? _settings;
+    private readonly CloseConfirmationService? _closeConfirmation;
 
     public SessionsDockable()
     {
@@ -18,9 +22,14 @@ public sealed class SessionsDockable : Document
         Title = "Sessions";
     }
 
-    public SessionsDockable(LogPanelDockable log) : this()
+    public SessionsDockable(
+        LogPanelDockable log,
+        AppSettingsService? settings = null,
+        CloseConfirmationService? closeConfirmation = null) : this()
     {
         _log = log;
+        _settings = settings;
+        _closeConfirmation = closeConfirmation;
     }
 
     public ObservableCollection<SessionTabViewModel> Sessions { get; } = [];
@@ -61,10 +70,14 @@ public sealed class SessionsDockable : Document
     /// <summary>Writes a connection error to the log panel.</summary>
     public void ReportError(string message) => _log?.Log(message, LogLevel.Error);
 
-    private void OnCloseRequested(object? sender, EventArgs e)
+    private async void OnCloseRequested(object? sender, EventArgs e)
     {
-        if (sender is SessionTabViewModel session)
-            _ = CloseSessionAsync(session);
+        if (sender is not SessionTabViewModel session) return;
+
+        // Only asks when "Confirm closing connections" is set to every connection.
+        if (_closeConfirmation is not null && !await _closeConfirmation.ConfirmCloseConnectionAsync(session.Title))
+            return;
+        await CloseSessionAsync(session);
     }
 
     /// <summary>
@@ -76,6 +89,10 @@ public sealed class SessionsDockable : Document
         IProtocolFactory factory,
         CancellationToken ct = default)
     {
+        // Global defaults (port, username, SSH key, timeout, keep-alive) for anything left unset.
+        if (_settings is not null)
+            parameters = _settings.Current.WithDefaults(parameters);
+
         var protocol = factory.Create(parameters.Protocol);
         var tab = new SessionTabViewModel(protocol, parameters);
         AddSession(tab);

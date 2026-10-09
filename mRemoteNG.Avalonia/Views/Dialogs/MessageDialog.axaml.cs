@@ -47,11 +47,15 @@ public partial class MessageDialog : Window
     }
 
     /// <summary>Asks a yes/no question; true for Yes.</summary>
-    public static async Task<bool> ConfirmAsync(Window owner, string title, string message, string yesLabel = "Yes", string noLabel = "No")
+    /// <param name="confirmIsDefault">
+    /// False makes the "no" button the default (Enter), for destructive actions such as deletes.
+    /// </param>
+    public static async Task<bool> ConfirmAsync(Window owner, string title, string message, string yesLabel = "Yes",
+        string noLabel = "No", bool confirmIsDefault = true)
     {
         var dialog = new MessageDialog(title, message,
-            new MessageDialogButton(noLabel, "no", IsCancel: true),
-            new MessageDialogButton(yesLabel, "yes", IsDefault: true));
+            new MessageDialogButton(noLabel, "no", IsDefault: !confirmIsDefault, IsCancel: true),
+            new MessageDialogButton(yesLabel, "yes", IsDefault: confirmIsDefault));
         return await dialog.ShowDialog<string?>(owner) == "yes";
     }
 }

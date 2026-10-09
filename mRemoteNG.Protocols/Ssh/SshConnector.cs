@@ -64,7 +64,9 @@ internal sealed class SshConnector
         {
             var connectionInfo = new ConnectionInfo(parameters.Hostname, parameters.Port, username, [.. authMethods])
             {
-                Timeout = OperationTimeout,
+                Timeout = GetSeconds(parameters, ConnectionParametersFactory.Keys.ConnectTimeoutSeconds) is > 0 and var timeout
+                    ? TimeSpan.FromSeconds(timeout)
+                    : OperationTimeout,
             };
             PreferKnownHostKeyTypes(connectionInfo, parameters);
 
@@ -88,6 +90,8 @@ internal sealed class SshConnector
             {
                 using (ct.Register(client.Dispose))
                     await Task.Run(client.Connect, ct);
+                if (GetSeconds(parameters, ConnectionParametersFactory.Keys.SshKeepAliveSeconds) is > 0 and var keepAlive)
+                    client.KeepAliveInterval = TimeSpan.FromSeconds(keepAlive);
                 _logger.LogDebug("SSH connected to {Host}: {Reason}", parameters.DisplayName, verdict?.Reason);
                 return client;
             }
@@ -107,6 +111,12 @@ internal sealed class SshConnector
             }
         }
     }
+
+    private static int? GetSeconds(ConnectionParameters parameters, string key) =>
+        parameters.Extras.TryGetValue(key, out var value)
+        && int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var seconds)
+            ? seconds
+            : null;
 
     /// <summary>
     /// Restricts host key algorithms to plain keys (certificates are not verified) and moves

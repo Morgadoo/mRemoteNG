@@ -10,10 +10,10 @@ namespace mRemoteNG.Avalonia.Services;
 public static class ConnectionSettingsDefaults
 {
     /// <summary>Extras key carrying the connect timeout in seconds.</summary>
-    public const string ConnectTimeoutSecondsKey = "connect.timeoutSeconds";
+    public const string ConnectTimeoutSecondsKey = ConnectionParametersFactory.Keys.ConnectTimeoutSeconds;
 
     /// <summary>Extras key carrying the SSH keep-alive interval in seconds ("0" = disabled).</summary>
-    public const string SshKeepAliveSecondsKey = "ssh.keepAliveSeconds";
+    public const string SshKeepAliveSecondsKey = ConnectionParametersFactory.Keys.SshKeepAliveSeconds;
 
     /// <summary>The configured default port for <paramref name="protocol"/>, or null when it has none.</summary>
     public static int? GetDefaultPort(this AppSettings settings, ProtocolType protocol) => protocol switch

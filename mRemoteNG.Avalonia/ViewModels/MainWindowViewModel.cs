@@ -6,6 +6,7 @@ using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Core.Config.Serializers.Xml;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 using System.Reactive;
@@ -31,7 +32,6 @@ public sealed class MainWindowViewModel : ReactiveObject
     public const string GitHubUrl = "https://github.com/mRemoteNG/mRemoteNG";
     public const string DocumentationUrl = "https://mremoteng.readthedocs.io";
     public const string ReportBugUrl = "https://github.com/mRemoteNG/mRemoteNG/issues/new";
-    public const string ReleasesUrl = "https://github.com/mRemoteNG/mRemoteNG/releases";
 
     private readonly ConnectionsService _connectionsService;
     private readonly SessionsDockable _sessions;
@@ -177,7 +177,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         OpenDocumentationCommand = ReactiveCommand.CreateFromTask(() => OpenUrlAsync(DocumentationUrl));
         ReportBugCommand = ReactiveCommand.CreateFromTask(() => OpenUrlAsync(ReportBugUrl));
         // No update service exists yet in the cross-platform app; show the releases page instead.
-        CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(() => OpenUrlAsync(ReleasesUrl));
+        CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(OnCheckForUpdatesAsync);
 
         // Track active connection count
         sessions.Sessions.CollectionChanged += (_, _) =>
@@ -248,6 +248,9 @@ public sealed class MainWindowViewModel : ReactiveObject
     /// <summary>Opens the connection file given on the command line (if any) once the window is shown.</summary>
     public async Task OpenStartupFileAsync(string? path)
     {
+        // A file on the command line wins; otherwise the startup setting (last file or a fixed one).
+        if (string.IsNullOrWhiteSpace(path))
+            path = AppServices.GetRequired<StartupService>().GetFileToOpenAtStartup();
         if (string.IsNullOrWhiteSpace(path)) return;
         var window = GetMainWindow();
         if (window is null) return;
@@ -272,6 +275,7 @@ public sealed class MainWindowViewModel : ReactiveObject
             {
                 ConnectionTree.LoadFromFile(path, password);
                 _log.Log($"Loaded connection file: {path}");
+                RememberOpenFile();
                 return;
             }
             catch (ConnectionFilePasswordException ex)
@@ -306,6 +310,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             ConnectionTree.SaveToFile();
             _log.Log($"Saved connection file: {ConnectionTree.CurrentFilePath}");
+            RememberOpenFile();
             return true;
         }
         catch (Exception ex)
@@ -339,6 +344,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         {
             ConnectionTree.SaveToFile(file.Path.LocalPath);
             _log.Log($"Saved connection file: {file.Path.LocalPath}");
+            RememberOpenFile();
             return true;
         }
         catch (Exception ex)
@@ -352,6 +358,55 @@ public sealed class MainWindowViewModel : ReactiveObject
     /// When the tree has unsaved changes, asks Save / Don't Save / Cancel.
     /// Returns true when the caller may continue (saved or discarded), false to abort.
     /// </summary>
+    /// <summary>Records the current file for "open last file at startup"; failures only get logged.</summary>
+    private void RememberOpenFile()
+    {
+        try
+        {
+            AppServices.GetRequired<StartupService>().RecordOpenFile(ConnectionTree.CurrentFilePath);
+        }
+        catch (Exception ex)
+        {
+            _log.Log($"Could not remember the connection file: {ex.Message}", LogLevel.Warning);
+        }
+    }
+
+    private async Task OnCheckForUpdatesAsync()
+    {
+        var settings = AppServices.GetRequired<AppSettingsService>().Current;
+        var result = await AppServices.GetRequired<Services.UpdateCheckService>().CheckAsync(settings.UpdateChannel);
+        _log.Log(result.Message, result.Succeeded ? LogLevel.Info : LogLevel.Warning);
+
+        var window = GetMainWindow();
+        if (window is null) return;
+        if (result is { IsUpdateAvailable: true, ReleaseUrl: { } url })
+        {
+            if (await MessageDialog.ConfirmAsync(window, "Update available", $"{result.Message}\n\nOpen the release page?", "Open", "Later"))
+                await OpenUrlAsync(url);
+        }
+        else
+        {
+            await new MessageDialog("Check for Updates", result.Message,
+                new MessageDialogButton("OK", "ok", IsDefault: true, IsCancel: true)).ShowDialog<string?>(window);
+        }
+    }
+
+    /// <summary>
+    /// Everything that must be confirmed before the app exits, in order: unsaved changes (unless
+    /// "save on exit" will save them), then open connections. Returns true when the app may exit.
+    /// </summary>
+    public async Task<bool> ConfirmExitAsync()
+    {
+        var settings = AppServices.GetRequired<AppSettingsService>().Current;
+        var savedOnExit = settings.SaveConnectionsOnExit && ConnectionTree.CurrentFilePath is not null;
+        if (!savedOnExit && !await ConfirmDiscardOrSaveAsync())
+            return false;
+
+        var window = GetMainWindow();
+        return window is null
+            || await AppServices.GetRequired<Services.CloseConfirmationService>().ConfirmExitAsync(window, _sessions.Sessions.Count);
+    }
+
     public async Task<bool> ConfirmDiscardOrSaveAsync()
     {
         if (!ConnectionTree.IsDirty) return true;
@@ -555,7 +610,10 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         try
         {
-            var (host, port) = QuickConnectViewModel.ParseHost(hostInput, protocol);
+            var (host, port, portSpecified) = QuickConnectViewModel.ParseHost(hostInput, protocol);
+            // Without an explicit port, use the Options > Connections default for this protocol.
+            if (!portSpecified && AppServices.GetRequired<AppSettingsService>().Current.GetDefaultPort(protocol) is { } configuredPort)
+                port = configuredPort;
             var info = ConnectionDefaults.ApplyNewConnectionDefaults(new ConnectionInfo());
             info.Name = host;
             info.IsQuickConnect = true;

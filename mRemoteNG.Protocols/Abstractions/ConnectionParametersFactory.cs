@@ -14,6 +14,10 @@ public static class ConnectionParametersFactory
     /// <summary>Extras keys understood by the protocol implementations.</summary>
     public static class Keys
     {
+        /// <summary>Connect/handshake timeout in seconds (global setting).</summary>
+        public const string ConnectTimeoutSeconds = "connect.timeoutSeconds";
+        /// <summary>SSH keep-alive interval in seconds; 0 disables it (global setting).</summary>
+        public const string SshKeepAliveSeconds = "ssh.keepAliveSeconds";
         public const string RdpColorDepth = "rdp.colorDepth";
         public const string RdpGateway = "rdp.gateway";
         public const string RdpGatewayUsername = "rdp.gatewayUsername";

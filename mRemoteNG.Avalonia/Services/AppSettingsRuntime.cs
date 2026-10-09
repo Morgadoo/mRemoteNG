@@ -15,7 +15,7 @@ namespace mRemoteNG.Avalonia.Services;
 
 /// <summary>
 /// Makes <see cref="AppSettings"/> take effect in the running app:
-/// theme/fonts/toolbars, tray icon, minimise-to-tray, exit confirmation, remembering the
+/// theme/fonts/toolbars, tray icon, minimise-to-tray, remembering the
 /// last connection file, save-on-exit, desktop notifications and the startup update check.
 /// Re-applies whenever <see cref="AppSettingsService.Changed"/> fires.
 /// </summary>
@@ -28,15 +28,12 @@ public sealed class AppSettingsRuntime : IDisposable
     private readonly LogPanelDockable _log;
     private readonly INotificationService? _notifications;
     private readonly UpdateCheckService _updates;
-    private readonly CloseConfirmationService _closeConfirmation;
     private readonly ILogger _logger;
     private readonly HashSet<SessionTabViewModel> _watchedSessions = [];
     private readonly Dictionary<SessionTabViewModel, bool> _wasConnected = [];
 
     private Window? _mainWindow;
     private TrayIconService? _tray;
-    private bool _exitConfirmed;
-    private bool _confirmingExit;
     private int _exitPersisted;
 
     public AppSettingsRuntime(
@@ -46,7 +43,6 @@ public sealed class AppSettingsRuntime : IDisposable
         SessionsDockable sessions,
         LogPanelDockable log,
         UpdateCheckService updates,
-        CloseConfirmationService closeConfirmation,
         INotificationService? notifications = null,
         ILogger<AppSettingsRuntime>? logger = null)
     {
@@ -56,7 +52,6 @@ public sealed class AppSettingsRuntime : IDisposable
         _sessions = sessions;
         _log = log;
         _updates = updates;
-        _closeConfirmation = closeConfirmation;
         _notifications = notifications;
         _logger = (ILogger?)logger ?? NullLogger.Instance;
     }
@@ -73,10 +68,10 @@ public sealed class AppSettingsRuntime : IDisposable
         ApplyAll();
         _settings.Changed += OnSettingsChanged;
 
-        mainWindow.Closing += OnMainWindowClosing;
         mainWindow.PropertyChanged += OnMainWindowPropertyChanged;
+        // Exit confirmation lives in MainWindow's Closing handler (with the unsaved-changes prompt).
         desktop.Exit += (_, _) => PersistOnExit();
-        // Covers paths that bypass the window (e.g. Environment.Exit from the File > Exit menu).
+        // Covers paths that bypass the window (e.g. the process being terminated).
         AppDomain.CurrentDomain.ProcessExit += (_, _) => PersistOnExit();
 
         _sessions.Sessions.CollectionChanged += OnSessionsChanged;
@@ -103,41 +98,6 @@ public sealed class AppSettingsRuntime : IDisposable
     }
 
     // ── Exit ──────────────────────────────────────────────────────────────
-
-    private async void OnMainWindowClosing(object? sender, WindowClosingEventArgs e)
-    {
-        if (_exitConfirmed || _mainWindow is null)
-            return;
-
-        var open = _sessions.Sessions.Count;
-        if (!_closeConfirmation.ShouldConfirmExit(open))
-            return;
-
-        // Cancel now, ask, and close again if confirmed (Closing cannot be awaited).
-        e.Cancel = true;
-        if (_confirmingExit)
-            return; // the question is already on screen
-
-        _confirmingExit = true;
-        try
-        {
-            if (await _closeConfirmation.ConfirmExitAsync(_mainWindow, open))
-            {
-                _exitConfirmed = true;
-                _mainWindow.Close();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exit confirmation failed");
-            _exitConfirmed = true;
-            _mainWindow.Close();
-        }
-        finally
-        {
-            _confirmingExit = false;
-        }
-    }
 
     /// <summary>Remembers the open connection file and saves it if "save on exit" is on. Runs once.</summary>
     public void PersistOnExit()
@@ -304,7 +264,6 @@ public sealed class AppSettingsRuntime : IDisposable
             Unwatch(session, notify: false);
         if (_mainWindow is not null)
         {
-            _mainWindow.Closing -= OnMainWindowClosing;
             _mainWindow.PropertyChanged -= OnMainWindowPropertyChanged;
         }
     }

@@ -39,15 +39,16 @@ public sealed class QuickConnectViewModel : ReactiveObject
         : new QuickConnectResult(Hostname.Trim(), SelectedProtocol, Username, Password);
 
     /// <summary>
-    /// Splits "host[:port]" (IPv6 as "[addr]:port"); without a port the protocol's default is used.
-    /// URLs (for HTTP/HTTPS) are returned unchanged.
+    /// Splits "host[:port]" (IPv6 as "[addr]:port"); without a port the protocol's default is used
+    /// and <c>PortSpecified</c> is false. URLs (for HTTP/HTTPS) are returned unchanged.
     /// </summary>
-    public static (string Host, int Port) ParseHost(string input, CoreProtocolType protocol)
+    public static (string Host, int Port, bool PortSpecified) ParseHost(string input, CoreProtocolType protocol)
     {
         var host = input.Trim();
         var port = ConnectionInfo.GetDefaultPort(protocol);
+        var portSpecified = false;
         if (host.Contains("://", StringComparison.Ordinal))
-            return (host, port);
+            return (host, port, false);
 
         // Keep a URL path ("host:8080/status") out of the port parsing.
         var path = string.Empty;
@@ -66,11 +67,12 @@ public sealed class QuickConnectViewModel : ReactiveObject
         {
             port = parsed;
             host = host[..colon];
+            portSpecified = true;
         }
 
         if (host.StartsWith('[') && host.EndsWith(']'))
             host = host[1..^1];
-        return (host + path, port);
+        return (host + path, port, portSpecified);
     }
 }
 

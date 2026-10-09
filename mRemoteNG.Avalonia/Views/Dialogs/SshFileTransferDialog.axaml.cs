@@ -48,8 +48,7 @@ public partial class SshFileTransferDialog : Window
         });
         viewModel.ConfirmDelete.RegisterHandler(async ctx =>
         {
-            var dialog = new ConfirmDialog("Delete", ctx.Input, "Delete");
-            ctx.SetOutput(await dialog.ShowDialog<bool>(this));
+            ctx.SetOutput(await MessageDialog.ConfirmAsync(this, "Delete", ctx.Input, "Delete", "Cancel", confirmIsDefault: false));
         });
 
         RemoteList.DoubleTapped += async (_, _) =>

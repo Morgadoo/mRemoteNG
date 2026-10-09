@@ -53,7 +53,9 @@ public static class AppServices
         services.AddSingleton<ViewModels.Docking.DebugConsoleDockable>();
         services.AddSingleton<ViewModels.Docking.SessionsDockable>(sp =>
             new ViewModels.Docking.SessionsDockable(
-                sp.GetRequiredService<ViewModels.Docking.LogPanelDockable>()));
+                sp.GetRequiredService<ViewModels.Docking.LogPanelDockable>(),
+                sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>(),
+                sp.GetRequiredService<Services.CloseConfirmationService>()));
 
         services.AddSingleton<ViewModels.ConnectionTreeViewModel>(sp =>
             new ViewModels.ConnectionTreeViewModel(
