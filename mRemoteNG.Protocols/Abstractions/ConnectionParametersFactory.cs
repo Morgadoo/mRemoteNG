@@ -22,6 +22,8 @@ public static class ConnectionParametersFactory
         public const string RdpGateway = "rdp.gateway";
         public const string RdpGatewayUsername = "rdp.gatewayUsername";
         public const string RdpGatewayDomain = "rdp.gatewayDomain";
+        /// <summary>RD Gateway password (set by the external credential provider step).</summary>
+        public const string RdpGatewayPassword = "rdp.gatewayPassword";
         public const string RdpNla = "rdp.nla";
         public const string RdpConsole = "rdp.console";
         public const string RdpClipboard = "rdp.clipboard";

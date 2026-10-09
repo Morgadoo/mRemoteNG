@@ -116,6 +116,11 @@ public static class AppServices
 
         // Protocol implementations (transient — one instance per session)
         ProtocolFactory.Register(services);
+
+        // External credential/address providers (Delinea, Passwordstate, 1Password, Vault/OpenBao, AWS EC2)
+        // and their connection preparation steps; unsaved provider secrets are asked for in a dialog.
+        services.AddSingleton<mRemoteNG.ExternalProviders.IExternalProviderPrompt, Services.AvaloniaExternalProviderPrompt>();
+        mRemoteNG.ExternalProviders.ExternalProviderServiceCollectionExtensions.AddExternalProviders(services);
     }
 
     /// <summary>
