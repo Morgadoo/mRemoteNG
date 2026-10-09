@@ -13,58 +13,67 @@
 
 ---
 
-## Status — 2026-10-09 (end of day)
+## Status — 2026-10-09 (feature parity pass)
 
-The morning audit found most of the "done" items to be stubs. They have now been implemented and verified.
-Verification environment: Linux (.NET 10.0.401, Xvfb) with real servers — OpenSSH sshd, TigerVNC Xvnc,
-xrdp + FreeRDP 3.32, inetutils telnetd — plus GitHub Actions on ubuntu/macos/windows-latest.
+Verification environment: Linux (.NET 10.0.401, Xvfb + openbox) with real servers — OpenSSH sshd, TigerVNC
+Xvnc, x11vnc, xrdp + FreeRDP 3.32, inetutils telnetd, MariaDB 10.11, OpenBao 2.4, OpenLDAP slapd — plus
+GitHub Actions on ubuntu/macos/windows-latest. Tests: 1219 cross-platform (unit + integration) and 61 headless
+UI tests.
 
-**Works (verified)**
-- Connection files: legacy confCons.xml 2.5–2.8 incl. master passwords and full-file encryption; files written
-  are readable by the WinForms app (byte-compatible crypto). Import (8 formats) and export (XML/CSV).
-- App: tree editing with inheritance, search, unsaved-changes tracking, persistent options (theme Dark/Light/System,
-  startup file, exit/close confirmation, default ports, timeouts), credential manager (encrypted, 0600 files).
-- Protocols: SSH (known_hosts verification, SFTP, xterm-256color terminal), Telnet, Rlogin, RAW, VNC (managed RFB
-  client), RDP (FreeRDP embedded in the tab on Linux/X11), HTTP/HTTPS (system browser), PowerShell, local shell,
-  serial, AnyDesk/external apps.
-- Platforms: Linux/macOS/Windows builds and tests green in CI; Linux .deb and AppImage built, installed and run.
-- Tests: 611 cross-platform tests (unit + integration against real servers) and 7 headless UI tests.
+**Works (verified on Linux against real servers unless noted)**
+- Connection files: legacy confCons.xml 2.5–2.8 incl. master passwords and full-file encryption, byte-compatible
+  with the WinForms app; every attribute the legacy writer emits round-trips (`LegacyAttributeContractTests`).
+  Import (8 formats + Active Directory + port scan) and export (XML/CSV).
+- Storage: SQL backend in the legacy `tblCons/tblRoot/tblUpdate` schema (MySQL/MariaDB verified; SQL Server
+  only unit-tested), multi-user change polling with auto-reload, rolling backups, autosave, portable mode.
+- Protocols: SSH (known_hosts, SFTP, PuTTY saved sessions, SSHOptions, local/remote/dynamic forwards,
+  tunnels through other connections), Telnet, Rlogin, RAW, VNC (Raw/CopyRect/RRE/CoRRE/Hextile/Zlib/ZRLE/Tight
+  incl. JPEG, 8/16/32 bpp, HTTP/SOCKS5/repeater proxies, ARD and MS-Logon auth — the last two against fakes
+  only), RDP (FreeRDP embedded; display/performance/redirection/start program/idle timeout/gateway/Hyper-V
+  options mapped), HTTP/HTTPS (system browser), PowerShell, local shell, serial, IntApp (external tool
+  embedded in the tab on X11/Windows), AnyDesk.
+- Sessions: tab menu (reconnect, duplicate, rename, special keys, smart size, view-only, full screen, refresh,
+  SFTP, move to panel, close others/right), auto-reconnect, reopen sessions at startup, named panels (tabbed,
+  side by side, stacked, floating), saved layout, Multi-SSH, Favorites, tab/frame colours, environment tags.
+- Tools: External Tools (extApps.xml, variables, toolbar, pre/post connection apps), port scanner, Active
+  Directory import (slapd with the AD schema), UltraVNC SingleClick listener.
+- External providers: Vault/OpenBao (KV v1/v2, LDAP, SSH OTP; verified against a real server); Delinea Secret
+  Server, Passwordstate, 1Password CLI and AWS EC2 (verified against simulated services only).
+- App: options pages for every area, Dark/Light/System + VS2015 Blue/Darcula + theme editor, log file,
+  legacy command-line switches, start minimised, update download with checksum verification.
 
-**Known limitations**
-- RDP: not yet run against Windows Server/NLA or on Windows/macOS; macOS uses a separate FreeRDP window;
-  enlarging an xrdp session beyond its start size fails in FreeRDP/xrdp at 24/32-bit colour.
-- VNC: no Tight/Zlib encodings or proxy support. HTTP is not embedded (no maintained WebView for Avalonia 11).
-- Rlogin window resizing; terminal wide (CJK) characters use one cell; IntApp/External Tools not ported.
+**Not verified / known limitations**
+- Windows and macOS: builds and unit/UI tests run in CI, but the app has not been driven interactively there
+  (RDP/IntApp embedding on Windows, DPAPI, registry PuTTY sessions, Keychain).
+- RDP against Windows Server (NLA failure path, RD Gateway, Hyper-V, restricted admin) — unit-tested only.
+  FreeRDP has no Remote Credential Guard, cursor shadow/blink or RDP version options.
+- VNC: ZlibHex falls back to Zlib; UltraVNC Ultra encoding, chat, file transfer and VeNCrypt are not done.
+- HTTP/HTTPS is not embedded (no maintained WebView for Avalonia 11). IntApp is not embedded on macOS or
+  native Wayland.
+- SQL storage cannot hold TabColor, ConnectionFrameColor, Vault fields or the RD Gateway access token (the
+  legacy schema has no columns for them); `LocalConnectionProperties.xml` and ODBC are not ported.
+- Session tabs cannot be dragged between panels (use Move to Panel).
+- Terminal: Rlogin does not send window-size changes; wide (CJK) characters use one cell.
 - Packaging: Flatpak, Snap and macOS DMG/Homebrew scripts have not been run; code signing needs certificates.
-- The Windows registry PuTTY session provider is registered but has not been run on Windows.
 
-## Feature Parity with the WinForms App (backlog)
+## Feature Parity with the WinForms App
 
-Audit of 2026-10-09 against the legacy `mRemoteNG/` sources. Connection files: every attribute the legacy
-2.8 writer emits is read and written back (guarded by `LegacyAttributeContractTests`); settings the new UI
-doesn't use yet are kept in the file, not dropped. Gaps, roughly by user impact:
+Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done about each gap:
 
-1. **RDP options not applied by the FreeRDP launcher:** fixed resolution/fullscreen, performance flags,
-   printers/ports/smart cards, "All"/custom drives, RestrictedAdmin/RCG, auth level, start program, gateway
-   password; Hyper-V VM console (VmId/enhanced mode).
-2. **External Tools** (tools window/toolbar, variables) — also needed for Pre/Post external apps and IntApp.
-3. **External credential/address providers:** Delinea Secret Server, Passwordstate, 1Password, Vault/OpenBao,
-   AWS EC2.
-4. **Session tab menu:** reconnect, duplicate, rename, send Ctrl+Alt+Del, disconnect others, per-session
-   fullscreen/smart-size/view-only, next/previous session shortcuts, reconnect all, reconnect at startup.
-5. **Storage:** SQL Server/MySQL backend and multi-user sync; rolling backups; autosave; portable mode.
-6. **PuTTY-specific SSH:** saved PuTTY session settings, SSHOptions, SSH tunnel through another connection.
-7. **Tools:** Multi-SSH (type into several sessions), Active Directory import, port-scan range + import,
-   UltraVNC SingleClick.
-8. **Layout:** docking/floating/split panels, multiple named panels, saved layout; tab/frame colours,
-   Favorites, environment tags not shown.
-9. **Tree:** expand/collapse all, copy hostname, apply inheritance to children, connect with options,
-   PuTTY sessions as a live tree root (import only today).
-10. **Security UI:** set/change/remove the master password and encryption settings of the open file
-    (possible only via Export today).
-11. **App:** 24 UI translations (English only now), theme editor and extra themes, log to file, start
-    minimised, in-app update download, command-line switches.
-12. **Connection dialog:** many stored properties (see 1, 3, 8) have no editor yet.
+| # | Gap found by the audit | Status |
+|---|------------------------|--------|
+| 1 | RDP options ignored by the FreeRDP launcher; Hyper-V console | Done — every legacy RDP property is mapped (`FreeRdpLegacySettingsTests`); Windows Server/Hyper-V not run live |
+| 2 | External Tools, pre/post apps, IntApp | Done |
+| 3 | External credential/address providers | Done — Vault live; other providers against simulated services |
+| 4 | Session tab menu, reconnect, shortcuts | Done |
+| 5 | SQL storage, multi-user, backups, autosave, portable | Done — SQL Server not run |
+| 6 | PuTTY sessions, SSHOptions, SSH tunnels | Done |
+| 7 | Multi-SSH, AD import, port-scan import, UltraVNC SingleClick | Done |
+| 8 | Panels, layout, tab/frame colours, Favorites, environment tags | Done (no drag between panels) |
+| 9 | Tree: expand/collapse, copy hostname, inheritance, connect with options, live PuTTY root | Done |
+| 10 | Master password / encryption settings of the open file | Done (Connection File Properties) |
+| 11 | Translations, theme editor, log file, start minimised, update download, CLI switches | Done except translations (in progress) |
+| 12 | Connection editor for every stored property | Done — conditional fields as in the legacy property grid |
 
 ## Summary Dashboard
 
@@ -427,7 +436,7 @@ doesn't use yet are kept in the file, not dropped. Gaps, roughly by user impact:
 #### 3.4 VNC
 
 - [x] **P3-3.4.1** — Create Avalonia VNC view — @automated 2026-03-10
-  > 2026-10-09: managed RFB 3.3/3.7/3.8 client (None + VNC auth, Raw/CopyRect/RRE/Hextile/ZRLE, DesktopSize, Cursor), scaling modes, view-only, keyboard/mouse. Integration-tested against TigerVNC Xvnc. Not implemented: Tight/Zlib encodings, proxy settings.
+  > 2026-10-09: managed RFB 3.3/3.7/3.8 client (None, VNC, ARD and MS-Logon II auth; Raw/CopyRect/RRE/CoRRE/Hextile/Zlib/ZRLE/Tight incl. JPEG; 8/16/32 bpp; DesktopSize, Cursor), HTTP/SOCKS5/UltraVNC repeater proxies, scaling modes, view-only, special keys, UltraVNC SingleClick listener. Encodings verified pixel-exact against TigerVNC Xvnc and x11vnc.
   - `VncProtocol.cs` + `VncView.cs`: MarcusW.VncClient architecture wired
   - Keyboard/mouse forwarding stubs (Phase 4: full RFB input events)
   - Framebuffer rendering via `WriteableBitmap` → Avalonia `Image`
@@ -621,6 +630,7 @@ Flatpak/Snap builds; P4-4.3.x macOS packaging run.
 | 2026-03-10 | P1-1.1.1 hardening: ensure cross-platform settings directories are created before writing settings XML | codex |
 | 2026-10-09 | Status audit; reopened stubbed items; fixed Linux/macOS startup crash, legacy confCons crypto compatibility, master passwords, FreeRDP launch, session tabs | claude |
 | 2026-10-09 | Completed VNC, SSH security/SFTP/terminal, RDP embedding, Telnet/Rlogin input, import/export, settings persistence, tree editing, Light theme, headless UI tests; CI green on all OSes; Linux packages verified | claude |
+| 2026-10-09 | Feature parity pass: RDP options/Hyper-V, External Tools/IntApp, credential & address providers, session tabs/panels/layout/Multi-SSH, SQL storage/backups/portable/logging/themes, VNC encodings/auth/proxies, AD import, port scanner, UltraVNC SingleClick, PuTTY sessions/SSH tunnels | claude |
 
 ---
 
