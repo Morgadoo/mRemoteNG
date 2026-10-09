@@ -1,3 +1,4 @@
+using mRemoteNG.Core.Config.Putty;
 using System.ComponentModel;
 using FluentAssertions;
 using mRemoteNG.Core.Connection;
@@ -121,19 +122,19 @@ public class TreeCommandsTests
     [Fact]
     public void PuttySession_MapsToAConnection()
     {
-        var info = new PuttySessionInfo(new PuttySession("Jump Host", "jump.example.org", 2222, "ops", "ssh"));
+        var info = PuttySessionsTree.CreateNode(new PuttySession("Jump Host", "jump.example.org", 2222, "ops", "ssh"))!;
 
         info.GetTreeNodeType().Should().Be(TreeNodeType.PuttySession);
         info.Protocol.Should().Be(ProtocolType.SSH2);
         info.Port.Should().Be(2222);
         info.PuttySession.Should().Be("Jump Host");
 
-        var copy = info.ToConnection();
-        copy.Should().NotBeOfType<PuttySessionInfo>();
+        var copy = info.Clone();
+        copy.Should().NotBeOfType<PuttySessionNodeInfo>();
         copy.ConstantID.Should().NotBe(info.ConstantID);
         (copy.Name, copy.Hostname, copy.Username, copy.PuttySession).Should().Be(("Jump Host", "jump.example.org", "ops", "Jump Host"));
 
-        new PuttySessionInfo(new PuttySession("sw", "10.0.0.5", 0, "", "telnet")).Port.Should().Be(23);
+        PuttySessionsTree.CreateNode(new PuttySession("sw", "10.0.0.5", 0, "", "telnet"))!.Port.Should().Be(23);
         new RootPuttySessionsNodeInfo().GetTreeNodeType().Should().Be(TreeNodeType.PuttyRoot);
     }
 }

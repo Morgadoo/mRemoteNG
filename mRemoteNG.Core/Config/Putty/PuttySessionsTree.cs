@@ -44,6 +44,9 @@ namespace mRemoteNG.Core.Config.Putty
     {
         private readonly PuttySessionCatalog _catalog;
 
+        // Bumped by every Apply; a refresh whose read started before a newer Apply is discarded.
+        private int _generation;
+
         public PuttySessionsTree(PuttySessionCatalog catalog)
         {
             _catalog = catalog;
@@ -61,7 +64,10 @@ namespace mRemoteNG.Core.Config.Putty
         /// </summary>
         public async Task<bool> RefreshAsync()
         {
+            var generation = Volatile.Read(ref _generation);
             var sessions = await Task.Run(_catalog.GetSessionsAsync).ConfigureAwait(true);
+            if (generation != Volatile.Read(ref _generation))
+                return false; // superseded by a newer Apply while reading
             var changed = Apply(sessions);
             if (changed)
                 Changed?.Invoke(this, EventArgs.Empty);
@@ -71,6 +77,7 @@ namespace mRemoteNG.Core.Config.Putty
         /// <summary>Updates <see cref="Root"/> to show <paramref name="sessions"/>; returns true when anything changed.</summary>
         public bool Apply(IReadOnlyList<PuttySession> sessions)
         {
+            Interlocked.Increment(ref _generation);
             var wanted = new Dictionary<string, PuttySession>(StringComparer.Ordinal);
             foreach (var session in sessions)
             {

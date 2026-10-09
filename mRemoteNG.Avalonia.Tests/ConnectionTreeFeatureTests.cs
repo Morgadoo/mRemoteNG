@@ -389,7 +389,7 @@ public class ConnectionTreeFeatureTests
 
             Tree.DuplicateSelectedCommand.Execute().Subscribe();
             var copy = Tree.Root!.Children.Should().ContainSingle().Subject;
-            copy.Should().NotBeOfType<PuttySessionInfo>();
+            copy.Should().NotBeOfType<mRemoteNG.Core.Config.Putty.PuttySessionNodeInfo>();
             (copy.Name, copy.Hostname, copy.Port, copy.PuttySession).Should().Be(("Jump Host", "jump.example.org", 2222, "Jump Host"));
             Tree.CreateDialogOptions().PuttySessions.Should().Equal("Jump Host");
 

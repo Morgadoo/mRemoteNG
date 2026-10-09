@@ -7,6 +7,7 @@ using Avalonia.Media.Imaging;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Core.Config.Connections;
+using mRemoteNG.Core.Config.Putty;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Container;
 using mRemoteNG.Core.Net;
@@ -80,7 +81,7 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
     public bool IsPuttyRoot => Model is RootPuttySessionsNodeInfo;
 
     /// <summary>A PuTTY saved session (read-only; can be connected or copied into the tree).</summary>
-    public bool IsPuttySession => Model is PuttySessionInfo;
+    public bool IsPuttySession => Model is PuttySessionNodeInfo;
 
     /// <summary>True for nodes that do not belong to the connection file (PuTTY sessions and their root).</summary>
     public bool IsReadOnly => IsPuttyRoot || IsPuttySession;
@@ -267,7 +268,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
 {
     private readonly ConnectionsService _connectionsService;
     private readonly AppSettingsService? _settings;
-    private readonly IPuttySessionsProvider? _puttySessionsProvider;
+    private readonly PuttySessionsTree? _puttySessionsTree;
     private ConnectionTreeChangeTracker? _tracker;
     private string _searchFilter = string.Empty;
     private Dictionary<ContainerInfo, bool>? _expansionBeforeSearch;
@@ -279,7 +280,6 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     private IProtocolFactory? _protocolFactory;
     private ConnectionInfo? _defaultConnection;
     private ConnectionNodeViewModel? _puttyRootNode;
-    private IReadOnlyList<PuttySession> _puttySessions = [];
 
     public ConnectionTreeViewModel(ConnectionsService connectionsService)
         : this(connectionsService, null, null)
@@ -289,11 +289,11 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     /// <param name="settings">Where the default connection is stored (null: kept in memory only).</param>
     /// <param name="puttySessionsProvider">Source of the "PuTTY Sessions" root (null: no PuTTY root).</param>
     public ConnectionTreeViewModel(ConnectionsService connectionsService, AppSettingsService? settings,
-        IPuttySessionsProvider? puttySessionsProvider)
+        PuttySessionsTree? puttySessionsTree)
     {
         _connectionsService = connectionsService;
         _settings = settings;
-        _puttySessionsProvider = puttySessionsProvider;
+        _puttySessionsTree = puttySessionsTree;
 
         var selection = this.WhenAnyValue(x => x.SelectedNode).ObserveOn(RxApp.MainThreadScheduler);
         var hasConnection = selection.Select(n => n is { IsFolder: false });
@@ -350,7 +350,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         }
 
         CreateNewTree();
-        if (_puttySessionsProvider is not null)
+        if (_puttySessionsTree is not null)
             RefreshPuttySessionsCommand.Execute().Subscribe(_ => { }, _ => { });
     }
 
@@ -721,7 +721,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         IsDefaultConnection = isDefaultConnection,
         Panels = Root is { } root ? ConnectionTreeOperations.PanelNames(root) : ["General"],
         SshTunnels = Root is { } r ? ConnectionTreeOperations.SshTunnelCandidates(r) : [],
-        PuttySessions = _puttySessions.Select(s => s.Name).ToList(),
+        PuttySessions = _puttySessionsTree?.Root.Children.Select(s => s.PuttySession).ToList() ?? [],
     };
 
     private async Task NewConnectionAsync()
@@ -808,10 +808,10 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     private void DuplicateSelected()
     {
         if (SelectedNode is not { IsRoot: false } node) return;
-        if (node.Model is PuttySessionInfo session)
+        if (node.Model is PuttySessionNodeInfo session)
         {
             // Copy the saved session into the connection tree.
-            var copy = session.ToConnection();
+            var copy = session.Clone();
             AddConnection(copy, Root);
             Log($"Copied PuTTY session \"{session.Name}\" into the connection tree.");
             return;
@@ -1049,47 +1049,49 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     /// <summary>Reloads the saved PuTTY sessions shown under the "PuTTY Sessions" root.</summary>
     public async Task RefreshPuttySessionsAsync()
     {
-        if (_puttySessionsProvider is null) return;
-        IReadOnlyList<PuttySession> sessions;
+        if (_puttySessionsTree is null) return;
         try
         {
-            sessions = await _puttySessionsProvider.GetSessionsAsync();
+            await _puttySessionsTree.RefreshAsync();
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
         {
             Log($"Could not read PuTTY sessions: {ex.Message}", LogLevel.Warning);
-            sessions = [];
         }
-        SetPuttySessions(sessions);
+        SyncPuttyRoot();
     }
 
     /// <summary>Shows <paramref name="sessions"/> under the "PuTTY Sessions" root (hidden when empty).</summary>
     public void SetPuttySessions(IReadOnlyList<PuttySession> sessions)
     {
-        _puttySessions = sessions
-            .Where(s => !string.IsNullOrWhiteSpace(s.Name) && s.Name != "Default Settings")
-            .ToList();
+        if (_puttySessionsTree is null) return;
+        _puttySessionsTree.Apply(sessions);
+        SyncPuttyRoot();
+    }
 
-        var wasExpanded = _puttyRootNode?.IsExpanded ?? false;
-        var selectedWasPutty = SelectedNode is { IsReadOnly: true };
-        if (_puttyRootNode is not null)
+    /// <summary>
+    /// The PuTTY root's nodes are maintained in place by <see cref="PuttySessionsTree"/> (shared with the
+    /// SSH tunnel lookup); this only adds or removes the root itself depending on whether it has sessions.
+    /// </summary>
+    private void SyncPuttyRoot()
+    {
+        if (_puttySessionsTree is null) return;
+        var hasSessions = _puttySessionsTree.Root.Children.Count > 0;
+
+        if (hasSessions && _puttyRootNode is null)
         {
+            _puttyRootNode = new ConnectionNodeViewModel(_puttySessionsTree.Root, null, this);
+            Nodes.Add(_puttyRootNode);
+        }
+        else if (!hasSessions && _puttyRootNode is not null)
+        {
+            if (SelectedNode is { IsReadOnly: true })
+                SelectedNode = Nodes.FirstOrDefault();
             Nodes.Remove(_puttyRootNode);
             _puttyRootNode.Dispose();
             _puttyRootNode = null;
         }
 
-        if (_puttySessions.Count > 0)
-        {
-            var root = new RootPuttySessionsNodeInfo { IsExpanded = wasExpanded };
-            foreach (var session in _puttySessions)
-                root.AddChild(new PuttySessionInfo(session));
-            _puttyRootNode = new ConnectionNodeViewModel(root, null, this);
-            Nodes.Add(_puttyRootNode);
-        }
-
-        if (selectedWasPutty)
-            SelectedNode = Nodes.FirstOrDefault();
         this.RaisePropertyChanged(nameof(PuttyRootNode));
         if (!string.IsNullOrWhiteSpace(SearchFilter))
             ApplyFilter();

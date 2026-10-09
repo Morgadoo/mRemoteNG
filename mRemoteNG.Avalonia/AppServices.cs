@@ -63,7 +63,7 @@ public static class AppServices
             new ViewModels.ConnectionTreeViewModel(
                 sp.GetRequiredService<ConnectionsService>(),
                 sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>(),
-                sp.GetService<mRemoteNG.Platform.IPuttySessionsProvider>()));
+                sp.GetService<mRemoteNG.Core.Config.Putty.PuttySessionsTree>()));
 
         // Saved PuTTY sessions for the "PuTTY Sessions" tree root: the Windows platform registers a
         // registry-backed provider; elsewhere PuTTY keeps one file per session in ~/.putty/sessions.
