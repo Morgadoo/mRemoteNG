@@ -57,7 +57,8 @@ public partial class MainWindow : Window
 
         // Enter key on quick connect textbox triggers connect
         QuickConnectHostBox.KeyDown += OnQuickConnectKeyDown;
-        SearchBox.KeyDown += OnSearchKeyDown;
+        // Tunnel: the text box would otherwise handle Down/Enter before the tree sees them.
+        SearchBox.AddHandler(KeyDownEvent, OnSearchKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyDownEvent, OnWindowKeyDown, RoutingStrategies.Tunnel);
         if (!Design.IsDesignMode && AppServices.Provider.GetService(typeof(ToastService)) is ToastService toasts)
             Toasts.DataContext = toasts;
@@ -166,6 +167,7 @@ public partial class MainWindow : Window
         vm.LayoutResetRequested += OnLayoutResetRequested;
         vm.QuickConnectFocusRequested += OnQuickConnectFocusRequested;
         vm.FindConnectionRequested += OnFindConnectionRequested;
+        TreeMoreButton.Flyout = ConnectionTreeView.CreateMoreActionsMenu(vm.ConnectionTree);
         vm.Palette.Commands = () => PaletteCommands();
         vm.Sessions.PanelChooser = ChoosePanelAsync;
         vm.PanelNamePrompt = AskPanelNameAsync;
@@ -315,6 +317,11 @@ public partial class MainWindow : Window
         if (e.Key == Key.Escape && DataContext is MainWindowViewModel vm)
         {
             vm.ConnectionTree.SearchFilter = string.Empty;
+            e.Handled = true;
+        }
+        else if (ConnectionTreePane.HandleSearchKey(e))
+        {
+            // Down moves into the results, Enter connects the selected match.
             e.Handled = true;
         }
     }

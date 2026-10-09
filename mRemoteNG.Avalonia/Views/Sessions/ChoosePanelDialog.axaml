@@ -1,22 +1,42 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:mi="using:Material.Icons.Avalonia"
         x:Class="mRemoteNG.Avalonia.Views.Sessions.ChoosePanelDialog"
+        Classes="dialog"
         Title="{l:Tr TitleSelectPanel}"
-        Width="380"
+        Width="420"
         SizeToContent="Height"
         CanResize="False"
+        ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
 
-    <StackPanel Margin="20" Spacing="12">
-        <TextBlock Text="{l:Tr SelectThePanelToOpenTheConnection, Suffix=':'}" TextWrapping="Wrap"/>
-        <ListBox x:Name="PanelList" MaxHeight="220" MinHeight="80"/>
-        <TextBlock Text="{l:Tr OrOpenItInANewPanel, Suffix=':'}" Foreground="{DynamicResource TextSecondaryBrush}"/>
-        <TextBox x:Name="NewPanelBox" Watermark="{l:Tr NewPanelName}"/>
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Classes="dialog-footer">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <Button Content="{l:Tr _Cancel}" MinWidth="88" x:Name="CancelButton" IsCancel="True"/>
+                <Button Content="{l:Tr _Ok}" Classes="accent" MinWidth="88" x:Name="OkButton" IsDefault="True"/>
+            </StackPanel>
+        </Border>
 
-        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-            <Button Content="{l:Tr _Cancel}" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
-            <Button Content="{l:Tr _Ok}" Classes="accent" MinWidth="80" x:Name="OkButton" IsDefault="True"/>
+        <StackPanel Margin="24,20,24,24" Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,8">
+                <mi:MaterialIcon Kind="TabPlus" Width="20" Height="20" Foreground="{DynamicResource AccentBrush}"/>
+                <TextBlock Classes="h2" Text="{l:Tr TitleSelectPanel}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Classes="caption" Text="{l:Tr SelectThePanelToOpenTheConnection, Suffix=':'}" TextWrapping="Wrap"/>
+            <ListBox x:Name="PanelList" MaxHeight="220" MinHeight="72">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="TabUnselected" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Classes="caption" Text="{l:Tr OrOpenItInANewPanel, Suffix=':'}" Margin="0,8,0,0"/>
+            <TextBox x:Name="NewPanelBox" Watermark="{l:Tr NewPanelName}"/>
         </StackPanel>
-    </StackPanel>
+    </DockPanel>
 </Window>

@@ -3,7 +3,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Media.Imaging;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Core.Config.Connections;
@@ -32,10 +31,11 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
     private static readonly string[] DisplayProperties =
     [
         nameof(Name), nameof(Hostname), nameof(Port), nameof(Username), nameof(Description),
-        nameof(Protocol), nameof(ProtocolLabel), nameof(IconImage), nameof(ToolTip), nameof(IsSupported),
+        nameof(Protocol), nameof(ProtocolLabel), nameof(IconName), nameof(ToolTip), nameof(IsSupported),
     ];
 
     private readonly ConnectionTreeViewModel _tree;
+    private SessionIndicator _sessionIndicator;
     private bool _isVisible = true;
     private bool _isCut;
     private bool _isEditing;
@@ -54,6 +54,7 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
             container.CollectionChanged += OnModelCollectionChanged;
             SyncChildren();
         }
+        _sessionIndicator = tree.SessionIndicatorOf(model);
     }
 
     /// <summary>The Core node this view model wraps.</summary>
@@ -87,15 +88,48 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
     /// <summary>True for nodes that do not belong to the connection file (PuTTY sessions and their root).</summary>
     public bool IsReadOnly => IsPuttyRoot || IsPuttySession;
 
-    /// <summary>Protocol badge text (empty for folders).</summary>
-    public string ProtocolLabel => IsFolder ? string.Empty : Model.Protocol.ToString();
+    /// <summary>Short protocol label shown on the row ("SSH", "RDP"…; empty for folders).</summary>
+    public string ProtocolLabel => IsFolder ? string.Empty : ProtocolVisuals.LabelFor(Model.Protocol);
 
     /// <summary>False for connections whose protocol has no cross-platform implementation.</summary>
     public bool IsSupported => IsFolder || ConnectionParametersFactory.MapProtocol(Model.Protocol) is not null;
 
-    public Bitmap? IconImage => IsFolder
-        ? null
-        : IconService.LoadIcon($"{Model.Icon}.ico") ?? IconService.GetProtocolIcon(Model.Protocol.ToString());
+    /// <summary>
+    /// The connection's legacy icon name (e.g. "Linux"). The row glyph comes from
+    /// <c>Converters.ConnectionConverters</c>; this property only makes the binding re-evaluate when it changes.
+    /// </summary>
+    public string IconName => Model.Icon;
+
+    /// <summary>The tree's search text, emphasised in the row's name.</summary>
+    public string SearchHighlight => _tree.SearchFilter;
+
+    internal void RaiseSearchHighlightChanged() => this.RaisePropertyChanged(nameof(SearchHighlight));
+
+    // ── Open sessions (the dot on the row) ────────────────────────────────
+
+    /// <summary>State of the sessions opened from this connection (folders: always <see cref="SessionIndicator.None"/>).</summary>
+    public SessionIndicator SessionIndicator
+    {
+        get => _sessionIndicator;
+        internal set
+        {
+            if (_sessionIndicator == value) return;
+            this.RaiseAndSetIfChanged(ref _sessionIndicator, value);
+            this.RaisePropertyChanged(nameof(HasOpenSession));
+            this.RaisePropertyChanged(nameof(IsSessionConnected));
+            this.RaisePropertyChanged(nameof(IsSessionBusy));
+            this.RaisePropertyChanged(nameof(IsSessionFailed));
+        }
+    }
+
+    /// <summary>True when at least one session of this connection is open (a dot is shown on the row).</summary>
+    public bool HasOpenSession => _sessionIndicator != SessionIndicator.None;
+
+    public bool IsSessionConnected => _sessionIndicator == SessionIndicator.Connected;
+
+    public bool IsSessionBusy => _sessionIndicator == SessionIndicator.Busy;
+
+    public bool IsSessionFailed => _sessionIndicator == SessionIndicator.Failed;
 
     public string ToolTip
     {
@@ -249,6 +283,25 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
 }
 
 /// <summary>Where a dragged node lands relative to the drop target.</summary>
+/// <summary>The dot on a connection row: the best state among the sessions opened from it.</summary>
+public enum SessionIndicator
+{
+    /// <summary>No open session.</summary>
+    None,
+
+    /// <summary>A session tab is open but not connected (closed by the server, not reconnecting).</summary>
+    Idle,
+
+    /// <summary>A session is connecting or reconnecting.</summary>
+    Busy,
+
+    /// <summary>The session failed to connect.</summary>
+    Failed,
+
+    /// <summary>At least one session is connected.</summary>
+    Connected,
+}
+
 public enum TreeDropPosition
 {
     /// <summary>Into the target folder (appended).</summary>
@@ -377,6 +430,8 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
             if (_searchFilter == (value ?? string.Empty)) return;
             this.RaiseAndSetIfChanged(ref _searchFilter, value ?? string.Empty);
             ApplyFilter();
+            foreach (var node in Nodes.SelectMany(n => n.SelfAndDescendants()))
+                node.RaiseSearchHighlightChanged();
         }
     }
 
@@ -477,8 +532,102 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     /// <summary>Inject the sessions dock and protocol factory (called from AppServices after DI build).</summary>
     public void SetDependencies(SessionsDockable sessionsDock, IProtocolFactory protocolFactory)
     {
+        if (_sessionsDock is not null)
+        {
+            _sessionsDock.Sessions.CollectionChanged -= OnSessionsChanged;
+            foreach (var session in _watchedSessions)
+                session.PropertyChanged -= OnSessionPropertyChanged;
+            _watchedSessions.Clear();
+        }
         _sessionsDock = sessionsDock;
         _protocolFactory = protocolFactory;
+        _sessionsDock.Sessions.CollectionChanged += OnSessionsChanged;
+        OnSessionsChanged(null, null);
+    }
+
+    // ── Open-session dots ─────────────────────────────────────────────────
+
+    private readonly HashSet<SessionTabViewModel> _watchedSessions = [];
+    private Dictionary<ConnectionInfo, SessionIndicator> _sessionIndicators = [];
+
+    /// <summary>The dot to show on <paramref name="model"/>'s row.</summary>
+    internal SessionIndicator SessionIndicatorOf(ConnectionInfo model) =>
+        _sessionIndicators.GetValueOrDefault(model, SessionIndicator.None);
+
+    private void OnSessionsChanged(object? sender, NotifyCollectionChangedEventArgs? e)
+    {
+        if (_sessionsDock is null) return;
+        var current = _sessionsDock.Sessions.ToHashSet();
+        foreach (var gone in _watchedSessions.Where(s => !current.Contains(s)).ToList())
+        {
+            gone.PropertyChanged -= OnSessionPropertyChanged;
+            _watchedSessions.Remove(gone);
+        }
+        foreach (var added in current.Where(s => _watchedSessions.Add(s)))
+            added.PropertyChanged += OnSessionPropertyChanged;
+        UpdateSessionIndicators();
+    }
+
+    private void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SessionTabViewModel.State) or nameof(SessionTabViewModel.ReconnectStatus))
+            UpdateSessionIndicators();
+    }
+
+    private static SessionIndicator IndicatorOf(SessionTabViewModel session) =>
+        session.IsReconnecting
+            ? SessionIndicator.Busy
+            : session.State switch
+            {
+                ConnectionState.Connected => SessionIndicator.Connected,
+                ConnectionState.Connecting or ConnectionState.Reconnecting => SessionIndicator.Busy,
+                ConnectionState.Error => SessionIndicator.Failed,
+                _ => SessionIndicator.Idle,
+            };
+
+    /// <summary>Recomputes the open-session dot of every row.</summary>
+    private void UpdateSessionIndicators()
+    {
+        var indicators = new Dictionary<ConnectionInfo, SessionIndicator>();
+        foreach (var session in _watchedSessions)
+        {
+            if (session.Connection is not { } connection) continue;
+            var indicator = IndicatorOf(session);
+            if (!indicators.TryGetValue(connection, out var existing) || indicator > existing)
+                indicators[connection] = indicator;
+        }
+        _sessionIndicators = indicators;
+        foreach (var node in Nodes.SelectMany(n => n.SelfAndDescendants()))
+            node.SessionIndicator = node.IsFolder ? SessionIndicator.None : SessionIndicatorOf(node.Model);
+    }
+
+    // ── Empty states ──────────────────────────────────────────────────────
+
+    private bool _isTreeEmpty;
+    private bool _hasNoSearchResults;
+
+    /// <summary>True when the connection file has no connections or folders (the tree shows its empty state).</summary>
+    public bool IsTreeEmpty
+    {
+        get => _isTreeEmpty;
+        private set => this.RaiseAndSetIfChanged(ref _isTreeEmpty, value);
+    }
+
+    /// <summary>True while a search is active and nothing matches it.</summary>
+    public bool HasNoSearchResults
+    {
+        get => _hasNoSearchResults;
+        private set => this.RaiseAndSetIfChanged(ref _hasNoSearchResults, value);
+    }
+
+    private void UpdateEmptyState(bool? searchHasMatches = null)
+    {
+        IsTreeEmpty = Root is not { Children.Count: > 0 } && _puttyRootNode is null;
+        var searching = !string.IsNullOrWhiteSpace(SearchFilter);
+        if (!searching)
+            HasNoSearchResults = false;
+        else if (searchHasMatches is { } matches)
+            HasNoSearchResults = !matches;
     }
 
     // ── File operations ───────────────────────────────────────────────────
@@ -534,6 +683,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(CurrentFilePath));
         this.RaisePropertyChanged(nameof(Root));
 
+        UpdateEmptyState();
         if (!string.IsNullOrWhiteSpace(SearchFilter))
             ApplyFilter();
     }
@@ -565,6 +715,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         oldRoot.Dispose();
         SelectedNode = (selected is null ? null : FindNode(selected)) ?? newRoot;
 
+        UpdateEmptyState();
         if (!string.IsNullOrWhiteSpace(SearchFilter))
             ApplyFilter();
     }
@@ -1105,6 +1256,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         }
 
         this.RaisePropertyChanged(nameof(PuttyRootNode));
+        UpdateEmptyState();
         if (!string.IsNullOrWhiteSpace(SearchFilter))
             ApplyFilter();
     }
@@ -1140,6 +1292,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     /// <summary>Called by nodes after their children changed.</summary>
     internal void OnStructureChanged()
     {
+        UpdateEmptyState();
         if (string.IsNullOrWhiteSpace(SearchFilter) || _filterRefreshPending) return;
         // Child view models of a newly added folder sync after this notification; filter once they exist.
         _filterRefreshPending = true;
@@ -1166,6 +1319,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
                     container.IsExpanded = expanded;
                 _expansionBeforeSearch = null;
             }
+            UpdateEmptyState();
             return;
         }
 
@@ -1183,6 +1337,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         // Keep the selection on a visible node.
         if (SelectedNode is { IsVisible: false })
             SelectedNode = allNodes.FirstOrDefault(n => results.Any(r => r.Matches.Contains(n.Model)));
+        UpdateEmptyState(searchHasMatches: results.Any(r => r.Matches.Count > 0));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

@@ -377,7 +377,7 @@
                     BorderThickness="0,0,1,0">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Classes="panel-header">
-                        <Grid ColumnDefinitions="*,Auto,Auto">
+                        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                             <TextBlock Grid.Column="0"
                                        Text="{l:Tr Connections, Upper=True}"
                                        Classes="overline"
@@ -392,6 +392,10 @@
                                     Command="{Binding NewConnectionCommand}">
                                 <mi:MaterialIcon Kind="Plus"/>
                             </Button>
+                            <Button Grid.Column="3" Classes="icon" x:Name="TreeMoreButton"
+                                    ToolTip.Tip="{l:Tr TreeMoreActions}">
+                                <mi:MaterialIcon Kind="DotsHorizontal"/>
+                            </Button>
                         </Grid>
                     </Border>
 
@@ -399,10 +403,10 @@
                         <TextBox x:Name="SearchBox"
                                  Classes="search"
                                  Text="{Binding ConnectionTree.SearchFilter}"
-                                 Watermark="{l:Tr SearchConnectionsWatermark}"/>
+                                 Watermark="{l:Tr TreeSearchWatermark}"/>
                     </Border>
 
-                    <views:ConnectionTreeView DataContext="{Binding ConnectionTree}"/>
+                    <views:ConnectionTreeView x:Name="ConnectionTreePane" DataContext="{Binding ConnectionTree}"/>
                 </DockPanel>
             </Border>
 

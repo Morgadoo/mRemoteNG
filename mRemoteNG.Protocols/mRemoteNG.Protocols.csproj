@@ -41,6 +41,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="mRemoteNG.Tests.CrossPlatform" />
+    <!-- Headless UI tests of the embedded-window focus handling (RdpSessionView) -->
+    <InternalsVisibleTo Include="mRemoteNG.Avalonia.Tests" />
   </ItemGroup>
 
 </Project>

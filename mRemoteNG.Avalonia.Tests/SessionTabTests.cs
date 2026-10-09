@@ -165,7 +165,8 @@ public class SessionTabTests
         ((ISolidColorBrush)tab.FrameBrush).Color.Should().Be(Color.FromRgb(40, 167, 69));
         tab.FrameThickness.Left.Should().Be(SessionTabAppearance.FrameWidth);
         tab.EnvironmentTags.Select(t => t.Text).Should().Equal("prod", "eu");
-        ((ISolidColorBrush)tab.EnvironmentTags[0].Background).Color.Should().Be(Color.FromRgb(198, 40, 40));
+        tab.EnvironmentTags[0].Kind.Should().Be(EnvironmentTagKind.Production, "the view colours production tags with the Danger token");
+        ((ISolidColorBrush)tab.IconBrush).Color.Should().Be(Colors.Red, "a TabColor tints the tab's glyph");
         tab.Icon.Should().NotBeNull();
 
         Settings.Update(s =>

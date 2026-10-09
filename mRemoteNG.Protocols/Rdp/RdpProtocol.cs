@@ -114,6 +114,8 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         _view.TabHeaderPressed += (_, _) => RequestRemoteFocus();
         _view.AvaloniaPointerPressed += (_, _) => OnAvaloniaPointerPressed();
         _view.WindowActivated += (_, _) => OnWindowActivated();
+        _view.KeyboardReleaseRequested += (_, _) => OnKeyboardReleaseRequested();
+        _view.KeyboardReleaseEnded += (_, _) => OnWindowActivated();
         _view.PixelSizeChanged += (_, size) => _embed?.ResizeRemote(size.Width, size.Height);
         _view.BringToFrontRequested += (_, _) => BringFloatingWindowToFront();
         _view.DisconnectRequested += (_, _) => _ = DisconnectAsync();
@@ -222,6 +224,8 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
             if (_embed is not null)
             {
                 _embed.RemoteWindowMapped += (_, _) => _logger.LogDebug("FreeRDP mapped its window inside the session tab");
+                // A click into the remote desktop gives it the keyboard until the user clicks Avalonia UI again.
+                _embed.RemoteClicked += (_, _) => Dispatcher.UIThread.Post(() => _remoteFocusWanted = true);
                 ApplyRemoteSize();
             }
             // FreeRDP blocks until its window is viewable, so the host must be shown before FreeRDP starts.
@@ -509,9 +513,19 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
 
     private void OnWindowActivated()
     {
-        // The window manager focused our top-level (e.g. Alt+Tab back): restore focus to the session if it had it.
-        if (_embed is not null && _remoteFocusWanted && State == ConnectionState.Connected)
+        // The window manager focused our top-level (e.g. Alt+Tab back, or a dialog over the session closed): restore
+        // focus to the session if it had it. Not while one of our dialogs is still open over it.
+        if (_embed is not null && _view is { IsCoveredByWindow: false, IsShownInWindow: true } && _remoteFocusWanted
+            && State == ConnectionState.Connected)
             _embed.FocusRemote();
+    }
+
+    private void OnKeyboardReleaseRequested()
+    {
+        // A dialog opened over the session: the keyboard goes back to Avalonia (the window manager then gives it to
+        // the dialog), and returns to the remote desktop when the dialog closes (_remoteFocusWanted is kept).
+        if (_embed is null || _view is null) return;
+        _embed.ReturnFocusTo(_view.TopLevelHandle);
     }
 
     private void DisposeEmbedSupport()
