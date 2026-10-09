@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Dock.Model.Mvvm.Controls;
 using mRemoteNG.Avalonia.Services;
+using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
@@ -15,6 +16,7 @@ public sealed class SessionsDockable : Document
     private readonly LogPanelDockable? _log;
     private readonly AppSettingsService? _settings;
     private readonly CloseConfirmationService? _closeConfirmation;
+    private readonly ConnectionPreparer? _preparer;
 
     public SessionsDockable()
     {
@@ -25,11 +27,13 @@ public sealed class SessionsDockable : Document
     public SessionsDockable(
         LogPanelDockable log,
         AppSettingsService? settings = null,
-        CloseConfirmationService? closeConfirmation = null) : this()
+        CloseConfirmationService? closeConfirmation = null,
+        ConnectionPreparer? preparer = null) : this()
     {
         _log = log;
         _settings = settings;
         _closeConfirmation = closeConfirmation;
+        _preparer = preparer;
     }
 
     public ObservableCollection<SessionTabViewModel> Sessions { get; } = [];
@@ -65,6 +69,8 @@ public sealed class SessionsDockable : Document
 
         await session.DisconnectAsync();
         session.Dispose();
+        if (session.Prepared is { } prepared)
+            await prepared.DisposeAsync();
     }
 
     /// <summary>Writes a connection error to the log panel.</summary>
@@ -84,17 +90,61 @@ public sealed class SessionsDockable : Document
     /// Creates and adds a new session from connection parameters.
     /// The protocol implementation is resolved from <paramref name="factory"/>.
     /// </summary>
-    public async Task OpenConnectionAsync(
+    public Task OpenConnectionAsync(
         ConnectionParameters parameters,
         IProtocolFactory factory,
+        CancellationToken ct = default) =>
+        OpenAsync(parameters, factory, connection: null, options: null, prepared: null, ct);
+
+    /// <summary>
+    /// Opens a session for a connection-tree node: runs the connection preparation steps
+    /// (credential/address providers, tunnels, pre-connect apps…) and keeps the node, the options
+    /// and the prepared resources with the tab so it can be reconnected or duplicated.
+    /// </summary>
+    public async Task<SessionTabViewModel?> OpenConnectionAsync(
+        ConnectionInfo connection,
+        IProtocolFactory factory,
+        ConnectOptions? options = null,
         CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        options ??= ConnectOptions.Default;
+
+        PreparedConnection prepared;
+        try
+        {
+            prepared = _preparer is not null
+                ? await _preparer.PrepareAsync(connection, options, ct)
+                : new PreparedConnection(ConnectionPreparer.ApplyOptions(ConnectionParametersFactory.FromConnectionInfo(connection), options), []);
+        }
+        catch (Exception ex)
+        {
+            _log?.Log($"Could not prepare \"{connection.Name}\": {ex.Message}", LogLevel.Error);
+            return null;
+        }
+
+        return await OpenAsync(prepared.Parameters, factory, connection, options, prepared, ct);
+    }
+
+    private async Task<SessionTabViewModel> OpenAsync(
+        ConnectionParameters parameters,
+        IProtocolFactory factory,
+        ConnectionInfo? connection,
+        ConnectOptions? options,
+        PreparedConnection? prepared,
+        CancellationToken ct)
     {
         // Global defaults (port, username, SSH key, timeout, keep-alive) for anything left unset.
         if (_settings is not null)
             parameters = _settings.Current.WithDefaults(parameters);
 
         var protocol = factory.Create(parameters.Protocol);
-        var tab = new SessionTabViewModel(protocol, parameters);
+        var tab = new SessionTabViewModel(protocol, parameters)
+        {
+            Connection = connection,
+            Options = options ?? ConnectOptions.Default,
+            Prepared = prepared,
+        };
         AddSession(tab);
 
         try
@@ -106,6 +156,7 @@ public sealed class SessionsDockable : Document
             tab.SetError(ex.Message);
             _log?.Log($"Connection to {parameters.Hostname}:{parameters.Port} failed: {ex.Message}", LogLevel.Error);
         }
+        return tab;
     }
 }
 
@@ -122,6 +173,18 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
     public string ProtocolName { get; }
     public string Hostname { get; }
     public ConnectionParameters Parameters { get; }
+
+    /// <summary>The connection-tree node this session was opened from (null for ad-hoc sessions).</summary>
+    public ConnectionInfo? Connection { get; init; }
+
+    /// <summary>The options the session was opened with.</summary>
+    public ConnectOptions Options { get; init; } = ConnectOptions.Default;
+
+    /// <summary>Resources from connection preparation (tunnels, post-connect actions); released on close.</summary>
+    public PreparedConnection? Prepared { get; init; }
+
+    /// <summary>The protocol instance, for capability checks (ITerminalProtocol, ISpecialKeysProtocol…).</summary>
+    public IProtocol Protocol => _protocol;
 
     /// <summary>
     /// The Avalonia control produced by the protocol's IVisualProtocol.CreateView(),

@@ -494,20 +494,11 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     {
         if (node.IsFolder || _sessionsDock is null || _protocolFactory is null) return;
 
-        ConnectionParameters parameters;
         try
         {
-            parameters = ConnectionParametersFactory.FromConnectionInfo(node.Model);
-        }
-        catch (NotSupportedException ex)
-        {
-            _sessionsDock.ReportError($"Cannot connect to \"{node.Name}\": {ex.Message}");
-            return;
-        }
-
-        try
-        {
-            await _sessionsDock.OpenConnectionAsync(parameters, _protocolFactory);
+            // Preparation (credential providers, tunnels, …) and errors such as an unsupported
+            // protocol are handled and reported by the sessions dock.
+            await _sessionsDock.OpenConnectionAsync(node.Model, _protocolFactory);
         }
         catch (Exception ex)
         {

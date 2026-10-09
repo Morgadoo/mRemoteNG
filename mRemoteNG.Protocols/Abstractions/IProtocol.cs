@@ -40,7 +40,7 @@ public enum ProtocolType
 /// Parameters that describe a remote connection.
 /// All protocols receive this via <see cref="IProtocol.ConnectAsync"/>.
 /// </summary>
-public sealed class ConnectionParameters
+public sealed record ConnectionParameters
 {
     public required string Hostname { get; init; }
     public required int Port { get; init; }

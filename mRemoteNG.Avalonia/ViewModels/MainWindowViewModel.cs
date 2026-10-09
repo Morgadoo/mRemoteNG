@@ -623,9 +623,8 @@ public sealed class MainWindowViewModel : ReactiveObject
             info.Username = username ?? string.Empty;
             info.Password = password ?? string.Empty;
 
-            var parameters = ConnectionParametersFactory.FromConnectionInfo(info);
             var factory = AppServices.GetRequired<IProtocolFactory>();
-            await _sessions.OpenConnectionAsync(parameters, factory);
+            await _sessions.OpenConnectionAsync(info, factory);
 
             _log.Log($"Quick connect: {protocol} {host}:{port}");
             QuickConnectHost = string.Empty;

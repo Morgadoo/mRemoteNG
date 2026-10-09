@@ -55,7 +55,8 @@ public static class AppServices
             new ViewModels.Docking.SessionsDockable(
                 sp.GetRequiredService<ViewModels.Docking.LogPanelDockable>(),
                 sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>(),
-                sp.GetRequiredService<Services.CloseConfirmationService>()));
+                sp.GetRequiredService<Services.CloseConfirmationService>(),
+                sp.GetRequiredService<ConnectionPreparer>()));
 
         services.AddSingleton<ViewModels.ConnectionTreeViewModel>(sp =>
             new ViewModels.ConnectionTreeViewModel(

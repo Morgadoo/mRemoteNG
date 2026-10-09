@@ -62,6 +62,7 @@ public sealed class ProtocolFactory : IProtocolFactory
     public static void Register(IServiceCollection services)
     {
         SshServices.Register(services);
+        services.AddSingleton<ConnectionPreparer>();
         services.AddTransient<SshNetProtocol>();
         services.AddTransient<TelnetProtocol>();
         services.AddTransient<RloginProtocol>();
