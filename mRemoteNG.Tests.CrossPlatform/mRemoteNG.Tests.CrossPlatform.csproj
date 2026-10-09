@@ -39,6 +39,14 @@
   <!-- Legacy sample connection files shared with the WinForms test suite -->
   <ItemGroup>
     <None Include="..\mRemoteNGTests\Resources\confCons_*.xml" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\mRemoteNGTests\Resources\test_rdcman_*.rdg" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\mRemoteNGTests\Resources\test_remotedesktopconnection.rdp" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\mRemoteNGTests\Resources\test_securecrt.xml" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Import fixtures created for the cross-platform importers -->
+  <ItemGroup>
+    <None Include="Resources\Import\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

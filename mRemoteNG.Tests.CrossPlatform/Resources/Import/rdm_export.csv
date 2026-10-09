@@ -1,0 +1,6 @@
+Name,ConnectionType,Host,Port,Group,Description,CredentialUserName,CredentialDomain,CredentialPassword
+dc01,RDP (Microsoft Remote Desktop),dc01.corp.example,3390,Datacenter\Domain Controllers,"Primary DC, site A",administrator,CORP,P@ss
+web01,SSH Shell,10.0.0.5,,Datacenter\Linux,,root,,
+laptop,RDP (Microsoft Remote Desktop),laptop.example,,,,,,
+vnc01,VNC,vnc01.example,5900,Datacenter,,,,
+broken,SSH Shell,,22,Datacenter,,,,

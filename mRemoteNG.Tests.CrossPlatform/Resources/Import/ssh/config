@@ -1,0 +1,34 @@
+# Test OpenSSH client configuration
+ServerAliveInterval 30
+
+Host bastion
+    HostName bastion.example.com
+    Port 2200
+    User admin
+
+Host web1 web2
+    HostName %h.internal.example.com
+
+Host db
+  HostName=10.0.0.20
+  Port = 5432
+
+Host *.example.com !skip.example.com
+    User wildcarduser
+
+Host app.example.com
+    Port 8022
+
+Host skip.example.com
+
+Host "quoted host"
+    HostName quoted.example.com
+
+Match host foo
+    User matchuser
+
+Include conf.d/*.conf
+
+Host *
+    User fallbackuser
+    Port 2022
