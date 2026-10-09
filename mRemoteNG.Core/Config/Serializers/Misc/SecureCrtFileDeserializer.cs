@@ -51,7 +51,7 @@ namespace mRemoteNG.Core.Config.Serializers.Misc
 
                 if (GetString(element, "Hostname") is null)
                 {
-                    var folder = ConnectionDefaults.NewContainer(name);
+                    var folder = ImportNodeFactory.NewContainer(name);
                     parentContainer.AddChild(folder);
                     ImportChildren(element, folder);
                 }
@@ -74,7 +74,7 @@ namespace mRemoteNG.Core.Config.Serializers.Misc
                 return null;
             }
 
-            var connection = ConnectionDefaults.NewConnection(protocol.Value);
+            var connection = ImportNodeFactory.NewConnection(protocol.Value);
             connection.Name = name;
             connection.Hostname = GetString(sessionNode, "Hostname") ?? "";
             connection.Username = GetString(sessionNode, "Username") ?? "";

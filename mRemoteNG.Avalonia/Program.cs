@@ -8,9 +8,17 @@ namespace mRemoteNG.Avalonia;
 internal sealed class Program
 {
     // Avalonia entry point — must remain synchronous and unmodified.
+    /// <summary>
+    /// Connection file passed on the command line (<c>mRemoteNG.Avalonia &lt;file&gt;</c>);
+    /// the main window opens it once shown.
+    /// </summary>
+    public static string? StartupFilePath { get; private set; }
+
     [STAThread]
     public static void Main(string[] args)
     {
+        StartupFilePath = args.FirstOrDefault(a => !a.StartsWith('-'));
+
         // Register services but do NOT build the provider yet.
         // ViewModels must be created AFTER Avalonia + ReactiveUI initialize
         // the main thread scheduler, otherwise ReactiveCommands capture a

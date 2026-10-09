@@ -13,16 +13,33 @@
         WindowStartupLocation="CenterScreen"
         Icon="avares://mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico">
 
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding NewFileCommand}"/>
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewConnectionCommand}"/>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenConnectionFileCommand}"/>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveConnectionFileCommand}"/>
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAsConnectionFileCommand}"/>
+        <KeyBinding Gesture="Ctrl+Q" Command="{Binding OpenQuickConnectDialogCommand}"/>
+        <KeyBinding Gesture="Ctrl+Shift+T" Command="{Binding ToggleConnectionTreeCommand}"/>
+        <KeyBinding Gesture="Ctrl+Shift+L" Command="{Binding ToggleLogPanelCommand}"/>
+        <KeyBinding Gesture="F11" Command="{Binding ToggleFullScreenCommand}"/>
+    </Window.KeyBindings>
+
     <DockPanel>
 
         <!-- MENU BAR -->
         <Menu DockPanel.Dock="Top" FontSize="13">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Connection..." Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N"/>
-                <Separator/>
+                <MenuItem Header="_New Connection File" Command="{Binding NewFileCommand}" InputGesture="Ctrl+Shift+N"/>
                 <MenuItem Header="_Open Connection File..." Command="{Binding OpenConnectionFileCommand}" InputGesture="Ctrl+O"/>
                 <MenuItem Header="_Save Connection File" Command="{Binding SaveConnectionFileCommand}" InputGesture="Ctrl+S"/>
                 <MenuItem Header="Save Connection File _As..." Command="{Binding SaveAsConnectionFileCommand}" InputGesture="Ctrl+Shift+S"/>
+                <Separator/>
+                <MenuItem Header="New _Connection..." Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N"/>
+                <MenuItem Header="New _Folder..." Command="{Binding ConnectionTree.NewFolderCommand}"/>
+                <MenuItem Header="_Edit Selected..." Command="{Binding ConnectionTree.EditSelectedCommand}" InputGesture="F2"/>
+                <MenuItem Header="_Duplicate Selected" Command="{Binding ConnectionTree.DuplicateSelectedCommand}" InputGesture="Ctrl+D"/>
+                <MenuItem Header="De_lete Selected..." Command="{Binding ConnectionTree.DeleteSelectedCommand}" InputGesture="Delete"/>
                 <Separator/>
                 <MenuItem Header="_Import Connections..." Command="{Binding ImportCommand}"/>
                 <MenuItem Header="_Export Connections..." Command="{Binding ExportCommand}"/>
@@ -31,16 +48,23 @@
             </MenuItem>
 
             <MenuItem Header="_View">
-                <MenuItem Header="Connection Tree" InputGesture="Ctrl+Shift+T"/>
-                <MenuItem Header="Log Panel" InputGesture="Ctrl+Shift+L"/>
+                <MenuItem Header="Connection Tree" ToggleType="CheckBox"
+                          IsChecked="{Binding IsConnectionTreeVisible, Mode=OneWay}"
+                          Command="{Binding ToggleConnectionTreeCommand}" InputGesture="Ctrl+Shift+T"/>
+                <MenuItem Header="Log Panel" ToggleType="CheckBox"
+                          IsChecked="{Binding IsLogPanelVisible, Mode=OneWay}"
+                          Command="{Binding ToggleLogPanelCommand}" InputGesture="Ctrl+Shift+L"/>
                 <Separator/>
-                <MenuItem Header="Reset Layout"/>
+                <MenuItem Header="Reset Layout" Command="{Binding ResetLayoutCommand}"/>
                 <Separator/>
-                <MenuItem Header="Full Screen" InputGesture="F11"/>
+                <MenuItem Header="Full Screen" ToggleType="CheckBox"
+                          IsChecked="{Binding IsFullScreen, Mode=OneWay}"
+                          Command="{Binding ToggleFullScreenCommand}" InputGesture="F11"/>
             </MenuItem>
 
             <MenuItem Header="_Tools">
                 <MenuItem Header="Quick Connect..." Command="{Binding OpenQuickConnectDialogCommand}" InputGesture="Ctrl+Q"/>
+                <MenuItem Header="SFTP File Transfer..." Command="{Binding OpenSftpCommand}"/>
                 <Separator/>
                 <MenuItem Header="Port Scanner..." Command="{Binding PortScannerCommand}"/>
                 <Separator/>
@@ -49,11 +73,12 @@
 
             <MenuItem Header="_Help">
                 <MenuItem Header="_About mRemoteNG..." Command="{Binding AboutCommand}"/>
-                <MenuItem Header="Check for Updates..."/>
+                <MenuItem Header="Check for Updates..." Command="{Binding CheckForUpdatesCommand}"
+                          ToolTip.Tip="Opens the mRemoteNG releases page"/>
                 <Separator/>
-                <MenuItem Header="GitHub Repository"/>
-                <MenuItem Header="Documentation"/>
-                <MenuItem Header="Report a Bug"/>
+                <MenuItem Header="GitHub Repository" Command="{Binding OpenGitHubCommand}"/>
+                <MenuItem Header="Documentation" Command="{Binding OpenDocumentationCommand}"/>
+                <MenuItem Header="Report a Bug" Command="{Binding ReportBugCommand}"/>
             </MenuItem>
         </Menu>
 
@@ -70,16 +95,22 @@
                     </StackPanel>
                 </Button>
 
-                <Button ToolTip.Tip="Open Connection File"
+                <Button ToolTip.Tip="Open Connection File (Ctrl+O)"
                         Command="{Binding OpenConnectionFileCommand}"
                         Padding="8,3">
                     <TextBlock Text="Open" FontSize="12"/>
                 </Button>
 
-                <Button ToolTip.Tip="Save"
+                <Button ToolTip.Tip="Save (Ctrl+S)"
                         Command="{Binding SaveConnectionFileCommand}"
                         Padding="8,3">
                     <TextBlock Text="Save" FontSize="12"/>
+                </Button>
+
+                <Button ToolTip.Tip="Edit the selected connection or folder (F2)"
+                        Command="{Binding ConnectionTree.EditSelectedCommand}"
+                        Padding="8,3">
+                    <TextBlock Text="Edit" FontSize="12"/>
                 </Button>
 
                 <!-- Vertical separator -->
@@ -95,7 +126,7 @@
                          Watermark="host[:port]"
                          FontSize="12"
                          x:Name="QuickConnectHostBox"/>
-                <ComboBox Width="90"
+                <ComboBox Width="100"
                           ItemsSource="{Binding QuickConnectProtocols}"
                           SelectedItem="{Binding QuickConnectProtocol}"
                           FontSize="12"/>
@@ -111,19 +142,26 @@
 
         <!-- STATUS BAR -->
         <Border DockPanel.Dock="Bottom" Classes="statusbar">
-            <Grid ColumnDefinitions="*,Auto,16,Auto">
+            <Grid ColumnDefinitions="Auto,16,*,Auto,16,Auto">
                 <TextBlock Grid.Column="0"
                            Text="{Binding ActiveConnectionCount, StringFormat='Active connections: {0}'}"
                            FontSize="11"
                            Foreground="#888888"
                            VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="2"
-                           Text="●"
-                           Foreground="#4caf50"
-                           FontSize="10"
-                           VerticalAlignment="Center"
-                           ToolTip.Tip="Connected to update server"/>
+                           Text="{Binding FileStatus}"
+                           FontSize="11"
+                           Foreground="#666666"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="3"
+                           Text="● Unsaved changes"
+                           IsVisible="{Binding ConnectionTree.IsDirty}"
+                           Foreground="#d7ba7d"
+                           FontSize="11"
+                           VerticalAlignment="Center"
+                           ToolTip.Tip="The connection file has changes that are not saved (Ctrl+S)"/>
+                <TextBlock Grid.Column="5"
                            Text="mRemoteNG 1.78.2-dev (Avalonia)"
                            FontSize="11"
                            Foreground="#555555"
@@ -132,10 +170,11 @@
         </Border>
 
         <!-- MAIN CONTENT — Splitter Layout -->
-        <Grid ColumnDefinitions="280,4,*" RowDefinitions="*,4,160">
+        <Grid x:Name="MainGrid" ColumnDefinitions="280,4,*" RowDefinitions="*,4,160">
 
             <!-- LEFT: Connection Tree -->
-            <Border Grid.Column="0" Grid.RowSpan="3"
+            <Border x:Name="TreePanel"
+                    Grid.Column="0" Grid.RowSpan="3"
                     BorderBrush="#3f3f46"
                     BorderThickness="0,0,1,0">
                 <DockPanel>
@@ -165,11 +204,24 @@
                     </Border>
 
                     <Border DockPanel.Dock="Top" Padding="6,4" Background="#1e1e1e">
-                        <TextBox Text="{Binding ConnectionTree.SearchFilter}"
-                                 Watermark="Search connections..."
+                        <TextBox x:Name="SearchBox"
+                                 Text="{Binding ConnectionTree.SearchFilter}"
+                                 Watermark="Search name, host, description... (Ctrl+F)"
                                  FontSize="12"
                                  Background="#2d2d2d"
-                                 BorderThickness="0"/>
+                                 BorderThickness="0">
+                            <TextBox.InnerRightContent>
+                                <Button Content="✕"
+                                        FontSize="10"
+                                        Padding="6,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Foreground="#888888"
+                                        ToolTip.Tip="Clear search (Esc)"
+                                        IsVisible="{Binding ConnectionTree.SearchFilter, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                        Command="{Binding ConnectionTree.ClearSearchCommand}"/>
+                            </TextBox.InnerRightContent>
+                        </TextBox>
                     </Border>
 
                     <views:ConnectionTreeView DataContext="{Binding ConnectionTree}"/>
@@ -177,7 +229,8 @@
             </Border>
 
             <!-- COLUMN SPLITTER -->
-            <GridSplitter Grid.Column="1" Grid.RowSpan="3"
+            <GridSplitter x:Name="TreeSplitter"
+                          Grid.Column="1" Grid.RowSpan="3"
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"/>
 
@@ -270,13 +323,15 @@
             </Border>
 
             <!-- ROW SPLITTER -->
-            <GridSplitter Grid.Column="2" Grid.Row="1"
+            <GridSplitter x:Name="BottomSplitter"
+                          Grid.Column="2" Grid.Row="1"
                           ResizeDirection="Rows"
                           ResizeBehavior="PreviousAndNext"
                           Height="4"/>
 
             <!-- BOTTOM: Tabbed panel (Log / Terminal / Debug Console) -->
-            <Border Grid.Column="2" Grid.Row="2"
+            <Border x:Name="BottomPanel"
+                    Grid.Column="2" Grid.Row="2"
                     BorderBrush="#3f3f46"
                     BorderThickness="0,1,0,0"
                     Background="#1a1a1a">

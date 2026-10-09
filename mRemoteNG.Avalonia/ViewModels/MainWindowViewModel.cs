@@ -5,12 +5,22 @@ using mRemoteNG.Avalonia.Views;
 using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Core.Config.Serializers.Xml;
+using mRemoteNG.Core.Connection;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Linq;
+using CoreProtocolType = mRemoteNG.Core.Connection.Protocol.ProtocolType;
 
 namespace mRemoteNG.Avalonia.ViewModels;
+
+/// <summary>Answer to the "save changes?" prompt.</summary>
+public enum UnsavedChangesChoice
+{
+    Save,
+    Discard,
+    Cancel,
+}
 
 /// <summary>
 /// ViewModel for the main application window.
@@ -18,6 +28,11 @@ namespace mRemoteNG.Avalonia.ViewModels;
 /// </summary>
 public sealed class MainWindowViewModel : ReactiveObject
 {
+    public const string GitHubUrl = "https://github.com/mRemoteNG/mRemoteNG";
+    public const string DocumentationUrl = "https://mremoteng.readthedocs.io";
+    public const string ReportBugUrl = "https://github.com/mRemoteNG/mRemoteNG/issues/new";
+    public const string ReleasesUrl = "https://github.com/mRemoteNG/mRemoteNG/releases";
+
     private readonly ConnectionsService _connectionsService;
     private readonly SessionsDockable _sessions;
     private readonly LogPanelDockable _log;
@@ -26,12 +41,15 @@ public sealed class MainWindowViewModel : ReactiveObject
     private string _title = "mRemoteNG";
     private int _activeConnectionCount;
     private string _quickConnectHost = string.Empty;
-    private string _quickConnectProtocol = "SSH";
+    private CoreProtocolType _quickConnectProtocol = CoreProtocolType.SSH2;
+    private bool _isConnectionTreeVisible = true;
+    private bool _isLogPanelVisible = true;
+    private bool _isFullScreen;
 
     public string Title
     {
         get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
+        private set => this.RaiseAndSetIfChanged(ref _title, value);
     }
 
     public int ActiveConnectionCount
@@ -40,9 +58,7 @@ public sealed class MainWindowViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _activeConnectionCount, value);
-            Title = value > 0
-                ? $"mRemoteNG — {value} active connection{(value == 1 ? "" : "s")}"
-                : "mRemoteNG";
+            UpdateTitle();
         }
     }
 
@@ -52,13 +68,40 @@ public sealed class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _quickConnectHost, value);
     }
 
-    public string QuickConnectProtocol
+    public CoreProtocolType QuickConnectProtocol
     {
         get => _quickConnectProtocol;
         set => this.RaiseAndSetIfChanged(ref _quickConnectProtocol, value);
     }
 
-    public string[] QuickConnectProtocols { get; } = ["SSH", "RDP", "VNC", "Telnet", "HTTP", "HTTPS"];
+    public CoreProtocolType[] QuickConnectProtocols { get; } = QuickConnectViewModel.SupportedProtocols;
+
+    /// <summary>View → Connection Tree.</summary>
+    public bool IsConnectionTreeVisible
+    {
+        get => _isConnectionTreeVisible;
+        set => this.RaiseAndSetIfChanged(ref _isConnectionTreeVisible, value);
+    }
+
+    /// <summary>View → Log Panel (the bottom Log / Terminal / Debug Console area).</summary>
+    public bool IsLogPanelVisible
+    {
+        get => _isLogPanelVisible;
+        set => this.RaiseAndSetIfChanged(ref _isLogPanelVisible, value);
+    }
+
+    /// <summary>View → Full Screen (F11).</summary>
+    public bool IsFullScreen
+    {
+        get => _isFullScreen;
+        set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
+    }
+
+    /// <summary>Raised by View → Reset Layout; the view restores panel sizes.</summary>
+    public event EventHandler? LayoutResetRequested;
+
+    /// <summary>Status-bar text describing the open connection file.</summary>
+    public string FileStatus => ConnectionTree.CurrentFilePath ?? "New connection file (not saved yet)";
 
     /// <summary>Child ViewModel for the connection tree panel.</summary>
     public ConnectionTreeViewModel ConnectionTree { get; }
@@ -73,6 +116,7 @@ public sealed class MainWindowViewModel : ReactiveObject
     public DebugConsoleDockable DebugConsole { get; }
 
     // ── Commands ──────────────────────────────────────────────────────────
+    public ReactiveCommand<Unit, Unit> NewFileCommand { get; }
     public ReactiveCommand<Unit, Unit> NewConnectionCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenConnectionFileCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveConnectionFileCommand { get; }
@@ -85,6 +129,15 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenQuickConnectDialogCommand { get; }
     public ReactiveCommand<Unit, Unit> AboutCommand { get; }
     public ReactiveCommand<Unit, Unit> PortScannerCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenSftpCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleConnectionTreeCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleLogPanelCommand { get; }
+    public ReactiveCommand<Unit, Unit> ResetLayoutCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleFullScreenCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenGitHubCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenDocumentationCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReportBugCommand { get; }
+    public ReactiveCommand<Unit, Unit> CheckForUpdatesCommand { get; }
 
     public MainWindowViewModel(
         ConnectionTreeViewModel connectionTree,
@@ -102,49 +155,81 @@ public sealed class MainWindowViewModel : ReactiveObject
         LogPanel = logPanel;
         DebugConsole = debugConsole;
 
-        NewConnectionCommand = ReactiveCommand.Create(OnNewConnection);
+        NewFileCommand = ReactiveCommand.CreateFromTask(OnNewFile);
+        NewConnectionCommand = ReactiveCommand.CreateFromObservable(() => ConnectionTree.NewConnectionCommand.Execute());
         OpenConnectionFileCommand = ReactiveCommand.CreateFromTask(OnOpenConnectionFile);
-        SaveConnectionFileCommand = ReactiveCommand.Create(OnSaveConnectionFile);
-        SaveAsConnectionFileCommand = ReactiveCommand.CreateFromTask(OnSaveAsConnectionFile);
+        SaveConnectionFileCommand = ReactiveCommand.CreateFromTask(async () => { await SaveAsync(); });
+        SaveAsConnectionFileCommand = ReactiveCommand.CreateFromTask(async () => { await SaveAsAsync(); });
         ImportCommand = ReactiveCommand.CreateFromTask(OnImport);
         ExportCommand = ReactiveCommand.CreateFromTask(OnExport);
-        ExitCommand = ReactiveCommand.Create(() => System.Environment.Exit(0));
+        ExitCommand = ReactiveCommand.Create(() => GetMainWindow()?.Close());
         OpenOptionsCommand = ReactiveCommand.CreateFromTask(OnOpenOptions);
         QuickConnectCommand = ReactiveCommand.CreateFromTask(OnQuickConnect);
         OpenQuickConnectDialogCommand = ReactiveCommand.CreateFromTask(OnOpenQuickConnectDialog);
         AboutCommand = ReactiveCommand.CreateFromTask(OnAbout);
         PortScannerCommand = ReactiveCommand.CreateFromTask(OnPortScanner);
+        OpenSftpCommand = ReactiveCommand.CreateFromTask(OnOpenSftp);
+        ToggleConnectionTreeCommand = ReactiveCommand.Create(() => { IsConnectionTreeVisible = !IsConnectionTreeVisible; });
+        ToggleLogPanelCommand = ReactiveCommand.Create(() => { IsLogPanelVisible = !IsLogPanelVisible; });
+        ResetLayoutCommand = ReactiveCommand.Create(OnResetLayout);
+        ToggleFullScreenCommand = ReactiveCommand.Create(() => { IsFullScreen = !IsFullScreen; });
+        OpenGitHubCommand = ReactiveCommand.CreateFromTask(() => OpenUrlAsync(GitHubUrl));
+        OpenDocumentationCommand = ReactiveCommand.CreateFromTask(() => OpenUrlAsync(DocumentationUrl));
+        ReportBugCommand = ReactiveCommand.CreateFromTask(() => OpenUrlAsync(ReportBugUrl));
+        // No update service exists yet in the cross-platform app; show the releases page instead.
+        CheckForUpdatesCommand = ReactiveCommand.CreateFromTask(() => OpenUrlAsync(ReleasesUrl));
 
         // Track active connection count
         sessions.Sessions.CollectionChanged += (_, _) =>
             ActiveConnectionCount = sessions.Sessions.Count;
 
+        // Title and status bar follow the file name and unsaved-changes state.
+        ConnectionTree.WhenAnyValue(t => t.IsDirty, t => t.CurrentFilePath)
+            .Subscribe(_ =>
+            {
+                UpdateTitle();
+                this.RaisePropertyChanged(nameof(FileStatus));
+            });
+
         // Route any unhandled command errors to the log panel
-        QuickConnectCommand.ThrownExceptions.Subscribe(ex =>
-            _log.Log($"Quick connect error: {ex.Message}", LogLevel.Error));
-        OpenConnectionFileCommand.ThrownExceptions.Subscribe(ex =>
-            _log.Log($"Open file error: {ex.Message}", LogLevel.Error));
-        OpenQuickConnectDialogCommand.ThrownExceptions.Subscribe(ex =>
-            _log.Log($"Quick connect dialog error: {ex.Message}", LogLevel.Error));
+        foreach (var command in new IHandleObservableErrors[]
+                 {
+                     NewFileCommand, NewConnectionCommand, OpenConnectionFileCommand, SaveConnectionFileCommand,
+                     SaveAsConnectionFileCommand, ImportCommand, ExportCommand, OpenOptionsCommand,
+                     QuickConnectCommand, OpenQuickConnectDialogCommand, AboutCommand, PortScannerCommand,
+                     OpenSftpCommand, OpenGitHubCommand, OpenDocumentationCommand, ReportBugCommand,
+                     CheckForUpdatesCommand,
+                 })
+        {
+            command.ThrownExceptions.Subscribe(ex => _log.Log($"Error: {ex.Message}", LogLevel.Error));
+        }
     }
 
-    private void OnNewConnection()
+    private void UpdateTitle()
     {
-        var vm = new ConnectionDialogViewModel();
-        vm.Saved += result =>
-        {
-            ConnectionTree.AddConnection(result.Name, result.Protocol, result.Hostname, result.Port, result.Username);
-            _log.Log($"Connection '{result.Name}' added ({result.Protocol}://{result.Hostname}:{result.Port}).");
-        };
+        var path = ConnectionTree.CurrentFilePath;
+        var document = path is null ? "Untitled" : System.IO.Path.GetFileName(path);
+        var title = $"mRemoteNG — {document}{(ConnectionTree.IsDirty ? "*" : "")}";
+        if (ActiveConnectionCount > 0)
+            title += $" ({ActiveConnectionCount} active connection{(ActiveConnectionCount == 1 ? "" : "s")})";
+        Title = title;
+    }
 
-        var dialog = new ConnectionDialog(vm);
-        dialog.ShowDialog(GetMainWindow());
+    // ── File ──────────────────────────────────────────────────────────────
+
+    private async Task OnNewFile()
+    {
+        if (!await ConfirmDiscardOrSaveAsync()) return;
+        ConnectionTree.CreateNewTree();
+        _log.Log("Started a new connection file.");
     }
 
     private async Task OnOpenConnectionFile()
     {
         var window = GetMainWindow();
         if (window is null) return;
+        if (!await ConfirmDiscardOrSaveAsync()) return;
+
         var files = await window.StorageProvider.OpenFilePickerAsync(
             new global::Avalonia.Platform.Storage.FilePickerOpenOptions
             {
@@ -160,8 +245,24 @@ public sealed class MainWindowViewModel : ReactiveObject
             await LoadConnectionFileAsync(window, files[0].Path.LocalPath);
     }
 
+    /// <summary>Opens the connection file given on the command line (if any) once the window is shown.</summary>
+    public async Task OpenStartupFileAsync(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return;
+        var window = GetMainWindow();
+        if (window is null) return;
+
+        var fullPath = System.IO.Path.GetFullPath(path);
+        if (!System.IO.File.Exists(fullPath))
+        {
+            _log.Log($"Connection file not found: {fullPath}", LogLevel.Error);
+            return;
+        }
+        await LoadConnectionFileAsync(window, fullPath);
+    }
+
     /// <summary>Loads a connection file, prompting for the master password when the file has one.</summary>
-    private async Task LoadConnectionFileAsync(global::Avalonia.Controls.Window owner, string path)
+    private async Task LoadConnectionFileAsync(Window owner, string path)
     {
         string? password = null;
         string? error = null;
@@ -171,7 +272,6 @@ public sealed class MainWindowViewModel : ReactiveObject
             {
                 ConnectionTree.LoadFromFile(path, password);
                 _log.Log($"Loaded connection file: {path}");
-                Title = $"mRemoteNG — {System.IO.Path.GetFileName(path)}";
                 return;
             }
             catch (ConnectionFilePasswordException ex)
@@ -196,52 +296,82 @@ public sealed class MainWindowViewModel : ReactiveObject
         }
     }
 
-    private void OnSaveConnectionFile()
+    /// <summary>Saves to the current file, or asks for one. Returns true when the tree was saved.</summary>
+    public async Task<bool> SaveAsync()
     {
+        if (ConnectionTree.CurrentFilePath is null)
+            return await SaveAsAsync();
+
         try
         {
-            if (_connectionsService.CurrentFilePath is null)
-            {
-                // No file loaded yet — trigger Save As
-                _ = OnSaveAsConnectionFile();
-                return;
-            }
             ConnectionTree.SaveToFile();
-            _log.Log($"Saved connection file: {_connectionsService.CurrentFilePath}");
+            _log.Log($"Saved connection file: {ConnectionTree.CurrentFilePath}");
+            return true;
         }
         catch (Exception ex)
         {
             _log.Log($"Failed to save connection file: {ex.Message}", LogLevel.Error);
+            return false;
         }
     }
 
-    private async Task OnSaveAsConnectionFile()
+    /// <summary>Asks for a file name and saves. Returns true when the tree was saved.</summary>
+    public async Task<bool> SaveAsAsync()
     {
         var window = GetMainWindow();
-        if (window is null) return;
+        if (window is null) return false;
         var file = await window.StorageProvider.SaveFilePickerAsync(
             new global::Avalonia.Platform.Storage.FilePickerSaveOptions
             {
                 Title = "Save Connection File",
                 DefaultExtension = "xml",
+                SuggestedFileName = ConnectionTree.CurrentFilePath is { } current
+                    ? System.IO.Path.GetFileName(current)
+                    : "confCons.xml",
                 FileTypeChoices =
                 [
                     new("mRemoteNG XML") { Patterns = ["*.xml"] },
                 ],
             });
-        if (file is not null)
+        if (file is null) return false;
+
+        try
         {
-            try
-            {
-                ConnectionTree.SaveToFile(file.Path.LocalPath);
-                _log.Log($"Saved connection file: {file.Path.LocalPath}");
-                Title = $"mRemoteNG — {file.Name}";
-            }
-            catch (Exception ex)
-            {
-                _log.Log($"Failed to save connection file: {ex.Message}", LogLevel.Error);
-            }
+            ConnectionTree.SaveToFile(file.Path.LocalPath);
+            _log.Log($"Saved connection file: {file.Path.LocalPath}");
+            return true;
         }
+        catch (Exception ex)
+        {
+            _log.Log($"Failed to save connection file: {ex.Message}", LogLevel.Error);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// When the tree has unsaved changes, asks Save / Don't Save / Cancel.
+    /// Returns true when the caller may continue (saved or discarded), false to abort.
+    /// </summary>
+    public async Task<bool> ConfirmDiscardOrSaveAsync()
+    {
+        if (!ConnectionTree.IsDirty) return true;
+        var window = GetMainWindow();
+        if (window is null) return true;
+
+        var document = ConnectionTree.CurrentFilePath is { } path ? System.IO.Path.GetFileName(path) : "the new connection file";
+        var dialog = new MessageDialog("Unsaved Changes",
+            $"Do you want to save the changes to {document}?",
+            new MessageDialogButton("Cancel", nameof(UnsavedChangesChoice.Cancel), IsCancel: true),
+            new MessageDialogButton("Don't Save", nameof(UnsavedChangesChoice.Discard)),
+            new MessageDialogButton("Save", nameof(UnsavedChangesChoice.Save), IsDefault: true));
+        var answer = await dialog.ShowDialog<string?>(window);
+
+        return answer switch
+        {
+            nameof(UnsavedChangesChoice.Save) => await SaveAsync(),
+            nameof(UnsavedChangesChoice.Discard) => true,
+            _ => false,
+        };
     }
 
     private async Task OnImport()
@@ -265,16 +395,14 @@ public sealed class MainWindowViewModel : ReactiveObject
         var result = await RunImportAsync(window, request, targetContainer);
         if (result is null) return;
 
-        // The tree view mirrors the model; add view nodes for the imported model nodes so the
-        // import shows up and is kept when the tree is saved.
-        foreach (var node in result.ImportedNodes)
-            targetNode.Children.Add(ConnectionNodeViewModel.FromModel(node));
+        // The import service added the nodes to the Core model; the tree view follows model
+        // changes, so only expand the target and flag the file as unsaved.
         targetNode.IsExpanded = true;
-        ConnectionTree.SetDependencies(_sessions, AppServices.GetRequired<IProtocolFactory>());
+        ConnectionTree.MarkDirty();
 
         var sourceName = global::mRemoteNG.Core.Config.Import.ImportSourceDescriptor.For(request.Type).DisplayName;
         var from = string.IsNullOrEmpty(request.Source) ? sourceName : $"{sourceName} \"{request.Source}\"";
-        _log.Log($"Imported {result.Summary} from {from} into \"{targetContainer.Name}\". Save the connection file to keep them.");
+        _log.Log($"Imported {result.Summary} from {from} into \"{targetContainer.Name}\".");
         foreach (var warning in result.Warnings)
             _log.Log($"Import: {warning}", LogLevel.Warning);
     }
@@ -409,39 +537,39 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task OnOpenOptions()
     {
+        var owner = GetMainWindow();
+        if (owner is null) return;
         var dialog = new OptionsWindow();
-        await dialog.ShowDialog(GetMainWindow());
+        await dialog.ShowDialog(owner);
     }
+
+    // ── Quick connect ─────────────────────────────────────────────────────
 
     private async Task OnQuickConnect()
     {
         if (string.IsNullOrWhiteSpace(QuickConnectHost)) return;
+        await QuickConnectAsync(QuickConnectHost, QuickConnectProtocol, null, null);
+    }
 
+    private async Task QuickConnectAsync(string hostInput, CoreProtocolType protocol, string? username, string? password)
+    {
         try
         {
-            var protocolType = ConnectionNodeViewModel.ResolveProtocolType(QuickConnectProtocol);
+            var (host, port) = QuickConnectViewModel.ParseHost(hostInput, protocol);
+            var info = ConnectionDefaults.ApplyNewConnectionDefaults(new ConnectionInfo());
+            info.Name = host;
+            info.IsQuickConnect = true;
+            info.Protocol = protocol;
+            info.Hostname = host;
+            info.Port = port;
+            info.Username = username ?? string.Empty;
+            info.Password = password ?? string.Empty;
 
-            // Parse host:port format
-            var host = QuickConnectHost;
-            var port = ConnectionNodeViewModel.DefaultPortFor(protocolType);
-            var colonIdx = host.LastIndexOf(':');
-            if (colonIdx > 0 && int.TryParse(host[(colonIdx + 1)..], out var parsedPort))
-            {
-                host = host[..colonIdx];
-                port = parsedPort;
-            }
-
-            var parameters = new ConnectionParameters
-            {
-                Hostname = host,
-                Port = port,
-                Protocol = protocolType,
-            };
-
+            var parameters = ConnectionParametersFactory.FromConnectionInfo(info);
             var factory = AppServices.GetRequired<IProtocolFactory>();
             await _sessions.OpenConnectionAsync(parameters, factory);
 
-            _log.Log($"Quick connect: {QuickConnectProtocol}://{host}:{port}");
+            _log.Log($"Quick connect: {protocol} {host}:{port}");
             QuickConnectHost = string.Empty;
         }
         catch (Exception ex)
@@ -452,27 +580,59 @@ public sealed class MainWindowViewModel : ReactiveObject
 
     private async Task OnOpenQuickConnectDialog()
     {
+        var owner = GetMainWindow();
+        if (owner is null) return;
         var dialog = new QuickConnectDialog();
-        var result = await dialog.ShowDialog<QuickConnectResult?>(GetMainWindow());
+        var result = await dialog.ShowDialog<QuickConnectResult?>(owner);
 
         if (result is not null)
         {
-            QuickConnectHost = result.Hostname;
             QuickConnectProtocol = result.Protocol;
-            await OnQuickConnect();
+            await QuickConnectAsync(result.Hostname, result.Protocol, result.Username, result.Password);
         }
     }
 
+    // ── Tools / Help ──────────────────────────────────────────────────────
+
     private async Task OnAbout()
     {
+        var owner = GetMainWindow();
+        if (owner is null) return;
         var dialog = new AboutDialog();
-        await dialog.ShowDialog(GetMainWindow());
+        await dialog.ShowDialog(owner);
     }
 
     private async Task OnPortScanner()
     {
+        var owner = GetMainWindow();
+        if (owner is null) return;
         var dialog = new PortScannerDialog();
-        await dialog.ShowDialog(GetMainWindow());
+        await dialog.ShowDialog(owner);
+    }
+
+    private async Task OnOpenSftp()
+    {
+        var owner = GetMainWindow();
+        if (owner is null) return;
+        await new SshFileTransferDialog().ShowDialog(owner);
+    }
+
+    private void OnResetLayout()
+    {
+        IsConnectionTreeVisible = true;
+        IsLogPanelVisible = true;
+        IsFullScreen = false;
+        LayoutResetRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task OpenUrlAsync(string url)
+    {
+        var launcher = GetMainWindow()?.Launcher;
+        var opened = launcher is not null && await launcher.LaunchUriAsync(new Uri(url));
+        if (opened)
+            _log.Log($"Opened {url} in the browser.");
+        else
+            _log.Log($"Could not open a browser. Visit {url}", LogLevel.Warning);
     }
 
     private static Window? GetMainWindow() =>

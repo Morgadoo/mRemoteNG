@@ -73,8 +73,8 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
                     && nodeType == TreeNodeType.Container;
 
                 ConnectionInfo node = isContainer
-                    ? ConnectionDefaults.NewContainer("", id)
-                    : ConnectionDefaults.NewConnection(id: id);
+                    ? ImportNodeFactory.NewContainer("", id)
+                    : ImportNodeFactory.NewConnection(id: id);
 
                 PopulateNode(node, headers, fields, lineNumber + 1);
 

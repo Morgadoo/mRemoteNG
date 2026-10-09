@@ -27,10 +27,10 @@ namespace mRemoteNG.Core.Config.Import
             var warnings = new List<string>();
             var entries = OpenSshConfigParser.ParseFile(source, warnings);
 
-            var folder = ConnectionDefaults.NewContainer(FolderName);
+            var folder = ImportNodeFactory.NewContainer(FolderName);
             foreach (var entry in entries)
             {
-                var connection = ConnectionDefaults.NewConnection(ProtocolType.SSH2);
+                var connection = ImportNodeFactory.NewConnection(ProtocolType.SSH2);
                 connection.Name = entry.Alias;
                 connection.Hostname = entry.HostName;
                 connection.Port = entry.Port;

@@ -12,7 +12,7 @@ namespace mRemoteNG.Core.Config.Serializers.Misc
     /// (which match the legacy app's defaults for a new connection). A bare <see cref="ConnectionInfo"/>
     /// leaves enums such as <see cref="ConnectionInfo.Colors"/> at invalid zero values.
     /// </summary>
-    public static class ConnectionDefaults
+    public static class ImportNodeFactory
     {
         public static ConnectionInfo NewConnection(ProtocolType protocol = ProtocolType.RDP, string? id = null)
         {

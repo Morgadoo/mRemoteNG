@@ -38,7 +38,7 @@ public sealed class ProtocolFactory : IProtocolFactory
             => _services.GetRequiredService<VncProtocol>(),
 
         ProtocolType.Http or ProtocolType.Https
-            => _services.GetRequiredService<WebViewProtocol>(),
+            => _services.GetRequiredService<ExternalBrowserProtocol>(),
 
         ProtocolType.PowerShell
             => _services.GetRequiredService<PowerShellProtocol>(),
@@ -48,6 +48,12 @@ public sealed class ProtocolFactory : IProtocolFactory
 
         ProtocolType.ExternalApp
             => _services.GetRequiredService<ExternalAppProtocol>(),
+
+        ProtocolType.Raw
+            => _services.GetRequiredService<RawSocketProtocol>(),
+
+        ProtocolType.LocalShell
+            => _services.GetRequiredService<LocalShellProtocol>(),
 
         _ => throw new NotSupportedException($"No protocol handler for {type}.")
     };
@@ -60,10 +66,12 @@ public sealed class ProtocolFactory : IProtocolFactory
         services.AddTransient<RloginProtocol>();
         services.AddTransient<RdpProtocol>();
         services.AddTransient<VncProtocol>();
-        services.AddTransient<WebViewProtocol>();
+        services.AddTransient<ExternalBrowserProtocol>();
         services.AddTransient<PowerShellProtocol>();
         services.AddTransient<SerialProtocol>();
         services.AddTransient<ExternalAppProtocol>();
+        services.AddTransient<RawSocketProtocol>();
+        services.AddTransient<LocalShellProtocol>();
         services.AddSingleton<IProtocolFactory, ProtocolFactory>();
     }
 }

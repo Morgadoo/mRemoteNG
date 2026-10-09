@@ -29,7 +29,14 @@ public static class ConnectionParametersFactory
         /// <summary>VNC scaling: "none", "fit" (keep aspect ratio) or "stretch".</summary>
         public const string VncScaling = "vnc.scaling";
         public const string VncViewOnly = "vnc.viewOnly";
+        /// <summary>Command template for <see cref="ProtocolType.ExternalApp"/> (see ExternalAppProtocol).</summary>
+        public const string ExternalCommand = "external.command";
+        /// <summary>Local shell flavour for <see cref="ProtocolType.LocalShell"/>: "terminal" or "wsl".</summary>
+        public const string LocalShellMode = "shell.mode";
     }
+
+    /// <summary>Command used for AnyDesk connections; the hostname holds the AnyDesk ID or alias.</summary>
+    public const string AnyDeskCommand = "anydesk {hostname}";
 
     /// <summary>
     /// Maps a legacy/Core protocol to a cross-platform protocol implementation,
@@ -46,6 +53,13 @@ public static class ConnectionParametersFactory
         CoreProtocol.HTTP => ProtocolType.Http,
         CoreProtocol.HTTPS => ProtocolType.Https,
         CoreProtocol.PowerShell => ProtocolType.PowerShell,
+        CoreProtocol.RAW => ProtocolType.Raw,
+        // Apple Remote Desktop speaks RFB, so the VNC client handles it (default port 5900).
+        CoreProtocol.ARD => ProtocolType.Vnc,
+        // AnyDesk has no embeddable client: launch the installed AnyDesk app with the ID.
+        CoreProtocol.AnyDesk => ProtocolType.ExternalApp,
+        CoreProtocol.Terminal or CoreProtocol.WSL => ProtocolType.LocalShell,
+        // IntApp needs the legacy "External Tools" feature, which is not ported yet.
         _ => null,
     };
 
@@ -64,6 +78,10 @@ public static class ConnectionParametersFactory
             AddRdpExtras(info, extras);
         else if (protocol == ProtocolType.Vnc)
             AddVncExtras(info, extras);
+        if (info.Protocol == CoreProtocol.AnyDesk)
+            extras[Keys.ExternalCommand] = AnyDeskCommand;
+        if (protocol == ProtocolType.LocalShell)
+            extras[Keys.LocalShellMode] = info.Protocol == CoreProtocol.WSL ? "wsl" : "terminal";
 
         return new ConnectionParameters
         {

@@ -22,7 +22,7 @@ namespace mRemoteNG.Core.Config.Import
             ContainerInfo destinationContainer,
             IReadOnlyList<string>? warnings = null)
         {
-            var folder = ConnectionDefaults.NewContainer(Path.GetFileNameWithoutExtension(filePath));
+            var folder = ImportNodeFactory.NewContainer(Path.GetFileNameWithoutExtension(filePath));
             folder.AddChildRange(children.ToArray());
             destinationContainer.AddChild(folder);
             return new ImportResult([folder], warnings?.ToList());

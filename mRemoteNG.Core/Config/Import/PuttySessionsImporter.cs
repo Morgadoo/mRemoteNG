@@ -42,7 +42,7 @@ namespace mRemoteNG.Core.Config.Import
             }
 
             var warnings = new List<string>();
-            var folder = ConnectionDefaults.NewContainer(FolderName);
+            var folder = ImportNodeFactory.NewContainer(FolderName);
             foreach (var session in sessions)
             {
                 if (session.Name is "Default Settings" or "Default%20Settings")
@@ -60,7 +60,7 @@ namespace mRemoteNG.Core.Config.Import
                     continue;
                 }
 
-                var connection = ConnectionDefaults.NewConnection(protocol.Value);
+                var connection = ImportNodeFactory.NewConnection(protocol.Value);
                 connection.Name = session.Name;
                 connection.Hostname = session.Hostname;
                 connection.Port = session.Port > 0 ? session.Port : connection.Port;

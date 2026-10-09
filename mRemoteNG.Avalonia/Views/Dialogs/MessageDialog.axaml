@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.MessageDialog"
+        Title="mRemoteNG"
+        Width="420"
+        SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="24" Spacing="18">
+        <TextBlock x:Name="MessageText" TextWrapping="Wrap"/>
+        <StackPanel x:Name="ButtonPanel" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right"/>
+    </StackPanel>
+</Window>

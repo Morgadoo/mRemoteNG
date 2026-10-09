@@ -104,7 +104,7 @@ namespace mRemoteNG.Core.Config.Serializers.Misc
                 ? containerNode.SelectSingleNode("./properties") ?? containerNode
                 : containerNode;
 
-            var newContainer = ConnectionDefaults.NewContainer("New Folder");
+            var newContainer = ImportNodeFactory.NewContainer("New Folder");
             newContainer.CopyFrom(ConnectionInfoFromXml(settingsNode));
 
             var propertiesNode = containerNode.SelectSingleNode("./properties");
@@ -118,7 +118,7 @@ namespace mRemoteNG.Core.Config.Serializers.Misc
 
         private ConnectionInfo ConnectionInfoFromXml(XmlNode xmlNode)
         {
-            var connectionInfo = ConnectionDefaults.NewConnection(ProtocolType.RDP);
+            var connectionInfo = ImportNodeFactory.NewConnection(ProtocolType.RDP);
 
             // 2.2 stores server properties directly on <server>; 2.7 wraps them in <properties>.
             var propertiesNode = _schemaVersion == 1 ? xmlNode : xmlNode.SelectSingleNode("./properties");

@@ -78,7 +78,7 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
                     continue;
                 }
 
-                var connection = ConnectionDefaults.NewConnection(type.Protocol);
+                var connection = ImportNodeFactory.NewConnection(type.Protocol);
                 var name = Get(nameColumn);
                 connection.Name = string.IsNullOrWhiteSpace(name) ? host : name;
                 connection.Hostname = host;
@@ -94,7 +94,7 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
                 var group = Get(groupColumn).Trim().Trim('\\');
                 if (group.Length == 0)
                 {
-                    unsorted ??= ConnectionDefaults.NewContainer("Unsorted");
+                    unsorted ??= ImportNodeFactory.NewContainer("Unsorted");
                     unsorted.AddChild(connection);
                 }
                 else
@@ -116,7 +116,7 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
 
             var separator = path.LastIndexOf('\\');
             var parent = separator < 0 ? root : GetOrCreateGroup(root, groups, path[..separator]);
-            var container = ConnectionDefaults.NewContainer(path[(separator + 1)..]);
+            var container = ImportNodeFactory.NewContainer(path[(separator + 1)..]);
             parent.AddChild(container);
             groups[path] = container;
             return container;

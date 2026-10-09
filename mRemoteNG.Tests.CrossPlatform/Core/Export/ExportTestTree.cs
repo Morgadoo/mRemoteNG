@@ -26,12 +26,12 @@ internal sealed class ExportTestTree
 
     public ExportTestTree()
     {
-        Prod = ConnectionDefaults.NewContainer("Prod");
+        Prod = ImportNodeFactory.NewContainer("Prod");
         Prod.Username = "produser";
         Prod.Description = "Production; critical";
         Root.AddChild(Prod);
 
-        Web = ConnectionDefaults.NewConnection(ProtocolType.SSH2);
+        Web = ImportNodeFactory.NewConnection(ProtocolType.SSH2);
         Web.Name = "web";
         Web.Hostname = "web.example.com";
         Web.Port = 2222;
@@ -39,10 +39,10 @@ internal sealed class ExportTestTree
         Web.Inheritance.Username = true;
         Prod.AddChild(Web);
 
-        Databases = ConnectionDefaults.NewContainer("Databases");
+        Databases = ImportNodeFactory.NewContainer("Databases");
         Prod.AddChild(Databases);
 
-        Db1 = ConnectionDefaults.NewConnection(ProtocolType.RDP);
+        Db1 = ImportNodeFactory.NewConnection(ProtocolType.RDP);
         Db1.Name = "db1";
         Db1.Hostname = "db1.example.com";
         Db1.Username = "dbadmin";
@@ -56,7 +56,7 @@ internal sealed class ExportTestTree
         Db1.Description = "multi\nline";
         Databases.AddChild(Db1);
 
-        Lab = ConnectionDefaults.NewConnection(ProtocolType.VNC);
+        Lab = ImportNodeFactory.NewConnection(ProtocolType.VNC);
         Lab.Name = "lab";
         Lab.Hostname = "lab.example.com";
         Lab.Favorite = true;

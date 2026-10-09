@@ -24,7 +24,7 @@ namespace mRemoteNG.Core.Config.Serializers.Misc
         public ConnectionTreeModel Deserialize(string rdcFileContent)
         {
             var root = new RootNodeInfo(RootNodeType.Connection);
-            var connectionInfo = ConnectionDefaults.NewConnection(ProtocolType.RDP);
+            var connectionInfo = ImportNodeFactory.NewConnection(ProtocolType.RDP);
 
             foreach (var line in rdcFileContent.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
             {

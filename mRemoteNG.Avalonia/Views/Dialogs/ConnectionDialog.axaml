@@ -4,116 +4,332 @@
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ConnectionDialog"
         x:DataType="vm:ConnectionDialogViewModel"
         Title="{Binding WindowTitle}"
-        Width="560"
-        Height="500"
-        MinHeight="400"
+        Width="600"
+        Height="600"
+        MinWidth="480"
+        MinHeight="420"
         WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <DataTemplate x:Key="EnumItemTemplate">
+            <TextBlock Text="{ReflectionBinding Converter={x:Static vm:EnumLabelConverter.Instance}}"/>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Grid.form > TextBlock.label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+        <Style Selector="Grid.form > CheckBox.inherit">
+            <Setter Property="Margin" Value="10,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+        <Style Selector="Grid.form > ComboBox">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="TextBlock.error">
+            <Setter Property="Foreground" Value="#E05252"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+        <Style Selector="TextBlock.note">
+            <Setter Property="Foreground" Value="#888888"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Styles>
 
     <Grid RowDefinitions="*,Auto">
 
-        <ScrollViewer Grid.Row="0" Padding="20">
-            <StackPanel Spacing="14">
+        <TabControl Grid.Row="0" Margin="12,8,12,0">
 
-                <!-- General -->
-                <Border Classes="card">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="General" Classes="section-header"/>
-                        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,12,Auto,12,Auto">
-                            <TextBlock Grid.Row="0" Text="Name" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}"/>
-                            <TextBlock Grid.Row="2" Text="Hostname / IP" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Hostname}"/>
-                            <TextBlock Grid.Row="4" Text="Description" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Description}"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+            <!-- ═══ General ═══ -->
+            <TabItem Header="General">
+                <ScrollViewer Padding="4,8">
+                    <StackPanel Spacing="10">
+                        <TextBlock Classes="note" Text="{Binding InheritHint}" IsVisible="{Binding CanInherit}"/>
 
-                <!-- Protocol -->
-                <Border Classes="card">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Protocol" Classes="section-header"/>
-                        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,12,Auto">
-                            <TextBlock Grid.Row="0" Text="Protocol" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Row="0" Grid.Column="1"
+                        <Grid Classes="form" ColumnDefinitions="140,*,Auto"
+                              RowDefinitions="Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
+                            <TextBlock Grid.Row="0" Classes="label" Text="Name"/>
+                            <StackPanel Grid.Row="0" Grid.Column="1">
+                                <TextBox x:Name="NameBox" Text="{Binding Name}"/>
+                                <TextBlock Classes="error" Text="{Binding NameError}"
+                                           IsVisible="{Binding NameError, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="2" Classes="label" Text="Hostname / IP" IsVisible="{Binding IsConnection}"/>
+                            <StackPanel Grid.Row="2" Grid.Column="1" IsVisible="{Binding IsConnection}">
+                                <TextBox Text="{Binding Hostname}" Watermark="host name, IP address or URL"/>
+                                <TextBlock Classes="error" Text="{Binding HostnameError}"
+                                           IsVisible="{Binding HostnameError, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="4" Classes="label" Text="Protocol" IsVisible="{Binding IsConnection}"/>
+                            <ComboBox Grid.Row="4" Grid.Column="1" IsVisible="{Binding IsConnection}"
                                       ItemsSource="{Binding Protocols}"
-                                      SelectedItem="{Binding SelectedProtocol}"/>
-                            <TextBlock Grid.Row="2" Text="Port" VerticalAlignment="Center"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1"
-                                           Value="{Binding Port}"
-                                           Minimum="1" Maximum="65535"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+                                      SelectedItem="{Binding Protocol.Value}"
+                                      IsEnabled="{Binding Protocol.IsEditable}"/>
+                            <CheckBox Grid.Row="4" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsVisible="{Binding IsConnection}"
+                                      IsEnabled="{Binding Protocol.CanInherit}"
+                                      IsChecked="{Binding Protocol.Inherit}"/>
 
-                <!-- Credentials -->
-                <Border Classes="card">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Credentials" Classes="section-header"/>
-                        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,12,Auto,12,Auto">
-                            <TextBlock Grid.Row="0" Text="Username" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Username}"/>
-                            <TextBlock Grid.Row="2" Text="Password" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="2" Grid.Column="1"
-                                     Text="{Binding Password}"
-                                     PasswordChar="●"/>
-                            <TextBlock Grid.Row="4" Text="Domain" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Domain}"
-                                     Watermark="(Windows domain, optional)"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+                            <TextBlock Grid.Row="6" Classes="label" Text="Port" IsVisible="{Binding UsesPort}"/>
+                            <StackPanel Grid.Row="6" Grid.Column="1" IsVisible="{Binding UsesPort}">
+                                <NumericUpDown Value="{Binding Port.Value}" Minimum="0" Maximum="65535"
+                                               FormatString="0" Increment="1"
+                                               IsEnabled="{Binding Port.IsEditable}"/>
+                                <TextBlock Classes="error" Text="{Binding PortError}"
+                                           IsVisible="{Binding PortError, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                            </StackPanel>
+                            <CheckBox Grid.Row="6" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsVisible="{Binding UsesPort}"
+                                      IsEnabled="{Binding Port.CanInherit}"
+                                      IsChecked="{Binding Port.Inherit}"/>
 
-                <!-- RDP-specific (conditionally visible) -->
-                <Border Classes="card" IsVisible="{Binding IsRdp}">
+                            <TextBlock Grid.Row="8" Classes="label" Text="Description"/>
+                            <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding Description.Value}"
+                                     IsEnabled="{Binding Description.IsEditable}"/>
+                            <CheckBox Grid.Row="8" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsEnabled="{Binding Description.CanInherit}"
+                                      IsChecked="{Binding Description.Inherit}"/>
+
+                            <TextBlock Grid.Row="10" Classes="label" Text="Panel"/>
+                            <TextBox Grid.Row="10" Grid.Column="1" Text="{Binding Panel.Value}"
+                                     IsEnabled="{Binding Panel.IsEditable}"/>
+                            <CheckBox Grid.Row="10" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsEnabled="{Binding Panel.CanInherit}"
+                                      IsChecked="{Binding Panel.Inherit}"/>
+
+                            <TextBlock Grid.Row="12" Classes="label" Text="Icon"/>
+                            <ComboBox Grid.Row="12" Grid.Column="1"
+                                      ItemsSource="{Binding IconNames}"
+                                      SelectedItem="{Binding Icon.Value}"
+                                      IsEnabled="{Binding Icon.IsEditable}"/>
+                            <CheckBox Grid.Row="12" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsEnabled="{Binding Icon.CanInherit}"
+                                      IsChecked="{Binding Icon.Inherit}"/>
+                        </Grid>
+
+                        <TextBlock Classes="note" Text="{Binding ProtocolNote}"
+                                   IsVisible="{Binding ProtocolNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ═══ Credentials ═══ -->
+            <TabItem Header="Credentials">
+                <ScrollViewer Padding="4,8">
                     <StackPanel Spacing="10">
-                        <TextBlock Text="RDP Settings" Classes="section-header"/>
-                        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,12,Auto">
-                            <TextBlock Grid.Row="0" Text="Color Depth" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Row="0" Grid.Column="1"
-                                      ItemsSource="{Binding RdpColorDepths}"
-                                      SelectedItem="{Binding RdpColorDepth}"/>
-                            <TextBlock Grid.Row="2" Text="Smart Sizing" VerticalAlignment="Center"/>
-                            <CheckBox Grid.Row="2" Grid.Column="1"
-                                      IsChecked="{Binding RdpSmartSize}"
-                                      Content="Scale to fit window"/>
+                        <TextBlock Classes="note" IsVisible="{Binding IsFolder}"
+                                   Text="Connections in this folder can inherit these credentials."/>
+                        <Grid Classes="form" ColumnDefinitions="140,*,Auto" RowDefinitions="Auto,8,Auto,8,Auto">
+                            <TextBlock Grid.Row="0" Classes="label" Text="Username"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Username.Value}"
+                                     IsEnabled="{Binding Username.IsEditable}"/>
+                            <CheckBox Grid.Row="0" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsEnabled="{Binding Username.CanInherit}"
+                                      IsChecked="{Binding Username.Inherit}"/>
+
+                            <TextBlock Grid.Row="2" Classes="label" Text="Password"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Password.Value}" PasswordChar="●"
+                                     IsEnabled="{Binding Password.IsEditable}"/>
+                            <CheckBox Grid.Row="2" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsEnabled="{Binding Password.CanInherit}"
+                                      IsChecked="{Binding Password.Inherit}"/>
+
+                            <TextBlock Grid.Row="4" Classes="label" Text="Domain"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Domain.Value}"
+                                     Watermark="(Windows domain, optional)"
+                                     IsEnabled="{Binding Domain.IsEditable}"/>
+                            <CheckBox Grid.Row="4" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                      IsEnabled="{Binding Domain.CanInherit}"
+                                      IsChecked="{Binding Domain.Inherit}"/>
                         </Grid>
                     </StackPanel>
-                </Border>
+                </ScrollViewer>
+            </TabItem>
 
-                <!-- SSH-specific -->
-                <Border Classes="card" IsVisible="{Binding IsSsh}">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="SSH Settings" Classes="section-header"/>
-                        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,12,Auto">
-                            <TextBlock Grid.Row="0" Text="Private Key" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="0" Grid.Column="1"
-                                     Text="{Binding SshKeyPath}"
-                                     Watermark="Path to private key file"/>
-                            <TextBlock Grid.Row="2" Text="Compression" VerticalAlignment="Center"/>
-                            <CheckBox Grid.Row="2" Grid.Column="1"
-                                      IsChecked="{Binding SshCompression}"
-                                      Content="Enable compression"/>
-                        </Grid>
+            <!-- ═══ Protocol settings ═══ -->
+            <TabItem Header="Protocol" IsVisible="{Binding IsConnection}">
+                <ScrollViewer Padding="4,8">
+                    <StackPanel Spacing="14">
+
+                        <!-- RDP -->
+                        <StackPanel Spacing="10" IsVisible="{Binding IsRdp}">
+                            <TextBlock Text="Remote Desktop" Classes="section-header"/>
+                            <Grid Classes="form" ColumnDefinitions="180,*,Auto"
+                                  RowDefinitions="Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
+                                <TextBlock Grid.Row="0" Classes="label" Text="Resolution"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Resolutions}"
+                                          SelectedItem="{Binding Resolution.Value}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"
+                                          IsEnabled="{Binding Resolution.IsEditable}"/>
+                                <CheckBox Grid.Row="0" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding Resolution.CanInherit}" IsChecked="{Binding Resolution.Inherit}"/>
+
+                                <TextBlock Grid.Row="2" Classes="label" Text="Colours"/>
+                                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding ColorDepths}"
+                                          SelectedItem="{Binding Colors.Value}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"
+                                          IsEnabled="{Binding Colors.IsEditable}"/>
+                                <CheckBox Grid.Row="2" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding Colors.CanInherit}" IsChecked="{Binding Colors.Inherit}"/>
+
+                                <TextBlock Grid.Row="4" Classes="label" Text="Authentication"/>
+                                <CheckBox Grid.Row="4" Grid.Column="1" Content="Use NLA / CredSSP"
+                                          IsChecked="{Binding UseCredSsp.Value}" IsEnabled="{Binding UseCredSsp.IsEditable}"/>
+                                <CheckBox Grid.Row="4" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding UseCredSsp.CanInherit}" IsChecked="{Binding UseCredSsp.Inherit}"/>
+
+                                <TextBlock Grid.Row="6" Classes="label" Text="Session"/>
+                                <CheckBox Grid.Row="6" Grid.Column="1" Content="Connect to console session"
+                                          IsChecked="{Binding UseConsoleSession.Value}" IsEnabled="{Binding UseConsoleSession.IsEditable}"/>
+                                <CheckBox Grid.Row="6" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding UseConsoleSession.CanInherit}" IsChecked="{Binding UseConsoleSession.Inherit}"/>
+
+                                <TextBlock Grid.Row="8" Classes="label" Text="Clipboard"/>
+                                <CheckBox Grid.Row="8" Grid.Column="1" Content="Redirect clipboard"
+                                          IsChecked="{Binding RedirectClipboard.Value}" IsEnabled="{Binding RedirectClipboard.IsEditable}"/>
+                                <CheckBox Grid.Row="8" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding RedirectClipboard.CanInherit}" IsChecked="{Binding RedirectClipboard.Inherit}"/>
+
+                                <TextBlock Grid.Row="10" Classes="label" Text="Redirect drives"/>
+                                <ComboBox Grid.Row="10" Grid.Column="1" ItemsSource="{Binding DiskDriveOptions}"
+                                          SelectedItem="{Binding RedirectDiskDrives.Value}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"
+                                          IsEnabled="{Binding RedirectDiskDrives.IsEditable}"/>
+                                <CheckBox Grid.Row="10" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding RedirectDiskDrives.CanInherit}" IsChecked="{Binding RedirectDiskDrives.Inherit}"/>
+
+                                <TextBlock Grid.Row="12" Classes="label" Text="Sound"/>
+                                <ComboBox Grid.Row="12" Grid.Column="1" ItemsSource="{Binding SoundOptions}"
+                                          SelectedItem="{Binding RedirectSound.Value}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"
+                                          IsEnabled="{Binding RedirectSound.IsEditable}"/>
+                                <CheckBox Grid.Row="12" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding RedirectSound.CanInherit}" IsChecked="{Binding RedirectSound.Inherit}"/>
+
+                                <TextBlock Grid.Row="14" Classes="label" Text="Microphone"/>
+                                <CheckBox Grid.Row="14" Grid.Column="1" Content="Redirect audio capture"
+                                          IsChecked="{Binding RedirectAudioCapture.Value}" IsEnabled="{Binding RedirectAudioCapture.IsEditable}"/>
+                                <CheckBox Grid.Row="14" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding RedirectAudioCapture.CanInherit}" IsChecked="{Binding RedirectAudioCapture.Inherit}"/>
+                            </Grid>
+
+                            <TextBlock Text="RD Gateway" Classes="section-header" Margin="0,8,0,0"/>
+                            <Grid Classes="form" ColumnDefinitions="180,*,Auto"
+                                  RowDefinitions="Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
+                                <TextBlock Grid.Row="0" Classes="label" Text="Use gateway"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding GatewayUsageOptions}"
+                                          SelectedItem="{Binding RDGatewayUsageMethod.Value}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"
+                                          IsEnabled="{Binding RDGatewayUsageMethod.IsEditable}"/>
+                                <CheckBox Grid.Row="0" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding RDGatewayUsageMethod.CanInherit}" IsChecked="{Binding RDGatewayUsageMethod.Inherit}"/>
+
+                                <TextBlock Grid.Row="2" Classes="label" Text="Gateway host" IsVisible="{Binding IsGatewayEnabled}"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding RDGatewayHostname.Value}"
+                                         IsVisible="{Binding IsGatewayEnabled}" IsEnabled="{Binding RDGatewayHostname.IsEditable}"/>
+                                <CheckBox Grid.Row="2" Grid.Column="2" Classes="inherit" Content="Inherit" IsVisible="{Binding IsGatewayEnabled}"
+                                          IsEnabled="{Binding RDGatewayHostname.CanInherit}" IsChecked="{Binding RDGatewayHostname.Inherit}"/>
+
+                                <TextBlock Grid.Row="4" Classes="label" Text="Gateway credentials" IsVisible="{Binding IsGatewayEnabled}"/>
+                                <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding GatewayCredentialOptions}"
+                                          SelectedItem="{Binding RDGatewayUseConnectionCredentials.Value}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"
+                                          IsVisible="{Binding IsGatewayEnabled}"
+                                          IsEnabled="{Binding RDGatewayUseConnectionCredentials.IsEditable}"/>
+                                <CheckBox Grid.Row="4" Grid.Column="2" Classes="inherit" Content="Inherit" IsVisible="{Binding IsGatewayEnabled}"
+                                          IsEnabled="{Binding RDGatewayUseConnectionCredentials.CanInherit}"
+                                          IsChecked="{Binding RDGatewayUseConnectionCredentials.Inherit}"/>
+
+                                <TextBlock Grid.Row="6" Classes="label" Text="Gateway username" IsVisible="{Binding ShowGatewayCredentials}"/>
+                                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding RDGatewayUsername.Value}"
+                                         IsVisible="{Binding ShowGatewayCredentials}" IsEnabled="{Binding RDGatewayUsername.IsEditable}"/>
+                                <CheckBox Grid.Row="6" Grid.Column="2" Classes="inherit" Content="Inherit" IsVisible="{Binding ShowGatewayCredentials}"
+                                          IsEnabled="{Binding RDGatewayUsername.CanInherit}" IsChecked="{Binding RDGatewayUsername.Inherit}"/>
+
+                                <TextBlock Grid.Row="8" Classes="label" Text="Gateway password" IsVisible="{Binding ShowGatewayCredentials}"/>
+                                <TextBox Grid.Row="8" Grid.Column="1" Text="{Binding RDGatewayPassword.Value}" PasswordChar="●"
+                                         IsVisible="{Binding ShowGatewayCredentials}" IsEnabled="{Binding RDGatewayPassword.IsEditable}"/>
+                                <CheckBox Grid.Row="8" Grid.Column="2" Classes="inherit" Content="Inherit" IsVisible="{Binding ShowGatewayCredentials}"
+                                          IsEnabled="{Binding RDGatewayPassword.CanInherit}" IsChecked="{Binding RDGatewayPassword.Inherit}"/>
+
+                                <TextBlock Grid.Row="10" Classes="label" Text="Gateway domain" IsVisible="{Binding ShowGatewayCredentials}"/>
+                                <TextBox Grid.Row="10" Grid.Column="1" Text="{Binding RDGatewayDomain.Value}"
+                                         IsVisible="{Binding ShowGatewayCredentials}" IsEnabled="{Binding RDGatewayDomain.IsEditable}"/>
+                                <CheckBox Grid.Row="10" Grid.Column="2" Classes="inherit" Content="Inherit" IsVisible="{Binding ShowGatewayCredentials}"
+                                          IsEnabled="{Binding RDGatewayDomain.CanInherit}" IsChecked="{Binding RDGatewayDomain.Inherit}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- SSH -->
+                        <StackPanel Spacing="10" IsVisible="{Binding IsSsh}">
+                            <TextBlock Text="SSH" Classes="section-header"/>
+                            <Grid Classes="form" ColumnDefinitions="180,*,Auto" RowDefinitions="Auto">
+                                <TextBlock Grid.Row="0" Classes="label" Text="Opening command"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding OpeningCommand.Value}"
+                                         Watermark="command sent after login (optional)"
+                                         IsEnabled="{Binding OpeningCommand.IsEditable}"/>
+                                <CheckBox Grid.Row="0" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding OpeningCommand.CanInherit}" IsChecked="{Binding OpeningCommand.Inherit}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- VNC -->
+                        <StackPanel Spacing="10" IsVisible="{Binding IsVnc}">
+                            <TextBlock Text="VNC" Classes="section-header"/>
+                            <Grid Classes="form" ColumnDefinitions="180,*,Auto" RowDefinitions="Auto,8,Auto">
+                                <TextBlock Grid.Row="0" Classes="label" Text="View only"/>
+                                <CheckBox Grid.Row="0" Grid.Column="1" Content="Do not send keyboard or mouse input"
+                                          IsChecked="{Binding VNCViewOnly.Value}" IsEnabled="{Binding VNCViewOnly.IsEditable}"/>
+                                <CheckBox Grid.Row="0" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding VNCViewOnly.CanInherit}" IsChecked="{Binding VNCViewOnly.Inherit}"/>
+
+                                <TextBlock Grid.Row="2" Classes="label" Text="Smart size"/>
+                                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding SmartSizeOptions}"
+                                          SelectedItem="{Binding VNCSmartSizeMode.Value}"
+                                          ItemTemplate="{StaticResource EnumItemTemplate}"
+                                          IsEnabled="{Binding VNCSmartSizeMode.IsEditable}"/>
+                                <CheckBox Grid.Row="2" Grid.Column="2" Classes="inherit" Content="Inherit"
+                                          IsEnabled="{Binding VNCSmartSizeMode.CanInherit}" IsChecked="{Binding VNCSmartSizeMode.Inherit}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- HTTP -->
+                        <StackPanel Spacing="10" IsVisible="{Binding IsHttp}">
+                            <TextBlock Text="Web" Classes="section-header"/>
+                            <TextBlock Classes="note"
+                                       Text="Rendering engine: not applicable. Pages open in your default web browser."/>
+                        </StackPanel>
+
+                        <TextBlock Classes="note" Text="{Binding ProtocolNote}"
+                                   IsVisible="{Binding ProtocolNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                     </StackPanel>
-                </Border>
-
-            </StackPanel>
-        </ScrollViewer>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
 
         <!-- Button bar + test status -->
-        <Border Grid.Row="1" BorderBrush="#3f3f46" BorderThickness="0,1,0,0" Padding="16,10">
+        <Border Grid.Row="1" BorderBrush="#3f3f46" BorderThickness="0,1,0,0" Padding="16,10" Margin="0,8,0,0">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top"
                            Text="{Binding TestStatus}"
                            FontSize="11"
                            Foreground="#888888"
                            Margin="0,0,0,6"
+                           TextWrapping="Wrap"
                            IsVisible="{Binding TestStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <Button DockPanel.Dock="Left" Content="Test Connection" MinWidth="120"
+                        IsVisible="{Binding IsConnection}"
+                        Command="{Binding TestCommand}"/>
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                    <Button Content="Cancel" MinWidth="80" Command="{Binding CancelCommand}"/>
-                    <Button Content="Test Connection" MinWidth="120" Command="{Binding TestCommand}"/>
-                    <Button Content="Save" Classes="accent" MinWidth="80" Command="{Binding SaveCommand}"/>
+                    <Button Content="Cancel" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
+                    <Button Content="OK" Classes="accent" MinWidth="80" IsDefault="True" Command="{Binding OkCommand}"/>
                 </StackPanel>
             </DockPanel>
         </Border>

@@ -71,7 +71,7 @@ public static class AppServices
         // Transient dialogs (new instance per open)
         services.AddTransient<ViewModels.OptionsWindowViewModel>();
         services.AddTransient<ViewModels.QuickConnectViewModel>();
-        services.AddTransient<ViewModels.ConnectionDialogViewModel>();
+        // ConnectionDialogViewModel is created per edited node by ConnectionTreeViewModel (not via DI).
 
         // Services
         services.AddSingleton<Services.ThemeService>(_ => Services.ThemeService.Instance);
