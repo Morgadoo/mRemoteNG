@@ -3,56 +3,75 @@
         xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         xmlns:svc="using:mRemoteNG.Avalonia.Services"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ThemeEditorDialog"
         x:DataType="vm:ThemeEditorViewModel"
+        Classes="dialog"
         Title="{l:Tr ThemeEditor}"
-        Width="620" Height="640" MinWidth="480" MinHeight="420"
+        Width="680" Height="720" MinWidth="520" MinHeight="460"
         WindowStartupLocation="CenterOwner">
-    <Grid RowDefinitions="Auto,*,Auto" Margin="16">
-        <StackPanel Spacing="10">
-            <Grid ColumnDefinitions="140,*">
-                <TextBlock Text="{l:Tr StartFrom}" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" x:Name="BaseCombo"
-                          ItemsSource="{Binding AllThemes}" SelectedItem="{Binding BaseTheme}">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="svc:ThemeDefinition">
-                            <TextBlock Text="{Binding Name}"/>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <ctl:DialogHeader Icon="PaletteSwatchOutline" Title="{l:Tr ThemeEditor}"
+                          Subtitle="{l:Tr ColoursChangeEverywhereAsYouTypeRrggbb}"/>
+
+        <Border Grid.Row="1" Classes="settings" Margin="24,20,24,16">
+            <StackPanel>
+                <ctl:SettingRow Header="{l:Tr StartFrom}">
+                    <ComboBox x:Name="BaseCombo" Width="260" ItemsSource="{Binding AllThemes}" SelectedItem="{Binding BaseTheme}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="svc:ThemeDefinition">
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </ctl:SettingRow>
+                <ctl:SettingRow Header="{l:Tr SaveAs}">
+                    <TextBox x:Name="NameBox" Width="260" Text="{Binding Name}" Watermark="{l:Tr NameOfYourTheme}"/>
+                </ctl:SettingRow>
+            </StackPanel>
+        </Border>
+
+        <!-- Palette: swatch, key + description, hex value -->
+        <Border Grid.Row="2" Classes="card" Padding="0" Margin="24,0,24,20">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Colors}" Margin="16,4">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ThemeColorEntry">
+                            <Border BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="Auto,12,*,12,120">
+                                    <Border Width="32" Height="32" CornerRadius="6" BorderThickness="1"
+                                            BorderBrush="{DynamicResource Border1Brush}" Background="{Binding Swatch}"/>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="{Binding Key}" FontWeight="Medium"/>
+                                        <TextBlock Text="{Binding Description}" Classes="caption" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <TextBox Grid.Column="4" Classes="mono" Text="{Binding Value}"
+                                             Classes.error="{Binding !IsValid}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-            </Grid>
-            <Grid ColumnDefinitions="140,*">
-                <TextBlock Text="{l:Tr SaveAs}" VerticalAlignment="Center"/>
-                <TextBox Grid.Column="1" x:Name="NameBox" Text="{Binding Name}" Watermark="{l:Tr NameOfYourTheme}"/>
-            </Grid>
-            <TextBlock Text="{l:Tr ColoursChangeEverywhereAsYouTypeRrggbb}" Opacity="0.7"/>
-        </StackPanel>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
 
-        <ScrollViewer Grid.Row="1" Margin="0,12">
-            <ItemsControl ItemsSource="{Binding Colors}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ThemeColorEntry">
-                        <Grid ColumnDefinitions="28,8,*,8,120" Margin="0,3">
-                            <Border Width="24" Height="24" CornerRadius="3" BorderThickness="1"
-                                    BorderBrush="{DynamicResource Border0Brush}" Background="{Binding Swatch}"/>
-                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Key}" FontWeight="SemiBold"/>
-                                <TextBlock Text="{Binding Description}" FontSize="11" Opacity="0.7"/>
-                            </StackPanel>
-                            <TextBox Grid.Column="4" Text="{Binding Value}" FontFamily="monospace"/>
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-
-        <StackPanel Grid.Row="2" Spacing="8">
-            <TextBlock Text="{Binding Status}" TextWrapping="Wrap"/>
-            <Grid ColumnDefinitions="Auto,*,Auto,8,Auto">
-                <Button Content="{l:Tr DeleteTheme}" Classes="danger" Command="{Binding DeleteCommand}"/>
-                <Button Grid.Column="2" Content="{l:Tr SaveAndApply}" Classes="accent" Click="OnSave"/>
-                <Button Grid.Column="4" Content="{l:Tr _Close}" IsCancel="True" Click="OnClose"/>
+        <Border Grid.Row="3" Classes="dialog-footer">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Classes="danger" Command="{Binding DeleteCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="TrashCanOutline"/>
+                        <TextBlock Text="{l:Tr DeleteTheme}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Grid.Column="1" Text="{Binding Status}" Classes="caption" TextWrapping="Wrap"
+                           VerticalAlignment="Center" Margin="16,0"/>
+                <StackPanel Grid.Column="2" Classes="dialog-actions">
+                    <Button Content="{l:Tr _Close}" IsCancel="True" Click="OnClose"/>
+                    <Button Content="{l:Tr SaveAndApply}" Classes="accent" IsDefault="True" Click="OnSave"/>
+                </StackPanel>
             </Grid>
-        </StackPanel>
+        </Border>
     </Grid>
 </Window>

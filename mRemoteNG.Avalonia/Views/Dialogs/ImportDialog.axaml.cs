@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Material.Icons;
 using mRemoteNG.Core.Config.Import;
 using mRemoteNG.Core.Config.Import.ActiveDirectory;
 using mRemoteNG.Core.Localization;
@@ -16,6 +17,24 @@ public sealed record ImportRequest(ImportSourceType Type, string Source, bool In
     /// Active Directory import. Pass it to <c>ConnectionImportService.Import</c> as the password.
     /// </summary>
     public string? Password { get; init; }
+}
+
+/// <summary>An import source shown as a selectable card in the <see cref="ImportDialog"/>.</summary>
+public sealed record ImportSourceCard(ImportSourceDescriptor Descriptor, MaterialIconKind Icon)
+{
+    public static ImportSourceCard For(ImportSourceDescriptor descriptor) => new(descriptor, descriptor.Type switch
+    {
+        ImportSourceType.MRemoteNGXml => MaterialIconKind.FileCodeOutline,
+        ImportSourceType.MRemoteNGCsv => MaterialIconKind.FileDelimitedOutline,
+        ImportSourceType.PuttySessions => MaterialIconKind.ConsoleNetworkOutline,
+        ImportSourceType.OpenSshConfig => MaterialIconKind.ConsoleLine,
+        ImportSourceType.RemoteDesktopConnectionManager => MaterialIconKind.MonitorMultiple,
+        ImportSourceType.RemoteDesktopConnectionFile => MaterialIconKind.RemoteDesktop,
+        ImportSourceType.RemoteDesktopManager => MaterialIconKind.FileTableOutline,
+        ImportSourceType.SecureCrt => MaterialIconKind.ShieldLockOutline,
+        ImportSourceType.ActiveDirectory => MaterialIconKind.Domain,
+        _ => MaterialIconKind.FileImportOutline,
+    });
 }
 
 /// <summary>
@@ -36,7 +55,7 @@ public partial class ImportDialog : Window
     {
         InitializeComponent();
 
-        SourceTypeBox.ItemsSource = ImportSourceDescriptor.All.Select(d => d.DisplayName).ToList();
+        SourceTypeBox.ItemsSource = ImportSourceDescriptor.All.Select(ImportSourceCard.For).ToList();
         SourceTypeBox.SelectedIndex = 0;
         SourceTypeBox.SelectionChanged += (_, _) => OnSourceTypeChanged();
 
@@ -60,7 +79,8 @@ public partial class ImportDialog : Window
     private void OnSourceTypeChanged()
     {
         var source = SelectedSource;
-        ErrorText.IsVisible = false;
+        ErrorPanel.IsVisible = false;
+        FileRow.Header = Localizer.Get(source.SourceIsDirectory ? "DirectoryToImport" : source.SourceIsFolder ? "FolderToImport" : "FileToImport");
         FilePathBox.Text = source.SourceIsDirectory
             ? _directoryRequest?.ToUrl() ?? ""
             : ConnectionImportService.GetDefaultSource(source.Type) ?? "";
@@ -131,7 +151,7 @@ public partial class ImportDialog : Window
         if (request is null) return false;
         _directoryRequest = request;
         FilePathBox.Text = request.ToUrl();
-        ErrorText.IsVisible = false;
+        ErrorPanel.IsVisible = false;
         return true;
     }
 
@@ -169,7 +189,7 @@ public partial class ImportDialog : Window
         if (error is not null)
         {
             ErrorText.Text = error;
-            ErrorText.IsVisible = true;
+            ErrorPanel.IsVisible = true;
             return;
         }
 

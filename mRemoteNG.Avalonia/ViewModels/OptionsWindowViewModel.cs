@@ -1,6 +1,8 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using Avalonia.Media;
+using Material.Icons;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Config;
 using mRemoteNG.Core.Localization;
@@ -121,7 +123,8 @@ public sealed class GeneralSettingsViewModel(AppSettings working) : SettingsPage
 }
 
 /// <summary>A theme in the Appearance list: a plain mode (Dark/Light/System) or a named theme.</summary>
-public sealed class ThemeChoice(string displayName, ThemeMode mode, string themeName)
+public sealed class ThemeChoice(string displayName, ThemeMode mode, string themeName,
+    ThemePreview? preview = null, ThemePreview? alternatePreview = null)
 {
     public string DisplayName { get; } = displayName;
     public ThemeMode Mode { get; } = mode;
@@ -129,7 +132,44 @@ public sealed class ThemeChoice(string displayName, ThemeMode mode, string theme
     /// <summary>Empty for the plain modes.</summary>
     public string ThemeName { get; } = themeName;
 
+    /// <summary>Colours of the swatch card.</summary>
+    public ThemePreview Preview { get; } = preview ?? ThemePreview.For(mode == ThemeMode.Light ? ThemeCatalog.Light : ThemeCatalog.Dark);
+
+    /// <summary>The second half of a split swatch ("Follow system": dark and light); null for one theme.</summary>
+    public ThemePreview? AlternatePreview { get; } = alternatePreview;
+
+    public bool IsSplit => AlternatePreview is not null;
+
     public override string ToString() => DisplayName;
+}
+
+/// <summary>Brushes of a theme for its swatch card in Options ▸ Appearance (a miniature window).</summary>
+public sealed class ThemePreview
+{
+    private ThemePreview(IReadOnlyDictionary<string, string> colors)
+    {
+        IBrush Brush(string key) => colors.TryGetValue(key, out var value) && Color.TryParse(value, out var color)
+            ? new SolidColorBrush(color)
+            : Brushes.Transparent;
+
+        Background = Brush("AppBg0");
+        Surface = Brush("AppBg1");
+        Raised = Brush("AppBg2");
+        Accent = Brush("Accent");
+        Text = Brush("TextPrimary");
+        Muted = Brush("TextMuted");
+        Border = Brush("Border0");
+    }
+
+    public static ThemePreview For(ThemeDefinition theme) => new(ThemeCatalog.ResolveColors(theme));
+
+    public IBrush Background { get; }
+    public IBrush Surface { get; }
+    public IBrush Raised { get; }
+    public IBrush Accent { get; }
+    public IBrush Text { get; }
+    public IBrush Muted { get; }
+    public IBrush Border { get; }
 }
 
 public sealed class AppearanceSettingsViewModel : SettingsPageViewModel
@@ -167,14 +207,17 @@ public sealed class AppearanceSettingsViewModel : SettingsPageViewModel
     /// <summary>Re-reads the user themes (after the theme editor saved or deleted one).</summary>
     public void RefreshThemes()
     {
+        var dark = ThemePreview.For(ThemeCatalog.Dark);
+        var light = ThemePreview.For(ThemeCatalog.Light);
         var list = new List<ThemeChoice>
         {
-            new(Localizer.Get("ThemeDarkChoice"), ThemeMode.Dark, string.Empty),
-            new(Localizer.Get("ThemeLightChoice"), ThemeMode.Light, string.Empty),
-            new(Localizer.Get("ThemeFollowSystem"), ThemeMode.System, string.Empty),
+            new(Localizer.Get("ThemeDarkChoice"), ThemeMode.Dark, string.Empty, dark),
+            new(Localizer.Get("ThemeLightChoice"), ThemeMode.Light, string.Empty, light),
+            new(Localizer.Get("ThemeFollowSystem"), ThemeMode.System, string.Empty, dark, light),
         };
         foreach (var theme in _catalog.GetAll().Where(t => t.Name is not ThemeCatalog.DarkName and not ThemeCatalog.LightName))
-            list.Add(new ThemeChoice(theme.IsBuiltIn ? theme.Name : Localizer.Format("UserThemeFormat", theme.Name), theme.IsDark ? ThemeMode.Dark : ThemeMode.Light, theme.Name));
+            list.Add(new ThemeChoice(theme.IsBuiltIn ? theme.Name : Localizer.Format("UserThemeFormat", theme.Name),
+                theme.IsDark ? ThemeMode.Dark : ThemeMode.Light, theme.Name, ThemePreview.For(theme)));
         Themes = list;
         this.RaisePropertyChanged(nameof(SelectedTheme));
     }
@@ -525,10 +568,29 @@ public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
 }
 
 // ── Main OptionsWindowViewModel ───────────────────────────────────────────
-public sealed class SettingsCategoryViewModel(string displayName, string key) : ReactiveObject
+public sealed class SettingsCategoryViewModel(string displayName, string key, MaterialIconKind icon = MaterialIconKind.CogOutline)
+    : ReactiveObject
 {
     public string DisplayName { get; } = displayName;
     public string Key { get; } = key;
+
+    /// <summary>Glyph shown in the navigation list.</summary>
+    public MaterialIconKind Icon { get; } = icon;
+
+    /// <summary>Texts of the page (setting labels and descriptions) that the search box also matches.</summary>
+    public IReadOnlyList<string> Keywords { get; set; } = [];
+
+    /// <summary>True when <paramref name="text"/> is empty or found in the page name or one of its settings.</summary>
+    public bool Matches(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return true;
+        var terms = text.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return terms.All(term => Contains(DisplayName, term) || Keywords.Any(k => Contains(k, term)));
+    }
+
+    private static bool Contains(string source, string term) =>
+        source.Contains(term, StringComparison.CurrentCultureIgnoreCase);
 }
 
 /// <summary>
@@ -547,6 +609,9 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     private SettingsCategoryViewModel? _selectedCategory;
     private object? _currentPage;
     private string _validationMessage = string.Empty;
+    private string _searchText = string.Empty;
+    private bool _refreshingCategories;
+    private IReadOnlyList<SettingsCategoryViewModel> _visibleCategories;
 
     public OptionsWindowViewModel(
         AppSettingsService settings,
@@ -577,6 +642,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         CancelCommand = ReactiveCommand.Create(OnCancel);
         ApplyCommand = ReactiveCommand.Create(() => { OnApply(); });
         ResetCommand = ReactiveCommand.Create(OnReset);
+        _visibleCategories = Categories;
         SelectedCategory = Categories.FirstOrDefault();
     }
 
@@ -595,18 +661,68 @@ public sealed class OptionsWindowViewModel : ReactiveObject
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
-        new(Localizer.Get("StartupExit", "Startup & Exit"), "general"),
-        new(Localizer.Get("Appearance"), "appearance"),
-        new(Localizer.Get("Connections"), "connections"),
-        new(Localizer.Get("TabsAndPanels"), "tabspanels"),
-        new(Localizer.Get("SavingBackups"), "saving"),
-        new(Localizer.Get("SQLServer"), "sql"),
-        new(Localizer.Get("Credentials"), "credentials"),
-        new(Localizer.Get("ExternalProviders"), "externalProviders"),
-        new(Localizer.Get("Notifications"), "notifications"),
-        new(Localizer.Get("Logging"), "logging"),
-        new(Localizer.Get("Updates"), "updates"),
+        new(Localizer.Get("StartupExit", "Startup & Exit"), "general", MaterialIconKind.PowerStandby),
+        new(Localizer.Get("Appearance"), "appearance", MaterialIconKind.PaletteOutline),
+        new(Localizer.Get("Connections"), "connections", MaterialIconKind.LanConnect),
+        new(Localizer.Get("TabsAndPanels"), "tabspanels", MaterialIconKind.TabUnselected),
+        new(Localizer.Get("SavingBackups"), "saving", MaterialIconKind.ContentSaveOutline),
+        new(Localizer.Get("SQLServer"), "sql", MaterialIconKind.DatabaseOutline),
+        new(Localizer.Get("Credentials"), "credentials", MaterialIconKind.KeyOutline),
+        new(Localizer.Get("ExternalProviders"), "externalProviders", MaterialIconKind.ShieldKeyOutline),
+        new(Localizer.Get("Notifications"), "notifications", MaterialIconKind.BellOutline),
+        new(Localizer.Get("Logging"), "logging", MaterialIconKind.TextBoxOutline),
+        new(Localizer.Get("Updates"), "updates", MaterialIconKind.Update),
     ];
+
+    /// <summary>The pages matching <see cref="SearchText"/> (all pages when it is empty).</summary>
+    public IReadOnlyList<SettingsCategoryViewModel> VisibleCategories
+    {
+        get => _visibleCategories;
+        private set => this.RaiseAndSetIfChanged(ref _visibleCategories, value);
+    }
+
+    /// <summary>Filters the navigation by page name and setting labels.</summary>
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _searchText, value ?? string.Empty);
+            RefreshVisibleCategories();
+        }
+    }
+
+    /// <summary>True when a search matches no page.</summary>
+    public bool HasNoMatches => VisibleCategories.Count == 0;
+
+    /// <summary>Re-applies the search (after the view filled the pages' <see cref="SettingsCategoryViewModel.Keywords"/>).</summary>
+    public void RefreshVisibleCategories()
+    {
+        var selected = SelectedCategory;
+        _refreshingCategories = true;
+        try
+        {
+            VisibleCategories = Categories.Where(c => c.Matches(_searchText)).ToList();
+        }
+        finally
+        {
+            _refreshingCategories = false;
+        }
+        this.RaisePropertyChanged(nameof(HasNoMatches));
+
+        if (VisibleCategories.Count == 0)
+            return;
+        if (selected is not null && VisibleCategories.Contains(selected))
+        {
+            // The list was replaced: show the selection again.
+            _selectedCategory = selected;
+            this.RaisePropertyChanged(nameof(SelectedCategory));
+        }
+        else
+        {
+            SelectedCategory = VisibleCategories[0];
+        }
+    }
 
     /// <summary>Selects a page by key ("general", "sql", …).</summary>
     public void SelectCategory(string key) =>
@@ -617,6 +733,9 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         get => _selectedCategory;
         set
         {
+            // Replacing the navigation list clears the list box selection; keep the page.
+            if (value is null && _refreshingCategories)
+                return;
             this.RaiseAndSetIfChanged(ref _selectedCategory, value);
             CurrentPage = ResolvePageViewModel(value?.Key);
         }
@@ -680,7 +799,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         Connections = new ConnectionSettingsViewModel(_working);
         Credentials = new CredentialsSettingsViewModel(_working, _credentialCount);
         Notifications = new NotificationsSettingsViewModel(_working);
-                ExternalProviders = new ExternalProvidersSettingsViewModel(_working, _externalProviders);
+        ExternalProviders = new ExternalProvidersSettingsViewModel(_working, _externalProviders);
         TabsPanels = new TabsPanelsSettingsViewModel(_working);
         Updates = new UpdatesSettingsViewModel(_working, _updates, _crypto);
         Saving = new SavingSettingsViewModel(_working);

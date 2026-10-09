@@ -2,64 +2,88 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:mi="using:Material.Icons.Avalonia"
              x:Class="mRemoteNG.Avalonia.Views.OptionsPages.UpdatesSettingsPage"
              x:DataType="vm:UpdatesSettingsViewModel">
-    <StackPanel Spacing="16">
-        <TextBlock Text="{l:Tr Updates}" FontSize="18" FontWeight="Bold"/>
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr Updates}" Classes="h1"/>
+            <TextBlock Classes="caption">
+                <Run Text="{l:Tr InstalledVersion}"/>
+                <Run Text="{Binding CurrentVersion}" FontFamily="{DynamicResource MonoFontFamily}"/>
+            </TextBlock>
+        </StackPanel>
 
-        <Border Classes="card">
-            <StackPanel Spacing="12">
-                <TextBlock Text="{l:Tr UpdateCheckSection}" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding AutoCheck}"
-                          Content="{l:Tr CheckForUpdatesAtStartupAtMost}"/>
-                <Grid ColumnDefinitions="*,220">
-                    <TextBlock Text="{l:Tr ReleasesToLookFor}" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                              ItemsSource="{Binding Channels}"
-                              SelectedItem="{Binding SelectedChannel}"/>
-                </Grid>
-            </StackPanel>
-        </Border>
-
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock VerticalAlignment="Center">
-                        <Run Text="{l:Tr InstalledVersion}"/>
-                        <Run Text="{Binding CurrentVersion}"/>
-                    </TextBlock>
-                    <Button Grid.Column="1" Content="{l:Tr CheckNow}" Command="{Binding CheckNowCommand}"/>
-                </Grid>
-                <TextBlock Text="{Binding Status}" TextWrapping="Wrap"/>
-                <SelectableTextBlock Text="{Binding ReleaseUrl}" IsVisible="{Binding HasReleaseUrl}"
-                                     Foreground="{DynamicResource AccentBrush}"/>
-                <Grid ColumnDefinitions="Auto,12,*" IsVisible="{Binding HasReleaseUrl}">
-                    <Button Content="{l:Tr Download}" Command="{Binding DownloadCommand}"
-                            ToolTip.Tip="{l:Tr DownloadsThePackageForThisSystemAnd}"/>
-                    <TextBlock Grid.Column="2" Text="{Binding PackageName}" VerticalAlignment="Center" Opacity="0.8"/>
-                </Grid>
-                <ProgressBar Minimum="0" Maximum="100" Value="{Binding DownloadProgress}" IsVisible="{Binding IsDownloading}"/>
-                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasDownloadedFile}">
-                    <Button Content="{l:Tr Open}" Click="OnOpenDownload"/>
-                    <Button Content="{l:Tr ShowInFolder}" Click="OnRevealDownload"/>
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr UpdateCheckSection}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr CheckForUpdatesAtStartupAtMost}">
+                        <CheckBox Classes="switch" IsChecked="{Binding AutoCheck}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ReleasesToLookFor}">
+                        <ComboBox Width="220" ItemsSource="{Binding Channels}" SelectedItem="{Binding SelectedChannel}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr CheckForUpdatesNow}">
+                        <StackPanel Spacing="10">
+                            <Grid ColumnDefinitions="Auto,12,*">
+                                <Button Command="{Binding CheckNowCommand}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <mi:MaterialIcon Kind="Refresh"/>
+                                        <TextBlock Text="{l:Tr CheckNow}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Grid.Column="2" Text="{Binding Status}" Classes="secondary"
+                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
+                            <SelectableTextBlock Text="{Binding ReleaseUrl}" IsVisible="{Binding HasReleaseUrl}" Classes="link"/>
+                            <Grid ColumnDefinitions="Auto,12,*" IsVisible="{Binding HasReleaseUrl}">
+                                <Button Classes="accent" Command="{Binding DownloadCommand}"
+                                        ToolTip.Tip="{l:Tr DownloadsThePackageForThisSystemAnd}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <mi:MaterialIcon Kind="Download"/>
+                                        <TextBlock Text="{l:Tr Download}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock Grid.Column="2" Text="{Binding PackageName}" Classes="mono secondary"
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding DownloadProgress}" IsVisible="{Binding IsDownloading}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasDownloadedFile}">
+                                <Button Content="{l:Tr Open}" Click="OnOpenDownload"/>
+                                <Button Content="{l:Tr ShowInFolder}" Click="OnRevealDownload"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </ctl:SettingRow>
                 </StackPanel>
-            </StackPanel>
-        </Border>
+            </Border>
+        </StackPanel>
 
-        <Border Classes="card">
-            <StackPanel Spacing="12">
-                <TextBlock Text="{l:Tr Proxy}" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding UseProxy}" Content="{l:Tr UseAProxyForUpdateChecksAnd}"/>
-                <Grid ColumnDefinitions="*,8,120" IsEnabled="{Binding UseProxy}">
-                    <TextBox Text="{Binding ProxyAddress}" Watermark="proxy.example.com"/>
-                    <NumericUpDown Grid.Column="2" FormatString="0" Minimum="1" Maximum="65535" Value="{Binding ProxyPort}"/>
-                </Grid>
-                <CheckBox IsChecked="{Binding ProxyUseAuthentication}" IsEnabled="{Binding UseProxy}" Content="{l:Tr TheProxyRequiresAUserNameAnd}"/>
-                <Grid ColumnDefinitions="*,8,*" IsEnabled="{Binding ProxyUseAuthentication}">
-                    <TextBox Text="{Binding ProxyUsername}" Watermark="{l:Tr Username, English='User name'}"/>
-                    <TextBox Grid.Column="2" Text="{Binding ProxyPassword}" PasswordChar="•" Watermark="{l:Tr Password}"/>
-                </Grid>
-            </StackPanel>
-        </Border>
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Proxy}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr UseAProxyForUpdateChecksAnd}">
+                        <CheckBox Classes="switch" IsChecked="{Binding UseProxy}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr ProxyAddressAndPort}" IsEnabled="{Binding UseProxy}">
+                        <Grid ColumnDefinitions="220,8,110">
+                            <TextBox Classes="mono" Text="{Binding ProxyAddress}" Watermark="proxy.example.com"/>
+                            <NumericUpDown Grid.Column="2" FormatString="0" Minimum="1" Maximum="65535" Value="{Binding ProxyPort}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr TheProxyRequiresAUserNameAnd}" IsEnabled="{Binding UseProxy}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ProxyUseAuthentication}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr Username, English='User name'}" IsEnabled="{Binding ProxyUseAuthentication}">
+                        <TextBox Width="338" Text="{Binding ProxyUsername}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr Password}" IsEnabled="{Binding ProxyUseAuthentication}">
+                        <TextBox Width="338" Text="{Binding ProxyPassword}" PasswordChar="•"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
     </StackPanel>
 </UserControl>

@@ -2,13 +2,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ConnectionDialog"
         x:DataType="vm:ConnectionDialogViewModel"
+        Classes="dialog"
         Title="{Binding WindowTitle}"
-        Width="720"
-        Height="660"
-        MinWidth="560"
-        MinHeight="460"
+        Width="1040"
+        Height="720"
+        MinWidth="780"
+        MinHeight="520"
         WindowStartupLocation="CenterOwner">
 
     <Window.Resources>
@@ -16,47 +19,55 @@
             <TextBlock Text="{ReflectionBinding Converter={x:Static vm:EnumLabelConverter.Instance}}"/>
         </DataTemplate>
 
-        <!-- One property row: label, editor (picked by field type below), Inherit box -->
+        <!-- One property: label + description, editor (picked by field type below), inherit toggle -->
         <DataTemplate x:Key="FieldRowTemplate" x:DataType="vm:PropertyFieldViewModel">
-            <Grid Classes="field-row" ColumnDefinitions="200,*,84" IsVisible="{Binding IsVisible}"
-                  Background="Transparent" ToolTip.Tip="{Binding Description}">
-                <TextBlock Classes="label" Text="{Binding DisplayName}"/>
-                <StackPanel Grid.Column="1">
-                    <ContentControl Content="{Binding}" IsEnabled="{Binding IsEditable}"/>
-                    <TextBlock Classes="error" Text="{Binding Error}"
-                               IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                </StackPanel>
-                <CheckBox Grid.Column="2" Classes="inherit" Content="{l:Tr Inherit}"
-                          IsVisible="{Binding SupportsInheritance}"
-                          IsEnabled="{Binding CanInherit}"
-                          IsChecked="{Binding Inherit}"
-                          ToolTip.Tip="{Binding InheritTip}"/>
-            </Grid>
+            <ctl:SettingRow Classes="field-row" Classes.first="{Binding IsFirstShown}" Classes.inherited="{Binding !IsEditable}"
+                            Header="{Binding DisplayName}" Description="{Binding Description}"
+                            IsVisible="{Binding IsShown}">
+                <Grid ColumnDefinitions="320,8,28">
+                    <StackPanel VerticalAlignment="Center">
+                        <ContentControl Content="{Binding}" IsEnabled="{Binding IsEditable}"/>
+                        <TextBlock Classes="field-error" Text="{Binding Error}" IsVisible="{Binding HasError}"/>
+                    </StackPanel>
+                    <ToggleButton Grid.Column="2" Classes="inherit" VerticalAlignment="Top" Margin="0,2,0,0"
+                                  IsVisible="{Binding SupportsInheritance}"
+                                  IsEnabled="{Binding CanInherit}"
+                                  IsChecked="{Binding Inherit}"
+                                  ToolTip.Tip="{Binding InheritTip}">
+                        <mi:MaterialIcon/>
+                    </ToggleButton>
+                </Grid>
+            </ctl:SettingRow>
         </DataTemplate>
 
         <DataTemplate x:Key="SectionTemplate" x:DataType="vm:PropertySectionViewModel">
-            <StackPanel Spacing="4" Margin="0,0,0,12" IsVisible="{Binding IsVisible}">
-                <TextBlock Classes="section-header" Text="{Binding Header}" Margin="0,0,0,4"/>
-                <ItemsControl ItemsSource="{Binding Fields}" ItemTemplate="{StaticResource FieldRowTemplate}"/>
+            <StackPanel Classes="settings-group" Margin="0,0,0,24" IsVisible="{Binding IsVisible}">
+                <TextBlock Classes="h2" Text="{Binding Header}" IsVisible="{Binding ShowHeader}"/>
+                <Border Classes="settings">
+                    <ItemsControl ItemsSource="{Binding Fields}" ItemTemplate="{StaticResource FieldRowTemplate}"/>
+                </Border>
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate x:Key="InheritanceSectionTemplate" x:DataType="vm:PropertySectionViewModel">
-            <StackPanel Spacing="2" Margin="0,0,0,10">
-                <TextBlock Classes="section-header" Text="{Binding Header}" Margin="0,0,0,4"/>
-                <ItemsControl ItemsSource="{Binding Fields}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:PropertyFieldViewModel">
-                            <CheckBox Width="220" Content="{Binding DisplayName}" IsChecked="{Binding Inherit}"
-                                      IsEnabled="{Binding CanInherit}" ToolTip.Tip="{Binding Description}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+            <StackPanel Classes="settings-group" Margin="0,0,0,24" IsVisible="{Binding IsVisible}">
+                <TextBlock Classes="h2" Text="{Binding Header}"/>
+                <Border Classes="settings" Padding="16,8">
+                    <ItemsControl ItemsSource="{Binding Fields}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PropertyFieldViewModel">
+                                <CheckBox Width="236" Content="{Binding DisplayName}" IsChecked="{Binding Inherit}"
+                                          IsVisible="{Binding MatchesSearch}"
+                                          IsEnabled="{Binding CanInherit}" ToolTip.Tip="{Binding Description}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
@@ -64,11 +75,11 @@
     <!-- Editors by field type; the more specific types come first. -->
     <Window.DataTemplates>
         <DataTemplate DataType="vm:ColorFieldViewModel">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,8,Auto">
                 <AutoCompleteBox Classes="suggest" Text="{Binding Value, Mode=TwoWay}" ItemsSource="{Binding Suggestions}"
                                  FilterMode="ContainsOrdinal" MinimumPrefixLength="0" Watermark="{l:Tr DefaultInParentheses}"/>
-                <Border Grid.Column="1" Width="22" Height="22" Margin="6,0,0,0" CornerRadius="3"
-                        BorderBrush="{DynamicResource Border0Brush}" BorderThickness="1"
+                <Border Grid.Column="2" Width="32" Height="32" CornerRadius="6"
+                        BorderBrush="{DynamicResource Border1Brush}" BorderThickness="1"
                         Background="{Binding Swatch}"/>
             </Grid>
         </DataTemplate>
@@ -77,14 +88,15 @@
                              FilterMode="ContainsOrdinal" MinimumPrefixLength="0"/>
         </DataTemplate>
         <DataTemplate DataType="vm:TextFieldViewModel">
-            <TextBox Text="{Binding Value}" PasswordChar="{Binding PasswordChar}"/>
+            <TextBox Text="{Binding Value}" PasswordChar="{Binding PasswordChar}"
+                     Classes.error="{Binding HasError}" Classes.mono="{Binding IsMonospace}"/>
         </DataTemplate>
         <DataTemplate DataType="vm:BoolFieldViewModel">
-            <CheckBox IsChecked="{Binding Value}"/>
+            <CheckBox Classes="switch" HorizontalAlignment="Right" IsChecked="{Binding Value}"/>
         </DataTemplate>
         <DataTemplate DataType="vm:NumberFieldViewModel">
             <NumericUpDown Value="{Binding Value}" Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
-                           FormatString="0" Increment="1" HorizontalAlignment="Left" MinWidth="160"/>
+                           FormatString="0" Increment="1" Classes.error="{Binding HasError}"/>
         </DataTemplate>
         <DataTemplate DataType="vm:ChoiceFieldViewModel">
             <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Value}" HorizontalAlignment="Stretch"
@@ -93,105 +105,179 @@
     </Window.DataTemplates>
 
     <Window.Styles>
-        <Style Selector="Grid.field-row">
-            <Setter Property="Margin" Value="0,2"/>
+        <!-- Pages without applicable properties are hidden from the navigation -->
+        <Style Selector="ListBox.nav ListBoxItem" x:DataType="vm:PropertyPageViewModel">
+            <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
         </Style>
-        <Style Selector="Grid.field-row > TextBlock.label">
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,0,12,0"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
+        <Style Selector="ctl|SettingRow.field-row.first">
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
-        <Style Selector="Grid.field-row > CheckBox.inherit">
-            <Setter Property="Margin" Value="10,0,0,0"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="FontSize" Value="11"/>
-        </Style>
-        <Style Selector="TextBlock.error">
-            <Setter Property="Foreground" Value="#E05252"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Margin" Value="0,2,0,0"/>
-        </Style>
-        <Style Selector="TextBlock.note">
+        <!-- Inherited: the label reads as secondary, the editor shows the folder's value disabled -->
+        <Style Selector="ctl|SettingRow.field-row.inherited /template/ TextBlock#PART_Header">
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style Selector="NumericUpDown.error">
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
+        </Style>
+        <Style Selector="NumericUpDown.error /template/ ButtonSpinner">
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
         </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
 
-        <TextBlock Grid.Row="0" Classes="note" Margin="16,10,16,0" Text="{Binding InheritHint}"/>
+        <!-- Header: icon, name, protocol chip, host, folder -->
+        <Border Grid.Row="0" Padding="24,18" BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*">
+                <Panel Width="44" Height="44" VerticalAlignment="Center">
+                    <Border Classes="icon-tile" Width="44" Height="44" CornerRadius="10" IsVisible="{Binding !ShowsProtocol}">
+                        <mi:MaterialIcon Kind="{Binding HeaderIcon}" Width="24" Height="24"/>
+                    </Border>
+                    <Border Classes="icon-tile" Width="44" Height="44" CornerRadius="10" IsVisible="{Binding ShowsProtocol}"
+                            Background="{Binding HeaderTintBrush}">
+                        <mi:MaterialIcon Kind="{Binding HeaderIcon}" Width="24" Height="24"
+                                         Foreground="{Binding HeaderIconBrush}"/>
+                    </Border>
+                </Panel>
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Classes="h1" Text="{Binding HeaderTitle}" TextTrimming="CharacterEllipsis"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ctl:ProtocolChip Protocol="{Binding SelectedProtocol}" IsVisible="{Binding ShowsProtocol}"/>
+                        <TextBlock Text="{Binding HeaderSubtitle}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   Classes="secondary" Classes.mono="{Binding IsConnection}" MaxWidth="460"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                                    IsVisible="{Binding LocationText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="·" Classes="caption"/>
+                            <mi:MaterialIcon Kind="FolderOutline" Width="14" Height="14" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding LocationText}" Classes="caption" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-        <TabControl Grid.Row="1" x:Name="Tabs" Margin="12,4,12,0">
+        <Grid Grid.Row="1" ColumnDefinitions="232,*">
 
-            <TabItem Header="{l:Tr Display}" IsVisible="{Binding DisplayTab.IsVisible}">
-                <ScrollViewer Padding="4,8,24,8">
-                    <ItemsControl ItemsSource="{Binding DisplayTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
-                </ScrollViewer>
-            </TabItem>
+            <!-- Navigation: search + pages -->
+            <Border Classes="dialog-nav">
+                <DockPanel>
+                    <TextBox DockPanel.Dock="Top" x:Name="SearchBox" Classes="search" Margin="12,16,12,12"
+                             Text="{Binding SearchText}" Watermark="{l:Tr SearchPropertiesWatermark}"/>
+                    <TextBlock DockPanel.Dock="Top" Classes="caption" Margin="20,0,16,0" TextWrapping="Wrap"
+                               Text="{l:Tr NoPropertiesMatch}" IsVisible="{Binding HasNoMatches}"/>
+                    <ListBox x:Name="PageList" Classes="nav" ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PropertyPageViewModel">
+                                <Grid ColumnDefinitions="Auto,10,*,Auto">
+                                    <mi:MaterialIcon Classes="nav-icon" Kind="{Binding Icon}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Title}" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <Border Grid.Column="3" Classes="dot danger" Margin="8,0,0,0" IsVisible="{Binding HasErrors}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
 
-            <TabItem Header="{l:Tr Connection}" IsVisible="{Binding ConnectionTab.IsVisible}">
-                <ScrollViewer Padding="4,8,24,8">
-                    <StackPanel>
-                        <ItemsControl ItemsSource="{Binding ConnectionTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
-                        <TextBlock Classes="note" Text="{Binding ProtocolNote}" Margin="0,0,0,12"
-                                   IsVisible="{Binding ProtocolNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                        <!-- Host status (legacy config window "Status") -->
-                        <StackPanel Spacing="6" IsVisible="{Binding IsConnection}">
-                            <TextBlock Classes="section-header" Text="{l:Tr Status}"/>
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Button x:Name="CheckStatusButton" Content="{l:Tr CheckHostStatus}" Command="{Binding CheckStatusCommand}"
-                                        ToolTip.Tip="{l:Tr PingTheHostAndTryToConnect}"/>
-                                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            </StackPanel>
+            <!-- Page -->
+            <Border Grid.Column="1" Background="{DynamicResource AppBg0Brush}">
+                <ScrollViewer x:Name="PageScroller" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="PageContent" Classes="settings-page" Margin="32,24,32,32" MaxWidth="860">
+                        <StackPanel Classes="page-title">
+                            <TextBlock Classes="h1" Text="{Binding SelectedPage.Title, FallbackValue=''}"/>
+                            <TextBlock Classes="caption" Text="{Binding SelectedPageDescription}" TextWrapping="Wrap"
+                                       IsVisible="{Binding SelectedPageDescription, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </StackPanel>
+
+                        <!-- Inheritance page -->
+                        <Border Classes="settings" IsVisible="{Binding IsInheritancePageSelected}">
+                            <ctl:SettingRow Header="{l:Tr InheritEverything}" Description="{Binding InheritHint}">
+                                <CheckBox x:Name="InheritEverythingBox" Classes="switch" IsThreeState="False"
+                                          IsEnabled="{Binding CanInherit}" IsChecked="{Binding InheritEverything}"/>
+                            </ctl:SettingRow>
+                        </Border>
+                        <ItemsControl ItemsSource="{Binding InheritanceSections}" IsVisible="{Binding IsInheritancePageSelected}"
+                                      ItemTemplate="{StaticResource InheritanceSectionTemplate}" Margin="0,0,0,-24">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+
+                        <!-- Property pages -->
+                        <ItemsControl ItemsSource="{Binding SelectedPage.Sections, FallbackValue={x:Null}}"
+                                      IsVisible="{Binding !IsInheritancePageSelected}"
+                                      ItemTemplate="{StaticResource SectionTemplate}" Margin="0,0,0,-24">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+
+                        <!-- General page: how the protocol behaves here, host status -->
+                        <Border Classes="callout info" IsVisible="{Binding IsGeneralPageSelected}">
+                            <Border.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="IsGeneralPageSelected"/>
+                                    <Binding Path="ProtocolNote" Converter="{x:Static StringConverters.IsNotNullOrEmpty}"/>
+                                </MultiBinding>
+                            </Border.IsVisible>
+                            <Grid ColumnDefinitions="Auto,*">
+                                <mi:MaterialIcon Classes="callout-icon" Kind="InformationOutline"/>
+                                <TextBlock Grid.Column="1" Text="{Binding ProtocolNote}" TextWrapping="Wrap"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel Classes="settings-group">
+                            <StackPanel.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="IsGeneralPageSelected"/>
+                                    <Binding Path="IsConnection"/>
+                                    <Binding Path="!IsSearching"/>
+                                </MultiBinding>
+                            </StackPanel.IsVisible>
+                            <TextBlock Classes="h2" Text="{l:Tr Status}"/>
+                            <Border Classes="settings">
+                                <ctl:SettingRow Header="{l:Tr CheckHostStatus}" Description="{l:Tr PingTheHostAndTryToConnect}">
+                                    <StackPanel Spacing="6" HorizontalAlignment="Right">
+                                        <Button x:Name="CheckStatusButton" HorizontalAlignment="Right" Command="{Binding CheckStatusCommand}">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <mi:MaterialIcon Kind="LanCheck"/>
+                                                <TextBlock Text="{l:Tr CheckHostStatus}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        <TextBlock Text="{Binding StatusText}" Classes="caption mono" TextWrapping="Wrap"
+                                                   HorizontalAlignment="Right" MaxWidth="360"
+                                                   IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    </StackPanel>
+                                </ctl:SettingRow>
+                            </Border>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
-            </TabItem>
+            </Border>
+        </Grid>
 
-            <TabItem Header="{l:Tr Credentials}" IsVisible="{Binding CredentialsTab.IsVisible}">
-                <ScrollViewer Padding="4,8,24,8">
-                    <StackPanel>
-                        <TextBlock Classes="note" IsVisible="{Binding IsFolder}" Margin="0,0,0,8"
-                                   Text="{l:Tr ConnectionsInThisFolderCanInheritThese}"/>
-                        <ItemsControl ItemsSource="{Binding CredentialsTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
-
-            <TabItem Header="{l:Tr Protocol}" IsVisible="{Binding ProtocolTab.IsVisible}">
-                <ScrollViewer Padding="4,8,24,8">
-                    <ItemsControl ItemsSource="{Binding ProtocolTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
-                </ScrollViewer>
-            </TabItem>
-
-            <TabItem Header="{l:Tr Miscellaneous}" IsVisible="{Binding MiscellaneousTab.IsVisible}">
-                <ScrollViewer Padding="4,8,24,8">
-                    <ItemsControl ItemsSource="{Binding MiscellaneousTab.Sections}" ItemTemplate="{StaticResource SectionTemplate}"/>
-                </ScrollViewer>
-            </TabItem>
-
-            <TabItem Header="{l:Tr Inheritance}" IsVisible="{Binding !IsRoot}">
-                <ScrollViewer Padding="4,8,24,8">
-                    <StackPanel Spacing="8">
-                        <TextBlock Classes="note" TextWrapping="Wrap"
-                                   Text="{l:Tr CheckedPropertiesTakeTheirValueFromThe}"/>
-                        <CheckBox x:Name="InheritEverythingBox" Content="{l:Tr InheritEverything}" FontWeight="SemiBold"
-                                  IsThreeState="False" IsEnabled="{Binding CanInherit}"
-                                  IsChecked="{Binding InheritEverything}"/>
-                        <ItemsControl ItemsSource="{Binding InheritanceSections}"
-                                      ItemTemplate="{StaticResource InheritanceSectionTemplate}"/>
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
-        </TabControl>
-
-        <Border Grid.Row="2" BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,1,0,0" Padding="16,10" Margin="0,8,0,0">
-            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                <Button Content="{l:Tr _Cancel}" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
-                <Button Content="{l:Tr _Ok}" Classes="accent" MinWidth="80" IsDefault="True" Command="{Binding OkCommand}"/>
-            </StackPanel>
+        <!-- Footer: validation summary or inheritance hint; Cancel / OK -->
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" IsVisible="{Binding !IsValid}">
+                    <mi:MaterialIcon Kind="AlertCircleOutline" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Classes="danger" Text="{Binding ErrorSummary}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" IsVisible="{Binding IsValid}"
+                            Margin="0,0,16,0">
+                    <mi:MaterialIcon Kind="LinkVariant" Foreground="{DynamicResource TextMutedBrush}"/>
+                    <TextBlock Classes="caption" Text="{Binding InheritHint}" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Classes="dialog-actions">
+                    <Button Content="{l:Tr _Cancel}" IsCancel="True" Command="{Binding CancelCommand}"/>
+                    <Button Content="{l:Tr _Ok}" Classes="accent" IsDefault="True" Command="{Binding OkCommand}"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
     </Grid>

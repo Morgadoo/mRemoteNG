@@ -30,13 +30,27 @@ public partial class ConnectionDialog : Window
         // Suggestion boxes list their values as soon as they get focus.
         AddHandler(GotFocusEvent, OnGotFocus, RoutingStrategies.Bubble);
         Opened += (_, _) => Dispatcher.UIThread.Post(FocusFirstEditor, DispatcherPriority.Loaded);
+
+        // A new page starts at its top; Enter in the search box moves to the first matching editor (not OK).
+        viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ConnectionDialogViewModel.SelectedPage))
+                PageScroller.Offset = default;
+        };
+        SearchBox.KeyDown += (_, e) =>
+        {
+            if (e.Key != Key.Enter)
+                return;
+            e.Handled = true;
+            FocusFirstEditor();
+        };
     }
 
     public ConnectionDialogViewModel ViewModel => (ConnectionDialogViewModel)DataContext!;
 
     private void FocusFirstEditor()
     {
-        var first = Tabs.GetVisualDescendants().OfType<TextBox>().FirstOrDefault(t => t.IsEffectivelyVisible && t.IsEffectivelyEnabled);
+        var first = PageContent.GetVisualDescendants().OfType<TextBox>().FirstOrDefault(t => t.IsEffectivelyVisible && t.IsEffectivelyEnabled);
         if (first is null) return;
         first.Focus();
         first.SelectAll();

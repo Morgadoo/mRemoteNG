@@ -37,10 +37,12 @@ public partial class HostKeyDialog : Window
     private void ShowUnknown(HostKeyPromptRequest request)
     {
         Title = Localizer.Get("HostKeyUnknownTitle");
-        HeadingText.Text = Localizer.Format("HostKeyUnknownHeadingFormat", HostText.Text);
+        Header.Title = Title;
+        Header.Subtitle = Localizer.Format("HostKeyUnknownHeadingFormat", HostText.Text);
         ExplanationText.Text = Localizer.Format("HostKeyUnknownExplanationFormat", request.KnownHostsFile);
         OnceButton.IsVisible = true;
         AcceptButton.IsVisible = true;
+        // No default button: trusting a key must be a deliberate click, not a reflexive Enter.
 
         if (request.OtherKeyTypesKnown)
         {
@@ -53,15 +55,18 @@ public partial class HostKeyDialog : Window
     private void ShowMismatch(HostKeyPromptRequest request)
     {
         Title = Localizer.Get("HostKeyChangedTitle");
+        Header.Title = Title;
+        Header.Icon = Material.Icons.MaterialIconKind.ShieldAlertOutline;
+        Header.Classes.Add("danger");
         WarningBanner.IsVisible = true;
-        HeadingText.Text = Localizer.Format("HostKeyMismatchHeadingFormat", request.HostKey.KeyType, HostText.Text);
+        Header.Subtitle = Localizer.Format("HostKeyMismatchHeadingFormat", request.HostKey.KeyType, HostText.Text);
         ExplanationText.Text = Localizer.Format("HostKeyMismatchExplanationFormat", request.KnownHostsFile);
         StoredPanel.IsVisible = true;
         StoredHeading.Text = Localizer.Get("HostKeyStoredKey");
         StoredText.Text = Describe(request.ConflictingEntries);
         ConfirmReplaceBox.IsVisible = true;
         ReplaceButton.IsVisible = true;
-        CancelButton.Classes.Add("accent");
+        // The safe choice stays on Enter; replacing the key is the (disabled until confirmed) danger action.
         CancelButton.IsDefault = true;
     }
 
