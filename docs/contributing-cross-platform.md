@@ -115,6 +115,11 @@ Integration tests skip themselves (`[SkippableFact]`) when their server is not a
 
 On Debian/Ubuntu: `sudo apt-get install openssh-server tigervnc-standalone-server socat inetutils-telnetd xrdp freerdp3-x11`.
 
+For everything at once on Ubuntu 24.04 (also MariaDB, OpenLDAP, OpenBao, x11vnc, pwsh and an xrdp test user), run
+`ci/linux-integration-setup.sh`, then the tests as root with the settings it writes to
+`/var/tmp/mrng-integration/env.sh`. The "Integration Tests (real servers)" workflow does the same and fails when a
+test is skipped that `ci/expected-skips-linux.txt` does not list (`ci/check-test-skips.py`).
+
 Code coverage:
 
 ```bash

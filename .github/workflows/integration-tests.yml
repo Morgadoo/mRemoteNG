@@ -1,0 +1,85 @@
+name: Integration Tests (real servers)
+
+# Runs mRemoteNG.Tests.CrossPlatform on Linux with the servers its integration tests need (sshd, TigerVNC,
+# x11vnc, telnetd, pwsh, xrdp + FreeRDP, MariaDB, OpenLDAP, OpenBao), then fails when any test was skipped
+# that ci/expected-skips-linux.txt does not list. Without the servers those tests skip silently, which is
+# what the regular "Cross-Platform Build & Test" workflow does.
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+      - v1.78.2-dev
+      - 'claude/**'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: integration-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Integration tests (Linux, real servers)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Install and start test servers
+        run: bash ci/linux-integration-setup.sh
+
+      - name: Build
+        run: dotnet build mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj -c Release
+
+      # As root: the sshd fixtures (SSH, SFTP, tunnels, the Vault end-to-end test) log in as root.
+      # PATH/DOTNET_ROOT are passed through because sudo resets PATH; HOME=/root keeps root's files out of
+      # the runner's home directory.
+      - name: Test
+        run: |
+          sudo --preserve-env env "PATH=$PATH" HOME=/root \
+            dotnet test mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj \
+              -c Release --no-build --logger trx --results-directory test-results-integration/
+
+      - name: Check for unexpected skips
+        if: success() || failure()
+        run: python3 ci/check-test-skips.py test-results-integration/
+
+      - name: Collect server logs
+        if: always()
+        run: |
+          mkdir -p server-logs
+          # xrdp / sesman, the RDP session's X server and session, the private MariaDB (see the setup script).
+          sudo sh -c 'cp /var/log/xrdp*.log /home/*/.xorgxrdp.*.log /home/*/.xsession-errors \
+            /var/tmp/mrng-integration/mariadb/error.log "$0"/ 2>/dev/null' "$PWD/server-logs" || true
+          sudo chown -R "$(id -u):$(id -g)" server-logs test-results-integration 2>/dev/null || true
+
+      - name: Upload test results and server logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            test-results-integration/
+            server-logs/
+          if-no-files-found: warn

@@ -5,6 +5,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using mRemoteNG.Protocols.Abstractions;
 using mRemoteNG.Protocols.Rdp;
+using mRemoteNG.Tests.CrossPlatform.Protocols.Vnc;
 using Xunit;
 using Keys = mRemoteNG.Protocols.Abstractions.ConnectionParametersFactory.Keys;
 using ProtocolType = mRemoteNG.Protocols.Abstractions.ProtocolType;
@@ -34,7 +35,9 @@ public sealed class RdpIntegrationTests : IDisposable
     private readonly string? _pass = Environment.GetEnvironmentVariable("RDP_TEST_PASS");
     private readonly int _port = int.TryParse(Environment.GetEnvironmentVariable("RDP_TEST_PORT"), out int p) ? p : 3389;
     private readonly bool _nla = string.Equals(Environment.GetEnvironmentVariable("RDP_TEST_NLA"), "true", StringComparison.OrdinalIgnoreCase);
+    private readonly System.Text.StringBuilder _xvfbLog = new();
     private Process? _xvfb;
+    private int? _display;
 
     private void SkipUnlessRunnable(bool needsServer = true)
     {
@@ -117,28 +120,27 @@ public sealed class RdpIntegrationTests : IDisposable
 
         for (int display = 180; display < 200; display++)
         {
-            if (File.Exists($"/tmp/.X11-unix/X{display}"))
+            // A killed X server leaves its lock file and socket behind: ClaimDisplay removes them when their
+            // process is gone, so displays left over by earlier runs are reused instead of skipped.
+            if (!ExternalProcess.ClaimDisplay(display))
                 continue;
-            var psi = new ProcessStartInfo(xvfb!, $":{display} -screen 0 1280x800x24 -nolisten tcp")
+            string socket = $"/tmp/.X11-unix/X{display}";
+            try { File.Delete(socket); } // no lock file, so no server owns it
+            catch (IOException) { continue; }
+            catch (UnauthorizedAccessException) { continue; }
+
+            _xvfb = ExternalProcess.Start(xvfb!, [$":{display}", "-screen", "0", "1280x800x24", "-nolisten", "tcp"], _xvfbLog);
+            if (ExternalProcess.WaitUntil(() => File.Exists(socket), TimeSpan.FromSeconds(10), _xvfb))
             {
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-            };
-            _xvfb = Process.Start(psi);
-            var deadline = DateTime.UtcNow.AddSeconds(10);
-            while (DateTime.UtcNow < deadline && !File.Exists($"/tmp/.X11-unix/X{display}") && _xvfb is { HasExited: false })
-                Thread.Sleep(100);
-            if (File.Exists($"/tmp/.X11-unix/X{display}"))
-            {
+                _display = display;
                 // Inherited by FreeRDP. DISPLAY was unset, so nothing else in this process relied on it.
                 Environment.SetEnvironmentVariable("DISPLAY", $":{display}");
                 return;
             }
-            _xvfb?.Dispose();
+            ExternalProcess.Stop(_xvfb, display);
             _xvfb = null;
         }
-        Skip.If(true, "Could not start Xvfb");
+        lock (_xvfbLog) Skip.If(true, $"Could not start Xvfb: {_xvfbLog}");
     }
 
     private static int GetUnusedTcpPort()
@@ -159,14 +161,8 @@ public sealed class RdpIntegrationTests : IDisposable
     public void Dispose()
     {
         if (_xvfb is null) return;
-        try
-        {
-            if (!_xvfb.HasExited) _xvfb.Kill();
-        }
-        catch (InvalidOperationException)
-        {
-        }
-        _xvfb.Dispose();
+        // Kills Xvfb and removes the lock file and socket it leaves behind.
+        ExternalProcess.Stop(_xvfb, _display);
         Environment.SetEnvironmentVariable("DISPLAY", null);
     }
 }
