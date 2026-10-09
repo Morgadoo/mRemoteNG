@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Reactive;
-using System.Reactive.Linq;
 using Avalonia.Threading;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Protocols.Abstractions;
@@ -38,7 +37,7 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
         _savePort = savePort;
         _port = port;
 
-        var canStart = this.WhenAnyValue(x => x.IsListening, x => x.Port, (listening, p) => !listening && p is > 0 and <= 65535);
+        var canStart = this.WhenAnyValue(x => x.IsListening, x => x.Port, (listening, p) => !listening && p is >= 0 and <= 65535);
         StartCommand = ReactiveCommand.Create(Start, canStart);
         StopCommand = ReactiveCommand.CreateFromTask(StopAsync, this.WhenAnyValue(x => x.IsListening));
     }
@@ -65,6 +64,9 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
         get => _port;
         set => this.RaiseAndSetIfChanged(ref _port, value);
     }
+
+    /// <summary>The port actually listened on (differs from <see cref="Port"/> only when that is 0); 0 when stopped.</summary>
+    public int ListeningPort => _listener?.Port ?? 0;
 
     public bool IsListening
     {
@@ -105,6 +107,7 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
         }
         _listener = listener;
         IsListening = true;
+        this.RaisePropertyChanged(nameof(ListeningPort));
         StatusText = $"Listening for incoming VNC connections on port {listener.Port}…";
         _savePort?.Invoke(Port);
     }

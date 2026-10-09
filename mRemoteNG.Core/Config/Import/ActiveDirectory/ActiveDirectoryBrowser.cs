@@ -18,11 +18,21 @@ namespace mRemoteNG.Core.Config.Import.ActiveDirectory
         public string HostName => string.IsNullOrWhiteSpace(DnsHostName) ? Name : DnsHostName;
     }
 
+    /// <summary>Browsing operations the import dialog needs (implemented over LDAP by <see cref="ActiveDirectoryBrowser"/>).</summary>
+    public interface IDirectoryBrowser : IDirectoryComputerSource
+    {
+        void Bind();
+
+        string GetDefaultNamingContext();
+
+        IReadOnlyList<DirectoryContainer> GetChildContainers(string dn);
+    }
+
     /// <summary>
     /// Browses Active Directory (or any LDAP directory with AD-style computer objects) with
     /// System.DirectoryServices.Protocols, which is wldap32 on Windows and OpenLDAP's libldap elsewhere.
     /// </summary>
-    public sealed class ActiveDirectoryBrowser : IDirectoryComputerSource
+    public sealed class ActiveDirectoryBrowser : IDirectoryBrowser
     {
         private const int PageSize = 500;
         private static readonly string[] ComputerAttributes = ["cn", "name", "dNSHostName", "description", "operatingSystem"];
@@ -146,7 +156,7 @@ namespace mRemoteNG.Core.Config.Import.ActiveDirectory
             Values(entry, attribute).FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
 
         /// <summary>The value of the first RDN: "CN=WEB01,OU=x" → "WEB01".</summary>
-        internal static string RdnValue(string dn)
+        public static string RdnValue(string dn)
         {
             var first = SplitDn(dn).FirstOrDefault() ?? dn;
             var eq = first.IndexOf('=');
@@ -154,7 +164,7 @@ namespace mRemoteNG.Core.Config.Import.ActiveDirectory
         }
 
         /// <summary>Splits a DN into RDNs, honouring backslash-escaped commas.</summary>
-        internal static IReadOnlyList<string> SplitDn(string dn)
+        public static IReadOnlyList<string> SplitDn(string dn)
         {
             var parts = new List<string>();
             var start = 0;
