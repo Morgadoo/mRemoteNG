@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Avalonia.Views.Dialogs;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.Sessions;
 
@@ -141,7 +142,7 @@ public partial class SessionPanelView : UserControl
     {
         if (_panel is null) return;
         FloatButton.Content = _panel.IsFloating ? "⭳" : "⧉";
-        ToolTip.SetTip(FloatButton, _panel.IsFloating ? "Dock this panel back into the main window" : "Float this panel in its own window");
+        ToolTip.SetTip(FloatButton, _panel.IsFloating ? Localizer.Get("DockThisPanelBack") : Localizer.Get("FloatThisPanelInItsOwnWindow"));
     }
 
     private void Activate()
@@ -155,8 +156,9 @@ public partial class SessionPanelView : UserControl
         if (_panel is null) return;
         var owner = OwnerWindow;
         if (_panel.Sessions.Count > 0 && owner is not null
-            && !await MessageDialog.ConfirmAsync(owner, "Close Panel",
-                $"Close the panel \"{_panel.Name}\" and its {_panel.Sessions.Count} session(s)?", "Close", "Cancel"))
+            && !await MessageDialog.ConfirmAsync(owner, Localizer.Get("ClosePanel"),
+                Localizer.Format("ConfirmClosePanelFormat", _panel.Name, _panel.Sessions.Count),
+                Localizer.Get("_Close"), Localizer.Get("_Cancel")))
         {
             return;
         }
@@ -225,27 +227,28 @@ public partial class SessionPanelView : UserControl
         var dock = panel.Owner;
         var items = new List<Control>();
 
-        var rename = new MenuItem { Header = "Rename Panel..." };
+        var rename = new MenuItem { Header = Localizer.Menu("RenamePanel") + "..." };
         rename.Click += async (_, _) =>
         {
             if (owner is null) return;
-            var name = await new TextPromptDialog("Rename Panel", "Panel name:", false, null, panel.Name)
+            var name = await new TextPromptDialog(Localizer.Get("RenamePanel"), Localizer.Get("PanelName", "Panel name") + ":",
+                    false, null, panel.Name)
                 .ShowDialog<string?>(owner);
             if (name is not null && !dock.RenamePanel(panel, name))
-                await new MessageDialog("Rename Panel", $"A panel named \"{name.Trim()}\" already exists.",
-                    new MessageDialogButton("OK", "ok", IsDefault: true, IsCancel: true)).ShowDialog<string?>(owner);
+                await new MessageDialog(Localizer.Get("RenamePanel"), Localizer.Format("PanelNameExistsFormat", name.Trim()),
+                    new MessageDialogButton(Localizer.Get("_Ok"), "ok", IsDefault: true, IsCancel: true)).ShowDialog<string?>(owner);
         };
         items.Add(rename);
 
-        var floating = new MenuItem { Header = panel.IsFloating ? "Dock Panel" : "Float Panel" };
+        var floating = new MenuItem { Header = Localizer.Menu(panel.IsFloating ? "DockPanel" : "FloatPanel") };
         floating.Click += (_, _) => panel.IsFloating = !panel.IsFloating;
         items.Add(floating);
 
-        var newPanel = new MenuItem { Header = "New Panel" };
+        var newPanel = new MenuItem { Header = Localizer.Menu("NewPanel") };
         newPanel.Click += (_, _) => dock.NewPanel();
         items.Add(newPanel);
 
-        var arrangement = new MenuItem { Header = "Arrange Panels" };
+        var arrangement = new MenuItem { Header = Localizer.Menu("ArrangePanels") };
         foreach (var (mode, label) in ArrangementChoices)
         {
             var item = new MenuItem
@@ -260,12 +263,13 @@ public partial class SessionPanelView : UserControl
         items.Add(arrangement);
         items.Add(new Separator());
 
-        var close = new MenuItem { Header = "Close Panel" };
+        var close = new MenuItem { Header = Localizer.Menu("ClosePanel") };
         close.Click += async (_, _) =>
         {
             if (panel.Sessions.Count > 0 && owner is not null
-                && !await MessageDialog.ConfirmAsync(owner, "Close Panel",
-                    $"Close the panel \"{panel.Name}\" and its {panel.Sessions.Count} session(s)?", "Close", "Cancel"))
+                && !await MessageDialog.ConfirmAsync(owner, Localizer.Get("ClosePanel"),
+                    Localizer.Format("ConfirmClosePanelFormat", panel.Name, panel.Sessions.Count),
+                    Localizer.Get("_Close"), Localizer.Get("_Cancel")))
             {
                 return;
             }
@@ -276,10 +280,10 @@ public partial class SessionPanelView : UserControl
         return new ContextMenu { ItemsSource = items };
     }
 
-    public static IReadOnlyList<(PanelArrangement Mode, string Label)> ArrangementChoices { get; } =
+    public static IReadOnlyList<(PanelArrangement Mode, string Label)> ArrangementChoices =>
     [
-        (PanelArrangement.Tabbed, "Tabbed (one panel at a time)"),
-        (PanelArrangement.SideBySide, "Side by Side"),
-        (PanelArrangement.Stacked, "Stacked"),
+        (PanelArrangement.Tabbed, Localizer.Menu("TabbedOnePanelAtATime")),
+        (PanelArrangement.SideBySide, Localizer.Menu("SideBySide")),
+        (PanelArrangement.Stacked, Localizer.Menu("Stacked")),
     ];
 }

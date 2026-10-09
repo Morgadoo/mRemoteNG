@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
              x:Class="mRemoteNG.Avalonia.Views.OptionsPages.SqlServerSettingsPage"
              x:DataType="vm:SqlServerSettingsViewModel">
@@ -8,28 +9,28 @@
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Connection Database" Classes="section-header"/>
+                <TextBlock Text="{l:Tr ConnectionDatabase}" Classes="section-header"/>
                 <CheckBox x:Name="UseSqlCheckBox" IsChecked="{Binding UseSqlServer}"
-                          Content="Load and save the connections in a SQL database"/>
+                          Content="{l:Tr LoadAndSaveTheConnectionsInA}"/>
                 <TextBlock TextWrapping="Wrap" Opacity="0.7"
-                           Text="Uses the same tables as the Windows version of mRemoteNG (tblCons, tblRoot, tblUpdate), so both can share a database. Missing tables are created on first use."/>
+                           Text="{l:Tr UsesTheSameTablesAsTheWindows}"/>
                 <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,10,Auto,10,Auto,10,Auto,10,Auto"
                       IsEnabled="{Binding UseSqlServer}">
-                    <TextBlock Grid.Row="0" Text="Server type" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Text="{l:Tr ServerType}" VerticalAlignment="Center"/>
                     <ComboBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch"
                               ItemsSource="{Binding ServerTypes}" SelectedItem="{Binding SelectedServerType}"/>
-                    <TextBlock Grid.Row="2" Text="Host" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" Text="{l:Tr Host}" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="2" Grid.Column="1" x:Name="HostBox" Text="{Binding Host}" Watermark="{Binding HostWatermark}"/>
-                    <TextBlock Grid.Row="4" Text="Database" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="4" Text="{l:Tr DatabaseLabel}" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="4" Grid.Column="1" x:Name="DatabaseBox" Text="{Binding DatabaseName}" Watermark="mremoteng"/>
-                    <TextBlock Grid.Row="6" Text="User name" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="6" Text="{l:Tr Username, English='User name'}" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="6" Grid.Column="1" x:Name="UserBox" Text="{Binding Username}"
-                             Watermark="(SQL Server: empty for Windows authentication)"/>
-                    <TextBlock Grid.Row="8" Text="Password" VerticalAlignment="Center"/>
+                             Watermark="{l:Tr SQLServerEmptyForWindowsAuthentication}"/>
+                    <TextBlock Grid.Row="8" Text="{l:Tr Password}" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="8" Grid.Column="1" x:Name="PasswordBox" Text="{Binding Password}" PasswordChar="•"/>
                 </Grid>
                 <Grid ColumnDefinitions="Auto,12,*" IsEnabled="{Binding UseSqlServer}">
-                    <Button Content="Test connection" Command="{Binding TestConnectionCommand}"/>
+                    <Button Content="{l:Tr TestConnection}" Command="{Binding TestConnectionCommand}"/>
                     <SelectableTextBlock Grid.Column="2" x:Name="TestStatusText" Text="{Binding TestStatus}"
                                          TextWrapping="Wrap" VerticalAlignment="Center"/>
                 </Grid>
@@ -38,15 +39,15 @@
 
         <Border Classes="card" IsEnabled="{Binding UseSqlServer}">
             <StackPanel Spacing="12">
-                <TextBlock Text="Multi-User" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding ReadOnly}" Content="Read only (never write to the database)"/>
+                <TextBlock Text="{l:Tr MultiUser}" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding ReadOnly}" Content="{l:Tr ReadOnlyNeverWriteToTheDatabase}"/>
                 <Grid ColumnDefinitions="*,160">
-                    <TextBlock Text="Check for changes by other users every (seconds)" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:Tr CheckForChangesByOtherUsersEvery}" VerticalAlignment="Center"/>
                     <NumericUpDown Grid.Column="1" FormatString="0" Minimum="{Binding MinInterval}" Maximum="{Binding MaxInterval}"
                                    Value="{Binding UpdateCheckInterval}"/>
                 </Grid>
                 <CheckBox IsChecked="{Binding AutoReload}"
-                          Content="Reload automatically when another user saved and there are no unsaved changes here"/>
+                          Content="{l:Tr ReloadAutomaticallyWhenAnotherUserSavedAnd}"/>
             </StackPanel>
         </Border>
     </StackPanel>

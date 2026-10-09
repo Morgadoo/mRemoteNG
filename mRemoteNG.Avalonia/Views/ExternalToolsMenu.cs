@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using mRemoteNG.Avalonia.ViewModels;
 using mRemoteNG.Core.Connection;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.External;
 
 namespace mRemoteNG.Avalonia.Views;
@@ -42,7 +43,7 @@ public static class ExternalToolsMenu
         foreach (var item in BuildItems(service, target))
             parent.Items.Add(item);
         if (parent.Items.Count == 0)
-            parent.Items.Add(new MenuItem { Header = "(no external tools)", IsEnabled = false });
+            parent.Items.Add(new MenuItem { Header = Localizer.Menu("NoExternalTools"), IsEnabled = false });
     }
 
     public static IReadOnlyList<MenuItem> BuildItems(ExternalToolsService service, Func<ConnectionInfo?> target)

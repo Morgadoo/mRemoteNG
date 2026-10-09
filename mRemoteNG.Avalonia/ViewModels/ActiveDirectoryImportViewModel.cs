@@ -3,6 +3,7 @@ using System.DirectoryServices.Protocols;
 using System.Reactive;
 using System.Reactive.Linq;
 using mRemoteNG.Core.Config.Import.ActiveDirectory;
+using mRemoteNG.Core.Localization;
 using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.ViewModels;
@@ -26,7 +27,7 @@ public sealed class DirectoryNodeViewModel : ReactiveObject
         _loaded = isPlaceholder;
         // A placeholder child makes the node expandable until its real children are known.
         if (!isPlaceholder)
-            Children.Add(new DirectoryNodeViewModel(new DirectoryContainer("", "Loading…", false), loadChildren, isPlaceholder: true));
+            Children.Add(new DirectoryNodeViewModel(new DirectoryContainer("", Localizer.Get("LoadingEllipsis"), false), loadChildren, isPlaceholder: true));
     }
 
     public DirectoryContainer Container { get; }
@@ -95,8 +96,8 @@ public sealed class ActiveDirectoryImportViewModel : ReactiveObject, IDisposable
     private bool _isBusy;
     private bool _isConnected;
     private string _statusText = OperatingSystem.IsWindows()
-        ? "Leave the server empty to use this computer's domain, then connect."
-        : "Enter a domain controller and credentials, then connect.";
+        ? Localizer.Get("AdHintWindows")
+        : Localizer.Get("AdHintOther");
     private DirectoryNodeViewModel? _selectedNode;
     private int _loadGeneration;
 
@@ -153,7 +154,7 @@ public sealed class ActiveDirectoryImportViewModel : ReactiveObject, IDisposable
     public async Task ConnectAsync()
     {
         IsBusy = true;
-        StatusText = "Connecting…";
+        StatusText = Localizer.Get("ConnectingEllipsis");
         _browser?.Dispose();
         _browser = null;
         Nodes.Clear();
@@ -175,7 +176,9 @@ public sealed class ActiveDirectoryImportViewModel : ReactiveObject, IDisposable
             await rootNode.LoadChildrenAsync();
             rootNode.IsExpanded = true;
             SelectedNode = rootNode;
-            StatusText = $"Connected to {(string.IsNullOrEmpty(settings.Server) ? "the domain" : settings.Server)}. Pick an OU.";
+            StatusText = string.IsNullOrEmpty(settings.Server)
+                ? Localizer.Get("AdConnectedToDomain")
+                : Localizer.Format("AdConnectedToServerFormat", settings.Server);
         }
         catch (Exception ex)
         {
@@ -213,7 +216,7 @@ public sealed class ActiveDirectoryImportViewModel : ReactiveObject, IDisposable
         Computers.Clear();
         if (browser is null || node is null || node.DistinguishedName.Length == 0) return;
 
-        StatusText = $"Reading computers in {node.Name}…";
+        StatusText = Localizer.Format("AdReadingComputersFormat", node.Name);
         try
         {
             var subtree = IncludeSubOus;
@@ -222,8 +225,8 @@ public sealed class ActiveDirectoryImportViewModel : ReactiveObject, IDisposable
             foreach (var computer in computers)
                 Computers.Add(new DirectoryComputerViewModel(computer));
             StatusText = computers.Count == 0
-                ? $"No computers in {node.Name}{(subtree ? " or its sub-OUs" : "")}."
-                : $"{computers.Count} computer(s) in {node.Name}{(subtree ? " and its sub-OUs" : "")}.";
+                ? Localizer.Format(subtree ? "AdNoComputersSubtreeFormat" : "AdNoComputersFormat", node.Name)
+                : Localizer.Format(subtree ? "AdComputersSubtreeFormat" : "AdComputersFormat", computers.Count, node.Name);
         }
         catch (Exception ex)
         {
@@ -241,13 +244,13 @@ public sealed class ActiveDirectoryImportViewModel : ReactiveObject, IDisposable
     {
         if (!IsConnected || SelectedNode is null)
         {
-            StatusText = "Connect and choose an OU first.";
+            StatusText = Localizer.Get("AdConnectFirst");
             return null;
         }
         var selected = Computers.Where(c => c.IsSelected).ToList();
         if (selected.Count == 0)
         {
-            StatusText = "Select at least one computer to import.";
+            StatusText = Localizer.Get("AdSelectComputer");
             return null;
         }
         return new ActiveDirectoryImportRequest
@@ -263,10 +266,10 @@ public sealed class ActiveDirectoryImportViewModel : ReactiveObject, IDisposable
 
     private static string Describe(Exception ex) => ex switch
     {
-        LdapException { ErrorCode: 49 } => "The server rejected the user name or password.",
-        LdapException { ErrorCode: 81 } => "The directory server is unavailable (check the server name, port and LDAPS setting).",
-        LdapException ldap => $"LDAP error {ldap.ErrorCode}: {ldap.Message}",
-        DllNotFoundException => "The LDAP library (libldap) is not installed on this system.",
+        LdapException { ErrorCode: 49 } => Localizer.Get("AdInvalidCredentials"),
+        LdapException { ErrorCode: 81 } => Localizer.Get("AdServerUnavailable"),
+        LdapException ldap => Localizer.Format("AdLdapErrorFormat", ldap.ErrorCode, ldap.Message),
+        DllNotFoundException => Localizer.Get("AdLdapLibraryMissing"),
         _ => ex.Message,
     };
 

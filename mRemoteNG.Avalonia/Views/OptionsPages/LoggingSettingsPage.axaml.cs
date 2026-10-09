@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.OptionsPages;
 
@@ -17,7 +18,7 @@ public partial class LoggingSettingsPage : UserControl
 
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Log file",
+            Title = Localizer.Get("LogFileTitle"),
             SuggestedFileName = "mRemoteNG.log",
             ShowOverwritePrompt = false,
         });

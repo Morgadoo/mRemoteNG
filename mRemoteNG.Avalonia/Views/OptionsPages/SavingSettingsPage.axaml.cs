@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.OptionsPages;
 
@@ -16,7 +17,7 @@ public partial class SavingSettingsPage : UserControl
 
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Backup folder",
+            Title = Localizer.Get("BackupFolderTitle"),
             AllowMultiple = false,
         });
 

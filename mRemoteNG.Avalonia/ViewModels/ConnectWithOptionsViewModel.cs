@@ -1,4 +1,5 @@
 using System.Reactive;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 
@@ -48,7 +49,7 @@ public sealed class ConnectWithOptionsViewModel : ReactiveObject
     }
 
     public string ConnectionName { get; }
-    public string Title => $"Connect with Options — {ConnectionName}";
+    public string Title => Localizer.Format("ConnectWithOptionsTitleFormat", ConnectionName);
 
     /// <summary>Panel names offered in the "Panel" box.</summary>
     public IReadOnlyList<string> Panels { get; }

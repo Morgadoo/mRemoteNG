@@ -5,6 +5,7 @@ using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.App.Info;
 using mRemoteNG.Core.Config.DataProviders;
 using mRemoteNG.Core.Config.DatabaseConnectors;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Platform.Security;
 using ReactiveUI;
@@ -16,9 +17,9 @@ public sealed class SavingSettingsViewModel(AppSettings working) : SettingsPageV
 {
     public IReadOnlyList<Choice<BackupFrequency>> BackupFrequencies { get; } =
     [
-        new(BackupFrequency.Never, "Never"),
-        new(BackupFrequency.OnSave, "Every time the connections are saved"),
-        new(BackupFrequency.OnExit, "When mRemoteNG exits"),
+        new(BackupFrequency.Never, Localizer.Get("Never")),
+        new(BackupFrequency.OnSave, Localizer.Get("BackupOnSave")),
+        new(BackupFrequency.OnExit, Localizer.Get("BackupOnExit")),
     ];
 
     public decimal MaxAutoSaveMinutes => AppSettings.MaxAutoSaveMinutes;
@@ -87,13 +88,14 @@ public sealed class SavingSettingsViewModel(AppSettings working) : SettingsPageV
         get
         {
             if (!BackupsEnabled || Working.BackupKeepCount == 0)
-                return "Backups are off.";
+                return Localizer.Get("BackupsAreOff");
             if (!AppSettings.IsValidBackupNameFormat(Working.BackupNameFormat))
-                return "The name format must contain {0} (file) and {1} (time).";
+                return Localizer.Get("BackupNameFormatInvalid");
             var options = Working.GetBackupOptions();
             var name = string.Format(CultureInfo.InvariantCulture, options.NameFormat, "confCons.xml", DateTime.Now);
-            var folder = string.IsNullOrWhiteSpace(Working.BackupDirectory) ? "next to the connection file" : "in the backup folder";
-            return $"Example: {name} {folder}; the newest {Working.BackupKeepCount} are kept.";
+            return Localizer.Format(string.IsNullOrWhiteSpace(Working.BackupDirectory)
+                ? "BackupExampleNextToFileFormat"
+                : "BackupExampleInFolderFormat", name, Working.BackupKeepCount);
         }
     }
 
@@ -123,7 +125,7 @@ public sealed class SqlServerSettingsViewModel : SettingsPageViewModel
         _tester = tester ?? new DatabaseConnectionTester();
         _password = StorageRuntime.UnprotectPassword(crypto, working.SqlPasswordProtected);
         TestConnectionCommand = ReactiveCommand.CreateFromTask(TestConnectionAsync);
-        TestConnectionCommand.ThrownExceptions.Subscribe(ex => TestStatus = $"Test failed: {ex.Message}");
+        TestConnectionCommand.ThrownExceptions.Subscribe(ex => TestStatus = Localizer.Format("TestFailedFormat", ex.Message));
     }
 
     public IReadOnlyList<Choice<DatabaseServerType>> ServerTypes { get; } =
@@ -154,8 +156,8 @@ public sealed class SqlServerSettingsViewModel : SettingsPageViewModel
     }
 
     public string HostWatermark => Working.SqlServerType == DatabaseServerType.MySql
-        ? "host or host:port (default port 3306)"
-        : @"host, host:port or host\instance (default port 1433)";
+        ? Localizer.Get("SqlHostHintMySql")
+        : Localizer.Get("SqlHostHintMsSql");
 
     public string Host
     {
@@ -231,7 +233,7 @@ public sealed class SqlServerSettingsViewModel : SettingsPageViewModel
 
     private async Task TestConnectionAsync()
     {
-        TestStatus = "Connecting…";
+        TestStatus = Localizer.Get("ConnectingEllipsis");
         TestSucceeded = false;
         var result = await _tester.TestAsync(CurrentConnectionSettings);
         TestSucceeded = result.Succeeded;
@@ -244,10 +246,10 @@ public sealed class LoggingSettingsViewModel(AppSettings working) : SettingsPage
 {
     public IReadOnlyList<Choice<LogFileLevel>> Levels { get; } =
     [
-        new(LogFileLevel.Debug, "Debug (everything)"),
-        new(LogFileLevel.Information, "Information"),
-        new(LogFileLevel.Warning, "Warnings and errors"),
-        new(LogFileLevel.Error, "Errors only"),
+        new(LogFileLevel.Debug, Localizer.Get("LogLevelDebugEverything")),
+        new(LogFileLevel.Information, Localizer.Get("LogLevelInformation")),
+        new(LogFileLevel.Warning, Localizer.Get("LogLevelWarnings")),
+        new(LogFileLevel.Error, Localizer.Get("LogLevelErrors")),
     ];
 
     public bool LogToFile
@@ -282,6 +284,6 @@ public sealed class LoggingSettingsViewModel(AppSettings working) : SettingsPage
     public string EffectiveLogFilePath => StorageRuntime.ResolveLogFilePath(Working);
 
     public string DataDirectoryInfo => ApplicationPaths.IsPortable
-        ? $"Portable mode: settings, credentials, known_hosts, themes and logs are kept in {ApplicationPaths.SettingsDirectory}."
-        : $"Settings, credentials, known_hosts, themes and logs are kept in {ApplicationPaths.SettingsDirectory}.";
+        ? Localizer.Format("PortableDataKeptInFormat", ApplicationPaths.SettingsDirectory)
+        : Localizer.Format("DataKeptInFormat", ApplicationPaths.SettingsDirectory);
 }

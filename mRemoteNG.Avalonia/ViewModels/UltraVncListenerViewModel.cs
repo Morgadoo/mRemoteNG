@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Reactive;
 using Avalonia.Threading;
 using mRemoteNG.Avalonia.ViewModels.Docking;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
 using mRemoteNG.Protocols.Vnc;
 using ReactiveUI;
@@ -25,7 +26,7 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
     private VncListener? _listener;
     private int _port;
     private bool _isListening;
-    private string _statusText = "Not listening.";
+    private string _statusText = Localizer.Get("NotListening");
 
     /// <param name="openSession">Opens a session over an accepted socket and returns a status for the list.</param>
     /// <param name="port">Initial port.</param>
@@ -94,7 +95,7 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
         listener.Faulted += (_, ex) => Dispatcher.UIThread.Post(() =>
         {
             IsListening = false;
-            StatusText = $"Listening stopped: {ex.Message}";
+            StatusText = Localizer.Format("ListeningStoppedFormat", ex.Message);
         });
         try
         {
@@ -102,13 +103,13 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
         }
         catch (SocketException ex)
         {
-            StatusText = $"Cannot listen on port {Port}: {ex.Message}";
+            StatusText = Localizer.Format("CannotListenOnPortFormat", Port, ex.Message);
             return;
         }
         _listener = listener;
         IsListening = true;
         this.RaisePropertyChanged(nameof(ListeningPort));
-        StatusText = $"Listening for incoming VNC connections on port {listener.Port}…";
+        StatusText = Localizer.Format("ListeningForVncFormat", listener.Port);
         _savePort?.Invoke(Port);
     }
 
@@ -122,7 +123,7 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
             await listener.StopAsync();
         }
         IsListening = false;
-        StatusText = "Not listening.";
+        StatusText = Localizer.Get("NotListening");
     }
 
     private void OnConnectionAccepted(object? sender, VncIncomingConnectionEventArgs e)
@@ -139,7 +140,7 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
             catch (Exception ex)
             {
                 e.Client.Dispose();
-                status = $"Failed: {ex.Message}";
+                status = Localizer.Format("FailedFormat", ex.Message);
             }
             Connections.Insert(0, new IncomingVncConnection(DateTime.Now, name, status));
         });
@@ -151,7 +152,7 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
         if (factory.Create(ProtocolType.Vnc) is not VncProtocol protocol)
         {
             client.Dispose();
-            return "Failed: no VNC protocol is registered.";
+            return Localizer.Format("FailedFormat", Localizer.Get("NoVncProtocolRegistered"));
         }
         protocol.UseIncomingConnection(client);
         var parameters = new ConnectionParameters
@@ -166,13 +167,15 @@ public sealed class UltraVncListenerViewModel : ReactiveObject, IAsyncDisposable
         try
         {
             await tab.ConnectAsync();
-            return protocol.DesktopName is { Length: > 0 } desktop ? $"Connected: \"{desktop}\"" : "Connected";
+            return protocol.DesktopName is { Length: > 0 } desktop
+                ? Localizer.Format("ConnectedToDesktopFormat", desktop)
+                : Localizer.Get("ConnectedStatus");
         }
         catch (Exception ex)
         {
             tab.SetError(ex.Message);
             sessions.ReportError($"Incoming VNC connection from {parameters.Hostname} failed: {ex.Message}");
-            return $"Failed: {ex.Message}";
+            return Localizer.Format("FailedFormat", ex.Message);
         }
     }
 

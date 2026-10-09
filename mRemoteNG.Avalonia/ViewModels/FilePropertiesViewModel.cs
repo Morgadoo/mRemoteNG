@@ -1,5 +1,6 @@
 using System.Reactive;
 using mRemoteNG.Core.Config.Connections;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Security;
 using ReactiveUI;
 
@@ -31,7 +32,7 @@ public sealed class FilePropertiesViewModel : ReactiveObject
         _service = service ?? throw new ArgumentNullException(nameof(service));
         var root = service.ConnectionTreeModel?.RootNode
                    ?? throw new InvalidOperationException("No connection file is open.");
-        FileName = service.CurrentFilePath is { } path ? Path.GetFileName(path) : "(not saved yet)";
+        FileName = service.CurrentFilePath is { } path ? Path.GetFileName(path) : Localizer.Get("NotSavedYet");
         IsPasswordProtected = root.IsPasswordProtected;
         _rootName = root.Name;
         _usePassword = IsPasswordProtected;
@@ -111,8 +112,8 @@ public sealed class FilePropertiesViewModel : ReactiveObject
     };
 
     public string PasswordStatus => IsPasswordProtected
-        ? "This file is protected by a master password."
-        : "This file is not protected by a master password (passwords are encrypted with the default key).";
+        ? Localizer.Get("FileProtectedByMasterPassword")
+        : Localizer.Get("FileNotProtectedByMasterPassword");
 
     public BlockCipherEngines[] Engines { get; } = Enum.GetValues<BlockCipherEngines>();
     public BlockCipherModes[] Modes { get; } = Enum.GetValues<BlockCipherModes>();
@@ -173,7 +174,7 @@ public sealed class FilePropertiesViewModel : ReactiveObject
     {
         var errors = ConnectionFileSecurity.Validate(_service, ToChange()).ToList();
         if (string.IsNullOrWhiteSpace(RootName))
-            errors.Insert(0, "The name is required.");
+            errors.Insert(0, Localizer.Get("TheNameIsRequired"));
         ErrorText = string.Join(Environment.NewLine, errors);
         return errors;
     }

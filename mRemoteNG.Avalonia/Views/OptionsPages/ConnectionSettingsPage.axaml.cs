@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.OptionsPages;
 
@@ -16,7 +17,7 @@ public partial class ConnectionSettingsPage : UserControl
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Default SSH private key",
+            Title = Localizer.Get("DefaultSshPrivateKey"),
             AllowMultiple = false,
         });
 

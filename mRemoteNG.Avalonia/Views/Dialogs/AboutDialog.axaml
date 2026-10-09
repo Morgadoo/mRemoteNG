@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.AboutDialog"
-        Title="About mRemoteNG"
+        Title="{l:Tr AboutMRemoteNG}"
         Width="460"
         Height="340"
         CanResize="False"
@@ -36,14 +37,14 @@
                        FontSize="11"
                        Foreground="{DynamicResource TextSecondaryBrush}"
                        HorizontalAlignment="Center"/>
-            <TextBlock Text="Cross-platform: Windows · Linux · macOS"
+            <TextBlock Text="{l:Tr CrossPlatformNotice}"
                        FontSize="11"
                        Foreground="{DynamicResource TextLinkBrush}"
                        HorizontalAlignment="Center"/>
         </StackPanel>
 
         <!-- Copyright -->
-        <TextBlock Text="© 2026 mRemoteNG Dev Team · Licensed under GPL-2.0"
+        <TextBlock Text="{l:Tr CopyrightNotice}"
                    FontSize="11"
                    Foreground="{DynamicResource TextMutedBrush}"
                    HorizontalAlignment="Center"
@@ -53,11 +54,11 @@
 
         <!-- Buttons -->
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-            <Button Content="GitHub Repository" Padding="12,4"
+            <Button Content="{l:Tr GitHubRepository}" Padding="12,4"
                     x:Name="GitHubButton"/>
-            <Button Content="Documentation" Padding="12,4"
+            <Button Content="{l:Tr Documentation}" Padding="12,4"
                     x:Name="DocsButton"/>
-            <Button Content="OK" Classes="accent" Padding="24,4"
+            <Button Content="{l:Tr _Ok}" Classes="accent" Padding="24,4"
                     x:Name="OkButton"/>
         </StackPanel>
 

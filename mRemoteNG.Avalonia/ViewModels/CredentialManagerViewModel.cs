@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using mRemoteNG.Core.Credential;
+using mRemoteNG.Core.Localization;
 using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.ViewModels;
@@ -66,7 +67,7 @@ public class CredentialManagerViewModel : ReactiveObject
 
         AddCommand = ReactiveCommand.Create(() =>
         {
-            var entry = new CredentialEntryViewModel { Name = "New Credential" };
+            var entry = new CredentialEntryViewModel { Name = Localizer.Get("NewCredential") };
             Credentials.Add(entry);
             Selected = entry;
         });
@@ -117,7 +118,7 @@ public class CredentialManagerViewModel : ReactiveObject
         if (unnamed is not null)
         {
             Selected = unnamed;
-            ErrorMessage = "Every credential needs a name.";
+            ErrorMessage = Localizer.Get("CredentialNeedsName");
             return false;
         }
 
@@ -128,7 +129,7 @@ public class CredentialManagerViewModel : ReactiveObject
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
                                        or System.Security.Cryptography.CryptographicException)
         {
-            ErrorMessage = $"Could not save credentials: {ex.Message}";
+            ErrorMessage = Localizer.Format("CouldNotSaveCredentialsFormat", ex.Message);
             return false;
         }
 

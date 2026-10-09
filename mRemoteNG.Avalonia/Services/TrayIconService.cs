@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Services;
 
@@ -29,11 +30,11 @@ public sealed class TrayIconService : IDisposable
     {
         var menu = new NativeMenu();
 
-        var showItem = new NativeMenuItem("Show mRemoteNG");
+        var showItem = new NativeMenuItem(Localizer.Get("ShowMRemoteNG"));
         showItem.Click += (_, _) => ShowMainWindow();
         menu.Add(showItem);
 
-        var quickConnectItem = new NativeMenuItem("Quick Connect...");
+        var quickConnectItem = new NativeMenuItem(Localizer.Get("QuickConnect") + "...");
         quickConnectItem.Click += async (_, _) =>
         {
             // The owner must be visible; it may be hidden in the tray.
@@ -47,7 +48,7 @@ public sealed class TrayIconService : IDisposable
 
         menu.Add(new NativeMenuItemSeparator());
 
-        var exitItem = new NativeMenuItem("Exit");
+        var exitItem = new NativeMenuItem(Localizer.Get("Exit"));
         exitItem.Click += (_, _) => RequestExit();
         menu.Add(exitItem);
 

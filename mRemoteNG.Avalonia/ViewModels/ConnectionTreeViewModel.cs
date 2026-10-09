@@ -10,6 +10,7 @@ using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Core.Config.Putty;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Container;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Net;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Core.Tree;
@@ -101,16 +102,16 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
         get
         {
             if (IsPuttyRoot)
-                return "Saved PuTTY sessions (read-only). Connect, or duplicate a session to copy it into the connection tree.";
+                return Localizer.Get("PuttyRootToolTip");
             if (IsFolder)
                 return string.IsNullOrEmpty(Description) ? Name : $"{Name}\n{Description}";
-            var host = string.IsNullOrEmpty(Hostname) ? "(no hostname)" : Hostname;
+            var host = string.IsNullOrEmpty(Hostname) ? Localizer.Get("NoHostnameInParentheses") : Hostname;
             var target = Port > 0 ? $"{host}:{Port}" : host;
             var text = $"{Model.Protocol}  {target}";
-            if (!string.IsNullOrEmpty(Username)) text += $"\nUser: {Username}";
+            if (!string.IsNullOrEmpty(Username)) text += "\n" + Localizer.Format("ToolTipUserFormat", Username);
             if (!string.IsNullOrEmpty(Description)) text += $"\n{Description}";
-            if (IsPuttySession) text += "\nPuTTY saved session";
-            if (!IsSupported) text += $"\n{Model.Protocol} is not supported on this platform yet.";
+            if (IsPuttySession) text += "\n" + Localizer.Get("PuttySavedSession");
+            if (!IsSupported) text += "\n" + Localizer.Format("ProtocolNotSupportedFormat", Model.Protocol);
             return text;
         }
     }
@@ -391,7 +392,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
 
     /// <summary>"MySQL host/db (read-only)" when the tree was loaded from a SQL database, else null.</summary>
     public string? DatabaseName => _connectionsService.Database is { } db
-        ? db.DisplayName + (db.ReadOnly ? " (read-only)" : string.Empty)
+        ? db.ReadOnly ? Localizer.Format("ReadOnlyNameFormat", db.DisplayName) : db.DisplayName
         : null;
 
     public bool HasCutNode => _cutNode is not null;
@@ -706,11 +707,11 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         }
 
         if (_settings?.Current.ConfirmCloseConnection == Core.Config.ConfirmCloseEnum.All
-            && !await Ask.Handle(new TreeQuestion("Disconnect",
+            && !await Ask.Handle(new TreeQuestion(Localizer.Get("Disconnect"),
                 sessions.Count == 1
-                    ? $"Disconnect \"{node.Name}\"?"
-                    : $"Close the {sessions.Count} sessions of \"{node.Name}\"?",
-                "Disconnect")))
+                    ? Localizer.FormatOr("ConfirmDisconnectConnection", "Disconnect \"{0}\"?", node.Name)
+                    : Localizer.Format("ConfirmCloseSessionsOfFormat", sessions.Count, node.Name),
+                Localizer.Get("Disconnect"), Localizer.Get("_Cancel"))))
         {
             return;
         }
@@ -841,15 +842,15 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         {
             var count = ConnectionTreeOperations.CountDescendants(folder);
             message = count == 0
-                ? $"Delete the empty folder \"{node.Name}\"?"
-                : $"Delete the folder \"{node.Name}\" and the {count} item{(count == 1 ? "" : "s")} it contains?";
+                ? Localizer.FormatOr("ConfirmDeleteNodeFolder", "Delete the empty folder \"{0}\"?", node.Name)
+                : Localizer.Format(count == 1 ? "ConfirmDeleteFolderOneItemFormat" : "ConfirmDeleteFolderItemsFormat", node.Name, count);
         }
         else
         {
-            message = $"Delete the connection \"{node.Name}\"?";
+            message = Localizer.FormatOr("ConfirmDeleteNodeConnection", "Delete the connection \"{0}\"?", node.Name);
         }
 
-        if (!await Confirm.Handle(("Delete", message))) return;
+        if (!await Confirm.Handle((Localizer.Get("Delete"), message))) return;
 
         var index = parent.Children.IndexOf(node.Model);
         if (ReferenceEquals(_cutNode, node.Model) || (_cutNode is not null && IsDescendantOf(_cutNode, node.Model)))

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
 using mRemoteNG.Protocols.Ssh;
 
@@ -26,7 +27,7 @@ public partial class SshFileTransferDialog : Window
         {
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = $"Upload to {viewModel.RemotePath}",
+                Title = Localizer.Format("UploadToFormat", viewModel.RemotePath),
                 AllowMultiple = true,
             });
             ctx.SetOutput(files.Select(f => f.TryGetLocalPath()).OfType<string>().ToList());
@@ -35,7 +36,7 @@ public partial class SshFileTransferDialog : Window
         {
             var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title = "Download as",
+                Title = Localizer.Get("DownloadAs"),
                 SuggestedFileName = ctx.Input,
                 ShowOverwritePrompt = true,
             });
@@ -43,12 +44,14 @@ public partial class SshFileTransferDialog : Window
         });
         viewModel.AskFolderName.RegisterHandler(async ctx =>
         {
-            var dialog = new TextPromptDialog("New Folder", $"Create a folder in {ctx.Input}:", false, "Folder name", null);
+            var dialog = new TextPromptDialog(Localizer.Get("NewFolder"), Localizer.Format("CreateFolderInFormat", ctx.Input), false,
+                Localizer.Get("FolderName"), null);
             ctx.SetOutput(await dialog.ShowDialog<string?>(this));
         });
         viewModel.ConfirmDelete.RegisterHandler(async ctx =>
         {
-            ctx.SetOutput(await MessageDialog.ConfirmAsync(this, "Delete", ctx.Input, "Delete", "Cancel", confirmIsDefault: false));
+            ctx.SetOutput(await MessageDialog.ConfirmAsync(this, Localizer.Get("Delete"), ctx.Input, Localizer.Get("Delete"),
+                Localizer.Get("_Cancel"), confirmIsDefault: false));
         });
 
         RemoteList.DoubleTapped += async (_, _) =>

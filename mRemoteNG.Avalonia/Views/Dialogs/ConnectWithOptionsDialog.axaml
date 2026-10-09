@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ConnectWithOptionsDialog"
         x:DataType="vm:ConnectWithOptionsViewModel"
@@ -10,14 +11,14 @@
         WindowStartupLocation="CenterOwner">
 
     <StackPanel Margin="20" Spacing="12">
-        <TextBlock Text="{Binding ConnectionName, StringFormat='Connect to \&quot;{0}\&quot; with:'}" TextWrapping="Wrap"/>
+        <TextBlock Text="{Binding ConnectionName, StringFormat={l:Tr ConnectWithOptionsHeadingFormat}}" TextWrapping="Wrap"/>
 
-        <CheckBox x:Name="NoCredentialsBox" Content="Connect without credentials" IsChecked="{Binding NoCredentials}"/>
-        <CheckBox Content="Connect in full screen" IsChecked="{Binding Fullscreen}"/>
-        <CheckBox Content="Connect in view-only mode" IsChecked="{Binding ViewOnly}" IsEnabled="{Binding SupportsViewOnly}"/>
+        <CheckBox x:Name="NoCredentialsBox" Content="{l:Tr ConnectNoCredentials}" IsChecked="{Binding NoCredentials}"/>
+        <CheckBox Content="{l:Tr ConnectInFullscreen, English='Connect in full screen'}" IsChecked="{Binding Fullscreen}"/>
+        <CheckBox Content="{l:Tr ConnectInViewOnlyMode, English='Connect in view-only mode'}" IsChecked="{Binding ViewOnly}" IsEnabled="{Binding SupportsViewOnly}"/>
 
         <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,8,Auto">
-            <TextBlock Text="Console session" VerticalAlignment="Center" IsVisible="{Binding IsRdp}"/>
+            <TextBlock Text="{l:Tr UseConsoleSession, English='Console session'}" VerticalAlignment="Center" IsVisible="{Binding IsRdp}"/>
             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" IsVisible="{Binding IsRdp}"
                       ItemsSource="{Binding ConsoleSessionChoices}" SelectedItem="{Binding ConsoleSession}">
                 <ComboBox.ItemTemplate>
@@ -27,15 +28,15 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <TextBlock Grid.Row="2" Text="Panel" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="2" Text="{l:Tr Panel}" VerticalAlignment="Center"/>
             <AutoCompleteBox Grid.Row="2" Grid.Column="1" x:Name="PanelBox" Text="{Binding Panel, Mode=TwoWay}"
                              ItemsSource="{Binding Panels}" FilterMode="ContainsOrdinal" MinimumPrefixLength="0"
-                             Watermark="(the connection's panel)"/>
+                             Watermark="{l:Tr TheConnectionSPanel}"/>
         </Grid>
 
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-            <Button Content="Cancel" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
-            <Button Content="Connect" Classes="accent" MinWidth="80" IsDefault="True" Command="{Binding ConnectCommand}"/>
+            <Button Content="{l:Tr _Cancel}" MinWidth="80" IsCancel="True" Command="{Binding CancelCommand}"/>
+            <Button Content="{l:Tr Connect}" Classes="accent" MinWidth="80" IsDefault="True" Command="{Binding ConnectCommand}"/>
         </StackPanel>
     </StackPanel>
 </Window>

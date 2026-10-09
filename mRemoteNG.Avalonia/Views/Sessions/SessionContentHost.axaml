@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
              x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionContentHost"
              x:DataType="dock:SessionTabViewModel">
@@ -23,7 +24,7 @@
                                VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <TextBlock Grid.Column="1" Text="{Binding StatusBannerText}" TextWrapping="Wrap"
                                VerticalAlignment="Center" FontSize="12"/>
-                    <Button Grid.Column="2" x:Name="ReconnectButton" Content="Reconnect" Padding="10,2"
+                    <Button Grid.Column="2" x:Name="ReconnectButton" Content="{l:Tr Reconnect}" Padding="10,2"
                             FontSize="12" Margin="8,0,0,0"/>
                 </Grid>
             </Border>

@@ -10,6 +10,7 @@ using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Avalonia.Views.Sessions;
 using mRemoteNG.Avalonia.Services;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Protocols.Ssh;
 using ReactiveUI;
@@ -165,7 +166,8 @@ public partial class MainWindow : Window
         _vmSubscriptions.Add(vm.ConnectionTree.Confirm.RegisterHandler(async context =>
         {
             var (title, message) = context.Input;
-            context.SetOutput(await MessageDialog.ConfirmAsync(this, title, message, "Delete", "Cancel", confirmIsDefault: false));
+            context.SetOutput(await MessageDialog.ConfirmAsync(this, title, message, Localizer.Get("Delete"), Localizer.Get("_Cancel"),
+                confirmIsDefault: false));
         }));
     }
 
@@ -366,7 +368,7 @@ public partial class MainWindow : Window
         var panels = dock.Panels.Where(p => p.Sessions.Count > 0).ToList();
         if (panels.Count == 0)
         {
-            items.Add(new MenuItem { Header = "(No open sessions)", IsEnabled = false });
+            items.Add(new MenuItem { Header = Localizer.Menu("NoOpenSessions"), IsEnabled = false });
             return;
         }
 
@@ -401,7 +403,7 @@ public partial class MainWindow : Window
         var favorites = vm.GetFavorites();
         if (favorites.Count == 0)
         {
-            items.Add(new MenuItem { Header = "(No favorites)", IsEnabled = false });
+            items.Add(new MenuItem { Header = Localizer.Menu("NoFavorites"), IsEnabled = false });
             return;
         }
 

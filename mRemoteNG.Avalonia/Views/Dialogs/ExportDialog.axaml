@@ -1,65 +1,66 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ExportDialog"
-        Title="Export Connections"
+        Title="{l:Tr ExportConnections}"
         Width="480"
         SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
     <StackPanel Margin="24" Spacing="14">
-        <TextBlock Text="Export Connections" FontSize="16" FontWeight="Bold"/>
+        <TextBlock Text="{l:Tr ExportConnections}" FontSize="16" FontWeight="Bold"/>
 
         <Border Classes="card">
             <StackPanel Spacing="10">
-                <TextBlock Text="Export Format" Classes="section-header"/>
-                <RadioButton x:Name="XmlRadio" GroupName="Format" Content="mRemoteNG XML (.xml) — recommended" IsChecked="True"/>
-                <RadioButton x:Name="CsvRadio" GroupName="Format" Content="mRemoteNG CSV (.csv) — for spreadsheet apps"/>
+                <TextBlock Text="{l:Tr ExportFormat}" Classes="section-header"/>
+                <RadioButton x:Name="XmlRadio" GroupName="Format" Content="{l:Tr MRemoteNGXMLXmlRecommended}" IsChecked="True"/>
+                <RadioButton x:Name="CsvRadio" GroupName="Format" Content="{l:Tr MRemoteNGCSVCsvForSpreadsheetApps}"/>
             </StackPanel>
         </Border>
 
         <Border Classes="card">
             <StackPanel Spacing="10">
-                <TextBlock Text="Export Scope" Classes="section-header"/>
-                <RadioButton x:Name="AllRadio" GroupName="Scope" Content="All connections" IsChecked="True"/>
-                <RadioButton x:Name="SelectedRadio" GroupName="Scope" Content="Selected folder and its children"/>
+                <TextBlock Text="{l:Tr ExportScope}" Classes="section-header"/>
+                <RadioButton x:Name="AllRadio" GroupName="Scope" Content="{l:Tr AllConnections}" IsChecked="True"/>
+                <RadioButton x:Name="SelectedRadio" GroupName="Scope" Content="{l:Tr SelectedFolderAndItsChildren}"/>
             </StackPanel>
         </Border>
 
         <Border Classes="card">
             <StackPanel Spacing="8">
-                <TextBlock Text="Include" Classes="section-header"/>
+                <TextBlock Text="{l:Tr Include}" Classes="section-header"/>
                 <WrapPanel>
-                    <CheckBox x:Name="UsernameCheck" Content="Username" IsChecked="True" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="PasswordCheck" Content="Password" IsChecked="True" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="DomainCheck" Content="Domain" IsChecked="True" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="InheritanceCheck" Content="Inheritance" IsChecked="True"/>
+                    <CheckBox x:Name="UsernameCheck" Content="{l:Tr Username}" IsChecked="True" Margin="0,0,16,0"/>
+                    <CheckBox x:Name="PasswordCheck" Content="{l:Tr Password}" IsChecked="True" Margin="0,0,16,0"/>
+                    <CheckBox x:Name="DomainCheck" Content="{l:Tr Domain}" IsChecked="True" Margin="0,0,16,0"/>
+                    <CheckBox x:Name="InheritanceCheck" Content="{l:Tr Inheritance}" IsChecked="True"/>
                 </WrapPanel>
                 <TextBlock x:Name="CsvPasswordWarning" Foreground="#E0A052" TextWrapping="Wrap" IsVisible="False"
-                           Text="CSV files store passwords in clear text."/>
+                           Text="{l:Tr CSVFilesStorePasswordsInClearText}"/>
             </StackPanel>
         </Border>
 
         <Border Classes="card" x:Name="PasswordCard">
             <StackPanel Spacing="8">
-                <TextBlock Text="File Password (optional)" Classes="section-header"/>
+                <TextBlock Text="{l:Tr FilePasswordOptional}" Classes="section-header"/>
                 <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
-                           Text="Protects the exported file with a master password. Leave empty for an unprotected file."/>
-                <TextBox x:Name="FilePasswordBox" PasswordChar="●" Watermark="Password"/>
-                <TextBox x:Name="FilePasswordConfirmBox" PasswordChar="●" Watermark="Confirm password"/>
+                           Text="{l:Tr ProtectsTheExportedFileWithAMaster}"/>
+                <TextBox x:Name="FilePasswordBox" PasswordChar="●" Watermark="{l:Tr Password}"/>
+                <TextBox x:Name="FilePasswordConfirmBox" PasswordChar="●" Watermark="{l:Tr ConfirmPassword}"/>
             </StackPanel>
         </Border>
 
         <Grid ColumnDefinitions="*,8,Auto">
-            <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="Output file path..."/>
-            <Button Grid.Column="2" Content="Browse..." x:Name="BrowseButton" Padding="10,4"/>
+            <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="{l:Tr OutputFilePath, Suffix='...'}"/>
+            <Button Grid.Column="2" Content="{l:Tr _Browse}" x:Name="BrowseButton" Padding="10,4"/>
         </Grid>
 
         <TextBlock x:Name="ErrorText" Foreground="#E05252" TextWrapping="Wrap" IsVisible="False"/>
 
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-            <Button Content="Cancel" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
-            <Button Content="Export" Classes="accent" MinWidth="80" x:Name="ExportButton" IsDefault="True"/>
+            <Button Content="{l:Tr _Cancel}" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
+            <Button Content="{l:Tr Export}" Classes="accent" MinWidth="80" x:Name="ExportButton" IsDefault="True"/>
         </StackPanel>
     </StackPanel>
 </Window>

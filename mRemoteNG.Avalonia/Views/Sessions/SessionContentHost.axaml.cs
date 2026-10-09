@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using mRemoteNG.Avalonia.ViewModels.Docking;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
 
 namespace mRemoteNG.Avalonia.Views.Sessions;
@@ -65,10 +66,10 @@ public partial class SessionContentHost : UserControl
         }
 
         Placeholder.Text = _session.IsDetached
-            ? "This session is shown full screen.\nUse “Exit full screen” at the top of that window to bring it back."
+            ? Localizer.Get("SessionShownFullScreen")
             : _session.ContentView is null
                 ? _session.State == ConnectionState.Connected
-                    ? "This session runs in its own window."
+                    ? Localizer.Get("SessionRunsInOwnWindow")
                     : string.Empty
                 : string.Empty;
         Placeholder.IsVisible = Placeholder.Text.Length > 0;

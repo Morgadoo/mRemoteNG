@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Ssh;
 
 namespace mRemoteNG.Avalonia.Views.Dialogs;
@@ -35,33 +36,28 @@ public partial class HostKeyDialog : Window
 
     private void ShowUnknown(HostKeyPromptRequest request)
     {
-        Title = "Unknown SSH Host Key";
-        HeadingText.Text = $"The authenticity of host '{HostText.Text}' can't be established.";
-        ExplanationText.Text =
-            "Compare the fingerprint below with the one published by the server's administrator. " +
-            "\"Accept and save\" stores the key in " + request.KnownHostsFile +
-            " so future connections are verified automatically.";
+        Title = Localizer.Get("HostKeyUnknownTitle");
+        HeadingText.Text = Localizer.Format("HostKeyUnknownHeadingFormat", HostText.Text);
+        ExplanationText.Text = Localizer.Format("HostKeyUnknownExplanationFormat", request.KnownHostsFile);
         OnceButton.IsVisible = true;
         AcceptButton.IsVisible = true;
 
         if (request.OtherKeyTypesKnown)
         {
             StoredPanel.IsVisible = true;
-            StoredHeading.Text = "This host is already known with a different key type:";
+            StoredHeading.Text = Localizer.Get("HostKeyOtherTypeKnown");
             StoredText.Text = Describe(request.KnownEntries);
         }
     }
 
     private void ShowMismatch(HostKeyPromptRequest request)
     {
-        Title = "SSH Host Key Changed";
+        Title = Localizer.Get("HostKeyChangedTitle");
         WarningBanner.IsVisible = true;
-        HeadingText.Text = $"The {request.HostKey.KeyType} key presented by '{HostText.Text}' does not match the stored key.";
-        ExplanationText.Text =
-            "The connection has been blocked. Replacing the key updates " + request.KnownHostsFile +
-            "; ~/.ssh/known_hosts is never modified.";
+        HeadingText.Text = Localizer.Format("HostKeyMismatchHeadingFormat", request.HostKey.KeyType, HostText.Text);
+        ExplanationText.Text = Localizer.Format("HostKeyMismatchExplanationFormat", request.KnownHostsFile);
         StoredPanel.IsVisible = true;
-        StoredHeading.Text = "Stored key:";
+        StoredHeading.Text = Localizer.Get("HostKeyStoredKey");
         StoredText.Text = Describe(request.ConflictingEntries);
         ConfirmReplaceBox.IsVisible = true;
         ReplaceButton.IsVisible = true;

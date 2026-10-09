@@ -1,49 +1,50 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
              x:Class="mRemoteNG.Avalonia.Views.OptionsPages.SavingSettingsPage"
              x:DataType="vm:SavingSettingsViewModel">
     <StackPanel Spacing="16">
-        <TextBlock Text="Saving &amp; Backups" FontSize="18" FontWeight="Bold"/>
+        <TextBlock Text="{l:Tr SavingBackups}" FontSize="18" FontWeight="Bold"/>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Automatic Saving" Classes="section-header"/>
+                <TextBlock Text="{l:Tr AutomaticSaving}" Classes="section-header"/>
                 <Grid ColumnDefinitions="*,160">
-                    <TextBlock Text="Save every (minutes, 0 = off)" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:Tr SaveEveryMinutes0Off}" VerticalAlignment="Center"/>
                     <NumericUpDown Grid.Column="1" FormatString="0" Minimum="0" Maximum="{Binding MaxAutoSaveMinutes}"
                                    Value="{Binding AutoSaveEveryMinutes}"/>
                 </Grid>
                 <CheckBox IsChecked="{Binding SaveConnectionsOnEdit}"
-                          Content="Save the connections after every change"/>
+                          Content="{l:Tr SaveConnectionsAfterEveryEdit, English='Save the connections after every change'}"/>
                 <TextBlock TextWrapping="Wrap" Opacity="0.7"
-                           Text="Automatic saves only happen when there are unsaved changes and the connections have a file (or a writable SQL database)."/>
+                           Text="{l:Tr AutomaticSavesOnlyHappenWhenThereAre}"/>
             </StackPanel>
         </Border>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Backups" Classes="section-header"/>
+                <TextBlock Text="{l:Tr strBackup, English='Backups'}" Classes="section-header"/>
                 <Grid ColumnDefinitions="*,280">
-                    <TextBlock Text="Back up the connection file" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:Tr BackUpTheConnectionFile}" VerticalAlignment="Center"/>
                     <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                               ItemsSource="{Binding BackupFrequencies}"
                               SelectedItem="{Binding SelectedBackupFrequency}"/>
                 </Grid>
                 <StackPanel Spacing="12" IsEnabled="{Binding BackupsEnabled}">
                     <Grid ColumnDefinitions="*,160">
-                        <TextBlock Text="Number of backups to keep" VerticalAlignment="Center"/>
+                        <TextBlock Text="{l:Tr NumberOfBackupsToKeep}" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Column="1" FormatString="0" Minimum="0" Maximum="{Binding MaxBackups}"
                                        Value="{Binding BackupKeepCount}"/>
                     </Grid>
                     <Grid ColumnDefinitions="*,8,Auto">
-                        <TextBox Text="{Binding BackupDirectory}" TextWrapping="Wrap" Watermark="Backup folder (empty: next to the connection file)"/>
-                        <Button Grid.Column="2" Content="Browse…" Click="OnBrowseFolder"/>
+                        <TextBox Text="{Binding BackupDirectory}" TextWrapping="Wrap" Watermark="{l:Tr BackupFolderEmptyNextToTheConnection}"/>
+                        <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseFolder"/>
                     </Grid>
                     <Grid ColumnDefinitions="*,8,Auto">
                         <TextBox Text="{Binding BackupNameFormat}" Watermark="{}{0}.{1:yyyyMMdd-HHmmssffff}.backup"
                                  ToolTip.Tip="{}{0} = the connection file, {1} = the time of the backup (.NET format)"/>
-                        <Button Grid.Column="2" Content="Default" Click="OnResetFormat"/>
+                        <Button Grid.Column="2" Content="{l:Tr DefaultChoice}" Click="OnResetFormat"/>
                     </Grid>
                     <TextBlock Text="{Binding ExampleBackupName}" TextWrapping="Wrap" Opacity="0.7"
                                ToolTip.Tip="{Binding ExampleBackupName}"/>

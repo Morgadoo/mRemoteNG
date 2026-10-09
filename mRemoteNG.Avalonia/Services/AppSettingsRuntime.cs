@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Core.App;
 using mRemoteNG.Core.Config.Connections;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Platform;
 using LogLevel = mRemoteNG.Avalonia.ViewModels.Docking.LogLevel;
@@ -231,7 +232,7 @@ public sealed class AppSettingsRuntime : IDisposable
         _wasConnected[session] = now;
 
         if (!was && now && _settings.Current.NotifyOnConnect)
-            Notify("Connected", $"{session.ProtocolName}: {session.Hostname}", NotificationLevel.Info);
+            Notify(Localizer.Get("ConnectedStatus"), $"{session.ProtocolName}: {session.Hostname}", NotificationLevel.Info);
         else if (was && !now)
             NotifyDisconnected(session);
     }
@@ -239,7 +240,7 @@ public sealed class AppSettingsRuntime : IDisposable
     private void NotifyDisconnected(SessionTabViewModel session)
     {
         if (_settings.Current.NotifyOnDisconnect)
-            Notify("Disconnected", $"{session.ProtocolName}: {session.Hostname}", NotificationLevel.Info);
+            Notify(Localizer.Get("Disconnected"), $"{session.ProtocolName}: {session.Hostname}", NotificationLevel.Info);
     }
 
     private void OnLogEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -250,7 +251,7 @@ public sealed class AppSettingsRuntime : IDisposable
         foreach (LogEntry entry in e.NewItems)
         {
             if (entry.Level == LogLevel.Error)
-                Notify("mRemoteNG error", entry.Message, NotificationLevel.Error);
+                Notify(Localizer.Get("MRemoteNGError"), entry.Message, NotificationLevel.Error);
         }
     }
 

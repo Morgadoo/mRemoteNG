@@ -54,6 +54,8 @@ UI tests.
   legacy schema has no columns for them); `LocalConnectionProperties.xml` and ODBC are not ported.
 - Session tabs cannot be dragged between panels (use Move to Panel).
 - Terminal: Rlogin does not send window-size changes; wide (CJK) characters use one cell.
+- Translations: ~280 strings that exist only in the new app (`mRemoteNG.Core/Localization/Strings.resx`) show
+  in English in every language; legacy translations are used as they are (some are partial or inaccurate).
 - Packaging: Flatpak, Snap and macOS DMG/Homebrew scripts have not been run; code signing needs certificates.
 
 ## Feature Parity with the WinForms App
@@ -72,7 +74,7 @@ Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done a
 | 8 | Panels, layout, tab/frame colours, Favorites, environment tags | Done (no drag between panels) |
 | 9 | Tree: expand/collapse, copy hostname, inheritance, connect with options, live PuTTY root | Done |
 | 10 | Master password / encryption settings of the open file | Done (Connection File Properties) |
-| 11 | Translations, theme editor, log file, start minimised, update download, CLI switches | Done except translations (in progress) |
+| 11 | Translations, theme editor, log file, start minimised, update download, CLI switches | Done — the 24 legacy translations are used (Options ▸ Appearance ▸ Language, applied at restart); strings new in this app are English only until translated |
 | 12 | Connection editor for every stored property | Done — conditional fields as in the legacy property grid |
 
 ## Summary Dashboard

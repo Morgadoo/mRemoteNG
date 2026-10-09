@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Core.Config.Import;
 using mRemoteNG.Core.Config.Import.ActiveDirectory;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.Dialogs;
 
@@ -40,9 +41,9 @@ public partial class ImportDialog : Window
         SourceTypeBox.SelectionChanged += (_, _) => OnSourceTypeChanged();
 
         _hasSelectedFolder = selectedFolderName is not null;
-        var targets = new List<string> { "Root (top level)" };
+        var targets = new List<string> { Localizer.Get("ImportTargetRoot") };
         if (_hasSelectedFolder)
-            targets.Add($"Selected folder: {selectedFolderName}");
+            targets.Add(Localizer.Format("ImportTargetSelectedFolderFormat", selectedFolderName));
         TargetFolderBox.ItemsSource = targets;
         TargetFolderBox.SelectedIndex = _hasSelectedFolder ? 1 : 0;
 
@@ -64,35 +65,30 @@ public partial class ImportDialog : Window
             ? _directoryRequest?.ToUrl() ?? ""
             : ConnectionImportService.GetDefaultSource(source.Type) ?? "";
         FilePathBox.IsReadOnly = source.SourceIsDirectory;
-        BrowseButton.Content = source.SourceIsDirectory ? "Browse directory..." : "Browse...";
+        BrowseButton.Content = source.SourceIsDirectory ? Localizer.Get("BrowseDirectory") + "..." : Localizer.Get("_Browse");
 
         (FilePathBox.Watermark, SourceHintText.Text) = source.Type switch
         {
             ImportSourceType.PuttySessions when OperatingSystem.IsWindows() =>
-                ("PuTTY sessions folder (optional)",
-                 "Leave empty to read the sessions PuTTY saved in the Windows registry."),
+                (Localizer.Get("PuttySessionsFolderOptional"), Localizer.Get("ImportHintPuttyRegistry")),
             ImportSourceType.PuttySessions =>
-                ("PuTTY sessions folder",
-                 "PuTTY stores sessions in ~/.putty/sessions (one file per session)."),
+                (Localizer.Get("PuttySessionsFolder"), Localizer.Get("ImportHintPuttyFolder")),
             ImportSourceType.OpenSshConfig =>
-                ("OpenSSH config file",
-                 "Host entries become SSH connections; wildcard patterns are skipped."),
+                (Localizer.Get("OpenSshConfigFile"), Localizer.Get("ImportHintOpenSsh")),
             ImportSourceType.MRemoteNGXml =>
-                ("Select a file to import...",
-                 "You will be asked for the password if the file is protected."),
+                (SelectFileWatermark, Localizer.Get("ImportHintXml")),
             ImportSourceType.RemoteDesktopConnectionManager =>
-                ("Select a file to import...",
-                 "Passwords encrypted by RDCMan (Windows DPAPI) cannot be imported."),
+                (SelectFileWatermark, Localizer.Get("ImportHintRdcMan")),
             ImportSourceType.ActiveDirectory =>
-                ("Browse the directory to choose an OU...",
-                 "Connect to a domain controller, pick an OU and its computers; they are imported as RDP connections."),
+                (Localizer.Get("ImportBrowseDirectoryWatermark"), Localizer.Get("ImportHintActiveDirectory")),
             ImportSourceType.MRemoteNGCsv or ImportSourceType.RemoteDesktopManager =>
-                ("Select a file to import...",
-                 "Passwords in CSV files are stored in clear text."),
-            _ => ("Select a file to import...", ""),
+                (SelectFileWatermark, Localizer.Get("ImportHintCsv")),
+            _ => (SelectFileWatermark, ""),
         };
         SourceHintText.IsVisible = !string.IsNullOrEmpty(SourceHintText.Text);
     }
+
+    private static string SelectFileWatermark => Localizer.Get("SelectAFileToImport") + "...";
 
     private async Task BrowseAsync()
     {
@@ -106,7 +102,7 @@ public partial class ImportDialog : Window
         {
             var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = "Select the PuTTY sessions folder",
+                Title = Localizer.Get("SelectPuttySessionsFolder"),
                 AllowMultiple = false,
             });
             if (folders.Count > 0)
@@ -116,12 +112,12 @@ public partial class ImportDialog : Window
 
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = $"Import from {source.DisplayName}",
+            Title = Localizer.Format("ImportFromFormat", source.DisplayName),
             AllowMultiple = false,
             FileTypeFilter =
             [
                 new FilePickerFileType(source.DisplayName) { Patterns = source.FilePatterns.ToList() },
-                new FilePickerFileType("All files") { Patterns = ["*"] },
+                new FilePickerFileType(Localizer.Get("FilterAll", "All files")) { Patterns = ["*"] },
             ],
         });
         if (files.Count > 0)
@@ -158,16 +154,16 @@ public partial class ImportDialog : Window
         var error = (source.Type, path.Length == 0) switch
         {
             (ImportSourceType.PuttySessions, true) when !OperatingSystem.IsWindows() =>
-                "No PuTTY sessions folder was found. Select the folder that holds the session files.",
+                Localizer.Get("ImportNoPuttyFolder"),
             (ImportSourceType.PuttySessions, _) or (ImportSourceType.OpenSshConfig, true) => null,
-            (_, true) => "Select a file to import.",
+            (_, true) => Localizer.Get("SelectAFileToImport") + ".",
             _ => null,
         };
         if (error is null && path.Length > 0)
         {
             var exists = source.SourceIsFolder ? Directory.Exists(path) : File.Exists(path);
             if (!exists)
-                error = $"\"{path}\" does not exist.";
+                error = Localizer.Format("PathDoesNotExistFormat", path);
         }
 
         if (error is not null)

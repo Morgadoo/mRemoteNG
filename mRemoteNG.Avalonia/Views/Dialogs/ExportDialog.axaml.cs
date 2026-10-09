@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Core.Config.Export;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Security;
 
 namespace mRemoteNG.Avalonia.Views.Dialogs;
@@ -36,7 +37,7 @@ public partial class ExportDialog : Window
         }
         else
         {
-            SelectedRadio.Content = $"Selected folder \"{selectedFolderName}\" and its children";
+            SelectedRadio.Content = Localizer.Format("ExportSelectedFolderFormat", selectedFolderName);
             SelectedRadio.IsChecked = true;
         }
 
@@ -74,7 +75,7 @@ public partial class ExportDialog : Window
         var isCsv = Format == ExportFormat.Csv;
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Export connections to file",
+            Title = Localizer.Get("ExportConnectionsToFile"),
             SuggestedFileName = "connections" + Extension,
             DefaultExtension = Extension.TrimStart('.'),
             FileTypeChoices =
@@ -96,16 +97,16 @@ public partial class ExportDialog : Window
 
         if (path.Length == 0)
         {
-            error = "Choose the file to export to.";
+            error = Localizer.Get("ExportChooseFile");
         }
         else if (Path.GetDirectoryName(Path.GetFullPath(path)) is not { } directory || !Directory.Exists(directory))
         {
-            error = "The folder for the export file does not exist.";
+            error = Localizer.Get("ExportFolderMissing");
         }
         else if (Format == ExportFormat.Xml && !string.IsNullOrEmpty(FilePasswordBox.Text))
         {
             if (FilePasswordBox.Text != FilePasswordConfirmBox.Text)
-                error = "The passwords do not match.";
+                error = Localizer.Get("PasswordsDoNotMatch");
             else
                 password = FilePasswordBox.Text;
         }

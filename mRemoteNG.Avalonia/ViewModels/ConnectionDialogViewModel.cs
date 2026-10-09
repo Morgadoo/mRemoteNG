@@ -8,6 +8,7 @@ using mRemoteNG.Core.Connection.Protocol.Http;
 using mRemoteNG.Core.Connection.Protocol.RDP;
 using mRemoteNG.Core.Connection.Protocol.VNC;
 using mRemoteNG.Core.Container;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Net;
 using mRemoteNG.Core.Tree.Root;
 using mRemoteNG.Protocols.Abstractions;
@@ -91,7 +92,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
         Tabs = ConnectionPropertyCategories.All.Select(BuildTab).ToList();
         InheritanceSections = Fields.Where(f => f.SupportsInheritance)
             .GroupBy(f => f.Descriptor.Category == ConnectionPropertyCategories.Protocol ? f.Descriptor.Section : f.Descriptor.Category)
-            .Select(g => new PropertySectionViewModel(g.Key, g.ToList()))
+            .Select(g => new PropertySectionViewModel(ConnectionPropertyCategories.GetDisplayName(g.Key), g.ToList()))
             .ToList();
 
         _lastProtocol = Protocol.Value is CoreProtocolType p ? p : CoreProtocolType.RDP;
@@ -117,19 +118,19 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     public string ParentName { get; }
 
     public string InheritHint => IsDefaultConnection
-        ? "These values and Inherit boxes are given to every new connection and folder."
+        ? Localizer.Get("InheritHintDefaultConnection")
         : CanInherit
-            ? $"Checked \"Inherit\" boxes take the value from the folder \"{ParentName}\"."
-            : "Items directly under the root have nothing to inherit from.";
+            ? Localizer.Format("InheritHintFolderFormat", ParentName)
+            : Localizer.Get("InheritHintRoot");
 
     public string WindowTitle => IsDefaultConnection
-        ? "Default Connection Properties"
+        ? Localizer.Get("DefaultConnectionProperties")
         : (IsNew, IsFolder) switch
         {
-            (true, true) => "New Folder",
-            (true, false) => "New Connection",
-            (false, true) => $"Edit Folder — {_target.Name}",
-            _ => $"Edit Connection — {_target.Name}",
+            (true, true) => Localizer.Get("NewFolder"),
+            (true, false) => Localizer.Get("NewConnection"),
+            (false, true) => Localizer.Format("EditFolderTitleFormat", _target.Name),
+            _ => Localizer.Format("EditConnectionTitleFormat", _target.Name),
         };
 
     // ── Fields ────────────────────────────────────────────────────────────
@@ -212,15 +213,15 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     public string ProtocolNote => !IsConnection ? string.Empty : SelectedProtocol switch
     {
         CoreProtocolType.HTTP or CoreProtocolType.HTTPS =>
-            "Web pages open in your default browser; the rendering engine applies to the Windows app.",
-        CoreProtocolType.ARD => "Apple Remote Desktop connects with the built-in VNC client.",
-        CoreProtocolType.AnyDesk => "Launches the installed AnyDesk application; put the AnyDesk ID in Hostname.",
-        CoreProtocolType.Terminal => "Opens a local shell; with a hostname it runs ssh to that host.",
-        CoreProtocolType.WSL => "Opens a WSL shell (Windows only); Hostname selects the distribution.",
-        CoreProtocolType.RAW => "Plain TCP socket with local line editing.",
-        CoreProtocolType.SSH1 => "SSH1 is obsolete; the connection uses SSH2.",
+            Localizer.Get("ProtocolNoteHttp"),
+        CoreProtocolType.ARD => Localizer.Get("ProtocolNoteArd"),
+        CoreProtocolType.AnyDesk => Localizer.Get("ProtocolNoteAnyDesk"),
+        CoreProtocolType.Terminal => Localizer.Get("ProtocolNoteTerminal"),
+        CoreProtocolType.WSL => Localizer.Get("ProtocolNoteWsl"),
+        CoreProtocolType.RAW => Localizer.Get("ProtocolNoteRaw"),
+        CoreProtocolType.SSH1 => Localizer.Get("ProtocolNoteSsh1"),
         _ when ConnectionParametersFactory.MapProtocol(SelectedProtocol) is null =>
-            $"{SelectedProtocol} is not supported on this platform yet.",
+            Localizer.Format("ProtocolNotSupportedFormat", SelectedProtocol),
         _ => string.Empty,
     };
 
@@ -306,7 +307,8 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
         var sections = ConnectionPropertyCatalog.All
             .Where(d => d.Category == category)
             .GroupBy(d => d.Section)
-            .Select(g => new PropertySectionViewModel(g.Key, g.Select(d => _fields[d.Name]).ToList()))
+            .Select(g => new PropertySectionViewModel(ConnectionPropertyCategories.GetDisplayName(g.Key),
+                g.Select(d => _fields[d.Name]).ToList()))
             .ToList();
         return new PropertyTabViewModel(category, sections);
     }
@@ -354,7 +356,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
     private void Validate()
     {
         var protocol = SelectedProtocol;
-        NameField.Error = !IsDefaultConnection && string.IsNullOrWhiteSpace(Name) ? "Name is required." : null;
+        NameField.Error = !IsDefaultConnection && string.IsNullOrWhiteSpace(Name) ? Localizer.Get("NameIsRequired") : null;
         HostnameField.Error = IsConnection ? ConnectionDefaults.ValidateHostname(protocol, Hostname) : null;
         Port.Error = Port.IsVisible && !IsFolder ? ConnectionDefaults.ValidatePort(protocol, Port.IntValue) : null;
 
@@ -362,7 +364,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
         var macText = (mac.BoxedValue as string)?.Trim();
         mac.Error = string.IsNullOrEmpty(macText) || WakeOnLan.TryParseMacAddress(macText, out _)
             ? null
-            : "Not a valid MAC address (e.g. 00:11:22:33:44:55).";
+            : Localizer.Get("InvalidMacAddress");
 
         this.RaisePropertyChanged(nameof(NameError));
         this.RaisePropertyChanged(nameof(HostnameError));
@@ -386,7 +388,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
             ? (Port.IntValue > 0 ? Port.IntValue : Core.Connection.ConnectionInfo.GetDefaultPort(SelectedProtocol))
             : 0;
 
-        StatusText = port > 0 ? $"Checking {host} (ping and port {port})..." : $"Pinging {host}...";
+        StatusText = port > 0 ? Localizer.Format("CheckingHostAndPortFormat", host, port) : Localizer.Format("PingingHostFormat", host);
         var status = await HostStatusProbe.ProbeAsync(host, port, TimeSpan.FromSeconds(4));
         StatusText = status.Summary;
         this.RaisePropertyChanged(nameof(TestStatus));
@@ -470,16 +472,86 @@ public sealed class EnumLabelConverter : IValueConverter
         [ConsoleSessionChoice.NoConsole] = "Don't connect to the console session",
     };
 
+    /// <summary>
+    /// Resource keys whose translations are shown for enum values (the WinForms app's enum descriptions,
+    /// plus the cross-platform app's own); the English label stays the one above.
+    /// </summary>
+    public static IReadOnlyDictionary<object, string> ResourceKeys { get; } = new Dictionary<object, string>
+    {
+        [RDPColors.Colors256] = "Rdp256Colors",
+        [RDPColors.Colors15Bit] = "Rdp32768Colors",
+        [RDPColors.Colors16Bit] = "Rdp65536Colors",
+        [RDPColors.Colors24Bit] = "Rdp16777216Colors",
+        [RDPSounds.BringToThisComputer] = "RdpSoundBringToThisComputer",
+        [RDPSounds.LeaveAtRemoteComputer] = "RdpSoundLeaveAtRemoteComputer",
+        [RDPSounds.DoNotPlay] = "DoNotPlay",
+        [RDPSoundQuality.Dynamic] = "Dynamic",
+        [RDPSoundQuality.Medium] = "Medium",
+        [RDPSoundQuality.High] = "High",
+        [RDPDiskDrives.None] = "RdpDrivesNone",
+        [RDPDiskDrives.Local] = "RdpDrivesLocal",
+        [RDPDiskDrives.All] = "RdpDrivesAll",
+        [RDPDiskDrives.Custom] = "RdpDrivesCustom",
+        [RDPResolutions.FitToWindow] = "FitToPanel",
+        [RDPResolutions.Fullscreen] = "Fullscreen",
+        [RDPResolutions.SmartSize] = "SmartSize",
+        [RdpVersion.Highest] = "RdpVersionHighest",
+        [AuthenticationLevel.NoAuth] = "AlwaysConnectEvenIfAuthFails",
+        [AuthenticationLevel.AuthRequired] = "DontConnectWhenAuthFails",
+        [AuthenticationLevel.WarnOnFailedAuth] = "WarnIfAuthFails",
+        [RDGatewayUsageMethod.Never] = "Never",
+        [RDGatewayUsageMethod.Always] = "Always",
+        [RDGatewayUsageMethod.Detect] = "Detect",
+        [RDGatewayUseConnectionCredentials.No] = "UseDifferentUsernameAndPassword",
+        [RDGatewayUseConnectionCredentials.Yes] = "UseSameUsernameAndPassword",
+        [RDGatewayUseConnectionCredentials.SmartCard] = "UseSmartCard",
+        [RDGatewayUseConnectionCredentials.ExternalCredentialProvider] = "UseExternalCredentialProvider",
+        [RDGatewayUseConnectionCredentials.AccessToken] = "UseAccessToken",
+        [VncSmartSizeMode.SmartSNo] = "NoSmartSize",
+        [VncSmartSizeMode.SmartSFree] = "Free",
+        [VncSmartSizeMode.SmartSAspect] = "Aspect",
+        [VncCompression.CompNone] = "None",
+        [VncAuthMode.AuthWin] = "Windows",
+        [VncProxyType.ProxyNone] = "None",
+        [VncProxyType.ProxyUltra] = "UltraVncRepeater",
+        [VncColors.ColNormal] = "Normal",
+        [ConnectionFrameColor.None] = "FrameColorNone",
+        [ConnectionFrameColor.Red] = "FrameColorRed",
+        [ConnectionFrameColor.Yellow] = "FrameColorYellow",
+        [ConnectionFrameColor.Green] = "FrameColorGreen",
+        [ConnectionFrameColor.Blue] = "FrameColorBlue",
+        [ConnectionFrameColor.Purple] = "FrameColorPurple",
+        [ExternalCredentialProvider.None] = "ECPNone",
+        [ExternalAddressProvider.None] = "EAPNone",
+        [VaultOpenbaoSecretEngine.LdapDynamic] = "VaultOpenbaoSecretEngineLDAPDynamic",
+        [VaultOpenbaoSecretEngine.LdapStatic] = "VaultOpenbaoSecretEngineLDAPStatic",
+        [VaultOpenbaoSecretEngine.SSHOTP] = "VaultOpenbaoSecretEngineSSHOTP",
+        [CoreProtocolType.SSH1] = "SshV1",
+        [CoreProtocolType.SSH2] = "SshV2",
+        [CoreProtocolType.Terminal] = "Terminal",
+        [CoreProtocolType.IntApp] = "ExternalTool",
+        [ConsoleSessionChoice.AsConfigured] = "ConsoleSessionAsConfigured",
+        [ConsoleSessionChoice.Console] = "ConnectToConsoleSession",
+        [ConsoleSessionChoice.NoConsole] = "DontConnectToConsoleSession",
+    };
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is null) return null;
+        var english = EnglishLabel(value);
+        return value is Enum && ResourceKeys.TryGetValue(value, out var key) ? Localizer.Get(key, english) : english;
+    }
+
+    /// <summary>The English label of <paramref name="value"/>.</summary>
+    public static string EnglishLabel(object value)
+    {
         if (Labels.TryGetValue(value, out var label)) return label;
-        if (value is Enum && !Enum.IsDefined(value.GetType(), value)) return "(not set)";
+        if (value is Enum && !Enum.IsDefined(value.GetType(), value)) return Localizer.Get("ValueNotSet");
         if (value is RDPResolutions res && res.ToString().StartsWith("Res", StringComparison.Ordinal))
             return res.ToString()[3..];
         if (value is RdpVersion version) return "RDC " + version.ToString()[3..];
-        if (value is VncCompression compression) return "Level " + compression.ToString()[4..];
-        if (value is not Enum) return value.ToString();
+        if (value is VncCompression compression) return Localizer.Format("CompressionLevelFormat", compression.ToString()[4..]);
+        if (value is not Enum) return value.ToString() ?? string.Empty;
 
         // Split PascalCase, keeping acronyms together: "FitToWindow" → "Fit To Window", "SSH2" → "SSH2".
         var text = value.ToString()!;

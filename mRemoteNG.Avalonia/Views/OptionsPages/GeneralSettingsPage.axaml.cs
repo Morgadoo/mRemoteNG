@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using mRemoteNG.Avalonia.ViewModels;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Avalonia.Views.OptionsPages;
 
@@ -16,11 +17,11 @@ public partial class GeneralSettingsPage : UserControl
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Connection file to open at startup",
+            Title = Localizer.Get("ConnectionFileToOpenAtStartup"),
             AllowMultiple = false,
             FileTypeFilter =
             [
-                new FilePickerFileType("mRemoteNG connection files") { Patterns = ["*.xml"] },
+                new FilePickerFileType(Localizer.Get("MRemoteNGConnectionFiles")) { Patterns = ["*.xml"] },
                 FilePickerFileTypes.All,
             ],
         });

@@ -1,37 +1,38 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.ImportDialog"
-        Title="Import Connections"
+        Title="{l:Tr ImportConnections}"
         Width="520"
         SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
     <StackPanel Margin="24" Spacing="16">
-        <TextBlock Text="Import Connections" FontSize="16" FontWeight="Bold"/>
+        <TextBlock Text="{l:Tr ImportConnections}" FontSize="16" FontWeight="Bold"/>
 
         <Border Classes="card">
             <StackPanel Spacing="10">
-                <TextBlock Text="Source" Classes="section-header"/>
+                <TextBlock Text="{l:Tr Source}" Classes="section-header"/>
                 <ComboBox x:Name="SourceTypeBox" HorizontalAlignment="Stretch"/>
                 <TextBlock x:Name="SourceHintText" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 <Grid ColumnDefinitions="*,8,Auto">
-                    <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="Select a file to import..."/>
-                    <Button Grid.Column="2" Content="Browse..." x:Name="BrowseButton" Padding="10,4"/>
+                    <TextBox Grid.Column="0" x:Name="FilePathBox" Watermark="{l:Tr SelectAFileToImport, Suffix='...'}"/>
+                    <Button Grid.Column="2" Content="{l:Tr _Browse}" x:Name="BrowseButton" Padding="10,4"/>
                 </Grid>
             </StackPanel>
         </Border>
 
         <Grid ColumnDefinitions="140,*">
-            <TextBlock Text="Import into:" VerticalAlignment="Center"/>
+            <TextBlock Text="{l:Tr ImportInto, Suffix=':'}" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1" x:Name="TargetFolderBox" HorizontalAlignment="Stretch"/>
         </Grid>
 
         <TextBlock x:Name="ErrorText" Foreground="#E05252" TextWrapping="Wrap" IsVisible="False"/>
 
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-            <Button Content="Cancel" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
-            <Button Content="Import" Classes="accent" MinWidth="80" x:Name="ImportButton" IsDefault="True"/>
+            <Button Content="{l:Tr _Cancel}" MinWidth="80" x:Name="CancelButton" IsCancel="True"/>
+            <Button Content="{l:Tr _Import}" Classes="accent" MinWidth="80" x:Name="ImportButton" IsDefault="True"/>
         </StackPanel>
     </StackPanel>
 </Window>

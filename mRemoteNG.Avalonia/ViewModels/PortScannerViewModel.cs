@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using mRemoteNG.Core.Config.Import;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Tools.PortScanning;
 using ReactiveUI;
 using CoreProtocolType = mRemoteNG.Core.Connection.Protocol.ProtocolType;
@@ -69,7 +70,7 @@ public class PortScannerViewModel : ReactiveObject
     private bool _detectServices = true;
     private bool _resolveHostNames = true;
     private double _scanProgress;
-    private string _statusText = "Enter hosts (e.g. 192.168.1.0/24, 10.0.0.1-50 or names) and ports, then start the scan.";
+    private string _statusText = Localizer.Get("PortScanHint");
     private bool _isScanning;
     private CoreProtocolType _importProtocol = CoreProtocolType.SSH2;
     private CancellationTokenSource? _cts;
@@ -133,7 +134,7 @@ public class PortScannerViewModel : ReactiveObject
         }
         if (hosts.Count == 0 || ports.Count == 0)
         {
-            StatusText = "Enter at least one host and one port.";
+            StatusText = Localizer.Get("PortScanNeedHostAndPort");
             return;
         }
 
@@ -149,12 +150,12 @@ public class PortScannerViewModel : ReactiveObject
             DetectServices = DetectServices,
             ResolveHostNames = ResolveHostNames,
         };
-        StatusText = $"Scanning {hosts.Count} host(s) on {ports.Count} port(s)…";
+        StatusText = Localizer.Format("PortScanScanningFormat", hosts.Count, ports.Count);
 
         var progress = new Progress<PortScanProgress>(p =>
         {
             ScanProgress = p.Total == 0 ? 100 : 100.0 * p.Completed / p.Total;
-            StatusText = $"Scanning… {p.HostsCompleted}/{p.HostCount} hosts, {p.Completed}/{p.Total} ports probed";
+            StatusText = Localizer.Format("PortScanProgressFormat", p.HostsCompleted, p.HostCount, p.Completed, p.Total);
         });
 
         try
@@ -169,11 +170,11 @@ public class PortScannerViewModel : ReactiveObject
             // Let queued result rows land before the summary.
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
             ScanProgress = 100;
-            StatusText = $"Done: {all.Count} host(s) scanned, {all.Count(h => h.IsReachable)} with open ports.";
+            StatusText = Localizer.Format("PortScanDoneFormat", all.Count, all.Count(h => h.IsReachable));
         }
         catch (OperationCanceledException)
         {
-            StatusText = $"Stopped. {Results.Count} host(s) with open ports found so far.";
+            StatusText = Localizer.Format("PortScanStoppedFormat", Results.Count);
         }
         finally
         {
@@ -192,7 +193,7 @@ public class PortScannerViewModel : ReactiveObject
         var selected = Results.Where(r => r.IsSelected).Select(r => r.Host).ToList();
         if (selected.Count == 0)
         {
-            StatusText = "Select the hosts to import.";
+            StatusText = Localizer.Get("PortScanSelectHosts");
             return;
         }
         try
@@ -201,7 +202,7 @@ public class PortScannerViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            StatusText = $"Import failed: {ex.Message}";
+            StatusText = Localizer.Format("ImportFailedFormat", ex.Message);
         }
     }
 }

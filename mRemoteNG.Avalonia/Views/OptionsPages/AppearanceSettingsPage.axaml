@@ -1,35 +1,49 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
              x:Class="mRemoteNG.Avalonia.Views.OptionsPages.AppearanceSettingsPage"
              x:DataType="vm:AppearanceSettingsViewModel">
     <StackPanel Spacing="16">
-        <TextBlock Text="Appearance" FontSize="18" FontWeight="Bold"/>
+        <TextBlock Text="{l:Tr Appearance}" FontSize="18" FontWeight="Bold"/>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Theme" Classes="section-header"/>
+                <TextBlock Text="{l:Tr LanguageString}" Classes="section-header"/>
                 <Grid ColumnDefinitions="*,240">
-                    <TextBlock Text="Color theme" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:Tr UserInterfaceLanguage}" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" x:Name="LanguageCombo"
+                              ItemsSource="{Binding Languages}"
+                              SelectedItem="{Binding SelectedLanguage}"/>
+                </Grid>
+                <TextBlock Text="{Binding LanguageRestartNote}" TextWrapping="Wrap" Opacity="0.7"/>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{l:Tr Theme}" Classes="section-header"/>
+                <Grid ColumnDefinitions="*,240">
+                    <TextBlock Text="{l:Tr ColorTheme}" VerticalAlignment="Center"/>
                     <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" x:Name="ThemeCombo"
                               ItemsSource="{Binding Themes}"
                               SelectedItem="{Binding SelectedTheme}"/>
                 </Grid>
                 <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Copy a theme, change its colours and save it as your own theme." TextWrapping="Wrap"
+                    <TextBlock Text="{l:Tr CopyAThemeChangeItsColoursAnd}" TextWrapping="Wrap"
                                Opacity="0.7" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Content="Theme editor…" Click="OnOpenThemeEditor"/>
+                    <Button Grid.Column="1" Content="{l:Tr ThemeEditorButton, Suffix='…'}" Click="OnOpenThemeEditor"/>
                 </Grid>
             </StackPanel>
         </Border>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Font" Classes="section-header"/>
+                <TextBlock Text="{l:Tr Font}" Classes="section-header"/>
                 <Grid ColumnDefinitions="*,200" RowDefinitions="Auto,12,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font family" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding FontFamily}" Watermark="(theme default)"/>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Font size" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{l:Tr FontFamily}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding FontFamily}" Watermark="{l:Tr ThemeDefault}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{l:Tr FontSize}" VerticalAlignment="Center"/>
                     <NumericUpDown Grid.Row="2" Grid.Column="1"
                                    Value="{Binding FontSize}"
                                    Minimum="8" Maximum="32" Increment="1" FormatString="0.#"/>
@@ -39,9 +53,9 @@
 
         <Border Classes="card">
             <StackPanel Spacing="10">
-                <TextBlock Text="Layout" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding ShowToolbar}" Content="Show toolbar"/>
-                <CheckBox IsChecked="{Binding ShowStatusBar}" Content="Show status bar"/>
+                <TextBlock Text="{l:Tr Layout}" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding ShowToolbar}" Content="{l:Tr ShowToolbar}"/>
+                <CheckBox IsChecked="{Binding ShowStatusBar}" Content="{l:Tr ShowStatusBar}"/>
             </StackPanel>
         </Border>
     </StackPanel>

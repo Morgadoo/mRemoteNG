@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Core.Config;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 
 namespace mRemoteNG.Avalonia.Services;
@@ -25,9 +26,11 @@ public sealed class CloseConfirmationService(AppSettingsService settings)
         if (!ShouldConfirmExit(openConnections))
             return true;
 
-        var noun = openConnections == 1 ? "connection is" : "connections are";
-        return await MessageDialog.ConfirmAsync(owner, "Exit mRemoteNG",
-            $"{openConnections} {noun} still open. Exit mRemoteNG and close them?", "Exit", "Cancel");
+        return await MessageDialog.ConfirmAsync(owner, Localizer.Get("ExitMRemoteNG"),
+            openConnections == 1
+                ? Localizer.Get("ConfirmExitOneConnection")
+                : Localizer.Format("ConfirmExitConnectionsFormat", openConnections),
+            Localizer.Get("Exit"), Localizer.Get("_Cancel"));
     }
 
     /// <summary>
@@ -43,7 +46,7 @@ public sealed class CloseConfirmationService(AppSettingsService settings)
         if (owner is null || !owner.IsVisible)
             return true;
 
-        return await MessageDialog.ConfirmAsync(owner, "Close connection",
-            $"Close the connection \"{connectionName}\"?", "Close", "Cancel");
+        return await MessageDialog.ConfirmAsync(owner, Localizer.Get("CloseConnectionTitle"),
+            Localizer.Format("ConfirmCloseConnectionFormat", connectionName), Localizer.Get("_Close"), Localizer.Get("_Cancel"));
     }
 }

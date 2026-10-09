@@ -7,6 +7,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Protocols.Abstractions;
 using mRemoteNG.Protocols.Ssh;
 using ReactiveUI;
@@ -39,7 +40,7 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
     private string _password = string.Empty;
     private string _privateKeyPath = string.Empty;
     private string _remotePath = "/";
-    private string _status = "Not connected.";
+    private string _status = Localizer.Get("NotConnected");
     private bool _hasError;
     private bool _isConnected;
     private bool _isBusy;
@@ -99,8 +100,10 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
         {
             if (SelectedRemote is not { } item)
                 return;
-            var what = item.IsDirectory ? $"the folder '{item.Entry.FullPath}' and everything in it" : $"'{item.Entry.FullPath}'";
-            if (await ConfirmDelete.Handle($"Permanently delete {what}?"))
+            var question = item.IsDirectory
+                ? Localizer.Format("SftpConfirmDeleteFolderFormat", item.Entry.FullPath)
+                : Localizer.Format("SftpConfirmDeleteFileFormat", item.Entry.FullPath);
+            if (await ConfirmDelete.Handle(question))
                 await DeleteAsync(item);
         }, fileSelected);
 
@@ -165,12 +168,12 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
             PrivateKeyPath = string.IsNullOrWhiteSpace(PrivateKeyPath) ? null : PrivateKeyPath.Trim(),
         };
 
-        await RunAsync($"Connecting to {parameters.DisplayName}…", async ct =>
+        await RunAsync(Localizer.Format("ConnectingToFormat", parameters.DisplayName), async ct =>
         {
             await _session.ConnectAsync(parameters, ct);
             IsConnected = true;
             await LoadDirectoryAsync(_session.HomeDirectory, ct);
-            SetStatus($"Connected to {parameters.DisplayName}. {RemoteFiles.Count} items in {RemotePath}.");
+            SetStatus(Localizer.Format("SftpConnectedFormat", parameters.DisplayName, RemoteFiles.Count, RemotePath));
         });
     }
 
@@ -179,15 +182,15 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
         await _session.DisconnectAsync();
         IsConnected = false;
         RemoteFiles.Clear();
-        SetStatus("Disconnected.");
+        SetStatus(Localizer.Get("DisconnectedStatus"));
     }
 
     /// <summary>Lists <paramref name="path"/> and makes it the current directory.</summary>
     public Task NavigateAsync(string path) =>
-        RunAsync($"Loading {path}…", async ct =>
+        RunAsync(Localizer.Format("LoadingFormat", path), async ct =>
         {
             await LoadDirectoryAsync(path, ct);
-            SetStatus($"{RemoteFiles.Count} items in {RemotePath}.");
+            SetStatus(Localizer.Format("SftpItemsInFormat", RemoteFiles.Count, RemotePath));
         });
 
     /// <summary>Opens a directory entry (double-click).</summary>
@@ -196,7 +199,7 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
 
     /// <summary>Uploads local files into the current remote directory.</summary>
     public Task UploadAsync(IReadOnlyList<string> localPaths) =>
-        RunAsync("Uploading…", async ct =>
+        RunAsync(Localizer.Get("UploadingEllipsis"), async ct =>
         {
             for (int i = 0; i < localPaths.Count; i++)
             {
@@ -204,39 +207,39 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
                 var name = Path.GetFileName(local);
                 var remote = SftpSession.CombinePath(RemotePath, name);
                 var counter = localPaths.Count > 1 ? $" ({i + 1}/{localPaths.Count})" : string.Empty;
-                SetStatus($"Uploading {name}{counter}…");
-                await _session.UploadFileAsync(local, remote, CreateProgress(name, "Uploading"), ct);
+                SetStatus(Localizer.Format("UploadingFileFormat", name + counter));
+                await _session.UploadFileAsync(local, remote, CreateProgress(name, Localizer.Get("Uploading")), ct);
             }
             await LoadDirectoryAsync(RemotePath, ct);
             SetStatus(localPaths.Count == 1
-                ? $"Uploaded {Path.GetFileName(localPaths[0])} to {RemotePath}."
-                : $"Uploaded {localPaths.Count} files to {RemotePath}.");
+                ? Localizer.Format("UploadedFileFormat", Path.GetFileName(localPaths[0]), RemotePath)
+                : Localizer.Format("UploadedFilesFormat", localPaths.Count, RemotePath));
         }, transfer: true);
 
     /// <summary>Downloads the given remote file to <paramref name="localPath"/>.</summary>
     public Task DownloadAsync(SftpFileItem item, string localPath) =>
-        RunAsync($"Downloading {item.Entry.Name}…", async ct =>
+        RunAsync(Localizer.Format("DownloadingFormat", item.Entry.Name), async ct =>
         {
-            await _session.DownloadFileAsync(item.Entry.FullPath, localPath, CreateProgress(item.Entry.Name, "Downloading"), ct);
-            SetStatus($"Downloaded {item.Entry.Name} to {localPath}.");
+            await _session.DownloadFileAsync(item.Entry.FullPath, localPath, CreateProgress(item.Entry.Name, Localizer.Get("Downloading")), ct);
+            SetStatus(Localizer.Format("DownloadedFileFormat", item.Entry.Name, localPath));
         }, transfer: true);
 
     public Task CreateDirectoryAsync(string name) =>
-        RunAsync($"Creating {name}…", async ct =>
+        RunAsync(Localizer.Format("CreatingFormat", name), async ct =>
         {
             if (string.IsNullOrWhiteSpace(name) || name.Contains('/'))
                 throw new ArgumentException($"'{name}' is not a valid folder name.");
             await _session.CreateDirectoryAsync(SftpSession.CombinePath(RemotePath, name.Trim()), ct);
             await LoadDirectoryAsync(RemotePath, ct);
-            SetStatus($"Created {name.Trim()}.");
+            SetStatus(Localizer.Format("CreatedFormat", name.Trim()));
         });
 
     public Task DeleteAsync(SftpFileItem item) =>
-        RunAsync($"Deleting {item.Entry.Name}…", async ct =>
+        RunAsync(Localizer.Format("DeletingFormat", item.Entry.Name), async ct =>
         {
             await _session.DeleteAsync(item.Entry, ct);
             await LoadDirectoryAsync(RemotePath, ct);
-            SetStatus($"Deleted {item.Entry.Name}.");
+            SetStatus(Localizer.Format("DeletedFormat", item.Entry.Name));
         });
 
     private async Task LoadDirectoryAsync(string path, CancellationToken ct)
@@ -275,7 +278,7 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
         }
         catch (OperationCanceledException)
         {
-            SetStatus("Cancelled.", error: true);
+            SetStatus(Localizer.Get("CancelledStatus"), error: true);
         }
         catch (Exception ex)
         {

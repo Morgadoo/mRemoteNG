@@ -2,6 +2,7 @@ using System.Reflection;
 using mRemoteNG.Core.Connection.Protocol;
 using mRemoteNG.Core.Connection.Protocol.RDP;
 using mRemoteNG.Core.Connection.Protocol.VNC;
+using mRemoteNG.Core.Localization;
 
 namespace mRemoteNG.Core.Connection
 {
@@ -46,6 +47,36 @@ namespace mRemoteNG.Core.Connection
         public const string Miscellaneous = "Miscellaneous";
 
         public static IReadOnlyList<string> All { get; } = [Display, Connection, Credentials, Protocol, Miscellaneous];
+
+        // Resource keys of the category and section headings (sections not listed are shown as they are).
+        private static readonly Dictionary<string, (string Key, bool KeepEnglish)> HeadingKeys = new(StringComparer.Ordinal)
+        {
+            [Display] = ("Display", false),
+            [Connection] = ("Connection", false),
+            [Credentials] = ("Credentials", false),
+            [Protocol] = ("Protocol", false),
+            [Miscellaneous] = ("Miscellaneous", false),
+            ["SSH / PuTTY"] = ("SectionSshPutty", false),
+            ["Remote Desktop"] = ("SectionRemoteDesktop", false),
+            ["External address"] = ("SectionExternalAddress", false),
+            ["Wake-on-LAN"] = ("SectionWakeOnLan", false),
+            ["External credential provider"] = ("ExternalCredentialProvider", true),
+            ["Remote Desktop: display"] = ("SectionRemoteDesktopDisplay", false),
+            ["Remote Desktop: redirection"] = ("SectionRemoteDesktopRedirection", false),
+            ["RD Gateway"] = ("RDPGateway", true),
+            ["VNC proxy"] = ("SectionVncProxy", false),
+            ["Web"] = ("SectionWeb", false),
+            ["External application"] = ("SectionExternalApplication", false),
+            ["External tools"] = ("SectionExternalTools", false),
+        };
+
+        /// <summary>The heading shown for a category or section, in the current UI language.</summary>
+        public static string GetDisplayName(string categoryOrSection)
+        {
+            if (!HeadingKeys.TryGetValue(categoryOrSection, out var heading))
+                return categoryOrSection;
+            return heading.KeepEnglish ? Localizer.Get(heading.Key, categoryOrSection) : Localizer.Get(heading.Key);
+        }
     }
 
     /// <summary>
@@ -79,8 +110,11 @@ namespace mRemoteNG.Core.Connection
             Name = name;
             Category = category;
             Section = section;
-            DisplayName = displayName;
-            Description = description;
+            EnglishDisplayName = displayName;
+            EnglishDescription = description;
+            ConnectionPropertyCatalog.LegacyResourceKeys.TryGetValue(name, out var keys);
+            DisplayNameKey = keys.Name;
+            DescriptionKey = keys.Description;
             Editor = editor;
             _protocols = protocols is null ? null : [.. protocols];
             _condition = condition;
@@ -98,8 +132,24 @@ namespace mRemoteNG.Core.Connection
         /// <summary>Heading inside the category (e.g. "RD Gateway").</summary>
         public string Section { get; }
 
-        public string DisplayName { get; }
-        public string Description { get; }
+        /// <summary>The label in the current UI language (the English text when there is no translation).</summary>
+        public string DisplayName => DisplayNameKey is null ? EnglishDisplayName : Localizer.Get(DisplayNameKey, EnglishDisplayName);
+
+        /// <summary>The tooltip in the current UI language (the English text when there is no translation).</summary>
+        public string Description => DescriptionKey is null ? EnglishDescription : Localizer.Get(DescriptionKey, EnglishDescription);
+
+        public string EnglishDisplayName { get; }
+        public string EnglishDescription { get; }
+
+        /// <summary>The legacy Language.resx key whose translations are used for <see cref="DisplayName"/> (or null).</summary>
+        public string? DisplayNameKey { get; }
+
+        /// <summary>The legacy Language.resx key whose translations are used for <see cref="Description"/> (or null).</summary>
+        public string? DescriptionKey { get; }
+
+        /// <summary>Category or section heading in the current UI language.</summary>
+        public string SectionDisplayName => ConnectionPropertyCategories.GetDisplayName(Section);
+
         public ConnectionPropertyEditor Editor { get; }
         public ConnectionPropertySuggestions Suggestions { get; }
 
@@ -142,6 +192,100 @@ namespace mRemoteNG.Core.Connection
     /// </summary>
     public static class ConnectionPropertyCatalog
     {
+        /// <summary>
+        /// The WinForms app's Language.resx keys (property grid name and description) whose translations are
+        /// shown for each property; the English text stays the catalog's own. Declared before <see cref="All"/>,
+        /// which uses it while being built. Properties not listed (or a null key) are shown in English.
+        /// </summary>
+        internal static readonly Dictionary<string, (string? Name, string? Description)> LegacyResourceKeys = new(StringComparer.Ordinal)
+        {
+            [nameof(ConnectionInfo.Name)] = ("Name", "PropertyDescriptionName"),
+            [nameof(ConnectionInfo.Description)] = ("Description", "PropertyDescriptionDescription"),
+            [nameof(ConnectionInfo.Icon)] = ("Icon", "PropertyDescriptionIcon"),
+            [nameof(ConnectionInfo.Panel)] = ("Panel", "PropertyDescriptionPanel"),
+            [nameof(ConnectionInfo.TabColor)] = ("TabColor", "PropertyDescriptionTabColor"),
+            [nameof(ConnectionInfo.ConnectionFrameColor)] = ("ConnectionFrameColor", "PropertyDescriptionConnectionFrameColor"),
+            [nameof(ConnectionInfo.Favorite)] = ("Favorite", "PropertyDescriptionFavorite"),
+            [nameof(ConnectionInfo.EnvironmentTags)] = ("EnvironmentTags", "PropertyDescriptionEnvironmentTags"),
+            [nameof(ConnectionInfo.Hostname)] = ("HostnameIp", "PropertyDescriptionHostnameIp"),
+            [nameof(ConnectionInfo.Protocol)] = ("Protocol", "PropertyDescriptionProtocol"),
+            [nameof(ConnectionInfo.Port)] = ("Port", "PropertyDescriptionPort"),
+            [nameof(ConnectionInfo.SSHTunnelConnectionName)] = ("SshTunnel", "PropertyDescriptionSshTunnel"),
+            [nameof(ConnectionInfo.PuttySession)] = ("PuttySession", "PropertyDescriptionPuttySession"),
+            [nameof(ConnectionInfo.SSHOptions)] = ("SshOptions", "PropertyDescriptionSshOptions"),
+            [nameof(ConnectionInfo.OpeningCommand)] = ("OpeningCommand", null),
+            [nameof(ConnectionInfo.RdpVersion)] = ("RdpVersion", "PropertyDescriptionRdpVersion"),
+            [nameof(ConnectionInfo.UseCredSsp)] = ("UseCredSsp", "PropertyDescriptionUseCredSsp"),
+            [nameof(ConnectionInfo.LoadBalanceInfo)] = ("LoadBalanceInfo", "PropertyDescriptionLoadBalanceInfo"),
+            [nameof(ConnectionInfo.UseVmId)] = ("UseVmId", "PropertyDescriptionUseVmId"),
+            [nameof(ConnectionInfo.VmId)] = ("VmId", "PropertyDescriptionVmId"),
+            [nameof(ConnectionInfo.UseEnhancedMode)] = ("UseEnhancedMode", "PropertyDescriptionUseEnhancedMode"),
+            [nameof(ConnectionInfo.ExternalAddressProvider)] = ("ExternalAddressProvider", "PropertyDescriptionExternalAddressProvider"),
+            [nameof(ConnectionInfo.EC2InstanceId)] = ("EC2InstanceId", "PropertyDescriptionEC2InstanceId"),
+            [nameof(ConnectionInfo.EC2Region)] = ("EC2Region", "PropertyDescriptionEC2Region"),
+            [nameof(ConnectionInfo.MacAddress)] = ("MacAddress", "PropertyDescriptionMACAddress"),
+            [nameof(ConnectionInfo.Username)] = ("Username", "PropertyDescriptionUsername"),
+            [nameof(ConnectionInfo.Password)] = ("Password", "PropertyDescriptionPassword"),
+            [nameof(ConnectionInfo.Domain)] = ("Domain", "PropertyDescriptionDomain"),
+            [nameof(ConnectionInfo.ExternalCredentialProvider)] = ("ExternalCredentialProvider", "PropertyDescriptionExternalCredentialProvider"),
+            [nameof(ConnectionInfo.UserViaAPI)] = ("UserViaAPI", "PropertyDescriptionUserViaAPI"),
+            [nameof(ConnectionInfo.VaultOpenbaoSecretEngine)] = ("VaultOpenbaoSecretEngine", "PropertyDescriptionVaultOpenbaoSecretEngine"),
+            [nameof(ConnectionInfo.VaultOpenbaoMount)] = ("VaultOpenbaoMount", "VaultOpenbaoMountDescription"),
+            [nameof(ConnectionInfo.VaultOpenbaoRole)] = ("VaultOpenbaoRole", "VaultOpenbaoRoleDescription"),
+            [nameof(ConnectionInfo.RDPAuthenticationLevel)] = ("AuthenticationLevel", "PropertyDescriptionAuthenticationLevel"),
+            [nameof(ConnectionInfo.UseConsoleSession)] = ("UseConsoleSession", "PropertyDescriptionUseConsoleSession"),
+            [nameof(ConnectionInfo.UseRestrictedAdmin)] = ("UseRestrictedAdmin", "PropertyDescriptionUseRestrictedAdmin"),
+            [nameof(ConnectionInfo.UseRCG)] = ("UseRCG", "PropertyDescriptionUseRCG"),
+            [nameof(ConnectionInfo.RDPMinutesToIdleTimeout)] = ("MinutesToIdleTimeout", "PropertyDescriptionRDPMinutesToIdleTimeout"),
+            [nameof(ConnectionInfo.RDPAlertIdleTimeout)] = (null, "PropertyDescriptionRDPAlertIdleTimeout"),
+            [nameof(ConnectionInfo.RDPStartProgram)] = ("RDPStartProgram", "PropertyDescriptionRDPStartProgram"),
+            [nameof(ConnectionInfo.RDPStartProgramWorkDir)] = ("RDPStartProgramWorkDir", "PropertyDescriptionRDPStartProgramWorkDir"),
+            [nameof(ConnectionInfo.Resolution)] = ("Resolution", "PropertyDescriptionResolution"),
+            [nameof(ConnectionInfo.AutomaticResize)] = ("AutomaticResize", "PropertyDescriptionAutomaticResize"),
+            [nameof(ConnectionInfo.Colors)] = ("Colors", "PropertyDescriptionColors"),
+            [nameof(ConnectionInfo.CacheBitmaps)] = ("CacheBitmaps", "PropertyDescriptionCacheBitmaps"),
+            [nameof(ConnectionInfo.DisplayWallpaper)] = ("DisplayWallpaper", "PropertyDescriptionDisplayWallpaper"),
+            [nameof(ConnectionInfo.DisplayThemes)] = ("DisplayThemes", "PropertyDescriptionDisplayThemes"),
+            [nameof(ConnectionInfo.EnableFontSmoothing)] = ("FontSmoothing", "PropertyDescriptionEnableFontSmoothing"),
+            [nameof(ConnectionInfo.EnableDesktopComposition)] = ("EnableDesktopComposition", "PropertyDescriptionEnableDesktopComposition"),
+            [nameof(ConnectionInfo.DisableFullWindowDrag)] = ("DisableFullWindowDrag", "PropertyDescriptionDisableFullWindowDrag"),
+            [nameof(ConnectionInfo.DisableMenuAnimations)] = ("DisableMenuAnimations", "PropertyDescriptionDisableMenuAnimations"),
+            [nameof(ConnectionInfo.DisableCursorShadow)] = ("DisableCursorShadow", "PropertyDescriptionDisableCursorShadow"),
+            [nameof(ConnectionInfo.DisableCursorBlinking)] = ("DisableCursorBlinking", "PropertyDescriptionDisableCursorBlinking"),
+            [nameof(ConnectionInfo.RedirectKeys)] = ("RedirectKeys", "PropertyDescriptionRedirectKeys"),
+            [nameof(ConnectionInfo.RedirectDiskDrives)] = ("DiskDrives", "PropertyDescriptionRedirectDrives"),
+            [nameof(ConnectionInfo.RedirectDiskDrivesCustom)] = ("RedirectDiskDrivesCustom", "PropertyDescriptionRedirectDiskDrivesCustom"),
+            [nameof(ConnectionInfo.RedirectPorts)] = ("Ports", "PropertyDescriptionRedirectPorts"),
+            [nameof(ConnectionInfo.RedirectPrinters)] = ("Printers", "PropertyDescriptionRedirectPrinters"),
+            [nameof(ConnectionInfo.RedirectSmartCards)] = ("SmartCard", "PropertyDescriptionRedirectSmartCards"),
+            [nameof(ConnectionInfo.RedirectClipboard)] = ("Clipboard", "PropertyDescriptionRedirectClipboard"),
+            [nameof(ConnectionInfo.RedirectSound)] = ("Sounds", "PropertyDescriptionRedirectSounds"),
+            [nameof(ConnectionInfo.SoundQuality)] = ("SoundQuality", "PropertyDescriptionSoundQuality"),
+            [nameof(ConnectionInfo.RedirectAudioCapture)] = ("AudioCapture", null),
+            [nameof(ConnectionInfo.RDGatewayUsageMethod)] = ("RdpGatewayUsageMethod", "PropertyDescriptionRdpGatewayUsageMethod"),
+            [nameof(ConnectionInfo.RDGatewayHostname)] = ("RdpGatewayHostname", "PropertyDescriptionRDGatewayHostname"),
+            [nameof(ConnectionInfo.RDGatewayUseConnectionCredentials)] = ("RdpGatewayUseConnectionCredentials", "PropertyDescriptionRDGatewayUseConnectionCredentials"),
+            [nameof(ConnectionInfo.RDGatewayUsername)] = ("RdpGatewayUsername", "PropertyDescriptionRDGatewayUsername"),
+            [nameof(ConnectionInfo.RDGatewayPassword)] = ("RdpGatewayPassword", "PropertyDescriptionRdpGatewayPassword"),
+            [nameof(ConnectionInfo.RDGatewayDomain)] = ("RdpGatewayDomain", "PropertyDescriptionRDGatewayDomain"),
+            [nameof(ConnectionInfo.VNCAuthMode)] = ("AuthenticationMode", "PropertyDescriptionAuthenticationMode"),
+            [nameof(ConnectionInfo.VNCCompression)] = ("Compression", "PropertyDescriptionCompression"),
+            [nameof(ConnectionInfo.VNCEncoding)] = ("Encoding", "PropertyDescriptionEncoding"),
+            [nameof(ConnectionInfo.VNCColors)] = ("Colors", "PropertyDescriptionColors"),
+            [nameof(ConnectionInfo.VNCSmartSizeMode)] = ("SmartSizeMode", "PropertyDescriptionSmartSizeMode"),
+            [nameof(ConnectionInfo.VNCViewOnly)] = ("ViewOnly", "PropertyDescriptionViewOnly"),
+            [nameof(ConnectionInfo.VNCProxyType)] = ("ProxyType", "PropertyDescriptionVNCProxyType"),
+            [nameof(ConnectionInfo.VNCProxyIP)] = ("ProxyAddress", "PropertyDescriptionVNCProxyAddress"),
+            [nameof(ConnectionInfo.VNCProxyPort)] = ("ProxyPort", "PropertyDescriptionVNCProxyPort"),
+            [nameof(ConnectionInfo.VNCProxyUsername)] = ("ProxyUsername", "PropertyDescriptionVNCProxyUsername"),
+            [nameof(ConnectionInfo.VNCProxyPassword)] = ("ProxyPassword", "PropertyDescriptionVNCProxyPassword"),
+            [nameof(ConnectionInfo.RenderingEngine)] = ("RenderingEngine", "PropertyDescriptionRenderingEngine"),
+            [nameof(ConnectionInfo.ExtApp)] = ("ExternalTool", "PropertyDescriptionExternalTool"),
+            [nameof(ConnectionInfo.PreExtApp)] = ("ExternalToolBefore", "PropertyDescriptionExternalToolBefore"),
+            [nameof(ConnectionInfo.PostExtApp)] = ("ExternalToolAfter", "PropertyDescriptionExternalToolAfter"),
+            [nameof(ConnectionInfo.UserField)] = ("UserField", "PropertyDescriptionUser1"),
+        };
+
         private static readonly ProtocolType[] Rdp = [ProtocolType.RDP];
         private static readonly ProtocolType[] Vnc = [ProtocolType.VNC, ProtocolType.ARD];
         private static readonly ProtocolType[] Ssh = [ProtocolType.SSH1, ProtocolType.SSH2];

@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Config;
+using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
 using mRemoteNG.Platform.Security;
 using ReactiveUI;
@@ -37,16 +38,16 @@ public sealed class GeneralSettingsViewModel(AppSettings working) : SettingsPage
 {
     public IReadOnlyList<Choice<StartupFileBehavior>> StartupChoices { get; } =
     [
-        new(StartupFileBehavior.ReopenLastFile, "Reopen the last connection file"),
-        new(StartupFileBehavior.OpenSpecificFile, "Open a specific connection file"),
-        new(StartupFileBehavior.None, "Start with an empty connection tree"),
+        new(StartupFileBehavior.ReopenLastFile, Localizer.Get("StartupReopenLastFile")),
+        new(StartupFileBehavior.OpenSpecificFile, Localizer.Get("StartupOpenSpecificFile")),
+        new(StartupFileBehavior.None, Localizer.Get("StartupEmptyTree")),
     ];
 
     public IReadOnlyList<Choice<ConfirmCloseEnum>> ConfirmCloseChoices { get; } =
     [
-        new(ConfirmCloseEnum.Never, "Never"),
-        new(ConfirmCloseEnum.Exit, "When exiting with open connections"),
-        new(ConfirmCloseEnum.All, "When exiting and when closing a connection"),
+        new(ConfirmCloseEnum.Never, Localizer.Get("Never")),
+        new(ConfirmCloseEnum.Exit, Localizer.Get("ConfirmCloseOnExit")),
+        new(ConfirmCloseEnum.All, Localizer.Get("ConfirmCloseOnExitAndClose")),
     ];
 
     public Choice<StartupFileBehavior> SelectedStartupChoice
@@ -115,8 +116,8 @@ public sealed class GeneralSettingsViewModel(AppSettings working) : SettingsPage
     }
 
     public string DataDirectoryInfo => mRemoteNG.Core.App.Info.ApplicationPaths.IsPortable
-        ? $"Portable mode: all data is kept in {mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory}"
-        : $"Data folder: {mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory}";
+        ? Localizer.Format("PortableDataFolderFormat", mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory)
+        : Localizer.Format("DataFolderFormat", mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory);
 }
 
 /// <summary>A theme in the Appearance list: a plain mode (Dark/Light/System) or a named theme.</summary>
@@ -168,12 +169,12 @@ public sealed class AppearanceSettingsViewModel : SettingsPageViewModel
     {
         var list = new List<ThemeChoice>
         {
-            new("Dark (VS2015 Dark)", ThemeMode.Dark, string.Empty),
-            new("Light (VS2015 Light)", ThemeMode.Light, string.Empty),
-            new("Follow system setting", ThemeMode.System, string.Empty),
+            new(Localizer.Get("ThemeDarkChoice"), ThemeMode.Dark, string.Empty),
+            new(Localizer.Get("ThemeLightChoice"), ThemeMode.Light, string.Empty),
+            new(Localizer.Get("ThemeFollowSystem"), ThemeMode.System, string.Empty),
         };
         foreach (var theme in _catalog.GetAll().Where(t => t.Name is not ThemeCatalog.DarkName and not ThemeCatalog.LightName))
-            list.Add(new ThemeChoice(theme.IsBuiltIn ? theme.Name : $"{theme.Name} (user theme)", theme.IsDark ? ThemeMode.Dark : ThemeMode.Light, theme.Name));
+            list.Add(new ThemeChoice(theme.IsBuiltIn ? theme.Name : Localizer.Format("UserThemeFormat", theme.Name), theme.IsDark ? ThemeMode.Dark : ThemeMode.Light, theme.Name));
         Themes = list;
         this.RaisePropertyChanged(nameof(SelectedTheme));
     }
@@ -215,6 +216,23 @@ public sealed class AppearanceSettingsViewModel : SettingsPageViewModel
         get => Working.ShowStatusBar;
         set => Set(Working.ShowStatusBar, value, v => Working.ShowStatusBar = v);
     }
+
+    /// <summary>"System default", English and the translations, each under its own name.</summary>
+    public IReadOnlyList<LanguageOption> Languages { get; } = Localizer.GetLanguageOptions();
+
+    public LanguageOption SelectedLanguage
+    {
+        get => Languages.FirstOrDefault(l => string.Equals(l.Name, Working.Language, StringComparison.OrdinalIgnoreCase))
+               ?? Languages[0];
+        set
+        {
+            if (value is not null)
+                Set(Working.Language, value.Name, v => Working.Language = v);
+        }
+    }
+
+    /// <summary>The language is applied when the app starts (as in the WinForms app).</summary>
+    public string LanguageRestartNote => Localizer.Format("LanguageRestartRequired", "mRemoteNG");
 }
 
 public sealed class ConnectionSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
@@ -289,7 +307,7 @@ public sealed class CredentialsSettingsViewModel(AppSettings working, Func<int> 
         get
         {
             var count = credentialCount();
-            return count == 1 ? "1 saved credential." : $"{count} saved credentials.";
+            return count == 1 ? Localizer.Get("OneSavedCredential") : Localizer.Format("SavedCredentialsFormat", count);
         }
     }
 
@@ -335,13 +353,13 @@ public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
         _crypto = crypto;
         _proxyPassword = StorageRuntime.UnprotectPassword(crypto, working.UpdateProxyPasswordProtected);
         CheckNowCommand = ReactiveCommand.CreateFromTask(CheckNowAsync);
-        CheckNowCommand.ThrownExceptions.Subscribe(ex => Status = $"Update check failed: {ex.Message}");
+        CheckNowCommand.ThrownExceptions.Subscribe(ex => Status = Localizer.Format("UpdateCheckFailedFormat", ex.Message));
         var canDownload = this.WhenAnyValue(x => x.CanDownload);
         DownloadCommand = ReactiveCommand.CreateFromTask(DownloadAsync, canDownload);
         DownloadCommand.ThrownExceptions.Subscribe(ex =>
         {
             IsDownloading = false;
-            Status = $"Download failed: {ex.Message}";
+            Status = Localizer.Format("DownloadFailedFormat", ex.Message);
         });
     }
 
@@ -438,7 +456,7 @@ public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
         IsDownloading = true;
         DownloadedFile = null;
         DownloadProgress = 0;
-        Status = $"Downloading {PackageName}…";
+        Status = Localizer.Format("DownloadingFormat", PackageName);
         var progress = new Progress<double>(p => DownloadProgress = p * 100);
         var result = await _updates.DownloadAsync(_lastCheck, progress, Working);
         IsDownloading = false;
@@ -448,8 +466,8 @@ public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
 
     public IReadOnlyList<Choice<UpdateChannel>> Channels { get; } =
     [
-        new(UpdateChannel.Stable, "Stable releases"),
-        new(UpdateChannel.PreRelease, "Stable and pre-releases"),
+        new(UpdateChannel.Stable, Localizer.Get("UpdateChannelStable")),
+        new(UpdateChannel.PreRelease, Localizer.Get("UpdateChannelPreRelease")),
     ];
 
     public bool AutoCheck
@@ -492,7 +510,7 @@ public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
 
     private async Task CheckNowAsync()
     {
-        Status = "Checking…";
+        Status = Localizer.Get("CheckingEllipsis");
         ReleaseUrl = null;
         DownloadedFile = null;
         _lastCheck = null;
@@ -577,17 +595,17 @@ public sealed class OptionsWindowViewModel : ReactiveObject
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
-        new("Startup & Exit", "general"),
-        new("Appearance", "appearance"),
-        new("Connections", "connections"),
-        new("Tabs & Panels", "tabspanels"),
-        new("Saving & Backups", "saving"),
-        new("SQL Server", "sql"),
-        new("Credentials", "credentials"),
-        new("External Providers", "externalProviders"),
-        new("Notifications", "notifications"),
-        new("Logging", "logging"),
-        new("Updates", "updates"),
+        new(Localizer.Get("StartupExit", "Startup & Exit"), "general"),
+        new(Localizer.Get("Appearance"), "appearance"),
+        new(Localizer.Get("Connections"), "connections"),
+        new(Localizer.Get("TabsAndPanels"), "tabspanels"),
+        new(Localizer.Get("SavingBackups"), "saving"),
+        new(Localizer.Get("SQLServer"), "sql"),
+        new(Localizer.Get("Credentials"), "credentials"),
+        new(Localizer.Get("ExternalProviders"), "externalProviders"),
+        new(Localizer.Get("Notifications"), "notifications"),
+        new(Localizer.Get("Logging"), "logging"),
+        new(Localizer.Get("Updates"), "updates"),
     ];
 
     /// <summary>Selects a page by key ("general", "sql", …).</summary>
@@ -644,7 +662,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ValidationMessage = $"Could not save settings: {ex.Message}";
+            ValidationMessage = Localizer.Format("CouldNotSaveSettingsFormat", ex.Message);
             return false;
         }
 
