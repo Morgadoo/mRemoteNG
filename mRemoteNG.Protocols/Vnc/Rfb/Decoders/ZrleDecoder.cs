@@ -1,5 +1,3 @@
-using System.IO.Compression;
-
 namespace mRemoteNG.Protocols.Vnc.Rfb.Decoders;
 
 /// <summary>
@@ -7,28 +5,24 @@ namespace mRemoteNG.Protocols.Vnc.Rfb.Decoders;
 /// sub-encodings. One zlib stream spans the whole connection, so a single inflater is kept for the decoder's
 /// lifetime and each rectangle's compressed bytes are appended to its input.
 /// </summary>
-internal sealed class ZrleDecoder : IRectangleDecoder
+internal sealed class ZrleDecoder(PixelConverter? converter = null) : IRectangleDecoder
 {
     private const int TileSize = 64;
-    private const int MaxCompressedLength = 64 * 1024 * 1024;
 
-    private readonly ContinuousInputStream _input = new();
-    private readonly ZLibStream _inflater;
+    private readonly PixelConverter _converter = converter ?? PixelConverter.Bgra32;
+    private readonly ZlibInflater _inflater = new();
     private readonly uint[] _tile = new uint[TileSize * TileSize];
     private readonly uint[] _palette = new uint[128];
     private byte[] _data = new byte[64 * 1024];
     private int _dataLength;
     private int _pos;
 
-    public ZrleDecoder() => _inflater = new ZLibStream(_input, CompressionMode.Decompress);
-
     public void Decode(RfbReader reader, Framebuffer framebuffer, RfbRect rect)
     {
         var length = reader.ReadUInt32();
-        if (length > MaxCompressedLength)
-            throw new RfbProtocolException($"ZRLE rectangle of {length} bytes is implausibly large.");
-        _input.Append(reader, (int)length);
-        Inflate();
+        _inflater.Append(reader, (int)Math.Min(length, int.MaxValue));
+        _dataLength = _inflater.ReadAll(ref _data);
+        _pos = 0;
 
         for (var ty = rect.Y; ty < rect.Bottom; ty += TileSize)
         {
@@ -39,21 +33,6 @@ internal sealed class ZrleDecoder : IRectangleDecoder
                 DecodeTile(_tile.AsSpan(0, tw * th), tw, th);
                 framebuffer.Write(tx, ty, tw, th, _tile.AsSpan(0, tw * th));
             }
-        }
-    }
-
-    /// <summary>Drains everything the inflater can produce from the input received so far.</summary>
-    private void Inflate()
-    {
-        _dataLength = 0;
-        _pos = 0;
-        while (true)
-        {
-            if (_dataLength == _data.Length)
-                Array.Resize(ref _data, _data.Length * 2);
-            var read = _inflater.Read(_data, _dataLength, _data.Length - _dataLength);
-            if (read <= 0) break;
-            _dataLength += read;
         }
     }
 
@@ -163,62 +142,16 @@ internal sealed class ZrleDecoder : IRectangleDecoder
     }
 
     /// <summary>
-    /// A compressed pixel: for the negotiated 32bpp depth-24 little-endian format the three least
-    /// significant bytes (B, G, R) are sent and the padding byte omitted.
+    /// A compressed pixel (CPIXEL): for 32bpp depth-24 formats the padding byte is omitted
+    /// (B, G, R for the default little-endian format); otherwise a plain pixel.
     /// </summary>
     private uint NextCPixel()
     {
-        if (_pos + 3 > _dataLength)
+        var size = _converter.CompactBytesPerPixel;
+        if (_pos + size > _dataLength)
             throw new RfbProtocolException("ZRLE data ended before the rectangle was complete.");
-        var p = _data[_pos] | (uint)_data[_pos + 1] << 8 | (uint)_data[_pos + 2] << 16 | 0xFF000000u;
-        _pos += 3;
+        var p = _converter.ReadCompactPixel(_data.AsSpan(_pos, size));
+        _pos += size;
         return p;
-    }
-
-    /// <summary>
-    /// Read-only stream fed one compressed rectangle at a time. Reading past the fed data returns 0 rather than
-    /// blocking, which tells the inflater to stop until the next rectangle arrives.
-    /// </summary>
-    private sealed class ContinuousInputStream : Stream
-    {
-        private byte[] _buffer = new byte[64 * 1024];
-        private int _start;
-        private int _end;
-
-        public void Append(RfbReader reader, int count)
-        {
-            if (_start == _end) _start = _end = 0;
-            if (_buffer.Length - _end < count)
-            {
-                var pending = _end - _start;
-                var target = _buffer.Length >= pending + count ? _buffer : new byte[Math.Max(_buffer.Length * 2, pending + count)];
-                Buffer.BlockCopy(_buffer, _start, target, 0, pending);
-                _buffer = target;
-                _start = 0;
-                _end = pending;
-            }
-            reader.ReadExactly(_buffer.AsSpan(_end, count));
-            _end += count;
-        }
-
-        public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
-
-        public override int Read(Span<byte> buffer)
-        {
-            var n = Math.Min(buffer.Length, _end - _start);
-            _buffer.AsSpan(_start, n).CopyTo(buffer);
-            _start += n;
-            return n;
-        }
-
-        public override bool CanRead => true;
-        public override bool CanSeek => false;
-        public override bool CanWrite => false;
-        public override long Length => throw new NotSupportedException();
-        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        public override void Flush() { }
-        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-        public override void SetLength(long value) => throw new NotSupportedException();
-        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }

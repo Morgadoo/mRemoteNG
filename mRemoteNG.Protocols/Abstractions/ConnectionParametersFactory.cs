@@ -33,6 +33,22 @@ public static class ConnectionParametersFactory
         /// <summary>VNC scaling: "none", "fit" (keep aspect ratio) or "stretch".</summary>
         public const string VncScaling = "vnc.scaling";
         public const string VncViewOnly = "vnc.viewOnly";
+        /// <summary>Preferred VNC encoding: raw, rre, corre, hextile, zlib, tight or zrle.</summary>
+        public const string VncEncoding = "vnc.encoding";
+        /// <summary>VNC compression level 0-9; absent leaves it to the server.</summary>
+        public const string VncCompression = "vnc.compression";
+        /// <summary>VNC JPEG quality 0-9 (lossy Tight JPEG); absent keeps the session lossless.</summary>
+        public const string VncJpegQuality = "vnc.jpegQuality";
+        /// <summary>VNC colour depth: "full", "16" or "8".</summary>
+        public const string VncColors = "vnc.colors";
+        /// <summary>VNC authentication: "vnc", "windows" (UltraVNC MS-Logon) or "ard" (Apple Remote Desktop).</summary>
+        public const string VncAuthMode = "vnc.authMode";
+        /// <summary>VNC proxy: "none", "http", "socks5" or "ultravnc" (repeater).</summary>
+        public const string VncProxyType = "vnc.proxy.type";
+        public const string VncProxyHost = "vnc.proxy.host";
+        public const string VncProxyPort = "vnc.proxy.port";
+        public const string VncProxyUsername = "vnc.proxy.username";
+        public const string VncProxyPassword = "vnc.proxy.password";
         /// <summary>Command template for <see cref="ProtocolType.ExternalApp"/> (see ExternalAppProtocol).</summary>
         public const string ExternalCommand = "external.command";
         /// <summary>Local shell flavour for <see cref="ProtocolType.LocalShell"/>: "terminal" or "wsl".</summary>
@@ -81,7 +97,7 @@ public static class ConnectionParametersFactory
         if (protocol == ProtocolType.Rdp)
             AddRdpExtras(info, extras);
         else if (protocol == ProtocolType.Vnc)
-            AddVncExtras(info, extras);
+            AddVncExtras(info, extras, isAppleRemoteDesktop: info.Protocol == CoreProtocol.ARD);
         if (info.Protocol == CoreProtocol.AnyDesk)
             extras[Keys.ExternalCommand] = AnyDeskCommand;
         if (protocol == ProtocolType.LocalShell)
@@ -130,7 +146,7 @@ public static class ConnectionParametersFactory
         }
     }
 
-    private static void AddVncExtras(ConnectionInfo info, Dictionary<string, string> extras)
+    private static void AddVncExtras(ConnectionInfo info, Dictionary<string, string> extras, bool isAppleRemoteDesktop)
     {
         extras[Keys.VncScaling] = info.VNCSmartSizeMode switch
         {
@@ -139,6 +155,38 @@ public static class ConnectionParametersFactory
             _ => "fit",
         };
         extras[Keys.VncViewOnly] = Bool(info.VNCViewOnly);
+        extras[Keys.VncEncoding] = info.VNCEncoding switch
+        {
+            VncEncoding.EncRaw => "raw",
+            VncEncoding.EncRRE => "rre",
+            VncEncoding.EncCorre => "corre",
+            VncEncoding.EncHextile => "hextile",
+            VncEncoding.EncZlib => "zlib",
+            VncEncoding.EncZLibHex => "zlibhex",
+            VncEncoding.EncZRLE => "zrle",
+            _ => "tight",
+        };
+        if (info.VNCCompression is >= VncCompression.Comp0 and <= VncCompression.Comp9)
+            extras[Keys.VncCompression] = ((int)info.VNCCompression).ToString(CultureInfo.InvariantCulture);
+        extras[Keys.VncColors] = info.VNCColors == VncColors.Col8Bit ? "8" : "full";
+        extras[Keys.VncAuthMode] = isAppleRemoteDesktop ? "ard" : info.VNCAuthMode == VncAuthMode.AuthWin ? "windows" : "vnc";
+
+        if (info.VNCProxyType != VncProxyType.ProxyNone)
+        {
+            extras[Keys.VncProxyType] = info.VNCProxyType switch
+            {
+                VncProxyType.ProxyHTTP => "http",
+                VncProxyType.ProxySocks5 => "socks5",
+                _ => "ultravnc",
+            };
+            extras[Keys.VncProxyHost] = info.VNCProxyIP ?? "";
+            if (info.VNCProxyPort > 0)
+                extras[Keys.VncProxyPort] = info.VNCProxyPort.ToString(CultureInfo.InvariantCulture);
+            if (!string.IsNullOrEmpty(info.VNCProxyUsername))
+                extras[Keys.VncProxyUsername] = info.VNCProxyUsername;
+            if (!string.IsNullOrEmpty(info.VNCProxyPassword))
+                extras[Keys.VncProxyPassword] = info.VNCProxyPassword;
+        }
     }
 
     private static string Bool(bool value) => value ? "true" : "false";

@@ -6,7 +6,10 @@ public static class RfbEncoding
     public const int Raw = 0;
     public const int CopyRect = 1;
     public const int Rre = 2;
+    public const int CoRre = 4;
     public const int Hextile = 5;
+    public const int Zlib = 6;
+    public const int Tight = 7;
     public const int Zrle = 16;
 
     // Pseudo-encodings
@@ -14,6 +17,16 @@ public static class RfbEncoding
     public const int DesktopSize = -223;
     public const int LastRect = -224;
     public const int ExtendedDesktopSize = -308;
+
+    /// <summary>Compression level 0 pseudo-encoding; level n is <c>CompressLevel0 + n</c> (n = 0…9).</summary>
+    public const int CompressLevel0 = -256;
+
+    /// <summary>JPEG quality level 0 pseudo-encoding; level n is <c>QualityLevel0 + n</c> (n = 0…9).</summary>
+    public const int QualityLevel0 = -32;
+
+    public static int CompressLevel(int level) => CompressLevel0 + Math.Clamp(level, 0, 9);
+
+    public static int QualityLevel(int level) => QualityLevel0 + Math.Clamp(level, 0, 9);
 }
 
 public static class RfbSecurityType
@@ -21,6 +34,12 @@ public static class RfbSecurityType
     public const byte Invalid = 0;
     public const byte None = 1;
     public const byte VncAuthentication = 2;
+
+    /// <summary>Apple Remote Desktop: Diffie-Hellman + AES-128 encrypted user name and password (macOS Screen Sharing).</summary>
+    public const byte AppleRemoteDesktop = 30;
+
+    /// <summary>UltraVNC MS-Logon II: Diffie-Hellman + DES-CBC encrypted Windows user name and password.</summary>
+    public const byte MsLogon2 = 113;
 }
 
 internal static class RfbClientMessage

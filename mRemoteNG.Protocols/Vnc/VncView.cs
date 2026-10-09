@@ -75,6 +75,15 @@ internal sealed class VncView : UserControl
         _scroller.VerticalScrollBarVisibility = bars;
     });
 
+    /// <summary>Called before view-only mode changes: release held input, or take focus to start sending it.</summary>
+    public void BeforeViewOnlyChange(bool viewOnly) => OnUiThread(() =>
+    {
+        if (viewOnly)
+            ReleaseAll();
+        else if (IsAttachedToVisualTree())
+            Focus();
+    });
+
     public void ShowStatus(string text) => OnUiThread(() =>
     {
         _status.Text = text;
@@ -242,13 +251,13 @@ internal sealed class VncView : UserControl
     private void ReleaseAll()
     {
         foreach (var keysym in _pressedKeys.Values)
-            _protocol.SendKey(keysym, false);
+            _protocol.ReleaseKey(keysym);
         _pressedKeys.Clear();
         if (_buttons != RfbButtons.None)
         {
             _buttons = RfbButtons.None;
             var (x, y) = _surface.LastPosition;
-            _protocol.SendPointer(x, y, RfbButtons.None);
+            _protocol.ReleaseButtons(x, y);
         }
     }
 

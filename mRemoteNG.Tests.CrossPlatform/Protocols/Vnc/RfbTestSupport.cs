@@ -94,6 +94,15 @@ internal sealed class FakeRfbServer : IAsyncDisposable
         return buffer;
     }
 
+    /// <summary>Reads bytes until <paramref name="terminator"/> (inclusive), e.g. the end of HTTP headers.</summary>
+    public async Task<string> ReceiveUntilAsync(string terminator)
+    {
+        var text = new StringBuilder();
+        while (!text.ToString().EndsWith(terminator, StringComparison.Ordinal))
+            text.Append((char)(await ReceiveAsync(1))[0]);
+        return text.ToString();
+    }
+
     /// <summary>Sends the version banner and returns the version string the client chose.</summary>
     public async Task<string> NegotiateVersionAsync(string serverVersion)
     {

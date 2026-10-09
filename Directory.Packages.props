@@ -56,6 +56,8 @@
     <PackageVersion Include="runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl" Version="4.3.3" />
     <PackageVersion Include="runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl" Version="4.3.3" />
     <PackageVersion Include="runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl" Version="4.3.3" />
+    <PackageVersion Include="SkiaSharp" Version="2.88.9" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
     <PackageVersion Include="SSH.NET" Version="2026.0.0" />
     <PackageVersion Include="System.Buffers" Version="4.6.1" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.5" />
@@ -67,6 +69,7 @@
     <PackageVersion Include="System.Drawing.Common" Version="10.0.5" />
     <PackageVersion Include="System.Diagnostics.EventLog" Version="10.0.5" />
     <PackageVersion Include="System.DirectoryServices" Version="10.0.5" />
+    <PackageVersion Include="System.DirectoryServices.Protocols" Version="10.0.5" />
     <PackageVersion Include="System.Dynamic.Runtime" Version="4.3.0" />
     <PackageVersion Include="System.IO.Pipelines" Version="10.0.3" />
     <PackageVersion Include="System.IO.Ports" Version="10.0.3" />
