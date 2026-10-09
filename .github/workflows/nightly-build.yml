@@ -140,7 +140,7 @@ jobs:
       - name: Build .deb (x64)
         run: |
           chmod +x packaging/linux/build-deb.sh
-          ./packaging/linux/build-deb.sh amd64 ${{ needs.version.outputs.version }}
+          ./packaging/linux/build-deb.sh --arch amd64 --version ${{ needs.version.outputs.version }}
 
       - name: Build AppImage (x64)
         run: |

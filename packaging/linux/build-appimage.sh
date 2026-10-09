@@ -8,13 +8,18 @@
 #
 # Requirements:
 #   • .NET SDK 10.0+
-#   • appimagetool (https://github.com/AppImage/AppImageKit/releases)
-#     Place appimagetool-x86_64.AppImage in PATH or same directory.
+#   • appimagetool on PATH, or curl to download it into dist/tools/
+#     (https://github.com/AppImage/appimagetool/releases)
 #   • FUSE (for AppImage mounting): sudo apt install libfuse2
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
 ARCH="${1:-x64}"
+case "$ARCH" in
+  x64) APPIMAGE_ARCH="x86_64" ;;
+  arm64) APPIMAGE_ARCH="aarch64" ;;
+  *) echo "Unsupported architecture: $ARCH (use x64 or arm64)" >&2; exit 2 ;;
+esac
 VERSION="${2:-1.78.2-dev}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -58,17 +63,9 @@ DESKTOP
 
 cp "$APPDIR/mRemoteNG.desktop" "$APPDIR/usr/share/applications/"
 
-# Icon (copy from assets if available)
-if [ -f "$ROOT_DIR/mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico" ]; then
-  # Convert .ico to .png (requires imagemagick)
-  if command -v convert &> /dev/null; then
-    convert "$ROOT_DIR/mRemoteNG.Avalonia/Assets/Icons/mRemoteNG.ico[0]" \
-      -resize 256x256 \
-      "$APPDIR/usr/share/icons/hicolor/256x256/apps/mremoteng.png"
-    cp "$APPDIR/usr/share/icons/hicolor/256x256/apps/mremoteng.png" \
-       "$APPDIR/mremoteng.png"
-  fi
-fi
+# Icon (256x256 PNG kept in the repo; AppImage requires one at the AppDir root)
+cp "$SCRIPT_DIR/mremoteng.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/mremoteng.png"
+cp "$SCRIPT_DIR/mremoteng.png" "$APPDIR/mremoteng.png"
 
 # AppStream metadata
 cat > "$APPDIR/usr/share/metainfo/org.mremoteng.mRemoteNG.metainfo.xml" << 'XML'
@@ -107,17 +104,25 @@ chmod +x "$APPDIR/AppRun"
 echo "==> Running appimagetool…"
 mkdir -p "$OUT_DIR"
 
-APPIMAGETOOL="$(command -v appimagetool 2>/dev/null || echo "$SCRIPT_DIR/appimagetool-x86_64.AppImage")"
-if [ ! -f "$APPIMAGETOOL" ] && ! command -v appimagetool &> /dev/null; then
-  echo "WARNING: appimagetool not found. Downloading…"
-  wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" \
-    -O "$SCRIPT_DIR/appimagetool-x86_64.AppImage"
-  chmod +x "$SCRIPT_DIR/appimagetool-x86_64.AppImage"
-  APPIMAGETOOL="$SCRIPT_DIR/appimagetool-x86_64.AppImage"
+APPIMAGETOOL="$(command -v appimagetool 2>/dev/null || true)"
+if [ -z "$APPIMAGETOOL" ]; then
+  # AppImageKit's appimagetool is deprecated; use the maintained AppImage/appimagetool build.
+  TOOL_ARCH="$(uname -m)"  # the tool runs on the build host
+  APPIMAGETOOL="$ROOT_DIR/dist/tools/appimagetool-$TOOL_ARCH.AppImage"
+  if [ ! -x "$APPIMAGETOOL" ]; then
+    echo "==> Downloading appimagetool…"
+    mkdir -p "$(dirname "$APPIMAGETOOL")"
+    curl -fsSL "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$TOOL_ARCH.AppImage" \
+      -o "$APPIMAGETOOL"
+    chmod +x "$APPIMAGETOOL"
+  fi
 fi
 
+# CI runners and containers usually lack FUSE; extract-and-run avoids needing it.
+export APPIMAGE_EXTRACT_AND_RUN=1
+
 OUTPUT_FILE="$OUT_DIR/mRemoteNG-$VERSION-linux-$ARCH.AppImage"
-ARCH="$ARCH" "$APPIMAGETOOL" "$APPDIR" "$OUTPUT_FILE"
+ARCH="$APPIMAGE_ARCH" "$APPIMAGETOOL" "$APPDIR" "$OUTPUT_FILE"
 
 echo "==> AppImage built: $OUTPUT_FILE"
 ls -lh "$OUTPUT_FILE"

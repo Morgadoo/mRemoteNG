@@ -11,10 +11,20 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-DEB_ARCH="${1:-amd64}"
-DOTNET_ARCH="${DEB_ARCH/amd64/x64}"
-DOTNET_ARCH="${DOTNET_ARCH/arm64/arm64}"
-VERSION="${2:-1.78.2}"
+DEB_ARCH="amd64"
+VERSION="1.78.2"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --arch) DEB_ARCH="$2"; shift 2 ;;
+    --version) VERSION="$2"; shift 2 ;;
+    *) echo "Unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+case "$DEB_ARCH" in
+  amd64) DOTNET_ARCH="x64" ;;
+  arm64) DOTNET_ARCH="arm64" ;;
+  *) echo "Unsupported architecture: $DEB_ARCH (use amd64 or arm64)" >&2; exit 2 ;;
+esac
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 STAGING="$ROOT_DIR/dist/deb/staging"
@@ -41,6 +51,9 @@ dotnet publish "$ROOT_DIR/mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj" \
   -p:PublishSingleFile=false \
   -o "$INSTALL_DIR/lib/mremoteng" \
   -p:Version="$VERSION"
+
+# Icon
+cp "$SCRIPT_DIR/mremoteng.png" "$INSTALL_DIR/share/icons/hicolor/256x256/apps/mremoteng.png"
 
 # 2. Wrapper script
 cat > "$INSTALL_DIR/bin/mremoteng" << 'WRAPPER'
