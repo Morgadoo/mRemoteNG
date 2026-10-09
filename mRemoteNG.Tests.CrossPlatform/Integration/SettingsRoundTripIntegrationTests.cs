@@ -1,5 +1,7 @@
 using System.IO;
-using mRemoteNG.Platform;
+using FluentAssertions;
+using mRemoteNG.Core.Settings;
+using mRemoteNG.Platform.Settings;
 using Xunit;
 
 namespace mRemoteNG.Tests.CrossPlatform.Integration;
@@ -14,8 +16,19 @@ public class SettingsRoundTripIntegrationTests
         Directory.CreateDirectory(tempDir);
         try
         {
-            // TODO: instantiate a file-based settings provider with tempDir
-            // Set a value, dispose, reload, verify value persists
+            var service = new AppSettingsService(new XmlFileSettingsProvider(tempDir));
+            service.Load();
+            var edited = service.CreateEditableCopy();
+            edited.Theme = ThemeMode.Light;
+            edited.SshPort = 2222;
+            service.Apply(edited).Should().BeEmpty();
+
+            // Simulate an application restart.
+            var reloaded = new AppSettingsService(new XmlFileSettingsProvider(tempDir));
+            reloaded.Load();
+
+            reloaded.Current.Theme.Should().Be(ThemeMode.Light);
+            reloaded.Current.SshPort.Should().Be(2222);
         }
         finally
         {

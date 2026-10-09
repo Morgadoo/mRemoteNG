@@ -90,66 +90,10 @@ public sealed class SettingsProviderTests : IDisposable
         provider.SettingsFilePath.Should().StartWith(provider.ApplicationDataDirectory);
     }
 
-    private mRemoteNG.Platform.ISettingsProvider CreateProvider()
-    {
-        // Use a simple portable XML provider for cross-platform tests
-        return new TestXmlSettingsProvider(_tempDir);
-    }
+    private mRemoteNG.Platform.ISettingsProvider CreateProvider() =>
+        // The Linux, macOS and Windows providers are thin subclasses of this one that only pick the directory.
+        new mRemoteNG.Platform.Settings.XmlFileSettingsProvider(_tempDir);
 
     public void Dispose() =>
         Directory.Delete(_tempDir, recursive: true);
-}
-
-/// <summary>
-/// Minimal in-process settings provider backed by an in-memory dict + XML file,
-/// used for testing without referencing platform-specific implementations.
-/// </summary>
-internal sealed class TestXmlSettingsProvider : mRemoteNG.Platform.ISettingsProvider
-{
-    private readonly Dictionary<string, string> _values = new();
-    private readonly string _dir;
-
-    public TestXmlSettingsProvider(string dir) => _dir = dir;
-
-    public string ApplicationDataDirectory => _dir;
-    public string SettingsFilePath => Path.Combine(_dir, "settings.xml");
-
-    public T GetValue<T>(string section, string key, T defaultValue)
-    {
-        var fullKey = $"{section}:{key}";
-        if (!_values.TryGetValue(fullKey, out string? raw)) return defaultValue;
-        try { return (T)Convert.ChangeType(raw, typeof(T)); }
-        catch { return defaultValue; }
-    }
-
-    public void SetValue<T>(string section, string key, T value) =>
-        _values[$"{section}:{key}"] = value?.ToString() ?? string.Empty;
-
-    public void RemoveValue(string section, string key) => _values.Remove($"{section}:{key}");
-    public IReadOnlyList<string> GetKeys(string section) =>
-        _values.Keys.Where(k => k.StartsWith($"{section}:")).Select(k => k.Split(':')[1]).ToList();
-
-    public void Save()
-    {
-        var doc = new System.Xml.Linq.XDocument(
-            new System.Xml.Linq.XElement("settings",
-                _values.Select(kv =>
-                    new System.Xml.Linq.XElement("entry",
-                        new System.Xml.Linq.XAttribute("key", kv.Key),
-                        new System.Xml.Linq.XAttribute("value", kv.Value)))));
-        doc.Save(SettingsFilePath);
-    }
-
-    public void Reload()
-    {
-        _values.Clear();
-        if (!File.Exists(SettingsFilePath)) return;
-        var doc = System.Xml.Linq.XDocument.Load(SettingsFilePath);
-        foreach (var e in doc.Root?.Elements("entry") ?? [])
-        {
-            string key = e.Attribute("key")?.Value ?? string.Empty;
-            string value = e.Attribute("value")?.Value ?? string.Empty;
-            if (!string.IsNullOrEmpty(key)) _values[key] = value;
-        }
-    }
 }

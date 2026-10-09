@@ -6,9 +6,12 @@ namespace mRemoteNG.Avalonia.Views.Dialogs;
 public partial class CredentialManagerDialog : Window
 {
     public CredentialManagerDialog() : this(null) { }
+
     public CredentialManagerDialog(CredentialManagerViewModel? viewModel)
     {
         InitializeComponent();
-        DataContext = viewModel ?? new CredentialManagerViewModel();
+        var vm = viewModel ?? AppServices.GetRequired<CredentialManagerViewModel>();
+        DataContext = vm;
+        vm.CloseRequested += Close;
     }
 }

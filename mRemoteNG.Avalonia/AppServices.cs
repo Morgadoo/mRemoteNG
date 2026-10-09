@@ -78,6 +78,36 @@ public static class AppServices
         services.AddSingleton<Services.TrayIconService>();
         // IconService is static — accessed directly, not via DI.
 
+        // Settings persistence (ISettingsProvider / ICryptoProvider come from the platform registrar).
+        services.AddSingleton<mRemoteNG.Core.Settings.AppSettingsService>(sp =>
+        {
+            var settings = new mRemoteNG.Core.Settings.AppSettingsService(
+                sp.GetRequiredService<mRemoteNG.Platform.ISettingsProvider>(),
+                sp.GetService<Microsoft.Extensions.Logging.ILogger<mRemoteNG.Core.Settings.AppSettingsService>>());
+            settings.Load();
+            return settings;
+        });
+        services.AddSingleton<mRemoteNG.Core.Settings.StartupService>(sp =>
+            new mRemoteNG.Core.Settings.StartupService(sp.GetRequiredService<mRemoteNG.Core.Settings.AppSettingsService>()));
+        services.AddSingleton<Services.UpdateCheckService>();
+        services.AddSingleton<Services.CloseConfirmationService>();
+        services.AddSingleton<Services.AppSettingsRuntime>();
+        services.AddSingleton<mRemoteNG.Core.Credential.FileCredentialRepository>(sp =>
+        {
+            var directory = sp.GetRequiredService<mRemoteNG.Platform.ISettingsProvider>().ApplicationDataDirectory;
+            var repository = new mRemoteNG.Core.Credential.FileCredentialRepository(
+                Path.Combine(directory, mRemoteNG.Core.Credential.FileCredentialRepository.DefaultFileName),
+                sp.GetRequiredService<mRemoteNG.Platform.Security.ICryptoProvider>(),
+                sp.GetService<Microsoft.Extensions.Logging.ILogger<mRemoteNG.Core.Credential.FileCredentialRepository>>());
+            repository.LoadCredentials();
+            return repository;
+        });
+        services.AddSingleton<mRemoteNG.Core.Credential.ICredentialLookup>(sp =>
+            sp.GetRequiredService<mRemoteNG.Core.Credential.FileCredentialRepository>());
+        services.AddSingleton<mRemoteNG.Core.Credential.ICredentialRepository>(sp =>
+            sp.GetRequiredService<mRemoteNG.Core.Credential.FileCredentialRepository>());
+        services.AddTransient<ViewModels.CredentialManagerViewModel>();
+
         // Protocol implementations (transient — one instance per session)
         ProtocolFactory.Register(services);
     }

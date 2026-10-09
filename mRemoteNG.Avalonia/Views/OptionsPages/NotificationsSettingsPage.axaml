@@ -9,16 +9,9 @@
         <Border Classes="card">
             <StackPanel Spacing="10">
                 <TextBlock Text="Desktop Notifications" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding ShowConnectNotify}" Content="Show notification when connection opens"/>
-                <CheckBox IsChecked="{Binding ShowDisconnectNotify}" Content="Show notification when connection closes"/>
-                <CheckBox IsChecked="{Binding ShowErrorNotify}" Content="Show notification on connection error"/>
-            </StackPanel>
-        </Border>
-
-        <Border Classes="card">
-            <StackPanel Spacing="10">
-                <TextBlock Text="Sounds" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding PlaySounds}" Content="Play sounds for connection events"/>
+                <CheckBox IsChecked="{Binding ShowConnectNotify}" Content="Show a notification when a connection opens"/>
+                <CheckBox IsChecked="{Binding ShowDisconnectNotify}" Content="Show a notification when a connection closes"/>
+                <CheckBox IsChecked="{Binding ShowErrorNotify}" Content="Show a notification for errors written to the log"/>
             </StackPanel>
         </Border>
     </StackPanel>

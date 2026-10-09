@@ -8,14 +8,26 @@
 
         <Border Classes="card">
             <StackPanel Spacing="12">
+                <TextBlock Text="Theme" Classes="section-header"/>
+                <Grid ColumnDefinitions="*,200">
+                    <TextBlock Text="Color theme" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Themes}"
+                              SelectedItem="{Binding SelectedTheme}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="12">
                 <TextBlock Text="Font" Classes="section-header"/>
-                <Grid ColumnDefinitions="*,120" RowDefinitions="Auto,12,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font Family" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding FontFamily}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Font Size" VerticalAlignment="Center"/>
+                <Grid ColumnDefinitions="*,200" RowDefinitions="Auto,12,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font family" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding FontFamily}" Watermark="(theme default)"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Font size" VerticalAlignment="Center"/>
                     <NumericUpDown Grid.Row="2" Grid.Column="1"
                                    Value="{Binding FontSize}"
-                                   Minimum="8" Maximum="24" Increment="1"/>
+                                   Minimum="8" Maximum="32" Increment="1" FormatString="0.#"/>
                 </Grid>
             </StackPanel>
         </Border>

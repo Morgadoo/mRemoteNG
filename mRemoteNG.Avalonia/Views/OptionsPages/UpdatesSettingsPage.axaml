@@ -8,15 +8,30 @@
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Text="Update Channel" Classes="section-header"/>
-                <CheckBox IsChecked="{Binding AutoCheck}" Content="Automatically check for updates"/>
-                <Grid ColumnDefinitions="*,180">
-                    <TextBlock Grid.Column="0" Text="Update channel" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Column="1"
+                <TextBlock Text="Update Check" Classes="section-header"/>
+                <CheckBox IsChecked="{Binding AutoCheck}"
+                          Content="Check for updates at startup (at most once a day)"/>
+                <Grid ColumnDefinitions="*,220">
+                    <TextBlock Text="Releases to look for" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                               ItemsSource="{Binding Channels}"
-                              SelectedItem="{Binding UpdateChannel}"
-                              IsEnabled="{Binding AutoCheck}"/>
+                              SelectedItem="{Binding SelectedChannel}"/>
                 </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="10">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock VerticalAlignment="Center">
+                        <Run Text="Installed version: "/>
+                        <Run Text="{Binding CurrentVersion}"/>
+                    </TextBlock>
+                    <Button Grid.Column="1" Content="Check now" Command="{Binding CheckNowCommand}"/>
+                </Grid>
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap"/>
+                <SelectableTextBlock Text="{Binding ReleaseUrl}" IsVisible="{Binding HasReleaseUrl}"
+                                     Foreground="{DynamicResource AccentBrush}"/>
             </StackPanel>
         </Border>
     </StackPanel>

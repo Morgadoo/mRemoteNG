@@ -19,9 +19,9 @@
 
             <!-- Category list (left nav) -->
             <Border Grid.Column="0"
-                    BorderBrush="#3f3f46"
+                    BorderBrush="{DynamicResource Border0Brush}"
                     BorderThickness="0,0,1,0"
-                    Background="#252526">
+                    Background="{DynamicResource AppBg1Brush}">
                 <DockPanel>
                     <Border DockPanel.Dock="Top" Padding="12,10">
                         <TextBlock Text="OPTIONS" Classes="section-header"/>
@@ -47,35 +47,23 @@
             <ScrollViewer Grid.Column="2" Padding="20">
                 <ContentControl Content="{Binding CurrentPage}">
                     <ContentControl.DataTemplates>
+                        <DataTemplate DataType="{x:Type vm:GeneralSettingsViewModel}">
+                            <pages:GeneralSettingsPage/>
+                        </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:AppearanceSettingsViewModel}">
                             <pages:AppearanceSettingsPage/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:ConnectionSettingsViewModel}">
                             <pages:ConnectionSettingsPage/>
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type vm:SecuritySettingsViewModel}">
-                            <pages:SecuritySettingsPage/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type vm:AdvancedSettingsViewModel}">
-                            <pages:AdvancedSettingsPage/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type vm:UpdatesSettingsViewModel}">
-                            <pages:UpdatesSettingsPage/>
+                        <DataTemplate DataType="{x:Type vm:CredentialsSettingsViewModel}">
+                            <pages:CredentialsSettingsPage/>
                         </DataTemplate>
                         <DataTemplate DataType="{x:Type vm:NotificationsSettingsViewModel}">
                             <pages:NotificationsSettingsPage/>
                         </DataTemplate>
-                        <DataTemplate DataType="{x:Type vm:ThemeSettingsViewModel}">
-                            <pages:ThemeSettingsPage/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type vm:TabsSettingsViewModel}">
-                            <pages:TabsSettingsPage/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type vm:CredentialsSettingsViewModel}">
-                            <pages:CredentialsSettingsPage/>
-                        </DataTemplate>
-                        <DataTemplate DataType="{x:Type vm:ProtocolsSettingsViewModel}">
-                            <pages:ProtocolsSettingsPage/>
+                        <DataTemplate DataType="{x:Type vm:UpdatesSettingsViewModel}">
+                            <pages:UpdatesSettingsPage/>
                         </DataTemplate>
                     </ContentControl.DataTemplates>
                 </ContentControl>
@@ -85,25 +73,31 @@
 
         <!-- Bottom button bar -->
         <Border Grid.Row="1"
-                BorderBrush="#3f3f46"
+                BorderBrush="{DynamicResource Border0Brush}"
                 BorderThickness="0,1,0,0"
                 Padding="12,8">
-            <Grid ColumnDefinitions="*,Auto,8,Auto,8,Auto">
-                <!-- Left: reset link -->
-                <Button Grid.Column="0"
-                        Content="Reset to defaults"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Foreground="#569cd6"
-                        Command="{Binding ResetCommand}"/>
-                <!-- Right: action buttons -->
-                <Button Grid.Column="1" Content="OK" Classes="accent"
-                        MinWidth="80" Command="{Binding OkCommand}"/>
-                <Button Grid.Column="3" Content="Cancel"
-                        MinWidth="80" Command="{Binding CancelCommand}"/>
-                <Button Grid.Column="5" Content="Apply"
-                        MinWidth="80" Command="{Binding ApplyCommand}"/>
-            </Grid>
+            <StackPanel Spacing="6">
+                <TextBlock Text="{Binding ValidationMessage}"
+                           IsVisible="{Binding HasValidationMessage}"
+                           Foreground="#f44336"
+                           TextWrapping="Wrap"/>
+                <Grid ColumnDefinitions="*,Auto,8,Auto,8,Auto">
+                    <!-- Left: reset link (resets this dialog; OK/Apply makes it take effect) -->
+                    <Button Grid.Column="0"
+                            Content="Reset to defaults"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{DynamicResource AccentBrush}"
+                            Command="{Binding ResetCommand}"/>
+                    <!-- Right: action buttons -->
+                    <Button Grid.Column="1" Content="OK" Classes="accent" IsDefault="True"
+                            MinWidth="80" Command="{Binding OkCommand}"/>
+                    <Button Grid.Column="3" Content="Cancel" IsCancel="True"
+                            MinWidth="80" Command="{Binding CancelCommand}"/>
+                    <Button Grid.Column="5" Content="Apply"
+                            MinWidth="80" Command="{Binding ApplyCommand}"/>
+                </Grid>
+            </StackPanel>
         </Border>
 
     </Grid>

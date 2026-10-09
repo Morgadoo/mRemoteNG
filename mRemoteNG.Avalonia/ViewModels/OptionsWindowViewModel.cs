@@ -1,140 +1,327 @@
-using ReactiveUI;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
+using mRemoteNG.Avalonia.Services;
+using mRemoteNG.Core.Config;
+using mRemoteNG.Core.Settings;
+using ReactiveUI;
 
 namespace mRemoteNG.Avalonia.ViewModels;
 
 // ── Settings page ViewModels ──────────────────────────────────────────────
-public sealed class AppearanceSettingsViewModel : ReactiveObject
-{
-    private double _fontSize = 13;
-    private string _fontFamily = "Segoe UI, SF Pro Display, Ubuntu";
-    private bool _showStatusBar = true;
-    private bool _showToolbar = true;
+// Each page edits the Options window's working copy of AppSettings.
+// Nothing reaches the live settings until OK/Apply.
 
-    public double FontSize { get => _fontSize; set => this.RaiseAndSetIfChanged(ref _fontSize, value); }
-    public string FontFamily { get => _fontFamily; set => this.RaiseAndSetIfChanged(ref _fontFamily, value); }
-    public bool ShowStatusBar { get => _showStatusBar; set => this.RaiseAndSetIfChanged(ref _showStatusBar, value); }
-    public bool ShowToolbar { get => _showToolbar; set => this.RaiseAndSetIfChanged(ref _showToolbar, value); }
+public abstract class SettingsPageViewModel(AppSettings working) : ReactiveObject
+{
+    protected AppSettings Working { get; } = working;
+
+    protected void Set<T>(T current, T value, Action<T> assign, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(current, value))
+            return;
+        assign(value);
+        this.RaisePropertyChanged(propertyName);
+    }
 }
 
-public sealed class ConnectionSettingsViewModel : ReactiveObject
+public sealed class Choice<T>(T value, string displayName)
 {
-    private int _defaultPort = 22;
-    private int _connectTimeout = 10;
-    private bool _autoReconnect = true;
-    private bool _keepAlive = true;
-    private int _keepAliveInterval = 60;
-    private string _defaultProtocol = "SSH";
-
-    public int DefaultPort { get => _defaultPort; set => this.RaiseAndSetIfChanged(ref _defaultPort, value); }
-    public int ConnectTimeout { get => _connectTimeout; set => this.RaiseAndSetIfChanged(ref _connectTimeout, value); }
-    public bool AutoReconnect { get => _autoReconnect; set => this.RaiseAndSetIfChanged(ref _autoReconnect, value); }
-    public bool KeepAlive { get => _keepAlive; set => this.RaiseAndSetIfChanged(ref _keepAlive, value); }
-    public int KeepAliveInterval { get => _keepAliveInterval; set => this.RaiseAndSetIfChanged(ref _keepAliveInterval, value); }
-    public string DefaultProtocol { get => _defaultProtocol; set => this.RaiseAndSetIfChanged(ref _defaultProtocol, value); }
-
-    public string[] Protocols { get; } = ["SSH", "RDP", "VNC", "Telnet", "HTTP", "HTTPS"];
+    public T Value { get; } = value;
+    public string DisplayName { get; } = displayName;
+    public override string ToString() => DisplayName;
 }
 
-public sealed class SecuritySettingsViewModel : ReactiveObject
+public sealed class GeneralSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
 {
-    private bool _useMasterPassword;
-    private bool _lockOnIdle;
-    private int _lockIdleMinutes = 15;
-    private bool _encryptConnections = true;
-    private bool _verifyServerCerts = true;
+    public IReadOnlyList<Choice<StartupFileBehavior>> StartupChoices { get; } =
+    [
+        new(StartupFileBehavior.ReopenLastFile, "Reopen the last connection file"),
+        new(StartupFileBehavior.OpenSpecificFile, "Open a specific connection file"),
+        new(StartupFileBehavior.None, "Start with an empty connection tree"),
+    ];
 
-    public bool UseMasterPassword { get => _useMasterPassword; set => this.RaiseAndSetIfChanged(ref _useMasterPassword, value); }
-    public bool LockOnIdle { get => _lockOnIdle; set => this.RaiseAndSetIfChanged(ref _lockOnIdle, value); }
-    public int LockIdleMinutes { get => _lockIdleMinutes; set => this.RaiseAndSetIfChanged(ref _lockIdleMinutes, value); }
-    public bool EncryptConnections { get => _encryptConnections; set => this.RaiseAndSetIfChanged(ref _encryptConnections, value); }
-    public bool VerifyServerCerts { get => _verifyServerCerts; set => this.RaiseAndSetIfChanged(ref _verifyServerCerts, value); }
+    public IReadOnlyList<Choice<ConfirmCloseEnum>> ConfirmCloseChoices { get; } =
+    [
+        new(ConfirmCloseEnum.Never, "Never"),
+        new(ConfirmCloseEnum.Exit, "When exiting with open connections"),
+        new(ConfirmCloseEnum.All, "When exiting and when closing a connection"),
+    ];
+
+    public Choice<StartupFileBehavior> SelectedStartupChoice
+    {
+        get => StartupChoices.First(c => c.Value == Working.StartupBehavior);
+        set
+        {
+            if (value is null) return;
+            Set(Working.StartupBehavior, value.Value, v => Working.StartupBehavior = v);
+            this.RaisePropertyChanged(nameof(IsStartupFileEnabled));
+        }
+    }
+
+    public bool IsStartupFileEnabled => Working.StartupBehavior == StartupFileBehavior.OpenSpecificFile;
+
+    public string StartupFilePath
+    {
+        get => Working.StartupFilePath;
+        set => Set(Working.StartupFilePath, value ?? string.Empty, v => Working.StartupFilePath = v);
+    }
+
+    public bool SingleInstance
+    {
+        get => Working.SingleInstance;
+        set => Set(Working.SingleInstance, value, v => Working.SingleInstance = v);
+    }
+
+    public bool SaveConnectionsOnExit
+    {
+        get => Working.SaveConnectionsOnExit;
+        set => Set(Working.SaveConnectionsOnExit, value, v => Working.SaveConnectionsOnExit = v);
+    }
+
+    public Choice<ConfirmCloseEnum> SelectedConfirmCloseChoice
+    {
+        get => ConfirmCloseChoices.FirstOrDefault(c => c.Value == Working.ConfirmCloseConnection) ?? ConfirmCloseChoices[1];
+        set
+        {
+            if (value is null) return;
+            Set(Working.ConfirmCloseConnection, value.Value, v => Working.ConfirmCloseConnection = v);
+        }
+    }
+
+    public bool ShowTrayIcon
+    {
+        get => Working.ShowTrayIcon;
+        set
+        {
+            Set(Working.ShowTrayIcon, value, v => Working.ShowTrayIcon = v);
+            // Minimising to a tray icon that does not exist would strand the window.
+            if (!value)
+                MinimizeToTray = false;
+        }
+    }
+
+    public bool MinimizeToTray
+    {
+        get => Working.MinimizeToTray;
+        set => Set(Working.MinimizeToTray, value, v => Working.MinimizeToTray = v);
+    }
 }
 
-public sealed class AdvancedSettingsViewModel : ReactiveObject
+public sealed class AppearanceSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
 {
-    private bool _enableLogging = true;
-    private bool _debugMode;
-    private bool _checkUpdatesOnStart = true;
-    private int _maxLogEntries = 1000;
-    private bool _singleInstance;
+    public IReadOnlyList<Choice<ThemeMode>> Themes { get; } =
+    [
+        new(ThemeMode.Dark, "Dark"),
+        new(ThemeMode.Light, "Light"),
+        new(ThemeMode.System, "Follow system setting"),
+    ];
 
-    public bool EnableLogging { get => _enableLogging; set => this.RaiseAndSetIfChanged(ref _enableLogging, value); }
-    public bool DebugMode { get => _debugMode; set => this.RaiseAndSetIfChanged(ref _debugMode, value); }
-    public bool CheckUpdatesOnStart { get => _checkUpdatesOnStart; set => this.RaiseAndSetIfChanged(ref _checkUpdatesOnStart, value); }
-    public int MaxLogEntries { get => _maxLogEntries; set => this.RaiseAndSetIfChanged(ref _maxLogEntries, value); }
-    public bool SingleInstance { get => _singleInstance; set => this.RaiseAndSetIfChanged(ref _singleInstance, value); }
+    public Choice<ThemeMode> SelectedTheme
+    {
+        get => Themes.First(t => t.Value == Working.Theme);
+        set
+        {
+            if (value is null) return;
+            Set(Working.Theme, value.Value, v => Working.Theme = v);
+        }
+    }
+
+    public string FontFamily
+    {
+        get => Working.FontFamily;
+        set => Set(Working.FontFamily, value?.Trim() ?? string.Empty, v => Working.FontFamily = v);
+    }
+
+    public decimal? FontSize
+    {
+        get => (decimal)Working.FontSize;
+        set
+        {
+            if (value is null) return;
+            Set(Working.FontSize, (double)value.Value, v => Working.FontSize = v);
+        }
+    }
+
+
+    public bool ShowToolbar
+    {
+        get => Working.ShowToolbar;
+        set => Set(Working.ShowToolbar, value, v => Working.ShowToolbar = v);
+    }
+
+    public bool ShowStatusBar
+    {
+        get => Working.ShowStatusBar;
+        set => Set(Working.ShowStatusBar, value, v => Working.ShowStatusBar = v);
+    }
 }
 
-public sealed class UpdatesSettingsViewModel : ReactiveObject
+public sealed class ConnectionSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
 {
-    private bool _autoCheck = true;
-    private string _updateChannel = "Stable";
-    public bool AutoCheck { get => _autoCheck; set => this.RaiseAndSetIfChanged(ref _autoCheck, value); }
-    public string UpdateChannel { get => _updateChannel; set => this.RaiseAndSetIfChanged(ref _updateChannel, value); }
-    public string[] Channels { get; } = ["Stable", "Beta", "Nightly"];
+    public IReadOnlyList<string> Protocols => AppSettings.DefaultProtocolChoices;
+
+    public decimal MinPort => AppSettings.MinPort;
+    public decimal MaxPort => AppSettings.MaxPort;
+    public decimal MinTimeout => AppSettings.MinConnectTimeoutSeconds;
+    public decimal MaxTimeout => AppSettings.MaxConnectTimeoutSeconds;
+    public decimal MinKeepAlive => AppSettings.MinKeepAliveSeconds;
+    public decimal MaxKeepAlive => AppSettings.MaxKeepAliveSeconds;
+
+    public string DefaultProtocol
+    {
+        get => Working.DefaultProtocol;
+        set => Set(Working.DefaultProtocol, value ?? Working.DefaultProtocol, v => Working.DefaultProtocol = v);
+    }
+
+    public decimal? ConnectTimeout
+    {
+        get => Working.ConnectTimeoutSeconds;
+        set => SetInt(Working.ConnectTimeoutSeconds, value, v => Working.ConnectTimeoutSeconds = v);
+    }
+
+    public string DefaultUsername
+    {
+        get => Working.DefaultUsername;
+        set => Set(Working.DefaultUsername, value ?? string.Empty, v => Working.DefaultUsername = v);
+    }
+
+    public bool KeepAlive
+    {
+        get => Working.SshKeepAliveEnabled;
+        set => Set(Working.SshKeepAliveEnabled, value, v => Working.SshKeepAliveEnabled = v);
+    }
+
+    public decimal? KeepAliveInterval
+    {
+        get => Working.SshKeepAliveIntervalSeconds;
+        set => SetInt(Working.SshKeepAliveIntervalSeconds, value, v => Working.SshKeepAliveIntervalSeconds = v);
+    }
+
+    public string SshKeyPath
+    {
+        get => Working.SshPrivateKeyPath;
+        set => Set(Working.SshPrivateKeyPath, value?.Trim() ?? string.Empty, v => Working.SshPrivateKeyPath = v);
+    }
+
+    public decimal? SshPort { get => Working.SshPort; set => SetInt(Working.SshPort, value, v => Working.SshPort = v); }
+    public decimal? TelnetPort { get => Working.TelnetPort; set => SetInt(Working.TelnetPort, value, v => Working.TelnetPort = v); }
+    public decimal? RloginPort { get => Working.RloginPort; set => SetInt(Working.RloginPort, value, v => Working.RloginPort = v); }
+    public decimal? RdpPort { get => Working.RdpPort; set => SetInt(Working.RdpPort, value, v => Working.RdpPort = v); }
+    public decimal? VncPort { get => Working.VncPort; set => SetInt(Working.VncPort, value, v => Working.VncPort = v); }
+    public decimal? HttpPort { get => Working.HttpPort; set => SetInt(Working.HttpPort, value, v => Working.HttpPort = v); }
+    public decimal? HttpsPort { get => Working.HttpsPort; set => SetInt(Working.HttpsPort, value, v => Working.HttpsPort = v); }
+
+    private void SetInt(int current, decimal? value, Action<int> assign, [CallerMemberName] string? propertyName = null)
+    {
+        // An emptied NumericUpDown yields null: keep the previous value (validation still runs on Apply).
+        if (value is null)
+            return;
+        var rounded = (int)Math.Clamp(Math.Round(value.Value), int.MinValue, int.MaxValue);
+        Set(current, rounded, assign, propertyName);
+    }
 }
 
-public sealed class NotificationsSettingsViewModel : ReactiveObject
+public sealed class CredentialsSettingsViewModel(AppSettings working, Func<int> credentialCount) : SettingsPageViewModel(working)
 {
-    private bool _showConnectNotify = true;
-    private bool _showDisconnectNotify = true;
-    private bool _showErrorNotify = true;
-    private bool _playSounds;
+    public string Summary
+    {
+        get
+        {
+            var count = credentialCount();
+            return count == 1 ? "1 saved credential." : $"{count} saved credentials.";
+        }
+    }
 
-    public bool ShowConnectNotify { get => _showConnectNotify; set => this.RaiseAndSetIfChanged(ref _showConnectNotify, value); }
-    public bool ShowDisconnectNotify { get => _showDisconnectNotify; set => this.RaiseAndSetIfChanged(ref _showDisconnectNotify, value); }
-    public bool ShowErrorNotify { get => _showErrorNotify; set => this.RaiseAndSetIfChanged(ref _showErrorNotify, value); }
-    public bool PlaySounds { get => _playSounds; set => this.RaiseAndSetIfChanged(ref _playSounds, value); }
+    public void RefreshSummary() => this.RaisePropertyChanged(nameof(Summary));
 }
 
-public sealed class ThemeSettingsViewModel : ReactiveObject
+public sealed class NotificationsSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
 {
-    private string _selectedTheme = "Dark";
-    public string SelectedTheme { get => _selectedTheme; set => this.RaiseAndSetIfChanged(ref _selectedTheme, value); }
-    public string[] Themes { get; } = ["Dark", "Light", "System"];
+    public bool ShowConnectNotify
+    {
+        get => Working.NotifyOnConnect;
+        set => Set(Working.NotifyOnConnect, value, v => Working.NotifyOnConnect = v);
+    }
+
+    public bool ShowDisconnectNotify
+    {
+        get => Working.NotifyOnDisconnect;
+        set => Set(Working.NotifyOnDisconnect, value, v => Working.NotifyOnDisconnect = v);
+    }
+
+    public bool ShowErrorNotify
+    {
+        get => Working.NotifyOnError;
+        set => Set(Working.NotifyOnError, value, v => Working.NotifyOnError = v);
+    }
 }
 
-public sealed class TabsSettingsViewModel : ReactiveObject
+public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
 {
-    private bool _confirmOnClose = true;
-    private bool _closeOnDoubleClick;
-    private string _tabPosition = "Top";
-    private bool _showCloseButton = true;
+    private readonly UpdateCheckService _updates;
+    private string _status = string.Empty;
+    private string? _releaseUrl;
 
-    public bool ConfirmOnClose { get => _confirmOnClose; set => this.RaiseAndSetIfChanged(ref _confirmOnClose, value); }
-    public bool CloseOnDoubleClick { get => _closeOnDoubleClick; set => this.RaiseAndSetIfChanged(ref _closeOnDoubleClick, value); }
-    public string TabPosition { get => _tabPosition; set => this.RaiseAndSetIfChanged(ref _tabPosition, value); }
-    public bool ShowCloseButton { get => _showCloseButton; set => this.RaiseAndSetIfChanged(ref _showCloseButton, value); }
-    public string[] Positions { get; } = ["Top", "Bottom"];
-}
+    public UpdatesSettingsViewModel(AppSettings working, UpdateCheckService updates) : base(working)
+    {
+        _updates = updates;
+        CheckNowCommand = ReactiveCommand.CreateFromTask(CheckNowAsync);
+        CheckNowCommand.ThrownExceptions.Subscribe(ex => Status = $"Update check failed: {ex.Message}");
+    }
 
-public sealed class CredentialsSettingsViewModel : ReactiveObject
-{
-    private string _defaultUsername = string.Empty;
-    private bool _savePasswords = true;
-    private bool _askBeforeConnect;
+    public IReadOnlyList<Choice<UpdateChannel>> Channels { get; } =
+    [
+        new(UpdateChannel.Stable, "Stable releases"),
+        new(UpdateChannel.PreRelease, "Stable and pre-releases"),
+    ];
 
-    public string DefaultUsername { get => _defaultUsername; set => this.RaiseAndSetIfChanged(ref _defaultUsername, value); }
-    public bool SavePasswords { get => _savePasswords; set => this.RaiseAndSetIfChanged(ref _savePasswords, value); }
-    public bool AskBeforeConnect { get => _askBeforeConnect; set => this.RaiseAndSetIfChanged(ref _askBeforeConnect, value); }
-}
+    public bool AutoCheck
+    {
+        get => Working.CheckForUpdatesOnStartup;
+        set => Set(Working.CheckForUpdatesOnStartup, value, v => Working.CheckForUpdatesOnStartup = v);
+    }
 
-public sealed class ProtocolsSettingsViewModel : ReactiveObject
-{
-    private string _sshKeyPath = string.Empty;
-    private int _rdpColorDepth = 32;
-    private bool _rdpSmartSize = true;
-    private string _vncEncoding = "Tight";
-    private bool _puttyCompatMode;
+    public Choice<UpdateChannel> SelectedChannel
+    {
+        get => Channels.First(c => c.Value == Working.UpdateChannel);
+        set
+        {
+            if (value is null) return;
+            Set(Working.UpdateChannel, value.Value, v => Working.UpdateChannel = v);
+        }
+    }
 
-    public string SshKeyPath { get => _sshKeyPath; set => this.RaiseAndSetIfChanged(ref _sshKeyPath, value); }
-    public int RdpColorDepth { get => _rdpColorDepth; set => this.RaiseAndSetIfChanged(ref _rdpColorDepth, value); }
-    public bool RdpSmartSize { get => _rdpSmartSize; set => this.RaiseAndSetIfChanged(ref _rdpSmartSize, value); }
-    public string VncEncoding { get => _vncEncoding; set => this.RaiseAndSetIfChanged(ref _vncEncoding, value); }
-    public bool PuttyCompatMode { get => _puttyCompatMode; set => this.RaiseAndSetIfChanged(ref _puttyCompatMode, value); }
-    public int[] ColorDepths { get; } = [8, 15, 16, 24, 32];
-    public string[] VncEncodings { get; } = ["Tight", "ZRLE", "Hextile", "Raw"];
+    public string CurrentVersion => _updates.CurrentVersionText;
+
+    public string Status
+    {
+        get => _status;
+        private set => this.RaiseAndSetIfChanged(ref _status, value);
+    }
+
+    public string? ReleaseUrl
+    {
+        get => _releaseUrl;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _releaseUrl, value);
+            this.RaisePropertyChanged(nameof(HasReleaseUrl));
+        }
+    }
+
+    public bool HasReleaseUrl => !string.IsNullOrEmpty(ReleaseUrl);
+
+    public ReactiveCommand<Unit, Unit> CheckNowCommand { get; }
+
+    private async Task CheckNowAsync()
+    {
+        Status = "Checking…";
+        ReleaseUrl = null;
+        var result = await _updates.CheckAsync(Working.UpdateChannel);
+        Status = result.Message;
+        ReleaseUrl = result.IsUpdateAvailable ? result.ReleaseUrl : null;
+    }
 }
 
 // ── Main OptionsWindowViewModel ───────────────────────────────────────────
@@ -144,35 +331,57 @@ public sealed class SettingsCategoryViewModel(string displayName, string key) : 
     public string Key { get; } = key;
 }
 
+/// <summary>
+/// Options dialog. Edits a private copy of <see cref="AppSettings"/>:
+/// OK/Apply validate and commit it through <see cref="AppSettingsService"/>, Cancel discards it,
+/// "Reset to defaults" resets the copy (still needs OK/Apply to take effect).
+/// </summary>
 public sealed class OptionsWindowViewModel : ReactiveObject
 {
+    private readonly AppSettingsService _settings;
+    private readonly UpdateCheckService _updates;
+    private readonly Func<int> _credentialCount;
+    private readonly AppSettings _working;
     private SettingsCategoryViewModel? _selectedCategory;
     private object? _currentPage;
+    private string _validationMessage = string.Empty;
 
-    // Page ViewModels
-    public AppearanceSettingsViewModel Appearance { get; } = new();
-    public ConnectionSettingsViewModel Connections { get; } = new();
-    public SecuritySettingsViewModel Security { get; } = new();
-    public AdvancedSettingsViewModel Advanced { get; } = new();
-    public UpdatesSettingsViewModel Updates { get; } = new();
-    public NotificationsSettingsViewModel Notifications { get; } = new();
-    public ThemeSettingsViewModel Theme { get; } = new();
-    public TabsSettingsViewModel Tabs { get; } = new();
-    public CredentialsSettingsViewModel Credentials { get; } = new();
-    public ProtocolsSettingsViewModel Protocols { get; } = new();
+    public OptionsWindowViewModel(AppSettingsService settings, UpdateCheckService updates, mRemoteNG.Core.Credential.FileCredentialRepository credentials)
+        : this(settings, updates, () => credentials.CredentialRecords.Count)
+    {
+    }
+
+    private OptionsWindowViewModel(AppSettingsService settings, UpdateCheckService updates, Func<int> credentialCount)
+    {
+        _settings = settings;
+        _updates = updates;
+        _credentialCount = credentialCount;
+        _working = settings.CreateEditableCopy();
+        CreatePages();
+
+        OkCommand = ReactiveCommand.Create(OnOk);
+        CancelCommand = ReactiveCommand.Create(OnCancel);
+        ApplyCommand = ReactiveCommand.Create(() => { OnApply(); });
+        ResetCommand = ReactiveCommand.Create(OnReset);
+        SelectedCategory = Categories.FirstOrDefault();
+    }
+
+    // Page ViewModels (recreated by Reset)
+    public GeneralSettingsViewModel General { get; private set; } = null!;
+    public AppearanceSettingsViewModel Appearance { get; private set; } = null!;
+    public ConnectionSettingsViewModel Connections { get; private set; } = null!;
+    public CredentialsSettingsViewModel Credentials { get; private set; } = null!;
+    public NotificationsSettingsViewModel Notifications { get; private set; } = null!;
+    public UpdatesSettingsViewModel Updates { get; private set; } = null!;
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
+        new("Startup & Exit", "general"),
         new("Appearance", "appearance"),
         new("Connections", "connections"),
-        new("Security", "security"),
-        new("Advanced", "advanced"),
-        new("Updates", "updates"),
-        new("Notifications", "notifications"),
-        new("Theme", "theme"),
-        new("Tabs & Panels", "tabs"),
         new("Credentials", "credentials"),
-        new("Protocols", "protocols"),
+        new("Notifications", "notifications"),
+        new("Updates", "updates"),
     ];
 
     public SettingsCategoryViewModel? SelectedCategory
@@ -191,55 +400,98 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _currentPage, value);
     }
 
+    /// <summary>Validation or save errors from the last OK/Apply; empty when none.</summary>
+    public string ValidationMessage
+    {
+        get => _validationMessage;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _validationMessage, value);
+            this.RaisePropertyChanged(nameof(HasValidationMessage));
+        }
+    }
+
+    public bool HasValidationMessage => !string.IsNullOrEmpty(ValidationMessage);
+
     public ReactiveCommand<Unit, Unit> OkCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelCommand { get; }
     public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
     public ReactiveCommand<Unit, Unit> ResetCommand { get; }
 
-    public OptionsWindowViewModel()
+    /// <summary>Raised when the window should close.</summary>
+    public event Action? CloseRequested;
+
+    /// <summary>The working copy edited by the pages (exposed for tests and the view).</summary>
+    public AppSettings WorkingCopy => _working;
+
+    /// <summary>Validates and commits the working copy. Returns true on success.</summary>
+    public bool OnApply()
     {
-        OkCommand = ReactiveCommand.Create(OnOk);
-        CancelCommand = ReactiveCommand.Create(OnCancel);
-        ApplyCommand = ReactiveCommand.Create(OnApply);
-        ResetCommand = ReactiveCommand.Create(OnReset);
-        SelectedCategory = Categories.FirstOrDefault();
+        IReadOnlyList<string> errors;
+        try
+        {
+            errors = _settings.Apply(_working);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ValidationMessage = $"Could not save settings: {ex.Message}";
+            return false;
+        }
+
+        ValidationMessage = string.Join(Environment.NewLine, errors);
+        return errors.Count == 0;
+    }
+
+    /// <summary>Called by the view after the credential manager closed.</summary>
+    public void RefreshCredentialSummary() => Credentials.RefreshSummary();
+
+    private void CreatePages()
+    {
+        General = new GeneralSettingsViewModel(_working);
+        Appearance = new AppearanceSettingsViewModel(_working);
+        Connections = new ConnectionSettingsViewModel(_working);
+        Credentials = new CredentialsSettingsViewModel(_working, _credentialCount);
+        Notifications = new NotificationsSettingsViewModel(_working);
+        Updates = new UpdatesSettingsViewModel(_working, _updates);
     }
 
     private object? ResolvePageViewModel(string? key) => key switch
     {
+        "general" => General,
         "appearance" => Appearance,
         "connections" => Connections,
-        "security" => Security,
-        "advanced" => Advanced,
-        "updates" => Updates,
-        "notifications" => Notifications,
-        "theme" => Theme,
-        "tabs" => Tabs,
         "credentials" => Credentials,
-        "protocols" => Protocols,
+        "notifications" => Notifications,
+        "updates" => Updates,
         _ => null,
     };
 
-    /// <summary>Raised when the window should close.</summary>
-    public event Action? CloseRequested;
-
-    private void OnOk() { OnApply(); CloseRequested?.Invoke(); }
-    private void OnCancel() { CloseRequested?.Invoke(); }
-    private void OnApply()
+    private void OnOk()
     {
-        // Settings are already bound to page VMs via two-way binding.
-        // Future: persist to ISettingsProvider here.
+        if (OnApply())
+            CloseRequested?.Invoke();
     }
+
+    private void OnCancel() => CloseRequested?.Invoke();
+
     private void OnReset()
     {
-        // Reset all pages to defaults
-        Appearance.FontSize = 13;
-        Appearance.ShowStatusBar = true;
-        Appearance.ShowToolbar = true;
-        Connections.DefaultPort = 22;
-        Connections.ConnectTimeout = 10;
-        Connections.AutoReconnect = true;
-        Security.EncryptConnections = true;
-        Advanced.EnableLogging = true;
+        // Keep state that is not an option (last file, last update check).
+        var defaults = new AppSettings
+        {
+            LastConnectionFilePath = _working.LastConnectionFilePath,
+            LastUpdateCheckUtc = _working.LastUpdateCheckUtc,
+        };
+        _working.CopyFrom(defaults);
+        ValidationMessage = string.Empty;
+
+        CreatePages();
+        this.RaisePropertyChanged(nameof(General));
+        this.RaisePropertyChanged(nameof(Appearance));
+        this.RaisePropertyChanged(nameof(Connections));
+        this.RaisePropertyChanged(nameof(Credentials));
+        this.RaisePropertyChanged(nameof(Notifications));
+        this.RaisePropertyChanged(nameof(Updates));
+        CurrentPage = ResolvePageViewModel(SelectedCategory?.Key);
     }
 }
