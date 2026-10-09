@@ -58,6 +58,25 @@ UI tests.
   in English in every language; legacy translations are used as they are (some are partial or inaccurate).
 - Packaging: Flatpak, Snap and macOS DMG/Homebrew scripts have not been run; code signing needs certificates.
 
+## UI refresh — 2026-10-09
+
+The Avalonia UI was redesigned to `docs/design-system.md`: neutral surfaces with one accent colour, Inter,
+Material icons with protocol colours, rounded geometry on a 4 px grid, and keyboard-first interaction.
+- Design tokens and control styles shared by all views (`Themes/`), Dark/Light/VS2015 Blue/Darcula and user
+  themes (old theme files still load), a developer gallery (`--design-gallery`).
+- Main window: header bar with address-bar Quick Connect, command palette (Ctrl+K), every menu shortcut bound
+  (terminal-safe rule in `Views/Shell/AppShortcuts.cs`), Recent/Favorites cards, status bar, collapsible log
+  panel, toasts.
+- Tree: Material glyphs, open-session dots, hover connect, search highlighting; tabs with protocol glyphs and
+  status dots, overflow list; restyled panels, banners and empty states.
+- Dialogs: one pattern (header, footer, focus in the first field, Enter/Esc); Options with icon navigation,
+  search, settings cards and theme swatches; connection editor with categories, inherit toggles and inline
+  validation.
+- UX fixes from the recorded test run: RDP tab menu opens on the first right-click, Ctrl+Alt+Enter leaves
+  full screen from terminals, dialogs over embedded RDP/IntApp sessions get the keyboard, New Panel asks for a
+  name, Ctrl+, opens Options, Light-theme contrast; PowerShell runs on a pseudo-terminal (Linux) so commands
+  and formatted output work.
+
 ## Feature Parity with the WinForms App
 
 Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done about each gap:
