@@ -1,5 +1,4 @@
 using System.Net.Sockets;
-using System.Text;
 using Avalonia.Controls;
 using Microsoft.Extensions.Logging;
 using mRemoteNG.Protocols.Abstractions;
@@ -8,40 +7,35 @@ using mRemoteNG.Protocols.Ssh;
 namespace mRemoteNG.Protocols.Telnet;
 
 /// <summary>
-/// Pure .NET Telnet (RFC 854) protocol implementation.
-/// Handles IAC option negotiation and presents a <see cref="TerminalView"/>.
+/// Pure .NET Telnet (RFC 854) protocol implementation presented in a <see cref="TerminalView"/>.
 ///
-/// Option negotiation strategy:
-///   • Server WILL ECHO → we acknowledge (DONT ECHO locally)
-///   • Server WILL SUPPRESS-GO-AHEAD → acknowledge
-///   • We advertise WILL NAWS (window size) so the server can resize the terminal
-///   • All other WILL/DO proposals from server → WONT/DONT
+/// Option negotiation (see <see cref="TelnetCodec"/>):
+///   • Server WILL ECHO / SUPPRESS-GO-AHEAD → accepted
+///   • We offer WILL NAWS and send the window size on every terminal resize
+///   • All other options are refused
 /// </summary>
 public sealed class TelnetProtocol : ProtocolBase, IVisualProtocol
 {
     private readonly ILogger<TelnetProtocol> _logger;
+    private readonly TelnetCodec _codec = new();
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
     private TcpClient? _tcp;
     private NetworkStream? _stream;
     private TerminalView? _view;
     private CancellationTokenSource? _cts;
+    private int _columns = 80;
+    private int _rows = 24;
 
-    // Telnet option constants
-    private const byte IAC = 255;
-    private const byte DONT = 254;
-    private const byte DO = 253;
-    private const byte WONT = 252;
-    private const byte WILL = 251;
-    private const byte SB = 250;   // Subnegotiation begin
-    private const byte SE = 240;   // Subnegotiation end
-    private const byte OPT_ECHO = 1;
-    private const byte OPT_SGA = 3;   // Suppress go-ahead
-    private const byte OPT_NAWS = 31; // Negotiate about window size
+    /// <summary>Decoded server text; lets tests observe output without a view.</summary>
+    internal event Action<string>? TextReceived;
 
     public TelnetProtocol(ILogger<TelnetProtocol> logger) => _logger = logger;
 
     public Control CreateView()
     {
         _view = new TerminalView();
+        _view.DataToSend += OnTerminalDataToSend;
+        _view.TerminalResized += OnTerminalResized;
         return _view;
     }
 
@@ -54,13 +48,13 @@ public sealed class TelnetProtocol : ProtocolBase, IVisualProtocol
             _tcp = new TcpClient();
             await _tcp.ConnectAsync(parameters.Hostname, parameters.Port, ct);
             _stream = _tcp.GetStream();
+            if (_view is not null)
+                (_columns, _rows) = (_view.TerminalCols, _view.TerminalRows);
 
             State = ConnectionState.Connected;
             RaiseStatus($"Connected to {parameters.DisplayName}");
 
-            // Send WILL NAWS immediately
-            await SendOptionAsync(WILL, OPT_NAWS, ct);
-            await SendNawsAsync(_view?.TerminalCols ?? 80, _view?.TerminalRows ?? 24, ct);
+            await WriteAsync(_codec.OfferWindowSize(), ct);
 
             _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             _ = ReadLoopAsync(_cts.Token);
@@ -83,11 +77,56 @@ public sealed class TelnetProtocol : ProtocolBase, IVisualProtocol
         await Task.CompletedTask;
     }
 
+    /// <summary>Sends terminal input (keystrokes, paste) to the server.</summary>
+    internal Task SendInputAsync(byte[] input, CancellationToken ct = default) =>
+        WriteAsync(TelnetCodec.EncodeInput(input), ct);
+
+    /// <summary>Records the terminal size and tells the server when it accepted NAWS.</summary>
+    internal Task ResizeAsync(int columns, int rows, CancellationToken ct = default)
+    {
+        (_columns, _rows) = (columns, rows);
+        return _codec.WindowSizeEnabled
+            ? WriteAsync(TelnetCodec.EncodeWindowSize(columns, rows), ct)
+            : Task.CompletedTask;
+    }
+
+    private void OnTerminalDataToSend(object? sender, byte[] data) => _ = SendSafelyAsync(() => SendInputAsync(data));
+
+    private void OnTerminalResized(object? sender, TerminalSizeEventArgs e) =>
+        _ = SendSafelyAsync(() => ResizeAsync(e.Columns, e.Rows));
+
+    private async Task SendSafelyAsync(Func<Task> send)
+    {
+        try
+        {
+            await send();
+        }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or SocketException)
+        {
+            _logger.LogDebug(ex, "Telnet write failed");
+        }
+    }
+
+    /// <summary>Option replies (read loop) and keystrokes (UI thread) must not interleave on the socket.</summary>
+    private async Task WriteAsync(byte[] data, CancellationToken ct)
+    {
+        if (_stream is null || data.Length == 0) return;
+        await _writeLock.WaitAsync(ct);
+        try
+        {
+            await _stream.WriteAsync(data, ct);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
     private async Task ReadLoopAsync(CancellationToken ct)
     {
         if (_stream is null) return;
         var buffer = new byte[4096];
-        var output = new StringBuilder();
+        var negotiations = new List<TelnetNegotiation>();
 
         try
         {
@@ -96,88 +135,44 @@ public sealed class TelnetProtocol : ProtocolBase, IVisualProtocol
                 int read = await _stream.ReadAsync(buffer, ct);
                 if (read == 0) break;
 
-                output.Clear();
-                int i = 0;
-                while (i < read)
-                {
-                    byte b = buffer[i++];
-                    if (b == IAC && i < read)
-                    {
-                        byte cmd = buffer[i++];
-                        if ((cmd == WILL || cmd == WONT || cmd == DO || cmd == DONT) && i < read)
-                        {
-                            byte opt = buffer[i++];
-                            await HandleOptionAsync(cmd, opt, ct);
-                        }
-                        else if (cmd == SB)
-                        {
-                            // Skip subnegotiation bytes until IAC SE
-                            while (i < read - 1 && !(buffer[i] == IAC && buffer[i + 1] == SE))
-                                i++;
-                            i += 2; // skip IAC SE
-                        }
-                        // IAC IAC = literal 0xFF
-                        else if (cmd == IAC) output.Append((char)IAC);
-                    }
-                    else
-                    {
-                        output.Append((char)b);
-                    }
-                }
+                negotiations.Clear();
+                var text = _codec.Decode(buffer.AsSpan(0, read), negotiations);
+                foreach (var negotiation in negotiations)
+                    await WriteAsync(_codec.Respond(negotiation, _columns, _rows), ct);
 
-                if (output.Length > 0)
-                    _view?.Write(output.ToString());
+                if (text.Length > 0)
+                {
+                    _view?.Write(text);
+                    TextReceived?.Invoke(text);
+                }
             }
+
+            State = ConnectionState.Disconnected;
+            RaiseStatus("Connection closed by the remote host.");
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex)
+        catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             _logger.LogWarning(ex, "Telnet read loop ended");
             State = ConnectionState.Error;
+            RaiseStatus($"Connection lost: {ex.Message}");
         }
-    }
-
-    private async Task HandleOptionAsync(byte cmd, byte opt, CancellationToken ct)
-    {
-        switch (cmd)
-        {
-            case WILL when opt == OPT_ECHO:
-                await SendOptionAsync(DO, OPT_ECHO, ct); break;
-            case WILL when opt == OPT_SGA:
-                await SendOptionAsync(DO, OPT_SGA, ct); break;
-            case DO when opt == OPT_NAWS:
-                await SendNawsAsync(_view?.TerminalCols ?? 80, _view?.TerminalRows ?? 24, ct); break;
-            case WILL:
-                await SendOptionAsync(DONT, opt, ct); break;
-            case DO:
-                await SendOptionAsync(WONT, opt, ct); break;
-        }
-    }
-
-    private async Task SendOptionAsync(byte cmd, byte opt, CancellationToken ct)
-    {
-        if (_stream is null) return;
-        byte[] data = [IAC, cmd, opt];
-        await _stream.WriteAsync(data, ct);
-    }
-
-    private async Task SendNawsAsync(int cols, int rows, CancellationToken ct)
-    {
-        if (_stream is null) return;
-        byte colHi = (byte)(cols >> 8), colLo = (byte)(cols & 0xFF);
-        byte rowHi = (byte)(rows >> 8), rowLo = (byte)(rows & 0xFF);
-        byte[] data = [IAC, SB, OPT_NAWS, colHi, colLo, rowHi, rowLo, IAC, SE];
-        await _stream.WriteAsync(data, ct);
     }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
+            if (_view is not null)
+            {
+                _view.DataToSend -= OnTerminalDataToSend;
+                _view.TerminalResized -= OnTerminalResized;
+            }
             _cts?.Cancel();
             _cts?.Dispose();
             _stream?.Dispose();
             _tcp?.Dispose();
+            _writeLock.Dispose();
         }
     }
 }

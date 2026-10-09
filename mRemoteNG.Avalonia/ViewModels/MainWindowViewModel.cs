@@ -610,11 +610,21 @@ public sealed class MainWindowViewModel : ReactiveObject
         await dialog.ShowDialog(owner);
     }
 
-    private async Task OnOpenSftp()
+    private Task OnOpenSftp()
     {
         var owner = GetMainWindow();
-        if (owner is null) return;
-        await new SshFileTransferDialog().ShowDialog(owner);
+        if (owner is null) return Task.CompletedTask;
+
+        // Pre-fill (and connect straight away) when an SSH connection is selected.
+        ConnectionParameters? prefill = null;
+        if (ConnectionTree.SelectedNode is { IsFolder: false, Model: { } model }
+            && ConnectionParametersFactory.MapProtocol(model.Protocol) is ProtocolType.Ssh or ProtocolType.SshSftp)
+        {
+            prefill = ConnectionParametersFactory.FromConnectionInfo(model);
+        }
+
+        SshFileTransferDialog.ShowFor(owner, prefill);
+        return Task.CompletedTask;
     }
 
     private void OnResetLayout()

@@ -15,20 +15,31 @@ namespace mRemoteNG.Protocols.Telnet;
 ///   2. Send: &lt;client-username&gt;\0&lt;server-username&gt;\0&lt;terminal-type/speed&gt;\0
 ///   3. Wait for 0x00 acknowledgment from server
 ///   4. Bidirectional data flow begins
+///
+/// Window-size updates are not sent: rlogin requests them with TCP urgent (out-of-band) data,
+/// which .NET sockets can't distinguish reliably from the normal stream.
 /// </summary>
 public sealed class RloginProtocol : ProtocolBase, IVisualProtocol
 {
+    private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromSeconds(15);
+
     private readonly ILogger<RloginProtocol> _logger;
+    private readonly Decoder _utf8 = new UTF8Encoding(false).GetDecoder();
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
     private TcpClient? _tcp;
     private NetworkStream? _stream;
     private TerminalView? _view;
     private CancellationTokenSource? _cts;
+
+    /// <summary>Decoded server text; lets tests observe output without a view.</summary>
+    internal event Action<string>? TextReceived;
 
     public RloginProtocol(ILogger<RloginProtocol> logger) => _logger = logger;
 
     public Control CreateView()
     {
         _view = new TerminalView();
+        _view.DataToSend += OnTerminalDataToSend;
         return _view;
     }
 
@@ -42,25 +53,17 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol
             await _tcp.ConnectAsync(parameters.Hostname, parameters.Port, ct);
             _stream = _tcp.GetStream();
 
-            // RFC 1282 handshake
-            string clientUser = Environment.UserName;
-            string serverUser = parameters.Username ?? clientUser;
-            string termSpec = "xterm-256color/38400";
+            await _stream.WriteAsync(BuildHandshake(Environment.UserName, parameters.Username), ct);
 
-            var handshake = new List<byte>();
-            handshake.Add(0x00); // null prefix byte
-            handshake.AddRange(Encoding.ASCII.GetBytes(clientUser)); handshake.Add(0);
-            handshake.AddRange(Encoding.ASCII.GetBytes(serverUser)); handshake.Add(0);
-            handshake.AddRange(Encoding.ASCII.GetBytes(termSpec)); handshake.Add(0);
-
-            await _stream.WriteAsync(handshake.ToArray(), ct);
-
-            // Wait for server acknowledgment
-            int ack = _stream.ReadByte();
-            if (ack != 0)
-            {
-                throw new InvalidOperationException($"Rlogin handshake failed (expected 0x00, got 0x{ack:X2})");
-            }
+            // The server acknowledges with a single zero byte.
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeout.CancelAfter(HandshakeTimeout);
+            var ack = new byte[1];
+            int read = await _stream.ReadAsync(ack, timeout.Token);
+            if (read == 0)
+                throw new InvalidOperationException("The server closed the connection during the rlogin handshake.");
+            if (ack[0] != 0)
+                throw new InvalidOperationException($"Rlogin handshake failed (expected 0x00, got 0x{ack[0]:X2}).");
 
             State = ConnectionState.Connected;
             RaiseStatus($"Connected (rlogin) to {parameters.DisplayName}");
@@ -77,6 +80,16 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol
         }
     }
 
+    /// <summary>RFC 1282: NUL, client user NUL, server user NUL, terminal-type/speed NUL.</summary>
+    internal static byte[] BuildHandshake(string clientUser, string? serverUser)
+    {
+        var handshake = new List<byte> { 0x00 };
+        handshake.AddRange(Encoding.ASCII.GetBytes(clientUser)); handshake.Add(0);
+        handshake.AddRange(Encoding.ASCII.GetBytes(serverUser ?? clientUser)); handshake.Add(0);
+        handshake.AddRange(Encoding.ASCII.GetBytes("xterm-256color/38400")); handshake.Add(0);
+        return handshake.ToArray();
+    }
+
     public override async Task DisconnectAsync(CancellationToken ct = default)
     {
         _cts?.Cancel();
@@ -86,25 +99,62 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol
         await Task.CompletedTask;
     }
 
+    /// <summary>Sends terminal input to the server (rlogin passes bytes through unchanged).</summary>
+    internal async Task SendInputAsync(byte[] input, CancellationToken ct = default)
+    {
+        if (_stream is null || input.Length == 0) return;
+        await _writeLock.WaitAsync(ct);
+        try
+        {
+            await _stream.WriteAsync(input, ct);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    private async void OnTerminalDataToSend(object? sender, byte[] data)
+    {
+        try
+        {
+            await SendInputAsync(data);
+        }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or SocketException)
+        {
+            _logger.LogDebug(ex, "Rlogin write failed");
+        }
+    }
+
     private async Task ReadLoopAsync(CancellationToken ct)
     {
         if (_stream is null) return;
         var buffer = new byte[4096];
+        var chars = new char[Encoding.UTF8.GetMaxCharCount(buffer.Length)];
         try
         {
             while (!ct.IsCancellationRequested)
             {
                 int read = await _stream.ReadAsync(buffer, ct);
                 if (read == 0) break;
-                string text = Encoding.UTF8.GetString(buffer, 0, read);
+
+                // Stateful decode: a UTF-8 character split across reads is kept for the next one.
+                int count = _utf8.GetChars(buffer, 0, read, chars, 0, flush: false);
+                if (count == 0) continue;
+                var text = new string(chars, 0, count);
                 _view?.Write(text);
+                TextReceived?.Invoke(text);
             }
+
+            State = ConnectionState.Disconnected;
+            RaiseStatus("Connection closed by the remote host.");
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex)
+        catch (Exception ex) when (!ct.IsCancellationRequested)
         {
             _logger.LogWarning(ex, "Rlogin read loop ended");
             State = ConnectionState.Error;
+            RaiseStatus($"Connection lost: {ex.Message}");
         }
     }
 
@@ -112,10 +162,13 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol
     {
         if (disposing)
         {
+            if (_view is not null)
+                _view.DataToSend -= OnTerminalDataToSend;
             _cts?.Cancel();
             _cts?.Dispose();
             _stream?.Dispose();
             _tcp?.Dispose();
+            _writeLock.Dispose();
         }
     }
 }
