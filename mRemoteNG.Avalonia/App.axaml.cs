@@ -29,6 +29,9 @@ public partial class App : Application
 
             // Loads settings.xml from the per-OS config directory.
             var settings = AppServices.GetRequired<AppSettingsService>();
+            var smokeTest = Diagnostics.SmokeTest.Current;
+            if (smokeTest is not null)
+                Diagnostics.SmokeTest.ConfigureSettings(settings);
 
             // UI language (Options > Appearance): views resolve their strings when created, so this must
             // happen before any window exists; a change takes effect after a restart.
@@ -66,6 +69,9 @@ public partial class App : Application
             // Developer tool: --design-gallery opens the design system showcase next to the main window.
             if (Program.Arguments.DesignGallery)
                 mainWindow.Opened += (_, _) => new Views.Dev.DesignGalleryWindow().Show();
+
+            // CI tool: --smoke-test runs a scripted check once the window is open, then exits.
+            smokeTest?.Attach(desktop, mainWindow);
 
             // System tray (minimise-to-tray support).
             _trayService = new TrayIconService();

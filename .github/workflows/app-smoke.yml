@@ -1,0 +1,171 @@
+name: App Smoke Test
+
+# End-to-end check that the *published* cross-platform app starts and works on each OS:
+# `mRemoteNG.Avalonia --smoke-test <report-dir> ci/smoke/confCons.xml` starts the real app with an isolated
+# data directory, opens a RAW session to a loopback echo listener, opens/closes Options and the command
+# palette, switches the theme Dark -> Light -> Dark, renders the main window to PNGs and exits with
+# 0 (passed), 1 (a step failed), 2 (unhandled exception), 3 (timeout) or 4 (bad arguments/setup).
+# See mRemoteNG.Avalonia/Diagnostics/SmokeTest.cs. ci/smoke/confCons.xml was written with the Core serializer
+# (ConnectionsService.SaveToFile) and holds no passwords; SmokeTestTests runs the same script headlessly.
+
+on:
+  push:
+    branches:
+      - 'dev'
+      - 'main'
+      - 'v1.78.2-dev'
+      - 'claude/**'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Published app (framework-dependent) on all 3 OSes
+  # ─────────────────────────────────────────────
+  smoke:
+    name: Smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Linux
+            runner: ubuntu-latest
+            rid: linux-x64
+            exe: mRemoteNG.Avalonia
+          - os: Windows
+            runner: windows-latest
+            rid: win-x64
+            exe: mRemoteNG.Avalonia.exe
+          - os: macOS
+            runner: macos-latest   # Apple silicon
+            rid: osx-arm64
+            exe: mRemoteNG.Avalonia
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: NuGet cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Install Xvfb (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends xvfb xauth libice6 libsm6 libfontconfig1
+
+      - name: Publish
+        shell: bash
+        run: dotnet publish mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj -c Release -r ${{ matrix.rid }} --self-contained false -o publish/
+
+      # Linux runs under a virtual X server (no window manager needed); Windows and macOS runners have a
+      # desktop session, so the app creates real native windows there.
+      - name: Run smoke test
+        shell: bash
+        timeout-minutes: 5
+        run: |
+          app="publish/${{ matrix.exe }}"
+          args=(--smoke-test smoke-report ci/smoke/confCons.xml)
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a --server-args="-screen 0 1600x1000x24" "$app" "${args[@]}"
+          else
+            "$app" "${args[@]}"
+          fi
+
+      - name: Step summary
+        if: always()
+        shell: bash
+        run: bash ci/smoke/summary.sh smoke-report "${{ matrix.os }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-smoke-${{ matrix.os }}
+          path: |
+            smoke-report/smoke-report.json
+            smoke-report/smoke-report.md
+            smoke-report/*.png
+            smoke-report/smoke-data/mRemoteNG.log
+            smoke-report/smoke-data/settings.xml
+          if-no-files-found: warn
+
+  # ─────────────────────────────────────────────
+  # Linux .deb: build, install with apt, run the installed launcher
+  # ─────────────────────────────────────────────
+  package-smoke:
+    name: Package smoke (Linux .deb)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: NuGet cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-deb-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            nuget-deb-${{ runner.os }}-
+            nuget-${{ runner.os }}-
+
+      - name: Install Xvfb
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends xvfb xauth
+
+      - name: Build .deb
+        run: bash packaging/linux/build-deb.sh --arch amd64
+
+      - name: Install .deb
+        run: |
+          sudo apt-get install -y -q --no-install-recommends ./dist/deb/mremoteng_*_amd64.deb
+          command -v mremoteng
+          dpkg -s mremoteng | head -n 3
+
+      - name: Run smoke test (installed launcher)
+        timeout-minutes: 5
+        run: xvfb-run -a --server-args="-screen 0 1600x1000x24" mremoteng --smoke-test smoke-report ci/smoke/confCons.xml
+
+      - name: Step summary
+        if: always()
+        run: bash ci/smoke/summary.sh smoke-report "Linux .deb (installed)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-smoke-linux-deb
+          path: |
+            smoke-report/smoke-report.json
+            smoke-report/smoke-report.md
+            smoke-report/*.png
+            smoke-report/smoke-data/mRemoteNG.log
+          if-no-files-found: warn

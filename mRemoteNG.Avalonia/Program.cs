@@ -25,14 +25,22 @@ internal sealed class Program
     {
         Arguments = StartupArguments.Parse(args);
 
-        // Portable mode (marker file next to the executable or --portable) must be decided before any
-        // settings provider, key file or known_hosts store resolves its directory.
-        AppDataLocation.Initialize(ApplicationPaths.ExecutableDirectory, Arguments.Portable);
+        if (Arguments.SmokeTest)
+        {
+            // CI smoke test: isolated data directory inside the report directory, never the user's settings.
+            StartupFilePath = Diagnostics.SmokeTest.Start(Arguments).ConnectionFile;
+        }
+        else
+        {
+            // Portable mode (marker file next to the executable or --portable) must be decided before any
+            // settings provider, key file or known_hosts store resolves its directory.
+            AppDataLocation.Initialize(ApplicationPaths.ExecutableDirectory, Arguments.Portable);
 
-        if (Arguments.ResetSettings)
-            ResetSettingsFile();
+            if (Arguments.ResetSettings)
+                ResetSettingsFile();
 
-        StartupFilePath = Arguments.ResolveConnectionFile(ApplicationPaths.SettingsDirectory);
+            StartupFilePath = Arguments.ResolveConnectionFile(ApplicationPaths.SettingsDirectory);
+        }
 
         // Register services but do NOT build the provider yet.
         // ViewModels must be created AFTER Avalonia + ReactiveUI initialize
