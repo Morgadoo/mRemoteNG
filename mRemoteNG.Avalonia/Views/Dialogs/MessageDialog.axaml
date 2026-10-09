@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.MessageDialog"
+        Classes="dialog"
+        Title="mRemoteNG"
+        Width="460"
+        SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <ctl:DialogHeader x:Name="Header" Icon="InformationOutline" Title="mRemoteNG"/>
+
+        <SelectableTextBlock Grid.Row="1" x:Name="MessageText" Margin="24,16,24,24" TextWrapping="Wrap"
+                             Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <StackPanel x:Name="ButtonPanel" Classes="dialog-actions"/>
+        </Border>
+    </Grid>
+</Window>

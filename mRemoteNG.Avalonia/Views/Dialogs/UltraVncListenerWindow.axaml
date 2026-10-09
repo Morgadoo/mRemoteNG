@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.UltraVncListenerWindow"
+        x:DataType="vm:UltraVncListenerViewModel"
+        Classes="dialog"
+        Title="{l:Tr UltraVNCSingleClickListener}"
+        Width="680"
+        Height="500"
+        MinWidth="480"
+        MinHeight="380"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <ctl:DialogHeader Icon="MonitorEye" Title="{l:Tr UltraVNCSingleClickListener}"
+                          Subtitle="{l:Tr RemoteUsersRunningUltraVNCSingleClickOrAny}">
+            <Border Classes="badge" IsVisible="{Binding IsListening}" Background="{DynamicResource SuccessTintBrush}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Border Classes="dot success"/>
+                    <TextBlock Text="{Binding ListeningPort}" Classes="mono" FontSize="12" Foreground="{DynamicResource SuccessBrush}"/>
+                </StackPanel>
+            </Border>
+        </ctl:DialogHeader>
+
+        <Border Classes="settings" Grid.Row="1" Margin="24,20,24,16">
+            <ctl:SettingRow Header="{l:Tr Port}" Description="{l:Tr UltraVncListenerPortDescription}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <NumericUpDown x:Name="PortBox" Width="130"
+                                   Value="{Binding Port}" FormatString="0"
+                                   Minimum="1" Maximum="65535" Increment="1"
+                                   IsEnabled="{Binding !IsListening}"/>
+                    <Button x:Name="StopButton" Command="{Binding StopCommand}" MinWidth="88">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Stop"/>
+                            <TextBlock Text="{l:Tr _Stop}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="StartButton" Classes="accent" Command="{Binding StartCommand}" IsDefault="True">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="Play"/>
+                            <TextBlock Text="{l:Tr StartListening}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </ctl:SettingRow>
+        </Border>
+
+        <Grid Grid.Row="2" RowDefinitions="Auto,8,*" Margin="24,0,24,20">
+            <TextBlock Text="{l:Tr IncomingConnections}" Classes="h2"/>
+            <DataGrid Grid.Row="2" x:Name="ConnectionsGrid" ItemsSource="{Binding Connections}" AutoGenerateColumns="False" IsReadOnly="True"
+                      CanUserResizeColumns="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="{l:Tr Time}" Binding="{Binding Time, StringFormat='{}{0:HH:mm:ss}'}" Width="96"/>
+                    <DataGridTextColumn Header="{l:Tr From}" Binding="{Binding Remote}" Width="180"/>
+                    <DataGridTextColumn Header="{l:Tr Status}" Binding="{Binding Status}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <Border Grid.Row="3" Classes="dialog-footer">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock x:Name="StatusLine" Text="{Binding StatusText}" Classes="caption" TextWrapping="Wrap"
+                           VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <StackPanel Grid.Column="1" Classes="dialog-actions">
+                    <Button x:Name="CloseButton" Content="{l:Tr _Close}" IsCancel="True"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

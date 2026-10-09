@@ -1,0 +1,4 @@
+HostName=192.168.1.1
+PortNumber=23
+Protocol=telnet
+UserName=

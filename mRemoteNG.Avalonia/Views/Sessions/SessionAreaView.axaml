@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionAreaView">
+
+    <UserControl.Styles>
+        <!-- Panel tabs (tabbed arrangement with several panels): text tabs with an accent underline. The template is
+             replaced so Fluent's checked look (white on accent) never shows. -->
+        <Style Selector="Border.panel-strip">
+            <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Padding" Value="8,0"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel>
+                        <Border Name="PART_Surface" Background="{TemplateBinding Background}" CornerRadius="6"
+                                Margin="0,4,0,5"/>
+                        <ContentPresenter Name="PART_Content"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Padding="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center"/>
+                        <Border Name="PART_Underline" Height="2" CornerRadius="1" VerticalAlignment="Bottom"
+                                Margin="8,0" Background="Transparent"/>
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AppBg4Brush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab:checked">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab:checked /template/ Border#PART_Underline">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab Border.badge">
+            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="MinWidth" Value="18"/>
+            <Setter Property="Height" Value="16"/>
+        </Style>
+        <Style Selector="ToggleButton.panel-tab Border.badge > TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+
+        <!-- Splitters between panels: a 1 px Border0 line in a 4 px hit area, a 2 px accent line on hover / drag -->
+        <Style Selector="GridSplitter.panel-splitter">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel Background="Transparent">
+                        <Border Name="PART_Rest" Background="{DynamicResource Border0Brush}"/>
+                        <Border Name="PART_Line" Margin="1" CornerRadius="1" Background="{TemplateBinding Background}"/>
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="GridSplitter.panel-splitter.columns /template/ Border#PART_Rest">
+            <Setter Property="Width" Value="1"/>
+        </Style>
+        <Style Selector="GridSplitter.panel-splitter.rows /template/ Border#PART_Rest">
+            <Setter Property="Height" Value="1"/>
+        </Style>
+        <Style Selector="GridSplitter.panel-splitter:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel>
+        <!-- Panel tab strip (tabbed arrangement with more than one docked panel) -->
+        <Border x:Name="PanelStripBar" DockPanel.Dock="Top" Classes="panel-strip" IsVisible="False">
+            <StackPanel x:Name="PanelStrip" Orientation="Horizontal"/>
+        </Border>
+        <Grid x:Name="PanelGrid"/>
+    </DockPanel>
+</UserControl>

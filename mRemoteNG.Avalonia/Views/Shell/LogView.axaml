@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             x:Class="mRemoteNG.Avalonia.Views.Shell.LogView"
+             x:DataType="dock:LogDockableBase">
+
+    <!-- Log / Debug Console rows: level icon, mono timestamp (muted), mono message. Follows new entries
+         while scrolled to the end. -->
+    <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled" Padding="0,4">
+        <ItemsControl x:Name="Rows" ItemsSource="{Binding Entries}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="dock:LogEntry">
+                    <Grid ColumnDefinitions="Auto,Auto,*" Margin="12,0,12,0" MinHeight="22">
+                        <TextBlock Grid.Column="0" Classes="mono muted" Text="{Binding FormattedTime}"
+                                   VerticalAlignment="Top" Margin="0,3,10,0"/>
+                        <mi:MaterialIcon Grid.Column="1" Classes="log-level"
+                                         Classes.warning="{Binding IsWarning}"
+                                         Classes.danger="{Binding IsError}"
+                                         Kind="{Binding IconKind}"
+                                         VerticalAlignment="Top" Margin="0,4,8,0"/>
+                        <SelectableTextBlock Grid.Column="2" Classes="mono" Text="{Binding Message}"
+                                             TextWrapping="Wrap" Margin="0,3,0,3"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>

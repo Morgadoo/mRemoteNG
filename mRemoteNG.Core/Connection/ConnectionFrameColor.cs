@@ -1,0 +1,12 @@
+namespace mRemoteNG.Core.Connection
+{
+    public enum ConnectionFrameColor
+    {
+        None = 0,
+        Red = 1,
+        Yellow = 2,
+        Green = 3,
+        Blue = 4,
+        Purple = 5
+    }
+}

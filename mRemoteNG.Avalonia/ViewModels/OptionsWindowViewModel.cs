@@ -1,0 +1,859 @@
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
+using Avalonia.Media;
+using Material.Icons;
+using mRemoteNG.Avalonia.Services;
+using mRemoteNG.Core.Config;
+using mRemoteNG.Core.Localization;
+using mRemoteNG.Core.Settings;
+using mRemoteNG.Platform.Security;
+using ReactiveUI;
+
+namespace mRemoteNG.Avalonia.ViewModels;
+
+// ── Settings page ViewModels ──────────────────────────────────────────────
+// Each page edits the Options window's working copy of AppSettings.
+// Nothing reaches the live settings until OK/Apply.
+
+public abstract class SettingsPageViewModel(AppSettings working) : ReactiveObject
+{
+    protected AppSettings Working { get; } = working;
+
+    protected void Set<T>(T current, T value, Action<T> assign, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(current, value))
+            return;
+        assign(value);
+        this.RaisePropertyChanged(propertyName);
+    }
+}
+
+public sealed class Choice<T>(T value, string displayName)
+{
+    public T Value { get; } = value;
+    public string DisplayName { get; } = displayName;
+    public override string ToString() => DisplayName;
+}
+
+public sealed class GeneralSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
+{
+    public IReadOnlyList<Choice<StartupFileBehavior>> StartupChoices { get; } =
+    [
+        new(StartupFileBehavior.ReopenLastFile, Localizer.Get("StartupReopenLastFile")),
+        new(StartupFileBehavior.OpenSpecificFile, Localizer.Get("StartupOpenSpecificFile")),
+        new(StartupFileBehavior.None, Localizer.Get("StartupEmptyTree")),
+    ];
+
+    public IReadOnlyList<Choice<ConfirmCloseEnum>> ConfirmCloseChoices { get; } =
+    [
+        new(ConfirmCloseEnum.Never, Localizer.Get("Never")),
+        new(ConfirmCloseEnum.Exit, Localizer.Get("ConfirmCloseOnExit")),
+        new(ConfirmCloseEnum.All, Localizer.Get("ConfirmCloseOnExitAndClose")),
+    ];
+
+    public Choice<StartupFileBehavior> SelectedStartupChoice
+    {
+        get => StartupChoices.First(c => c.Value == Working.StartupBehavior);
+        set
+        {
+            if (value is null) return;
+            Set(Working.StartupBehavior, value.Value, v => Working.StartupBehavior = v);
+            this.RaisePropertyChanged(nameof(IsStartupFileEnabled));
+        }
+    }
+
+    public bool IsStartupFileEnabled => Working.StartupBehavior == StartupFileBehavior.OpenSpecificFile;
+
+    public string StartupFilePath
+    {
+        get => Working.StartupFilePath;
+        set => Set(Working.StartupFilePath, value ?? string.Empty, v => Working.StartupFilePath = v);
+    }
+
+    public bool SingleInstance
+    {
+        get => Working.SingleInstance;
+        set => Set(Working.SingleInstance, value, v => Working.SingleInstance = v);
+    }
+
+    public bool SaveConnectionsOnExit
+    {
+        get => Working.SaveConnectionsOnExit;
+        set => Set(Working.SaveConnectionsOnExit, value, v => Working.SaveConnectionsOnExit = v);
+    }
+
+    public Choice<ConfirmCloseEnum> SelectedConfirmCloseChoice
+    {
+        get => ConfirmCloseChoices.FirstOrDefault(c => c.Value == Working.ConfirmCloseConnection) ?? ConfirmCloseChoices[1];
+        set
+        {
+            if (value is null) return;
+            Set(Working.ConfirmCloseConnection, value.Value, v => Working.ConfirmCloseConnection = v);
+        }
+    }
+
+    public bool ShowTrayIcon
+    {
+        get => Working.ShowTrayIcon;
+        set
+        {
+            Set(Working.ShowTrayIcon, value, v => Working.ShowTrayIcon = v);
+            // Minimising to a tray icon that does not exist would strand the window.
+            if (!value)
+                MinimizeToTray = false;
+        }
+    }
+
+    public bool MinimizeToTray
+    {
+        get => Working.MinimizeToTray;
+        set => Set(Working.MinimizeToTray, value, v => Working.MinimizeToTray = v);
+    }
+
+    public bool StartMinimized
+    {
+        get => Working.StartMinimized;
+        set => Set(Working.StartMinimized, value, v => Working.StartMinimized = v);
+    }
+
+    public string DataDirectoryInfo => mRemoteNG.Core.App.Info.ApplicationPaths.IsPortable
+        ? Localizer.Format("PortableDataFolderFormat", mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory)
+        : Localizer.Format("DataFolderFormat", mRemoteNG.Core.App.Info.ApplicationPaths.SettingsDirectory);
+}
+
+/// <summary>A theme in the Appearance list: a plain mode (Dark/Light/System) or a named theme.</summary>
+public sealed class ThemeChoice(string displayName, ThemeMode mode, string themeName,
+    ThemePreview? preview = null, ThemePreview? alternatePreview = null)
+{
+    public string DisplayName { get; } = displayName;
+    public ThemeMode Mode { get; } = mode;
+
+    /// <summary>Empty for the plain modes.</summary>
+    public string ThemeName { get; } = themeName;
+
+    /// <summary>Colours of the swatch card.</summary>
+    public ThemePreview Preview { get; } = preview ?? ThemePreview.For(mode == ThemeMode.Light ? ThemeCatalog.Light : ThemeCatalog.Dark);
+
+    /// <summary>The second half of a split swatch ("Follow system": dark and light); null for one theme.</summary>
+    public ThemePreview? AlternatePreview { get; } = alternatePreview;
+
+    public bool IsSplit => AlternatePreview is not null;
+
+    public override string ToString() => DisplayName;
+}
+
+/// <summary>Brushes of a theme for its swatch card in Options ▸ Appearance (a miniature window).</summary>
+public sealed class ThemePreview
+{
+    private ThemePreview(IReadOnlyDictionary<string, string> colors)
+    {
+        IBrush Brush(string key) => colors.TryGetValue(key, out var value) && Color.TryParse(value, out var color)
+            ? new SolidColorBrush(color)
+            : Brushes.Transparent;
+
+        Background = Brush("AppBg0");
+        Surface = Brush("AppBg1");
+        Raised = Brush("AppBg2");
+        Accent = Brush("Accent");
+        Text = Brush("TextPrimary");
+        Muted = Brush("TextMuted");
+        Border = Brush("Border0");
+    }
+
+    public static ThemePreview For(ThemeDefinition theme) => new(ThemeCatalog.ResolveColors(theme));
+
+    public IBrush Background { get; }
+    public IBrush Surface { get; }
+    public IBrush Raised { get; }
+    public IBrush Accent { get; }
+    public IBrush Text { get; }
+    public IBrush Muted { get; }
+    public IBrush Border { get; }
+}
+
+public sealed class AppearanceSettingsViewModel : SettingsPageViewModel
+{
+    private readonly ThemeCatalog _catalog;
+    private IReadOnlyList<ThemeChoice> _themes = [];
+
+    public AppearanceSettingsViewModel(AppSettings working, ThemeCatalog? catalog = null) : base(working)
+    {
+        _catalog = catalog ?? ThemeService.Instance.Catalog;
+        RefreshThemes();
+    }
+
+    /// <summary>Dark, Light, Follow system, then the legacy themes (VS2015 Blue, Darcula) and user themes.</summary>
+    public IReadOnlyList<ThemeChoice> Themes
+    {
+        get => _themes;
+        private set => this.RaiseAndSetIfChanged(ref _themes, value);
+    }
+
+    public ThemeChoice SelectedTheme
+    {
+        get => Themes.FirstOrDefault(t => t.ThemeName.Length > 0 && string.Equals(t.ThemeName, Working.ThemeName, StringComparison.OrdinalIgnoreCase))
+               ?? Themes.First(t => t.ThemeName.Length == 0 && t.Mode == Working.Theme);
+        set
+        {
+            if (value is null) return;
+            if (value.ThemeName.Length == 0)
+                Working.Theme = value.Mode;
+            Set(Working.ThemeName, value.ThemeName, v => Working.ThemeName = v);
+            this.RaisePropertyChanged();
+        }
+    }
+
+    /// <summary>Re-reads the user themes (after the theme editor saved or deleted one).</summary>
+    public void RefreshThemes()
+    {
+        var dark = ThemePreview.For(ThemeCatalog.Dark);
+        var light = ThemePreview.For(ThemeCatalog.Light);
+        var list = new List<ThemeChoice>
+        {
+            new(Localizer.Get("ThemeDarkChoice"), ThemeMode.Dark, string.Empty, dark),
+            new(Localizer.Get("ThemeLightChoice"), ThemeMode.Light, string.Empty, light),
+            new(Localizer.Get("ThemeFollowSystem"), ThemeMode.System, string.Empty, dark, light),
+        };
+        foreach (var theme in _catalog.GetAll().Where(t => t.Name is not ThemeCatalog.DarkName and not ThemeCatalog.LightName))
+            list.Add(new ThemeChoice(theme.IsBuiltIn ? theme.Name : Localizer.Format("UserThemeFormat", theme.Name),
+                theme.IsDark ? ThemeMode.Dark : ThemeMode.Light, theme.Name, ThemePreview.For(theme)));
+        Themes = list;
+        this.RaisePropertyChanged(nameof(SelectedTheme));
+    }
+
+    /// <summary>Selects a theme saved by the theme editor.</summary>
+    public void SelectThemeByName(string name)
+    {
+        RefreshThemes();
+        var choice = Themes.FirstOrDefault(t => string.Equals(t.ThemeName, name, StringComparison.OrdinalIgnoreCase));
+        if (choice is not null)
+            SelectedTheme = choice;
+    }
+
+    public string FontFamily
+    {
+        get => Working.FontFamily;
+        set => Set(Working.FontFamily, value?.Trim() ?? string.Empty, v => Working.FontFamily = v);
+    }
+
+    public decimal? FontSize
+    {
+        get => (decimal)Working.FontSize;
+        set
+        {
+            if (value is null) return;
+            Set(Working.FontSize, (double)value.Value, v => Working.FontSize = v);
+        }
+    }
+
+
+    public bool ShowToolbar
+    {
+        get => Working.ShowToolbar;
+        set => Set(Working.ShowToolbar, value, v => Working.ShowToolbar = v);
+    }
+
+    public bool ShowStatusBar
+    {
+        get => Working.ShowStatusBar;
+        set => Set(Working.ShowStatusBar, value, v => Working.ShowStatusBar = v);
+    }
+
+    /// <summary>"System default", English and the translations, each under its own name.</summary>
+    public IReadOnlyList<LanguageOption> Languages { get; } = Localizer.GetLanguageOptions();
+
+    public LanguageOption SelectedLanguage
+    {
+        get => Languages.FirstOrDefault(l => string.Equals(l.Name, Working.Language, StringComparison.OrdinalIgnoreCase))
+               ?? Languages[0];
+        set
+        {
+            if (value is not null)
+                Set(Working.Language, value.Name, v => Working.Language = v);
+        }
+    }
+
+    /// <summary>The language is applied when the app starts (as in the WinForms app).</summary>
+    public string LanguageRestartNote => Localizer.Format("LanguageRestartRequired", "mRemoteNG");
+}
+
+public sealed class ConnectionSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
+{
+    public IReadOnlyList<string> Protocols => AppSettings.DefaultProtocolChoices;
+
+    public decimal MinPort => AppSettings.MinPort;
+    public decimal MaxPort => AppSettings.MaxPort;
+    public decimal MinTimeout => AppSettings.MinConnectTimeoutSeconds;
+    public decimal MaxTimeout => AppSettings.MaxConnectTimeoutSeconds;
+    public decimal MinKeepAlive => AppSettings.MinKeepAliveSeconds;
+    public decimal MaxKeepAlive => AppSettings.MaxKeepAliveSeconds;
+
+    public string DefaultProtocol
+    {
+        get => Working.DefaultProtocol;
+        set => Set(Working.DefaultProtocol, value ?? Working.DefaultProtocol, v => Working.DefaultProtocol = v);
+    }
+
+    public decimal? ConnectTimeout
+    {
+        get => Working.ConnectTimeoutSeconds;
+        set => SetInt(Working.ConnectTimeoutSeconds, value, v => Working.ConnectTimeoutSeconds = v);
+    }
+
+    public string DefaultUsername
+    {
+        get => Working.DefaultUsername;
+        set => Set(Working.DefaultUsername, value ?? string.Empty, v => Working.DefaultUsername = v);
+    }
+
+    public bool KeepAlive
+    {
+        get => Working.SshKeepAliveEnabled;
+        set => Set(Working.SshKeepAliveEnabled, value, v => Working.SshKeepAliveEnabled = v);
+    }
+
+    public decimal? KeepAliveInterval
+    {
+        get => Working.SshKeepAliveIntervalSeconds;
+        set => SetInt(Working.SshKeepAliveIntervalSeconds, value, v => Working.SshKeepAliveIntervalSeconds = v);
+    }
+
+    public string SshKeyPath
+    {
+        get => Working.SshPrivateKeyPath;
+        set => Set(Working.SshPrivateKeyPath, value?.Trim() ?? string.Empty, v => Working.SshPrivateKeyPath = v);
+    }
+
+    public decimal? SshPort { get => Working.SshPort; set => SetInt(Working.SshPort, value, v => Working.SshPort = v); }
+    public decimal? TelnetPort { get => Working.TelnetPort; set => SetInt(Working.TelnetPort, value, v => Working.TelnetPort = v); }
+    public decimal? RloginPort { get => Working.RloginPort; set => SetInt(Working.RloginPort, value, v => Working.RloginPort = v); }
+    public decimal? RdpPort { get => Working.RdpPort; set => SetInt(Working.RdpPort, value, v => Working.RdpPort = v); }
+    public decimal? VncPort { get => Working.VncPort; set => SetInt(Working.VncPort, value, v => Working.VncPort = v); }
+    public decimal? HttpPort { get => Working.HttpPort; set => SetInt(Working.HttpPort, value, v => Working.HttpPort = v); }
+    public decimal? HttpsPort { get => Working.HttpsPort; set => SetInt(Working.HttpsPort, value, v => Working.HttpsPort = v); }
+
+    private void SetInt(int current, decimal? value, Action<int> assign, [CallerMemberName] string? propertyName = null)
+    {
+        // An emptied NumericUpDown yields null: keep the previous value (validation still runs on Apply).
+        if (value is null)
+            return;
+        var rounded = (int)Math.Clamp(Math.Round(value.Value), int.MinValue, int.MaxValue);
+        Set(current, rounded, assign, propertyName);
+    }
+}
+
+public sealed class CredentialsSettingsViewModel(AppSettings working, Func<int> credentialCount) : SettingsPageViewModel(working)
+{
+    public string Summary
+    {
+        get
+        {
+            var count = credentialCount();
+            return count == 1 ? Localizer.Get("OneSavedCredential") : Localizer.Format("SavedCredentialsFormat", count);
+        }
+    }
+
+    public void RefreshSummary() => this.RaisePropertyChanged(nameof(Summary));
+}
+
+public sealed class NotificationsSettingsViewModel(AppSettings working) : SettingsPageViewModel(working)
+{
+    public bool ShowConnectNotify
+    {
+        get => Working.NotifyOnConnect;
+        set => Set(Working.NotifyOnConnect, value, v => Working.NotifyOnConnect = v);
+    }
+
+    public bool ShowDisconnectNotify
+    {
+        get => Working.NotifyOnDisconnect;
+        set => Set(Working.NotifyOnDisconnect, value, v => Working.NotifyOnDisconnect = v);
+    }
+
+    public bool ShowErrorNotify
+    {
+        get => Working.NotifyOnError;
+        set => Set(Working.NotifyOnError, value, v => Working.NotifyOnError = v);
+    }
+}
+
+public sealed class UpdatesSettingsViewModel : SettingsPageViewModel
+{
+    private readonly UpdateCheckService _updates;
+    private readonly ICryptoProvider? _crypto;
+    private string _status = string.Empty;
+    private string? _releaseUrl;
+    private UpdateCheckResult? _lastCheck;
+    private string _proxyPassword;
+    private double _downloadProgress;
+    private bool _isDownloading;
+    private string? _downloadedFile;
+
+    public UpdatesSettingsViewModel(AppSettings working, UpdateCheckService updates, ICryptoProvider? crypto = null) : base(working)
+    {
+        _updates = updates;
+        _crypto = crypto;
+        _proxyPassword = StorageRuntime.UnprotectPassword(crypto, working.UpdateProxyPasswordProtected);
+        CheckNowCommand = ReactiveCommand.CreateFromTask(CheckNowAsync);
+        CheckNowCommand.ThrownExceptions.Subscribe(ex => Status = Localizer.Format("UpdateCheckFailedFormat", ex.Message));
+        var canDownload = this.WhenAnyValue(x => x.CanDownload);
+        DownloadCommand = ReactiveCommand.CreateFromTask(DownloadAsync, canDownload);
+        DownloadCommand.ThrownExceptions.Subscribe(ex =>
+        {
+            IsDownloading = false;
+            Status = Localizer.Format("DownloadFailedFormat", ex.Message);
+        });
+    }
+
+    public bool UseProxy
+    {
+        get => Working.UpdateUseProxy;
+        set => Set(Working.UpdateUseProxy, value, v => Working.UpdateUseProxy = v);
+    }
+
+    public string ProxyAddress
+    {
+        get => Working.UpdateProxyAddress;
+        set => Set(Working.UpdateProxyAddress, value?.Trim() ?? string.Empty, v => Working.UpdateProxyAddress = v);
+    }
+
+    public decimal? ProxyPort
+    {
+        get => Working.UpdateProxyPort;
+        set
+        {
+            if (value is null) return;
+            Set(Working.UpdateProxyPort, (int)Math.Round(value.Value), v => Working.UpdateProxyPort = v);
+        }
+    }
+
+    public bool ProxyUseAuthentication
+    {
+        get => Working.UpdateProxyUseAuthentication;
+        set => Set(Working.UpdateProxyUseAuthentication, value, v => Working.UpdateProxyUseAuthentication = v);
+    }
+
+    public string ProxyUsername
+    {
+        get => Working.UpdateProxyUsername;
+        set => Set(Working.UpdateProxyUsername, value ?? string.Empty, v => Working.UpdateProxyUsername = v);
+    }
+
+    /// <summary>Plain-text proxy password; stored encrypted with the platform crypto provider.</summary>
+    public string ProxyPassword
+    {
+        get => _proxyPassword;
+        set
+        {
+            value ??= string.Empty;
+            if (value == _proxyPassword) return;
+            _proxyPassword = value;
+            Working.UpdateProxyPasswordProtected = value.Length == 0 || _crypto is null ? string.Empty : _crypto.Protect(value);
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public ReactiveCommand<Unit, Unit> DownloadCommand { get; }
+
+    /// <summary>True when the last check found an update with a package for this platform.</summary>
+    public bool CanDownload => _lastCheck is { IsUpdateAvailable: true } check
+                               && mRemoteNG.Core.Settings.UpdateDownloader.SelectAsset(check.Assets, _updates.Platform) is not null
+                               && !IsDownloading;
+
+    public string? PackageName => _lastCheck is null ? null : mRemoteNG.Core.Settings.UpdateDownloader.SelectAsset(_lastCheck.Assets, _updates.Platform)?.Name;
+
+    public bool IsDownloading
+    {
+        get => _isDownloading;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isDownloading, value);
+            this.RaisePropertyChanged(nameof(CanDownload));
+        }
+    }
+
+    public double DownloadProgress
+    {
+        get => _downloadProgress;
+        private set => this.RaiseAndSetIfChanged(ref _downloadProgress, value);
+    }
+
+    /// <summary>The downloaded package (for "Open" / "Show in folder").</summary>
+    public string? DownloadedFile
+    {
+        get => _downloadedFile;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _downloadedFile, value);
+            this.RaisePropertyChanged(nameof(HasDownloadedFile));
+        }
+    }
+
+    public bool HasDownloadedFile => !string.IsNullOrEmpty(DownloadedFile);
+
+    private async Task DownloadAsync()
+    {
+        if (_lastCheck is null)
+            return;
+        IsDownloading = true;
+        DownloadedFile = null;
+        DownloadProgress = 0;
+        Status = Localizer.Format("DownloadingFormat", PackageName);
+        var progress = new Progress<double>(p => DownloadProgress = p * 100);
+        var result = await _updates.DownloadAsync(_lastCheck, progress, Working);
+        IsDownloading = false;
+        Status = result.Message;
+        DownloadedFile = result.Succeeded ? result.FilePath : null;
+    }
+
+    public IReadOnlyList<Choice<UpdateChannel>> Channels { get; } =
+    [
+        new(UpdateChannel.Stable, Localizer.Get("UpdateChannelStable")),
+        new(UpdateChannel.PreRelease, Localizer.Get("UpdateChannelPreRelease")),
+    ];
+
+    public bool AutoCheck
+    {
+        get => Working.CheckForUpdatesOnStartup;
+        set => Set(Working.CheckForUpdatesOnStartup, value, v => Working.CheckForUpdatesOnStartup = v);
+    }
+
+    public Choice<UpdateChannel> SelectedChannel
+    {
+        get => Channels.First(c => c.Value == Working.UpdateChannel);
+        set
+        {
+            if (value is null) return;
+            Set(Working.UpdateChannel, value.Value, v => Working.UpdateChannel = v);
+        }
+    }
+
+    public string CurrentVersion => _updates.CurrentVersionText;
+
+    public string Status
+    {
+        get => _status;
+        private set => this.RaiseAndSetIfChanged(ref _status, value);
+    }
+
+    public string? ReleaseUrl
+    {
+        get => _releaseUrl;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _releaseUrl, value);
+            this.RaisePropertyChanged(nameof(HasReleaseUrl));
+        }
+    }
+
+    public bool HasReleaseUrl => !string.IsNullOrEmpty(ReleaseUrl);
+
+    public ReactiveCommand<Unit, Unit> CheckNowCommand { get; }
+
+    private async Task CheckNowAsync()
+    {
+        Status = Localizer.Get("CheckingEllipsis");
+        ReleaseUrl = null;
+        DownloadedFile = null;
+        _lastCheck = null;
+        // Uses the proxy entered on this page, even before OK/Apply.
+        var result = await _updates.CheckAsync(Working.UpdateChannel, Working);
+        _lastCheck = result;
+        Status = result.Message;
+        ReleaseUrl = result.IsUpdateAvailable ? result.ReleaseUrl : null;
+        this.RaisePropertyChanged(nameof(CanDownload));
+        this.RaisePropertyChanged(nameof(PackageName));
+    }
+}
+
+// ── Main OptionsWindowViewModel ───────────────────────────────────────────
+public sealed class SettingsCategoryViewModel(string displayName, string key, MaterialIconKind icon = MaterialIconKind.CogOutline)
+    : ReactiveObject
+{
+    public string DisplayName { get; } = displayName;
+    public string Key { get; } = key;
+
+    /// <summary>Glyph shown in the navigation list.</summary>
+    public MaterialIconKind Icon { get; } = icon;
+
+    /// <summary>Texts of the page (setting labels and descriptions) that the search box also matches.</summary>
+    public IReadOnlyList<string> Keywords { get; set; } = [];
+
+    /// <summary>True when <paramref name="text"/> is empty or found in the page name or one of its settings.</summary>
+    public bool Matches(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return true;
+        var terms = text.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return terms.All(term => Contains(DisplayName, term) || Keywords.Any(k => Contains(k, term)));
+    }
+
+    private static bool Contains(string source, string term) =>
+        source.Contains(term, StringComparison.CurrentCultureIgnoreCase);
+}
+
+/// <summary>
+/// Options dialog. Edits a private copy of <see cref="AppSettings"/>:
+/// OK/Apply validate and commit it through <see cref="AppSettingsService"/>, Cancel discards it,
+/// "Reset to defaults" resets the copy (still needs OK/Apply to take effect).
+/// </summary>
+public sealed class OptionsWindowViewModel : ReactiveObject
+{
+    private readonly AppSettingsService _settings;
+    private readonly UpdateCheckService _updates;
+    private readonly ICryptoProvider? _crypto;
+    private readonly Func<int> _credentialCount;
+    private readonly mRemoteNG.ExternalProviders.ExternalProviderFactory? _externalProviders;
+    private readonly AppSettings _working;
+    private SettingsCategoryViewModel? _selectedCategory;
+    private object? _currentPage;
+    private string _validationMessage = string.Empty;
+    private string _searchText = string.Empty;
+    private bool _refreshingCategories;
+    private IReadOnlyList<SettingsCategoryViewModel> _visibleCategories;
+
+    public OptionsWindowViewModel(
+        AppSettingsService settings,
+        UpdateCheckService updates,
+        mRemoteNG.Core.Credential.FileCredentialRepository credentials,
+        ICryptoProvider? crypto = null,
+        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders = null)
+        : this(settings, updates, () => credentials.CredentialRecords.Count, crypto, externalProviders)
+    {
+    }
+
+    private OptionsWindowViewModel(
+        AppSettingsService settings,
+        UpdateCheckService updates,
+        Func<int> credentialCount,
+        ICryptoProvider? crypto,
+        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders)
+    {
+        _settings = settings;
+        _updates = updates;
+        _crypto = crypto;
+        _credentialCount = credentialCount;
+        _externalProviders = externalProviders;
+        _working = settings.CreateEditableCopy();
+        CreatePages();
+
+        OkCommand = ReactiveCommand.Create(OnOk);
+        CancelCommand = ReactiveCommand.Create(OnCancel);
+        ApplyCommand = ReactiveCommand.Create(() => { OnApply(); });
+        ResetCommand = ReactiveCommand.Create(OnReset);
+        _visibleCategories = Categories;
+        SelectedCategory = Categories.FirstOrDefault();
+    }
+
+    // Page ViewModels (recreated by Reset)
+    public GeneralSettingsViewModel General { get; private set; } = null!;
+    public AppearanceSettingsViewModel Appearance { get; private set; } = null!;
+    public ConnectionSettingsViewModel Connections { get; private set; } = null!;
+    public CredentialsSettingsViewModel Credentials { get; private set; } = null!;
+    public NotificationsSettingsViewModel Notifications { get; private set; } = null!;
+    public UpdatesSettingsViewModel Updates { get; private set; } = null!;
+    public ExternalProvidersSettingsViewModel ExternalProviders { get; private set; } = null!;
+    public TabsPanelsSettingsViewModel TabsPanels { get; private set; } = null!;
+    public SavingSettingsViewModel Saving { get; private set; } = null!;
+    public SqlServerSettingsViewModel SqlServer { get; private set; } = null!;
+    public LoggingSettingsViewModel Logging { get; private set; } = null!;
+
+    public List<SettingsCategoryViewModel> Categories { get; } =
+    [
+        new(Localizer.Get("StartupExit", "Startup & Exit"), "general", MaterialIconKind.PowerStandby),
+        new(Localizer.Get("Appearance"), "appearance", MaterialIconKind.PaletteOutline),
+        new(Localizer.Get("Connections"), "connections", MaterialIconKind.LanConnect),
+        new(Localizer.Get("TabsAndPanels"), "tabspanels", MaterialIconKind.TabUnselected),
+        new(Localizer.Get("SavingBackups"), "saving", MaterialIconKind.ContentSaveOutline),
+        new(Localizer.Get("SQLServer"), "sql", MaterialIconKind.DatabaseOutline),
+        new(Localizer.Get("Credentials"), "credentials", MaterialIconKind.KeyOutline),
+        new(Localizer.Get("ExternalProviders"), "externalProviders", MaterialIconKind.ShieldKeyOutline),
+        new(Localizer.Get("Notifications"), "notifications", MaterialIconKind.BellOutline),
+        new(Localizer.Get("Logging"), "logging", MaterialIconKind.TextBoxOutline),
+        new(Localizer.Get("Updates"), "updates", MaterialIconKind.Update),
+    ];
+
+    /// <summary>The pages matching <see cref="SearchText"/> (all pages when it is empty).</summary>
+    public IReadOnlyList<SettingsCategoryViewModel> VisibleCategories
+    {
+        get => _visibleCategories;
+        private set => this.RaiseAndSetIfChanged(ref _visibleCategories, value);
+    }
+
+    /// <summary>Filters the navigation by page name and setting labels.</summary>
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _searchText, value ?? string.Empty);
+            RefreshVisibleCategories();
+        }
+    }
+
+    /// <summary>True when a search matches no page.</summary>
+    public bool HasNoMatches => VisibleCategories.Count == 0;
+
+    /// <summary>Re-applies the search (after the view filled the pages' <see cref="SettingsCategoryViewModel.Keywords"/>).</summary>
+    public void RefreshVisibleCategories()
+    {
+        var selected = SelectedCategory;
+        _refreshingCategories = true;
+        try
+        {
+            VisibleCategories = Categories.Where(c => c.Matches(_searchText)).ToList();
+        }
+        finally
+        {
+            _refreshingCategories = false;
+        }
+        this.RaisePropertyChanged(nameof(HasNoMatches));
+
+        if (VisibleCategories.Count == 0)
+            return;
+        if (selected is not null && VisibleCategories.Contains(selected))
+        {
+            // The list was replaced: show the selection again.
+            _selectedCategory = selected;
+            this.RaisePropertyChanged(nameof(SelectedCategory));
+        }
+        else
+        {
+            SelectedCategory = VisibleCategories[0];
+        }
+    }
+
+    /// <summary>Selects a page by key ("general", "sql", …).</summary>
+    public void SelectCategory(string key) =>
+        SelectedCategory = Categories.FirstOrDefault(c => c.Key == key) ?? SelectedCategory;
+
+    public SettingsCategoryViewModel? SelectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            // Replacing the navigation list clears the list box selection; keep the page.
+            if (value is null && _refreshingCategories)
+                return;
+            this.RaiseAndSetIfChanged(ref _selectedCategory, value);
+            CurrentPage = ResolvePageViewModel(value?.Key);
+        }
+    }
+
+    public object? CurrentPage
+    {
+        get => _currentPage;
+        set => this.RaiseAndSetIfChanged(ref _currentPage, value);
+    }
+
+    /// <summary>Validation or save errors from the last OK/Apply; empty when none.</summary>
+    public string ValidationMessage
+    {
+        get => _validationMessage;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _validationMessage, value);
+            this.RaisePropertyChanged(nameof(HasValidationMessage));
+        }
+    }
+
+    public bool HasValidationMessage => !string.IsNullOrEmpty(ValidationMessage);
+
+    public ReactiveCommand<Unit, Unit> OkCommand { get; }
+    public ReactiveCommand<Unit, Unit> CancelCommand { get; }
+    public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
+    public ReactiveCommand<Unit, Unit> ResetCommand { get; }
+
+    /// <summary>Raised when the window should close.</summary>
+    public event Action? CloseRequested;
+
+    /// <summary>The working copy edited by the pages (exposed for tests and the view).</summary>
+    public AppSettings WorkingCopy => _working;
+
+    /// <summary>Validates and commits the working copy. Returns true on success.</summary>
+    public bool OnApply()
+    {
+        IReadOnlyList<string> errors;
+        try
+        {
+            errors = _settings.Apply(_working);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ValidationMessage = Localizer.Format("CouldNotSaveSettingsFormat", ex.Message);
+            return false;
+        }
+
+        ValidationMessage = string.Join(Environment.NewLine, errors);
+        return errors.Count == 0;
+    }
+
+    /// <summary>Called by the view after the credential manager closed.</summary>
+    public void RefreshCredentialSummary() => Credentials.RefreshSummary();
+
+    private void CreatePages()
+    {
+        General = new GeneralSettingsViewModel(_working);
+        Appearance = new AppearanceSettingsViewModel(_working);
+        Connections = new ConnectionSettingsViewModel(_working);
+        Credentials = new CredentialsSettingsViewModel(_working, _credentialCount);
+        Notifications = new NotificationsSettingsViewModel(_working);
+        ExternalProviders = new ExternalProvidersSettingsViewModel(_working, _externalProviders);
+        TabsPanels = new TabsPanelsSettingsViewModel(_working);
+        Updates = new UpdatesSettingsViewModel(_working, _updates, _crypto);
+        Saving = new SavingSettingsViewModel(_working);
+        SqlServer = new SqlServerSettingsViewModel(_working, _crypto);
+        Logging = new LoggingSettingsViewModel(_working);
+    }
+
+    private object? ResolvePageViewModel(string? key) => key switch
+    {
+        "general" => General,
+        "appearance" => Appearance,
+        "connections" => Connections,
+        "credentials" => Credentials,
+        "notifications" => Notifications,
+        "updates" => Updates,
+        "externalProviders" => ExternalProviders,
+        "tabspanels" => TabsPanels,
+        "saving" => Saving,
+        "sql" => SqlServer,
+        "logging" => Logging,
+        _ => null,
+    };
+
+    private void OnOk()
+    {
+        if (OnApply())
+            CloseRequested?.Invoke();
+    }
+
+    private void OnCancel() => CloseRequested?.Invoke();
+
+    private void OnReset()
+    {
+        // Keep state that is not an option (last file, last update check).
+        var defaults = new AppSettings
+        {
+            LastConnectionFilePath = _working.LastConnectionFilePath,
+            LastUpdateCheckUtc = _working.LastUpdateCheckUtc,
+        };
+        _working.CopyFrom(defaults);
+        ValidationMessage = string.Empty;
+
+        CreatePages();
+        this.RaisePropertyChanged(nameof(General));
+        this.RaisePropertyChanged(nameof(Appearance));
+        this.RaisePropertyChanged(nameof(Connections));
+        this.RaisePropertyChanged(nameof(Credentials));
+        this.RaisePropertyChanged(nameof(Notifications));
+        this.RaisePropertyChanged(nameof(Updates));
+        this.RaisePropertyChanged(nameof(ExternalProviders));
+        this.RaisePropertyChanged(nameof(TabsPanels));
+        this.RaisePropertyChanged(nameof(Saving));
+        this.RaisePropertyChanged(nameof(SqlServer));
+        this.RaisePropertyChanged(nameof(Logging));
+        CurrentPage = ResolvePageViewModel(SelectedCategory?.Key);
+    }
+}

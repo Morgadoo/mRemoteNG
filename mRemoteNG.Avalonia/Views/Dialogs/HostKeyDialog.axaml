@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.HostKeyDialog"
+        Classes="dialog"
+        Title="{l:Tr SSHHostKey}"
+        Width="600"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <ctl:DialogHeader x:Name="Header" Icon="ShieldKeyOutline" Title="{l:Tr SSHHostKey}"/>
+
+        <StackPanel Grid.Row="1" Margin="24,16,24,24" Spacing="16">
+
+            <!-- Shown for a changed key -->
+            <Border x:Name="WarningBanner" Classes="callout danger" IsVisible="False">
+                <Grid ColumnDefinitions="Auto,*">
+                    <mi:MaterialIcon Classes="callout-icon" Kind="AlertOctagonOutline"/>
+                    <StackPanel Grid.Column="1" Spacing="4">
+                        <TextBlock Text="{l:Tr HostKeyChangedWarning}" Classes="danger" FontWeight="SemiBold"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock TextWrapping="Wrap" Text="{l:Tr SomeoneCouldBeEavesdroppingOnYouRight}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock x:Name="ExplanationText" Classes="secondary" TextWrapping="Wrap"/>
+
+            <!-- The presented key -->
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr Host}" MinHeight="44" Padding="0,10">
+                        <SelectableTextBlock x:Name="HostText" Classes="mono" HorizontalAlignment="Right"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr KeyType}" MinHeight="44" Padding="0,10">
+                        <SelectableTextBlock x:Name="KeyTypeText" Classes="mono" HorizontalAlignment="Right"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr Fingerprint}" MinHeight="44" Padding="0,10,0,12">
+                        <Border Classes="well">
+                            <SelectableTextBlock x:Name="FingerprintText" Classes="mono" FontWeight="SemiBold"
+                                                 TextWrapping="Wrap"/>
+                        </Border>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+
+            <!-- Stored keys for a changed key, or other known key types -->
+            <StackPanel x:Name="StoredPanel" Spacing="6" IsVisible="False">
+                <TextBlock x:Name="StoredHeading" Classes="field-label" Margin="0" TextWrapping="Wrap"/>
+                <Border Classes="well">
+                    <SelectableTextBlock x:Name="StoredText" Classes="mono" TextWrapping="Wrap"
+                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </Border>
+            </StackPanel>
+
+            <CheckBox x:Name="ConfirmReplaceBox" IsVisible="False"
+                      Content="{l:Tr IHaveVerifiedTheNewFingerprintAnd}"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <StackPanel Classes="dialog-actions">
+                <Button x:Name="CancelButton" Content="{l:Tr _Cancel}" IsCancel="True"/>
+                <Button x:Name="OnceButton" Content="{l:Tr ConnectOnce}" IsVisible="False"/>
+                <Button x:Name="AcceptButton" Content="{l:Tr AcceptAndSave}" Classes="accent" IsVisible="False"/>
+                <Button x:Name="ReplaceButton" Content="{l:Tr ReplaceKeyAndConnect}" Classes="accent danger"
+                        IsVisible="False" IsEnabled="False"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

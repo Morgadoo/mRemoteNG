@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.SqlServerSettingsPage"
+             x:DataType="vm:SqlServerSettingsViewModel">
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr SQLServer, English='SQL Server'}" Classes="h1"/>
+            <TextBlock Text="{l:Tr UsesTheSameTablesAsTheWindows}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr ConnectionDatabase}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr LoadAndSaveTheConnectionsInA}">
+                        <CheckBox x:Name="UseSqlCheckBox" Classes="switch" IsChecked="{Binding UseSqlServer}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ServerType}" IsEnabled="{Binding UseSqlServer}">
+                        <ComboBox Width="280" ItemsSource="{Binding ServerTypes}" SelectedItem="{Binding SelectedServerType}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr Host}" IsEnabled="{Binding UseSqlServer}">
+                        <TextBox x:Name="HostBox" Width="280" Classes="mono" Text="{Binding Host}" Watermark="{Binding HostWatermark}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr DatabaseLabel}" IsEnabled="{Binding UseSqlServer}">
+                        <TextBox x:Name="DatabaseBox" Width="280" Classes="mono" Text="{Binding DatabaseName}" Watermark="mremoteng"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr Username, English='User name'}"
+                                    Description="{l:Tr SQLServerEmptyForWindowsAuthentication}" IsEnabled="{Binding UseSqlServer}">
+                        <TextBox x:Name="UserBox" Width="280" Text="{Binding Username}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr Password}" IsEnabled="{Binding UseSqlServer}">
+                        <TextBox x:Name="PasswordBox" Width="280" Text="{Binding Password}" PasswordChar="•"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="bare" IsEnabled="{Binding UseSqlServer}">
+                        <Grid ColumnDefinitions="Auto,12,*">
+                            <Button Command="{Binding TestConnectionCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="DatabaseCheckOutline"/>
+                                    <TextBlock Text="{l:Tr TestConnection}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <SelectableTextBlock Grid.Column="2" x:Name="TestStatusText" Text="{Binding TestStatus}"
+                                                 Classes="secondary" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group" IsEnabled="{Binding UseSqlServer}">
+            <TextBlock Text="{l:Tr MultiUser}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ReadOnlyNeverWriteToTheDatabase}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ReadOnly}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr CheckForChangesByOtherUsersEvery}">
+                        <NumericUpDown Width="140" FormatString="0" Minimum="{Binding MinInterval}" Maximum="{Binding MaxInterval}"
+                                       Value="{Binding UpdateCheckInterval}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ReloadAutomaticallyWhenAnotherUserSavedAnd}">
+                        <CheckBox Classes="switch" IsChecked="{Binding AutoReload}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

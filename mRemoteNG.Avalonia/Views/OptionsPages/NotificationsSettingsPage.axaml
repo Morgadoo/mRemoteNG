@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.NotificationsSettingsPage"
+             x:DataType="vm:NotificationsSettingsViewModel">
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr Notifications}" Classes="h1"/>
+            <TextBlock Text="{l:Tr NotificationsPageDescription}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr DesktopNotifications}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ShowANotificationWhenAConnectionOpens}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowConnectNotify}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ShowANotificationWhenAConnectionCloses}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowDisconnectNotify}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ShowANotificationForErrorsWrittenTo}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowErrorNotify}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

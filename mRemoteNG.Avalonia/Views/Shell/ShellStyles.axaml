@@ -1,0 +1,283 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mi="using:Material.Icons.Avalonia">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════════════
+         Main window shell (docs/design-system.md §6–§7): header bar, quick connect address bar,
+         menu bar, bottom panel tabs, status bar items, connection cards, command palette, toasts.
+         Geometry only; colours are palette tokens. Included by MainWindow.axaml.
+    ════════════════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Menu bar: slimmer than the default (28 px), items 24 high ───────────────────── -->
+    <Style Selector="Menu.main-menu">
+        <Setter Property="Padding" Value="4,2"/>
+        <Setter Property="Height" Value="30"/>
+    </Style>
+    <Style Selector="Menu.main-menu > MenuItem">
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Padding" Value="9,0"/>
+    </Style>
+
+    <!-- ── Header bar (44 px) ───────────────────────────────────────────────────────────── -->
+    <Style Selector="Border.header">
+        <Setter Property="MinHeight" Value="44"/>
+        <Setter Property="Height" Value="44"/>
+        <Setter Property="Padding" Value="8,0"/>
+    </Style>
+    <!-- Header icon buttons: 32×32 with a 20 px glyph -->
+    <Style Selector="Button.header-icon, ToggleButton.header-icon">
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+    </Style>
+    <Style Selector="Button.header-icon mi|MaterialIcon, ToggleButton.header-icon mi|MaterialIcon">
+        <Setter Property="Width" Value="20"/>
+        <Setter Property="Height" Value="20"/>
+    </Style>
+    <!-- The narrow ▾ half of the "New" split button -->
+    <Style Selector="Button.header-chevron">
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+    <Style Selector="Button.header-chevron mi|MaterialIcon">
+        <Setter Property="Width" Value="14"/>
+        <Setter Property="Height" Value="14"/>
+    </Style>
+    <Style Selector="Border.header-divider">
+        <Setter Property="Width" Value="1"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="Margin" Value="8,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Background" Value="{DynamicResource Border0Brush}"/>
+    </Style>
+
+    <!-- Command palette pill in the header: magnifier + "Ctrl K" keycaps -->
+    <Style Selector="Button.palette-pill">
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="8,0,6,0"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+
+    <!-- ── Quick connect address bar ─────────────────────────────────────────────────────── -->
+    <Style Selector="Border.address-bar">
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Background" Value="{DynamicResource AppBg2Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border1Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.12" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.address-bar:pointerover">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="Border.address-bar:focus-within">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="BoxShadow" Value="{DynamicResource FocusRingShadow}"/>
+    </Style>
+
+    <!-- Borderless text field (inside the address bar and the command palette) -->
+    <Style Selector="TextBox.bare">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Padding" Value="8,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="TextBox.bare /template/ Border#PART_BorderElement, TextBox.bare:pointerover /template/ Border#PART_BorderElement, TextBox.bare:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BoxShadow" Value="0 0 0 0 Transparent"/>
+    </Style>
+
+    <!-- Borderless protocol selector inside the address bar -->
+    <Style Selector="ComboBox.bare">
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Padding" Value="8,0,0,0"/>
+        <Setter Property="Margin" Value="2,0"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ComboBox.bare /template/ Border#Background">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="ComboBox.bare:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource AppBg4Brush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="ComboBox.bare:pressed /template/ Border#Background, ComboBox.bare:dropdownopen /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="ComboBox.bare:focus-visible /template/ Border#Background">
+        <Setter Property="BoxShadow" Value="0 0 0 0 Transparent"/>
+    </Style>
+
+    <!-- ── Bottom panel: icon tabs and header ────────────────────────────────────────────── -->
+    <Style Selector="Border.bottom-header">
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="4,0,6,0"/>
+        <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
+    </Style>
+    <Style Selector="ToggleButton.panel-tab">
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Padding" Value="8,0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+    <Style Selector="ToggleButton.panel-tab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AppBg4Brush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="ToggleButton.panel-tab:checked /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.panel-tab:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.panel-tab:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="ToggleButton.panel-tab:checked">
+        <Setter Property="FontWeight" Value="Medium"/>
+    </Style>
+    <Style Selector="Button.compact, ToggleButton.compact">
+        <Setter Property="Width" Value="26"/>
+        <Setter Property="Height" Value="26"/>
+    </Style>
+    <!-- Panel chevron: points up when collapsed (expand), down when expanded -->
+    <Style Selector="mi|MaterialIcon.collapse-chevron">
+        <Setter Property="RenderTransform" Value="rotate(0deg)"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.14" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="mi|MaterialIcon.collapse-chevron.collapsed">
+        <Setter Property="RenderTransform" Value="rotate(180deg)"/>
+    </Style>
+
+    <!-- Unseen warnings/errors on the Log tab -->
+    <Style Selector="Border.log-badge">
+        <Setter Property="Padding" Value="5,0"/>
+        <Setter Property="Background" Value="{DynamicResource WarningTintBrush}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource WarningBrush}"/>
+    </Style>
+    <Style Selector="Border.log-badge.danger">
+        <Setter Property="Background" Value="{DynamicResource DangerTintBrush}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource DangerBrush}"/>
+    </Style>
+
+    <!-- Log rows: level icon colours -->
+    <Style Selector="mi|MaterialIcon.log-level">
+        <Setter Property="Width" Value="14"/>
+        <Setter Property="Height" Value="14"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="mi|MaterialIcon.log-level.warning">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+    </Style>
+    <Style Selector="mi|MaterialIcon.log-level.danger">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+    </Style>
+
+    <!-- ── Status bar items (24 px) ──────────────────────────────────────────────────────── -->
+    <Style Selector="Button.status-item">
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+    <Style Selector="Border.statusbar mi|MaterialIcon">
+        <Setter Property="Width" Value="14"/>
+        <Setter Property="Height" Value="14"/>
+    </Style>
+
+    <!-- ── Connection cards (empty session area) ─────────────────────────────────────────── -->
+    <Style Selector="Button.conn-card">
+        <Setter Property="Width" Value="232"/>
+        <Setter Property="Height" Value="64"/>
+        <Setter Property="Padding" Value="12,0"/>
+        <Setter Property="Margin" Value="0,0,12,12"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.conn-card:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AppBg2Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border1Brush}"/>
+    </Style>
+    <Style Selector="Button.conn-card:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border1Brush}"/>
+    </Style>
+    <Style Selector="Border.icon-tile">
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Border.icon-tile mi|MaterialIcon">
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Height" Value="18"/>
+    </Style>
+
+    <!-- ── Command palette ───────────────────────────────────────────────────────────────── -->
+    <Style Selector="ListBox.palette">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Padding" Value="6"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBox.palette ListBoxItem">
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+    <Style Selector="TextBox.palette-query">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Padding" Value="10,0"/>
+    </Style>
+
+    <!-- ── Toasts ─────────────────────────────────────────────────────────────────────────── -->
+    <Style Selector="Border.toast">
+        <Setter Property="Width" Value="340"/>
+        <Setter Property="Padding" Value="12,10,8,12"/>
+        <Style.Animations>
+            <Animation Duration="0:0:0.16" Easing="CubicEaseOut">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="mi|MaterialIcon.toast-icon">
+        <Setter Property="Width" Value="20"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="mi|MaterialIcon.toast-icon.success">
+        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+    </Style>
+    <Style Selector="mi|MaterialIcon.toast-icon.warning">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+    </Style>
+    <Style Selector="mi|MaterialIcon.toast-icon.danger">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+    </Style>
+</Styles>

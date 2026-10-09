@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.ConnectionSettingsPage"
+             x:DataType="vm:ConnectionSettingsViewModel">
+
+    <UserControl.Styles>
+        <!-- Default ports: protocol chip + port, two columns -->
+        <Style Selector="Grid.ports > NumericUpDown">
+            <Setter Property="FormatString" Value="0"/>
+            <Setter Property="Width" Value="140"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+        <Style Selector="Grid.ports > ctl|ProtocolChip">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr Connections}" Classes="h1"/>
+            <TextBlock Text="{l:Tr ConnectionsPageDescription}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Defaults}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr DefaultProtocol}">
+                        <ComboBox Width="220" ItemsSource="{Binding Protocols}" SelectedItem="{Binding DefaultProtocol}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <mi:MaterialIcon Kind="{Binding Converter={x:Static conv:ProtocolConverters.Icon}}"
+                                                         Foreground="{Binding Converter={x:Static conv:ProtocolConverters.Brush}}"/>
+                                        <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ConnectTimeoutSeconds}">
+                        <NumericUpDown Width="140" FormatString="0" Value="{Binding ConnectTimeout}"
+                                       Minimum="{Binding MinTimeout}" Maximum="{Binding MaxTimeout}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr DefaultUsername}">
+                        <TextBox Width="220" Text="{Binding DefaultUsername}" Watermark="{l:Tr NoneInParentheses}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr DefaultPortsSection}" Classes="h2"/>
+            <Border Classes="settings" Padding="16">
+                <Grid Classes="ports" ColumnDefinitions="88,Auto,*,88,Auto" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto">
+                    <ctl:ProtocolChip Grid.Row="0" Grid.Column="0" Protocol="SSH2" Text="SSH"/>
+                    <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding SshPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
+                    <ctl:ProtocolChip Grid.Row="0" Grid.Column="3" Protocol="RDP"/>
+                    <NumericUpDown Grid.Row="0" Grid.Column="4" Value="{Binding RdpPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
+
+                    <ctl:ProtocolChip Grid.Row="2" Grid.Column="0" Protocol="Telnet"/>
+                    <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding TelnetPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
+                    <ctl:ProtocolChip Grid.Row="2" Grid.Column="3" Protocol="VNC"/>
+                    <NumericUpDown Grid.Row="2" Grid.Column="4" Value="{Binding VncPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
+
+                    <ctl:ProtocolChip Grid.Row="4" Grid.Column="0" Protocol="Rlogin" Text="rlogin"/>
+                    <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding RloginPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
+                    <ctl:ProtocolChip Grid.Row="4" Grid.Column="3" Protocol="HTTP"/>
+                    <NumericUpDown Grid.Row="4" Grid.Column="4" Value="{Binding HttpPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
+
+                    <ctl:ProtocolChip Grid.Row="6" Grid.Column="3" Protocol="HTTPS"/>
+                    <NumericUpDown Grid.Row="6" Grid.Column="4" Value="{Binding HttpsPort}" Minimum="{Binding MinPort}" Maximum="{Binding MaxPort}"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="SSH" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr SendKeepAlivePackets}">
+                        <CheckBox Classes="switch" IsChecked="{Binding KeepAlive}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr KeepAliveIntervalSeconds}" IsEnabled="{Binding KeepAlive}">
+                        <NumericUpDown Width="140" FormatString="0" Value="{Binding KeepAliveInterval}"
+                                       Minimum="{Binding MinKeepAlive}" Maximum="{Binding MaxKeepAlive}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr DefaultPrivateKeyFileOptional}">
+                        <Grid ColumnDefinitions="*,8,Auto">
+                            <TextBox Classes="mono" Text="{Binding SshKeyPath}" Watermark="~/.ssh/id_ed25519"/>
+                            <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseKey"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

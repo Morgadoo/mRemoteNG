@@ -286,3 +286,8 @@ InstallerProjects/Installer/Resources/License.rtf
 # mRemoteNG
 **/mRemoteNG/Properties/AssemblyInfo.tt
 **/mRemoteNG/Properties/AssemblyInfo.cs
+# Packaging output
+dist/
+
+# Claude Code agent worktrees
+.claude/worktrees/

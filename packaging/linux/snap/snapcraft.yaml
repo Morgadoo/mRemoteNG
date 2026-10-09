@@ -1,0 +1,72 @@
+name: mremoteng
+base: core24
+version: '1.77'
+summary: Multi-protocol remote connections manager
+description: |
+  mRemoteNG is an open-source, tabbed, multi-protocol remote connections manager.
+  Supports RDP, VNC, SSH, Telnet, HTTP/S, rlogin, Serial and more.
+  Cross-platform on Windows, Linux (X11/Wayland) and macOS.
+
+grade: stable
+confinement: strict
+
+apps:
+  mremoteng:
+    command: bin/mRemoteNG
+    desktop: usr/share/applications/mremoteng.desktop
+    extensions: [gnome]
+    plugs:
+      - network
+      - network-bind
+      - home
+      - removable-media
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - audio-playback
+      - unity7
+      - gsettings
+    slots:
+      - dbus-mremoteng
+
+slots:
+  dbus-mremoteng:
+    interface: dbus
+    bus: session
+    name: org.mremoteng.mRemoteNG
+
+parts:
+  mremoteng:
+    plugin: dotnet
+    source: .
+    dotnet-build-configuration: Release
+    dotnet-self-contained: true
+    dotnet-project: mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj
+    build-packages:
+      - dotnet-sdk-10
+    stage-packages:
+      - libglib2.0-0
+      - libgtk-3-0
+      - libxext6
+      - libxrandr2
+      - libfreerdp3
+      - xclip
+      - libnotify-bin
+    organize:
+      mRemoteNG.Avalonia: bin/mRemoteNG
+    override-build: |
+      craftctl default
+      mkdir -p $SNAPCRAFT_PART_INSTALL/usr/share/applications
+      cat > $SNAPCRAFT_PART_INSTALL/usr/share/applications/mremoteng.desktop << 'EOF'
+      [Desktop Entry]
+      Name=mRemoteNG
+      Exec=mremoteng
+      Icon=${SNAP}/usr/share/icons/hicolor/256x256/apps/mremoteng.png
+      Type=Application
+      Categories=Network;RemoteAccess;
+      Keywords=rdp;vnc;ssh;remote;connections;
+      EOF
+      mkdir -p $SNAPCRAFT_PART_INSTALL/usr/share/icons/hicolor/256x256/apps
+      cp packaging/linux/mremoteng.png $SNAPCRAFT_PART_INSTALL/usr/share/icons/hicolor/256x256/apps/ 2>/dev/null || true

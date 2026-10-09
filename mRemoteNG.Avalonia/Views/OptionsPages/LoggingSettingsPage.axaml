@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.LoggingSettingsPage"
+             x:DataType="vm:LoggingSettingsViewModel">
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr Logging}" Classes="h1"/>
+            <TextBlock Text="{l:Tr TheFileRollsOverAt10MB}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr LogFile}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr WriteALogFile}">
+                        <CheckBox Classes="switch" IsChecked="{Binding LogToFile}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr Level}" IsEnabled="{Binding LogToFile}">
+                        <ComboBox Width="220" ItemsSource="{Binding Levels}" SelectedItem="{Binding SelectedLevel}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked nested" Header="{l:Tr LogFileLocation}" IsEnabled="{Binding LogToFile}">
+                        <Grid ColumnDefinitions="*,8,Auto" Margin="20,0,0,0">
+                            <TextBox Classes="mono" Text="{Binding LogFilePath}" Watermark="{Binding DefaultLogFilePath}"/>
+                            <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowse"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr CurrentLogFile}">
+                        <StackPanel Spacing="8">
+                            <SelectableTextBlock Text="{Binding EffectiveLogFilePath}" Classes="mono secondary" TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Click="OnOpenLogFile">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <mi:MaterialIcon Kind="FileDocumentOutline"/>
+                                        <TextBlock Text="{l:Tr OpenLogFileButton}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="OnOpenFolder">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <mi:MaterialIcon Kind="FolderOpenOutline"/>
+                                        <TextBlock Text="{l:Tr OpenFolder}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr DataFolder}" Classes="h2"/>
+            <Border Classes="settings">
+                <ctl:SettingRow Classes="stacked" Header="{Binding DataDirectoryInfo}"
+                                Description="{l:Tr PortableModePutAnEmptyFileNamed}"/>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

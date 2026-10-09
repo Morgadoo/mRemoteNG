@@ -1,0 +1,253 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.ExternalProvidersSettingsPage"
+             x:DataType="vm:ExternalProvidersSettingsViewModel">
+    <UserControl.Styles>
+        <!-- Inputs of this page share one width so the column lines up -->
+        <Style Selector="ctl|SettingRow > TextBox, ctl|SettingRow > ComboBox, ctl|SettingRow > Grid.secret, ctl|SettingRow > Grid.path">
+            <Setter Property="Width" Value="340"/>
+        </Style>
+        <!-- Test result: success / failure colour -->
+        <Style Selector="SelectableTextBlock.status">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+        </Style>
+        <Style Selector="SelectableTextBlock.status.failed">
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.group-hint">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr ExternalProviders}" Classes="h1"/>
+            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{l:Tr ConnectionsFetchTheirCredentialsFromASecret}"/>
+        </StackPanel>
+
+        <!-- Default provider -->
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr DefaultCredentialProvider}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr Provider}" Description="{l:Tr UsedForConnectionsWithoutAUsernameAn}">
+                        <ComboBox ItemsSource="{Binding CredentialProviders}" SelectedItem="{Binding SelectedDefaultProvider}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr SecretIDReference}" IsEnabled="{Binding HasDefaultProvider}">
+                        <TextBox Classes="mono" Text="{Binding DefaultUserViaApi}" Watermark="e.g. 42 or op://Vault/Item"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Delinea -->
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr ECPDelineaSecretServer, English='Delinea (Thycotic) Secret Server'}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ServerURL}">
+                        <TextBox Classes="mono" Text="{Binding DelineaUrl}" Watermark="https://cred.domain.local/SecretServer"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr WindowsIntegratedAuthenticationSSO}">
+                        <CheckBox Classes="switch" IsChecked="{Binding DelineaUseSso}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr Username}" IsEnabled="{Binding DelineaUsesLogin}">
+                        <TextBox Text="{Binding DelineaUsername}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr DomainOptional}" IsEnabled="{Binding DelineaUsesLogin}">
+                        <TextBox Text="{Binding DelineaDomain}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr Password}">
+                        <Grid Classes="secret" ColumnDefinitions="*,8,Auto" DataContext="{Binding DelineaPassword}"
+                              x:DataType="vm:ProviderSecretViewModel" IsEnabled="{Binding CanSave}">
+                            <TextBox Text="{Binding Value}" PasswordChar="●" Watermark="{Binding State}"/>
+                            <Button Grid.Column="2" Content="{l:Tr Forget}" Command="{Binding ForgetCommand}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr AskForOtpAtLogin}" IsEnabled="{Binding DelineaUsesLogin}">
+                        <CheckBox Classes="switch" IsChecked="{Binding DelineaRequireOtp}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="bare">
+                        <Grid ColumnDefinitions="Auto,12,*" DataContext="{Binding DelineaTest}" x:DataType="vm:ProviderTestViewModel">
+                            <Button Command="{Binding TestCommand}" IsEnabled="{Binding IsAvailable}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="LanCheck"/>
+                                    <TextBlock Text="{l:Tr Test}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <SelectableTextBlock Grid.Column="2" Classes="status" Classes.failed="{Binding Failed}" Text="{Binding Status}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Passwordstate -->
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="Clickstudios Passwordstate" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ServerURL}">
+                        <TextBox Classes="mono" Text="{Binding PasswordstateUrl}" Watermark="https://passwordstate.domain.local"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr WindowsIntegratedAuthenticationWinapi}">
+                        <CheckBox Classes="switch" IsChecked="{Binding PasswordstateUseSso}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr APIKey}">
+                        <Grid Classes="secret" ColumnDefinitions="*,8,Auto" DataContext="{Binding PasswordstateApiKey}"
+                              x:DataType="vm:ProviderSecretViewModel" IsEnabled="{Binding CanSave}">
+                            <TextBox Text="{Binding Value}" PasswordChar="●" Watermark="{Binding State}"/>
+                            <Button Grid.Column="2" Content="{l:Tr Forget}" Command="{Binding ForgetCommand}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr AskForOtpPerRequest}">
+                        <CheckBox Classes="switch" IsChecked="{Binding PasswordstateRequireOtp}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="bare">
+                        <Grid ColumnDefinitions="Auto,12,*" DataContext="{Binding PasswordstateTest}" x:DataType="vm:ProviderTestViewModel">
+                            <Button Command="{Binding TestCommand}" IsEnabled="{Binding IsAvailable}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="LanCheck"/>
+                                    <TextBlock Text="{l:Tr Test}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <SelectableTextBlock Grid.Column="2" Classes="status" Classes.failed="{Binding Failed}" Text="{Binding Status}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- 1Password -->
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="1Password (op CLI)" Classes="h2"/>
+            <TextBlock Classes="caption group-hint" Text="{l:Tr ReferencesOpVaultItemAccountOpVault}"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr CLIPath}">
+                        <Grid Classes="path" ColumnDefinitions="*,8,Auto">
+                            <TextBox Classes="mono" Text="{Binding OnePasswordCliPath}" Watermark="{l:Tr OpFromPATH}"/>
+                            <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseOnePasswordCli"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr DefaultAccount}">
+                        <TextBox Text="{Binding OnePasswordAccount}" Watermark="e.g. my.1password.com"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="bare">
+                        <Grid ColumnDefinitions="Auto,12,*" DataContext="{Binding OnePasswordTest}" x:DataType="vm:ProviderTestViewModel">
+                            <Button Command="{Binding TestCommand}" IsEnabled="{Binding IsAvailable}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="LanCheck"/>
+                                    <TextBlock Text="{l:Tr Test}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <SelectableTextBlock Grid.Column="2" Classes="status" Classes.failed="{Binding Failed}" Text="{Binding Status}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Vault / OpenBao -->
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="HashiCorp Vault / OpenBao" Classes="h2"/>
+            <TextBlock Classes="caption group-hint" Text="{l:Tr TheMountRoleSecretPathAndSecret}"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ServerURL}">
+                        <TextBox Classes="mono" Text="{Binding VaultUrl}" Watermark="https://vault.domain.local:8200"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr Namespace}">
+                        <TextBox Text="{Binding VaultNamespace}" Watermark="{l:Tr NoneInParentheses}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr LogInWith}">
+                        <ComboBox ItemsSource="{Binding VaultAuthMethods}" SelectedItem="{Binding SelectedVaultAuthMethod}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr AuthMountPath}" IsVisible="{Binding VaultUsesLogin}">
+                        <TextBox Classes="mono" Text="{Binding VaultAuthMount}" Watermark="{Binding VaultAuthMountWatermark}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{Binding VaultUsernameLabel}" IsVisible="{Binding VaultUsesLogin}">
+                        <TextBox Text="{Binding VaultUsername}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{Binding VaultSecretLabel}">
+                        <Grid Classes="secret" ColumnDefinitions="*,8,Auto" DataContext="{Binding VaultSecret}"
+                              x:DataType="vm:ProviderSecretViewModel" IsEnabled="{Binding CanSave}">
+                            <TextBox Text="{Binding Value}" PasswordChar="●" Watermark="{Binding State}"/>
+                            <Button Grid.Column="2" Content="{l:Tr Forget}" Command="{Binding ForgetCommand}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr CACertificatePEM}">
+                        <Grid Classes="path" ColumnDefinitions="*,8,Auto">
+                            <TextBox Classes="mono" Text="{Binding VaultCaCertificatePath}" Watermark="{l:Tr SystemTrustStore}"/>
+                            <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseVaultCa"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="bare">
+                        <Grid ColumnDefinitions="Auto,12,*" DataContext="{Binding VaultTest}" x:DataType="vm:ProviderTestViewModel">
+                            <Button Command="{Binding TestCommand}" IsEnabled="{Binding IsAvailable}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="LanCheck"/>
+                                    <TextBlock Text="{l:Tr Test}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <SelectableTextBlock Grid.Column="2" Classes="status" Classes.failed="{Binding Failed}" Text="{Binding Status}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- AWS -->
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr AmazonWebServicesEC2AddressLookup}" Classes="h2"/>
+            <TextBlock Classes="caption group-hint" Text="{l:Tr ConnectionsSetTheInstanceIDAndRegion}"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr Credentials}">
+                        <ComboBox ItemsSource="{Binding AwsCredentialSources}" SelectedItem="{Binding SelectedAwsCredentialSource}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr ProfileName}" IsVisible="{Binding AwsUsesProfile}">
+                        <TextBox Text="{Binding AwsProfile}" Watermark="{l:Tr EGDefault}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr AccessKeyID}" IsVisible="{Binding AwsUsesAccessKey}">
+                        <TextBox Classes="mono" Text="{Binding AwsAccessKeyId}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr SecretAccessKey}" IsVisible="{Binding AwsUsesAccessKey}">
+                        <Grid Classes="secret" ColumnDefinitions="*,8,Auto" DataContext="{Binding AwsSecretAccessKey}"
+                              x:DataType="vm:ProviderSecretViewModel" IsEnabled="{Binding CanSave}">
+                            <TextBox Text="{Binding Value}" PasswordChar="●" Watermark="{Binding State}"/>
+                            <Button Grid.Column="2" Content="{l:Tr Forget}" Command="{Binding ForgetCommand}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr DefaultRegion}">
+                        <TextBox Classes="mono" Text="{Binding AwsDefaultRegion}" Watermark="e.g. eu-central-1"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ConnectTo}">
+                        <ComboBox ItemsSource="{Binding AwsAddressKinds}" SelectedItem="{Binding SelectedAwsAddressKind}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr EC2EndpointURL}">
+                        <TextBox Classes="mono" Text="{Binding AwsServiceUrl}" Watermark="{l:Tr RegionalAWSEndpoint}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="bare">
+                        <Grid ColumnDefinitions="Auto,12,*" DataContext="{Binding AwsTest}" x:DataType="vm:ProviderTestViewModel">
+                            <Button Command="{Binding TestCommand}" IsEnabled="{Binding IsAvailable}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="LanCheck"/>
+                                    <TextBlock Text="{l:Tr Test}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <SelectableTextBlock Grid.Column="2" Classes="status" Classes.failed="{Binding Failed}" Text="{Binding Status}"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

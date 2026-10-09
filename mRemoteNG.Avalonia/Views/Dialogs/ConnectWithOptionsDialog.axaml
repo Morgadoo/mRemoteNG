@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.ConnectWithOptionsDialog"
+        x:DataType="vm:ConnectWithOptionsViewModel"
+        Classes="dialog"
+        Title="{Binding Title}"
+        Width="520"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <ctl:DialogHeader Icon="PlayCircleOutline"
+                          Title="{l:Tr ConnectWithOptions, English='Connect with options'}"
+                          Subtitle="{Binding ConnectionName, StringFormat={l:Tr ConnectWithOptionsSubtitleFormat}}"/>
+
+        <Border Grid.Row="1" Classes="settings" Margin="24,20,24,24">
+            <StackPanel>
+                <ctl:SettingRow Header="{l:Tr ConnectNoCredentials}"
+                                Description="{l:Tr ConnectNoCredentialsDescription}">
+                    <CheckBox x:Name="NoCredentialsBox" Classes="switch" IsChecked="{Binding NoCredentials}"/>
+                </ctl:SettingRow>
+                <ctl:SettingRow Header="{l:Tr ConnectInFullscreen, English='Connect in full screen'}">
+                    <CheckBox Classes="switch" IsChecked="{Binding Fullscreen}"/>
+                </ctl:SettingRow>
+                <ctl:SettingRow Header="{l:Tr ConnectInViewOnlyMode, English='Connect in view-only mode'}"
+                                IsEnabled="{Binding SupportsViewOnly}">
+                    <CheckBox Classes="switch" IsChecked="{Binding ViewOnly}"/>
+                </ctl:SettingRow>
+                <ctl:SettingRow Header="{l:Tr UseConsoleSession, English='Console session'}" IsVisible="{Binding IsRdp}">
+                    <ComboBox Width="240"
+                              ItemsSource="{Binding ConsoleSessionChoices}" SelectedItem="{Binding ConsoleSession}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ConsoleSessionChoice">
+                                <TextBlock Text="{Binding Converter={x:Static vm:EnumLabelConverter.Instance}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </ctl:SettingRow>
+                <ctl:SettingRow Header="{l:Tr Panel}">
+                    <AutoCompleteBox x:Name="PanelBox" Width="240" Text="{Binding Panel, Mode=TwoWay}"
+                                     ItemsSource="{Binding Panels}" FilterMode="ContainsOrdinal" MinimumPrefixLength="0"
+                                     Watermark="{l:Tr TheConnectionSPanel}"/>
+                </ctl:SettingRow>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <StackPanel Classes="dialog-actions">
+                <Button Content="{l:Tr _Cancel}" IsCancel="True" Command="{Binding CancelCommand}"/>
+                <Button Content="{l:Tr Connect}" Classes="accent" IsDefault="True" Command="{Binding ConnectCommand}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

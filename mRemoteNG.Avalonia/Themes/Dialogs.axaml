@@ -1,0 +1,460 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════════════
+         Dialogs, settings pages and the connection editor (docs/design-system.md §6 Dialogs,
+         Inputs, Cards and settings). Included once in App.axaml after Themes/Controls.axaml.
+         Vocabulary:
+           Window.dialog          AppBg1 surface + DialogAssist (first-input focus, Enter/Escape)
+           ctl:DialogHeader       icon tile + h1 + caption   (classes danger / warning / success)
+           Border.dialog-footer   right-aligned actions, primary last (Themes/Controls.axaml)
+           StackPanel.dialog-actions  the 8 px button row inside the footer
+           ctl:SettingRow         label + caption left, control right ("stacked": control below)
+           Border.settings        card holding SettingRows separated by dividers
+           StackPanel.settings-page / settings-group   page rhythm (24) / h2 + card (8)
+           ListBox.nav            left navigation (Options, connection editor): 32 px icon rows
+           ListBox.cards          selectable cards (theme swatches, import sources)
+           Border.callout         info / warning / danger / success message card
+           CheckBox.switch        compact on/off switch
+           ToggleButton.inherit   the per-field "inherit from folder" icon toggle
+           Border.icon-tile       tinted square behind a header icon
+    ════════════════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ═══ Dialog window ═════════════════════════════════════════════════════════════════ -->
+
+    <Style Selector="Window.dialog">
+        <Setter Property="ctl:DialogAssist.IsEnabled" Value="True"/>
+    </Style>
+
+    <!-- Button row of a dialog footer: 8 px gap, right-aligned, buttons at least 88 wide -->
+    <Style Selector="StackPanel.dialog-actions">
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="Spacing" Value="8"/>
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="StackPanel.dialog-actions > Button, Border.dialog-footer Button.footer">
+        <Setter Property="MinWidth" Value="88"/>
+        <Setter Property="MinHeight" Value="32"/>
+    </Style>
+    <Style Selector="Border.dialog-footer Button">
+        <Setter Property="MinHeight" Value="32"/>
+    </Style>
+
+    <!-- Header: icon tile + title + subtitle; trailing content on the right -->
+    <Style Selector="ctl|DialogHeader">
+        <Setter Property="Padding" Value="24,20,24,0"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Border Name="PART_IconTile" Classes="icon-tile" Margin="0,0,12,0" VerticalAlignment="Top"
+                                IsVisible="{TemplateBinding HasIcon}">
+                            <mi:MaterialIcon Name="PART_Icon" Kind="{TemplateBinding IconKind}" Width="20" Height="20"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Name="PART_Title" Classes="h1" Text="{TemplateBinding Title}" TextWrapping="Wrap"/>
+                            <TextBlock Name="PART_Subtitle" Classes="caption" Text="{TemplateBinding Subtitle}"
+                                       TextWrapping="Wrap" IsVisible="{TemplateBinding HasSubtitle}"/>
+                        </StackPanel>
+                        <ContentPresenter Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Tinted square behind a header / card icon (accent by default) -->
+    <Style Selector="Border.icon-tile">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Border.icon-tile > mi|MaterialIcon">
+        <Setter Property="Width" Value="20"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.icon-tile.danger, ctl|DialogHeader.danger /template/ Border#PART_IconTile">
+        <Setter Property="Background" Value="{DynamicResource DangerTintBrush}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource DangerBrush}"/>
+    </Style>
+    <Style Selector="Border.icon-tile.warning, ctl|DialogHeader.warning /template/ Border#PART_IconTile">
+        <Setter Property="Background" Value="{DynamicResource WarningTintBrush}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource WarningBrush}"/>
+    </Style>
+    <Style Selector="Border.icon-tile.success, ctl|DialogHeader.success /template/ Border#PART_IconTile">
+        <Setter Property="Background" Value="{DynamicResource SuccessTintBrush}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource SuccessBrush}"/>
+    </Style>
+    <Style Selector="Border.icon-tile.neutral">
+        <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+
+    <!-- Label above a field in compact forms (Quick connect, credential editor…) -->
+    <Style Selector="TextBlock.field-label">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,6"/>
+    </Style>
+    <!-- Inline validation message under a field -->
+    <Style Selector="TextBlock.field-error">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Margin" Value="0,4,0,0"/>
+    </Style>
+
+    <!-- ═══ Settings rows and cards ═══════════════════════════════════════════════════════ -->
+
+    <Style Selector="StackPanel.settings-page">
+        <Setter Property="Spacing" Value="24"/>
+    </Style>
+    <Style Selector="StackPanel.settings-group">
+        <Setter Property="Spacing" Value="8"/>
+    </Style>
+    <Style Selector="StackPanel.page-title">
+        <Setter Property="Spacing" Value="4"/>
+    </Style>
+
+    <!-- A card of settings rows: rows bring their own vertical padding -->
+    <Style Selector="Border.settings">
+        <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="16,0"/>
+    </Style>
+
+    <Style Selector="ctl|SettingRow">
+        <Setter Property="Padding" Value="0,12"/>
+        <Setter Property="MinHeight" Value="56"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}">
+                    <Grid RowDefinitions="Auto,Auto">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto" MinWidth="220"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Name="PART_Text" Spacing="2" VerticalAlignment="Center" Margin="0,0,24,0">
+                            <TextBlock Name="PART_Header" Text="{TemplateBinding Header}" TextWrapping="Wrap"/>
+                            <TextBlock Name="PART_Description" Classes="caption" Text="{TemplateBinding Description}"
+                                       TextWrapping="Wrap" IsVisible="{TemplateBinding HasDescription}"/>
+                        </StackPanel>
+                        <ContentPresenter Name="PART_ContentPresenter" Grid.Column="1"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="Center"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ctl|SettingRow /template/ TextBlock#PART_Header">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <!-- Wide controls (paths, lists) go under the text -->
+    <Style Selector="ctl|SettingRow.stacked">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="ctl|SettingRow.stacked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Grid.Row" Value="1"/>
+        <Setter Property="Grid.Column" Value="0"/>
+        <Setter Property="Grid.ColumnSpan" Value="2"/>
+        <Setter Property="Margin" Value="0,8,0,0"/>
+    </Style>
+    <Style Selector="ctl|SettingRow.stacked /template/ StackPanel#PART_Text">
+        <Setter Property="Grid.ColumnSpan" Value="2"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+    <!-- A row without a header (e.g. buttons only) -->
+    <Style Selector="ctl|SettingRow.bare">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="MinHeight" Value="0"/>
+    </Style>
+    <Style Selector="ctl|SettingRow.bare /template/ StackPanel#PART_Text">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="ctl|SettingRow.bare /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Grid.Row" Value="0"/>
+        <Setter Property="Grid.Column" Value="0"/>
+        <Setter Property="Grid.ColumnSpan" Value="2"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+    <!-- Nested rows (enabled by the row above) are indented -->
+    <Style Selector="ctl|SettingRow.nested /template/ StackPanel#PART_Text">
+        <Setter Property="Margin" Value="20,0,24,0"/>
+    </Style>
+    <!-- No divider above the first row of a card -->
+    <Style Selector="Border.settings > StackPanel > ctl|SettingRow:nth-child(1), Border.settings > ctl|SettingRow">
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="ctl|SettingRow:disabled /template/ StackPanel#PART_Text">
+        <Setter Property="Opacity" Value="0.55"/>
+    </Style>
+
+    <!-- ═══ Navigation list (Options, connection editor) ═══════════════════════════════════ -->
+
+    <Style Selector="ListBox.nav">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Padding" Value="8,0"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="Margin" Value="0,1"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected, ListBox.nav ListBoxItem:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextElement.FontWeight" Value="Medium"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem mi|MaterialIcon.nav-icon">
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected mi|MaterialIcon.nav-icon">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <!-- The navigation column of a dialog -->
+    <Style Selector="Border.dialog-nav">
+        <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="0,0,1,0"/>
+    </Style>
+
+    <!-- ═══ Selectable cards ══════════════════════════════════════════════════════════════ -->
+
+    <Style Selector="ListBox.cards">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem">
+        <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Margin" Value="0,0,8,8"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem /template/ Border#PART_SelectionIndicator">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AppBg4Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border1Brush}"/>
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter, ListBox.cards ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BoxShadow" Value="{DynamicResource FocusRingShadow}"/>
+    </Style>
+    <!-- The check mark shown on the selected card -->
+    <Style Selector="ListBox.cards ListBoxItem mi|MaterialIcon.card-check">
+        <Setter Property="IsVisible" Value="False"/>
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="ListBox.cards ListBoxItem:selected mi|MaterialIcon.card-check">
+        <Setter Property="IsVisible" Value="True"/>
+    </Style>
+
+    <!-- ═══ Callouts ══════════════════════════════════════════════════════════════════════ -->
+
+    <Style Selector="Border.callout">
+        <Setter Property="Background" Value="{DynamicResource AppBg2Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+    <Style Selector="Border.callout.info">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    <Style Selector="Border.callout.warning">
+        <Setter Property="Background" Value="{DynamicResource WarningTintBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}"/>
+    </Style>
+    <Style Selector="Border.callout.danger">
+        <Setter Property="Background" Value="{DynamicResource DangerTintBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}"/>
+    </Style>
+    <Style Selector="Border.callout.success">
+        <Setter Property="Background" Value="{DynamicResource SuccessTintBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}"/>
+    </Style>
+    <Style Selector="Border.callout mi|MaterialIcon.callout-icon">
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Height" Value="18"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Margin" Value="0,0,10,0"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+    <Style Selector="Border.callout.info mi|MaterialIcon.callout-icon">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="Border.callout.warning mi|MaterialIcon.callout-icon">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+    </Style>
+    <Style Selector="Border.callout.danger mi|MaterialIcon.callout-icon">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+    </Style>
+    <Style Selector="Border.callout.success mi|MaterialIcon.callout-icon">
+        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+    </Style>
+
+    <!-- Read-only value well (fingerprints, command preview) -->
+    <Style Selector="Border.well">
+        <Setter Property="Background" Value="{DynamicResource AppBg2Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding" Value="10,8"/>
+    </Style>
+
+    <!-- Clickable chip (variable hints): mono, radius 4 -->
+    <Style Selector="Button.chip">
+        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}"/>
+        <Setter Property="FontSize" Value="11.5"/>
+        <Setter Property="Margin" Value="0,0,6,6"/>
+        <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.chip:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+
+    <!-- ═══ Switch (compact on/off, a CheckBox) ═══════════════════════════════════════════ -->
+
+    <Style Selector="CheckBox.switch">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="MinHeight" Value="24"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="Auto,*" Background="Transparent">
+                    <Border Name="PART_Track" Width="36" Height="20" CornerRadius="10" BorderThickness="1"
+                            VerticalAlignment="Center">
+                        <Border Name="PART_Knob" Width="14" Height="14" CornerRadius="7" Margin="2,0,0,0"
+                                HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    </Border>
+                    <ContentPresenter Name="PART_ContentPresenter" Grid.Column="1" Margin="10,0,0,0"
+                                      VerticalAlignment="Center"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="CheckBox.switch /template/ Border#PART_Track">
+        <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border1Brush}"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.14" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="CheckBox.switch /template/ Border#PART_Knob">
+        <Setter Property="Background" Value="{DynamicResource TextSecondaryBrush}"/>
+        <Setter Property="RenderTransform" Value="translateX(0px)"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.14" Easing="CubicEaseOut"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="CheckBox.switch:pointerover /template/ Border#PART_Track">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="CheckBox.switch:focus-visible /template/ Border#PART_Track">
+        <Setter Property="BoxShadow" Value="{DynamicResource FocusRingShadow}"/>
+    </Style>
+    <Style Selector="CheckBox.switch:checked /template/ Border#PART_Track">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="CheckBox.switch:checked /template/ Border#PART_Knob">
+        <Setter Property="Background" Value="{DynamicResource OnAccentBrush}"/>
+        <Setter Property="RenderTransform" Value="translateX(16px)"/>
+    </Style>
+
+    <!-- ═══ Inherit toggle (connection editor) ═════════════════════════════════════════════ -->
+
+    <Style Selector="ToggleButton.inherit">
+        <Setter Property="Width" Value="28"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="ToggleButton.inherit:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AppBg4Brush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+    </Style>
+    <Style Selector="ToggleButton.inherit:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    <Style Selector="ToggleButton.inherit:checked /template/ ContentPresenter#PART_ContentPresenter, ToggleButton.inherit:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+    </Style>
+    <Style Selector="ToggleButton.inherit:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    <Style Selector="ToggleButton.inherit mi|MaterialIcon">
+        <Setter Property="Kind" Value="LinkVariantOff"/>
+    </Style>
+    <Style Selector="ToggleButton.inherit:checked mi|MaterialIcon">
+        <Setter Property="Kind" Value="LinkVariant"/>
+    </Style>
+
+</Styles>

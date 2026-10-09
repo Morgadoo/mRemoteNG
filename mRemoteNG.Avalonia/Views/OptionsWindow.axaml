@@ -1,0 +1,124 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        xmlns:pages="using:mRemoteNG.Avalonia.Views.OptionsPages"
+        x:Class="mRemoteNG.Avalonia.Views.OptionsWindow"
+        x:DataType="vm:OptionsWindowViewModel"
+        Classes="dialog"
+        Title="{l:Tr Options}"
+        Width="1100"
+        Height="720"
+        MinWidth="760"
+        MinHeight="480"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="248,*">
+
+            <!-- Navigation: title, search, pages -->
+            <Border Grid.Column="0" Classes="dialog-nav">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="16,20,16,12" Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="4,0,0,0">
+                            <mi:MaterialIcon Kind="CogOutline" Width="20" Height="20"
+                                             Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBlock Text="{l:Tr Options}" Classes="h1" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBox x:Name="SearchBox" Classes="search" ctl:DialogAssist.IsInitialFocus="True"
+                                 Text="{Binding SearchText}" Watermark="{l:Tr SearchSettingsWatermark}"/>
+                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Top" Classes="caption" Margin="24,4,16,0" TextWrapping="Wrap"
+                               Text="{l:Tr NoSettingsMatch}" IsVisible="{Binding HasNoMatches}"/>
+                    <ListBox x:Name="CategoryList" Classes="nav"
+                             ItemsSource="{Binding VisibleCategories}"
+                             SelectedItem="{Binding SelectedCategory}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SettingsCategoryViewModel">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <mi:MaterialIcon Classes="nav-icon" Kind="{Binding Icon}"/>
+                                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Settings page -->
+            <Border Grid.Column="1" Background="{DynamicResource AppBg0Brush}">
+                <ScrollViewer x:Name="PageScroller" HorizontalScrollBarVisibility="Disabled">
+                    <ContentControl Margin="32,28,32,32" MaxWidth="820" HorizontalAlignment="Stretch"
+                                    Content="{Binding CurrentPage}">
+                        <ContentControl.DataTemplates>
+                            <DataTemplate DataType="{x:Type vm:GeneralSettingsViewModel}">
+                                <pages:GeneralSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:AppearanceSettingsViewModel}">
+                                <pages:AppearanceSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:ConnectionSettingsViewModel}">
+                                <pages:ConnectionSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:CredentialsSettingsViewModel}">
+                                <pages:CredentialsSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:NotificationsSettingsViewModel}">
+                                <pages:NotificationsSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:UpdatesSettingsViewModel}">
+                                <pages:UpdatesSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:ExternalProvidersSettingsViewModel}">
+                                <pages:ExternalProvidersSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:TabsPanelsSettingsViewModel}">
+                                <pages:TabsPanelsSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:SavingSettingsViewModel}">
+                                <pages:SavingSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:SqlServerSettingsViewModel}">
+                                <pages:SqlServerSettingsPage/>
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:LoggingSettingsViewModel}">
+                                <pages:LoggingSettingsPage/>
+                            </DataTemplate>
+                        </ContentControl.DataTemplates>
+                    </ContentControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Footer: reset (left), validation message, Cancel / Apply / OK -->
+        <Border Grid.Row="1" Classes="dialog-footer">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" Classes="subtle" Command="{Binding ResetCommand}"
+                        ToolTip.Tip="{l:Tr ResetToDefaultsTip}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="Restore"/>
+                        <TextBlock Text="{l:Tr ResetToDefaults}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="16,0"
+                            VerticalAlignment="Center" IsVisible="{Binding HasValidationMessage}">
+                    <mi:MaterialIcon Kind="AlertCircleOutline" Foreground="{DynamicResource DangerBrush}"
+                                     VerticalAlignment="Top" Margin="0,1,0,0"/>
+                    <TextBlock Classes="danger" Text="{Binding ValidationMessage}" TextWrapping="Wrap"
+                               MaxWidth="460"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Classes="dialog-actions">
+                    <Button Content="{l:Tr _Cancel}" IsCancel="True" Command="{Binding CancelCommand}"/>
+                    <Button Content="{l:Tr Apply}" Command="{Binding ApplyCommand}"/>
+                    <Button Content="{l:Tr _Ok}" Classes="accent" IsDefault="True" Command="{Binding OkCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>

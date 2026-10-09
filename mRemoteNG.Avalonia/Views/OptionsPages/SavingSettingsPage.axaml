@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.SavingSettingsPage"
+             x:DataType="vm:SavingSettingsViewModel">
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr SavingBackups}" Classes="h1"/>
+            <TextBlock Text="{l:Tr AutomaticSavesOnlyHappenWhenThereAre}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr AutomaticSaving}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr SaveEveryMinutes0Off}">
+                        <NumericUpDown Width="140" FormatString="0" Minimum="0" Maximum="{Binding MaxAutoSaveMinutes}"
+                                       Value="{Binding AutoSaveEveryMinutes}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr SaveConnectionsAfterEveryEdit, English='Save the connections after every change'}">
+                        <CheckBox Classes="switch" IsChecked="{Binding SaveConnectionsOnEdit}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr strBackup, English='Backups'}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr BackUpTheConnectionFile}">
+                        <ComboBox Width="260" ItemsSource="{Binding BackupFrequencies}"
+                                  SelectedItem="{Binding SelectedBackupFrequency}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="nested" Header="{l:Tr NumberOfBackupsToKeep}" IsEnabled="{Binding BackupsEnabled}">
+                        <NumericUpDown Width="140" FormatString="0" Minimum="0" Maximum="{Binding MaxBackups}"
+                                       Value="{Binding BackupKeepCount}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked nested" Header="{l:Tr BackupFolderEmptyNextToTheConnection}"
+                                    IsEnabled="{Binding BackupsEnabled}">
+                        <Grid ColumnDefinitions="*,8,Auto" Margin="20,0,0,0">
+                            <TextBox Classes="mono" Text="{Binding BackupDirectory}"
+                                     Watermark="{l:Tr BackupFolderEmptyNextToTheConnection}"/>
+                            <Button Grid.Column="2" Content="{l:Tr _Browse, English='Browse…'}" Click="OnBrowseFolder"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked nested" Header="{l:Tr BackupFileName}"
+                                    Description="{Binding ExampleBackupName}" IsEnabled="{Binding BackupsEnabled}">
+                        <Grid ColumnDefinitions="*,8,Auto" Margin="20,0,0,0">
+                            <TextBox Classes="mono" Text="{Binding BackupNameFormat}" Watermark="{}{0}.{1:yyyyMMdd-HHmmssffff}.backup"
+                                     ToolTip.Tip="{l:Tr BackupNameFormatTip}"/>
+                            <Button Grid.Column="2" Content="{l:Tr DefaultChoice}" Click="OnResetFormat"/>
+                        </Grid>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,286 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="mRemoteNG.Avalonia.Views.ConnectionTreeView"
+             x:DataType="vm:ConnectionTreeViewModel"
+             Background="{DynamicResource AppBg1Brush}">
+
+    <!-- The connection tree (docs/design-system.md §6 "Lists, tree", §8): 28 px rows (protocol glyph, name with
+         search matches emphasised, open-session dot, protocol label / connect button on hover) and the empty and
+         no-results states. The sidebar header and the search box live in MainWindow.axaml. -->
+    <UserControl.Styles>
+        <Style Selector="TreeViewItem" x:DataType="vm:ConnectionNodeViewModel">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+            <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
+        </Style>
+
+        <!-- Drag & drop: into a folder = accent outline; above a node = accent line on top -->
+        <Style Selector="TreeViewItem.drop-into /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="TreeViewItem.drop-before /template/ Border#PART_LayoutRoot">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="BorderThickness" Value="0,2,0,0"/>
+            <Setter Property="CornerRadius" Value="0"/>
+        </Style>
+
+        <!-- Row content -->
+        <Style Selector="mi|MaterialIcon.node-icon">
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="mi|MaterialIcon.node-icon.folder">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+        </Style>
+        <Style Selector=":is(TextBlock).node-name">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector=":is(TextBlock).node-name.root">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector=":is(TextBlock).node-name.unsupported">
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+        </Style>
+        <Style Selector="ctl|HighlightTextBlock">
+            <Setter Property="HighlightBackground" Value="{DynamicResource AccentSubtleBrush}"/>
+            <Setter Property="HighlightForeground" Value="{DynamicResource TextPrimaryBrush}"/>
+        </Style>
+        <Style Selector="TextBlock.proto-label">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="LetterSpacing" Value="0.3"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+        </Style>
+        <Style Selector="Button.row-connect">
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <Style Selector="Button.row-connect:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+        <!-- Hover: the protocol label makes room for the connect (▶) button -->
+        <Style Selector="Grid.tree-row:pointerover Button.row-connect">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector="Grid.tree-row:pointerover TextBlock.proto-label">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+
+        <!-- In-place rename (F2) -->
+        <Style Selector="TextBox.rename">
+            <Setter Property="MinHeight" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="MinWidth" Value="140"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+        </Style>
+
+        <!-- Empty states (§6): 56 px muted icon, h2 title, caption, actions -->
+        <Style Selector="StackPanel.empty-state">
+            <Setter Property="Spacing" Value="6"/>
+            <Setter Property="Margin" Value="24,0"/>
+            <Setter Property="MaxWidth" Value="260"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="StackPanel.empty-state > mi|MaterialIcon">
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+        </Style>
+        <Style Selector="StackPanel.empty-state > TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid>
+        <TreeView x:Name="Tree"
+                  ItemsSource="{Binding Nodes}"
+                  SelectedItem="{Binding SelectedNode}"
+                  DoubleTapped="OnTreeDoubleTapped"
+                  DragDrop.AllowDrop="True"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+            <TreeView.ContextMenu>
+                <ContextMenu x:Name="TreeMenu">
+                    <MenuItem Header="{l:Tr Connect}" Command="{Binding ConnectSelectedCommand}" InputGesture="Enter">
+                        <MenuItem.Icon><mi:MaterialIcon Kind="Play"/></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem x:Name="ExternalToolsMenuItem" Header="{l:Tr ExternalTools}"/>
+                    <MenuItem Header="{l:Tr ConnectWithOptions}">
+                        <MenuItem Header="{l:Tr ConnectWithOptions, Suffix='...', English='Connect with Options'}" Command="{Binding ConnectWithOptionsCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="{l:Tr ConnectToConsoleSession}" Command="{Binding ConnectWithPresetCommand}"
+                                  CommandParameter="{x:Static vm:ConnectPreset.ConsoleSession}"/>
+                        <MenuItem Header="{l:Tr DontConnectToConsoleSession}" Command="{Binding ConnectWithPresetCommand}"
+                                  CommandParameter="{x:Static vm:ConnectPreset.NoConsoleSession}"/>
+                        <MenuItem Header="{l:Tr ConnectInFullscreen, English='Connect in full screen'}" Command="{Binding ConnectWithPresetCommand}"
+                                  CommandParameter="{x:Static vm:ConnectPreset.Fullscreen}"/>
+                        <MenuItem Header="{l:Tr ConnectNoCredentials}" Command="{Binding ConnectWithPresetCommand}"
+                                  CommandParameter="{x:Static vm:ConnectPreset.NoCredentials}"/>
+                        <MenuItem Header="{l:Tr ChoosePanelBeforeConnecting, Suffix='...'}" Command="{Binding ConnectChoosePanelCommand}"/>
+                        <MenuItem Header="{l:Tr ConnectInViewOnlyMode, English='Connect in view-only mode'}" Command="{Binding ConnectWithPresetCommand}"
+                                  CommandParameter="{x:Static vm:ConnectPreset.ViewOnly}"/>
+                    </MenuItem>
+                    <MenuItem Header="{l:Tr Disconnect}" Command="{Binding DisconnectCommand}"/>
+                    <MenuItem Header="{l:Tr WakeOnLAN}" Command="{Binding WakeOnLanCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="{l:Tr NewConnection, Suffix='...'}" Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N">
+                        <MenuItem.Icon><mi:MaterialIcon Kind="Plus"/></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{l:Tr NewFolder, Suffix='...'}" Command="{Binding NewFolderCommand}">
+                        <MenuItem.Icon><mi:MaterialIcon Kind="FolderPlusOutline"/></MenuItem.Icon>
+                    </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="{l:Tr Properties, Suffix='...'}" Command="{Binding EditSelectedCommand}" InputGesture="Ctrl+E">
+                        <MenuItem.Icon><mi:MaterialIcon Kind="PencilOutline"/></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{l:Tr Rename}" Command="{Binding RenameSelectedCommand}" InputGesture="F2"/>
+                    <MenuItem Header="{l:Tr Duplicate}" Command="{Binding DuplicateSelectedCommand}" InputGesture="Ctrl+D">
+                        <MenuItem.Icon><mi:MaterialIcon Kind="ContentDuplicate"/></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{l:Tr _Delete, Suffix='...'}" Command="{Binding DeleteSelectedCommand}" InputGesture="Delete">
+                        <MenuItem.Icon><mi:MaterialIcon Kind="DeleteOutline"/></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="{l:Tr CopyHostname, English='Copy Host Name'}" Command="{Binding CopyHostnameCommand}" InputGesture="Ctrl+Shift+C"/>
+                    <Separator/>
+                    <MenuItem Header="{l:Tr Cut}" Command="{Binding CutCommand}" InputGesture="Ctrl+X"/>
+                    <MenuItem Header="{l:Tr Paste}" Command="{Binding PasteCommand}" InputGesture="Ctrl+V"/>
+                    <MenuItem Header="{l:Tr MoveUp, English='Move Up'}" Command="{Binding MoveUpCommand}" InputGesture="Ctrl+Up"/>
+                    <MenuItem Header="{l:Tr MoveDown, English='Move Down'}" Command="{Binding MoveDownCommand}" InputGesture="Ctrl+Down"/>
+                    <MenuItem Header="{l:Tr Sort}">
+                        <MenuItem Header="{l:Tr SortAsc}" Command="{Binding SortAscendingCommand}"/>
+                        <MenuItem Header="{l:Tr SortDesc}" Command="{Binding SortDescendingCommand}"/>
+                    </MenuItem>
+                    <MenuItem Header="{l:Tr ExpandAll}" Command="{Binding ExpandAllCommand}"/>
+                    <MenuItem Header="{l:Tr CollapseAll}" Command="{Binding CollapseAllCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="{l:Tr Inheritance}">
+                        <MenuItem Header="{l:Tr ApplyInheritanceToChildren}" Command="{Binding ApplyInheritanceToChildrenCommand}"/>
+                        <MenuItem Header="{l:Tr ApplyDefaultInheritance}" Command="{Binding ApplyDefaultInheritanceCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="{l:Tr DefaultConnectionProperties, Suffix='...'}" Command="{Binding EditDefaultConnectionCommand}"/>
+                    </MenuItem>
+                    <MenuItem Header="{l:Tr RefreshPuTTYSessions}" Command="{Binding RefreshPuttySessionsCommand}"/>
+                    <MenuItem Header="{l:Tr ConnectionFileProperties, Suffix='...'}" Command="{Binding FilePropertiesCommand}"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="vm:ConnectionNodeViewModel">
+                    <Grid Classes="tree-row"
+                          ColumnDefinitions="Auto,*,Auto"
+                          MinHeight="26"
+                          Background="Transparent"
+                          Opacity="{Binding DisplayOpacity}"
+                          ToolTip.Tip="{Binding ToolTip}">
+                        <!-- Glyph: folder (open/closed), root, PuTTY root; connections in their protocol colour -->
+                        <Panel Grid.Column="0" Width="16" Height="16" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <mi:MaterialIcon Classes="node-icon folder" IsVisible="{Binding IsFolder}">
+                                <mi:MaterialIcon.Kind>
+                                    <MultiBinding Converter="{x:Static conv:ConnectionConverters.IconExpanded}">
+                                        <Binding/>
+                                        <Binding Path="IsExpanded"/>
+                                    </MultiBinding>
+                                </mi:MaterialIcon.Kind>
+                            </mi:MaterialIcon>
+                            <mi:MaterialIcon Classes="node-icon" IsVisible="{Binding !IsFolder}"
+                                             Foreground="{Binding Protocol, Converter={x:Static conv:ProtocolConverters.Brush}}">
+                                <mi:MaterialIcon.Kind>
+                                    <!-- The extra values only make the glyph follow icon / protocol changes -->
+                                    <MultiBinding Converter="{x:Static conv:ConnectionConverters.IconExpanded}">
+                                        <Binding/>
+                                        <Binding Path="IconName"/>
+                                        <Binding Path="Protocol"/>
+                                    </MultiBinding>
+                                </mi:MaterialIcon.Kind>
+                            </mi:MaterialIcon>
+                        </Panel>
+
+                        <!-- Name (search matches emphasised), or the in-place editor while renaming (F2) -->
+                        <Panel Grid.Column="1" VerticalAlignment="Center">
+                            <ctl:HighlightTextBlock Classes="node-name"
+                                                    Classes.root="{Binding IsRoot}"
+                                                    Classes.unsupported="{Binding !IsSupported}"
+                                                    Text="{Binding Name}"
+                                                    Highlight="{Binding SearchHighlight}"
+                                                    IsVisible="{Binding !IsEditing}"
+                                                    FontStyle="{Binding IsReadOnly, Converter={x:Static vm:ConnectionTreeConverters.ReadOnlyFontStyle}}"/>
+                            <TextBox Classes="rename"
+                                     Text="{Binding EditName}"
+                                     IsVisible="{Binding IsEditing}"
+                                     KeyDown="OnRenameKeyDown"
+                                     LostFocus="OnRenameLostFocus"
+                                     PropertyChanged="OnRenameBoxPropertyChanged"/>
+                        </Panel>
+
+                        <!-- Open-session dot, then the protocol label (the connect button on hover) -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0"
+                                    VerticalAlignment="Center">
+                            <Border Classes="dot"
+                                    Classes.success="{Binding IsSessionConnected}"
+                                    Classes.warning="{Binding IsSessionBusy}"
+                                    Classes.danger="{Binding IsSessionFailed}"
+                                    IsVisible="{Binding HasOpenSession}"
+                                    ToolTip.Tip="{Binding SessionIndicator, Converter={x:Static vm:ConnectionTreeConverters.SessionIndicatorToolTip}}"/>
+                            <Panel IsVisible="{Binding !IsFolder}" MinWidth="22">
+                                <TextBlock Classes="proto-label" Text="{Binding ProtocolLabel}"/>
+                                <Button Classes="icon row-connect"
+                                        Click="OnRowConnectClick"
+                                        Focusable="False"
+                                        ToolTip.Tip="{l:Tr ConnectRowTip}">
+                                    <mi:MaterialIcon Kind="Play" Width="16" Height="16"/>
+                                </Button>
+                            </Panel>
+                        </StackPanel>
+                    </Grid>
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <!-- Empty tree -->
+        <StackPanel x:Name="EmptyState" Classes="empty-state" IsVisible="{Binding IsTreeEmpty}">
+            <mi:MaterialIcon Kind="ServerNetwork"/>
+            <TextBlock Classes="h2" Text="{l:Tr TreeEmptyTitle}"/>
+            <TextBlock Classes="caption" Text="{l:Tr TreeEmptyText}"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,10,0,0">
+                <Button x:Name="EmptyImportButton" Content="{l:Tr _Import, Suffix='...'}"/>
+                <Button Classes="accent" Content="{l:Tr NewConnection}" Command="{Binding NewConnectionCommand}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Search without results -->
+        <StackPanel x:Name="NoResultsState" Classes="empty-state" IsVisible="{Binding HasNoSearchResults}">
+            <mi:MaterialIcon Kind="MagnifyClose"/>
+            <TextBlock Classes="h2" Text="{l:Tr TreeNoMatchesTitle}"/>
+            <TextBlock Classes="caption" Text="{l:Tr TreeNoMatchesText}"/>
+            <Button HorizontalAlignment="Center" Margin="0,10,0,0" Content="{l:Tr TreeClearSearch}"
+                    Command="{Binding ClearSearchCommand}"/>
+        </StackPanel>
+    </Grid>
+
+</UserControl>

@@ -78,6 +78,32 @@ For a detailed feature list and general usage support, refer to the [Documentati
 
 ## Installation
 
+### Cross-Platform Installation
+
+The cross-platform (Avalonia) app is in development on the `dev` branch of this fork. No packages are
+published to Flatpak, Snap, Homebrew or winget yet; build them with the scripts in `packaging/`, or download
+the artifacts of the nightly workflow.
+
+**Linux**
+```bash
+# AppImage (portable) — packaging/linux/build-appimage.sh
+chmod +x mRemoteNG-*.AppImage && ./mRemoteNG-*.AppImage
+
+# Debian/Ubuntu — packaging/linux/build-deb.sh
+sudo apt install ./mremoteng_*.deb
+```
+
+For RDP install FreeRDP 3 (`sudo apt install freerdp3-x11`); everything else (SSH, SFTP, VNC, Telnet, …) is
+built in.
+
+**macOS** — `packaging/macos/build-dmg.sh` builds a DMG; RDP needs `brew install freerdp`.
+
+**Windows** — the classic WinForms installer below; the cross-platform app runs from
+`dotnet publish mRemoteNG.Avalonia -r win-x64` (RDP needs FreeRDP's `wfreerdp.exe`).
+
+Moving from the Windows app? See the [migration guide](docs/user-migration-guide.md): existing `confCons.xml`
+files, including master passwords, open unchanged.
+
 ### Supported Operating Systems
 
 - [Windows 11](https://en.wikipedia.org/wiki/Windows_11)
@@ -87,11 +113,13 @@ For a detailed feature list and general usage support, refer to the [Documentati
 - [Windows Server 2019](https://en.wikipedia.org/wiki/Windows_Server_2019)
 - [Windows Server 2016](https://en.wikipedia.org/wiki/Windows_Server_2016)
 - [Windows Server 2012 R2](https://en.wikipedia.org/wiki/Windows_Server_2012_R2)
+- Linux (Debian/Ubuntu, Fedora, Arch and derivatives) — x64 and ARM64
+- macOS 12 Monterey and later — Apple Silicon and Intel
 
 #### Source package
 
 This contains the source code from which mRemoteNG is built.
-You will need to compile it yourself using Visual Studio.
+You will need to compile it yourself using Visual Studio or the .NET 10 SDK.
 
 ### Minimum Requirements
 
@@ -106,7 +134,7 @@ Make sure you have the latest version installed:
 
 ### Download
 
-> :star: Starting Windows 11 you can use winget to install mRemoteNG. Just run `winget install -e --id mRemoteNG.mRemoteNG`
+> Starting Windows 11 you can use winget to install mRemoteNG. Just run `winget install -e --id mRemoteNG.mRemoteNG`
 
 mRemoteNG is available as a redistributable MSI package or as a portable ZIP package and can be downloaded from the following locations:
 * [GitHub](https://github.com/mRemoteNG/mRemoteNG/releases)

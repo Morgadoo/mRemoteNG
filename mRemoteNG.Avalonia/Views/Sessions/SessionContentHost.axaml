@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="mRemoteNG.Avalonia.Views.Sessions.SessionContentHost"
+             x:DataType="dock:SessionTabViewModel">
+
+    <!-- ConnectionFrameColor: coloured border around the session (legacy InterfaceControl). -->
+    <Border x:Name="Frame"
+            BorderBrush="{Binding FrameBrush}"
+            BorderThickness="{Binding FrameThickness}"
+            Padding="{Binding FramePadding}">
+        <DockPanel>
+            <!-- Connection state / auto-reconnect banner (calm, inline: icon, message, action) -->
+            <Border x:Name="StatusBanner"
+                    DockPanel.Dock="Top"
+                    Classes="session-banner"
+                    Classes.error="{Binding IsBannerError}"
+                    Classes.reconnecting="{Binding IsBannerReconnecting}"
+                    IsVisible="{Binding ShowStatusBanner}">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Panel Grid.Column="0" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <mi:MaterialIcon Classes="banner-icon" Kind="AlertCircleOutline"
+                                         Foreground="{DynamicResource DangerBrush}" IsVisible="{Binding IsBannerError}"/>
+                        <mi:MaterialIcon Classes="banner-icon" Kind="Autorenew"
+                                         Foreground="{DynamicResource WarningBrush}" IsVisible="{Binding IsBannerReconnecting}"/>
+                        <mi:MaterialIcon Classes="banner-icon" Kind="LanDisconnect"
+                                         Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding IsBannerDisconnected}"/>
+                    </Panel>
+                    <WrapPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Classes="banner-title" Text="{Binding StatusBannerTitle}" Margin="0,0,10,0"/>
+                        <TextBlock Classes="secondary" Text="{Binding StatusBannerDetail}" TextWrapping="Wrap"
+                                   VerticalAlignment="Center" IsVisible="{Binding HasStatusBannerDetail}"/>
+                    </WrapPanel>
+                    <Button Grid.Column="2" x:Name="ReconnectButton" Margin="10,0,0,0" Padding="10,4"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <mi:MaterialIcon Kind="Refresh"/>
+                            <TextBlock Text="{l:Tr Reconnect}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <Grid>
+                <!-- Shown instead of the session: full screen elsewhere, or running in its own window -->
+                <StackPanel x:Name="PlaceholderPanel" Classes="session-empty" IsVisible="False">
+                    <mi:MaterialIcon x:Name="PlaceholderIcon" Kind="Fullscreen"/>
+                    <TextBlock x:Name="Placeholder" Classes="secondary" FontSize="14"/>
+                </StackPanel>
+                <Border x:Name="ViewHost"/>
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

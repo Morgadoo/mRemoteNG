@@ -7,8 +7,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFramework Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetFramework Condition="'$([MSBuild]::IsOSPlatform(Windows))' != 'true'">net10.0</TargetFramework>
+    <UseWindowsForms Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">true</UseWindowsForms>
     <TransformOnBuild>true</TransformOnBuild>
     <TransformOutOfDateOnly>false</TransformOutOfDateOnly>
     <OverwriteReadOnlyOutputFiles>true</OverwriteReadOnlyOutputFiles>
@@ -24,8 +25,8 @@
     <LangVersion>latest</LangVersion>
     <PackageIcon>Header_dark.png</PackageIcon>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <UseWPF>True</UseWPF>
-    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">True</UseWPF>
+    <SupportedOSPlatformVersion Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">10.0.17763.0</SupportedOSPlatformVersion>
     <SignAssembly>False</SignAssembly>
     <Title>Multi-Remote Next Generation Connection Manager</Title>
     <RepositoryUrl>https://github.com/mRemoteNG/mRemoteNG.git</RepositoryUrl>
@@ -112,7 +113,7 @@
     <None Remove="buildenv.tmp" />
     <None Remove="UI\Font\HandelGotDBol.ttf" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">
     <COMReference Include="MSTSCLib">
       <WrapperTool>aximp</WrapperTool>
       <VersionMinor>0</VersionMinor>
@@ -133,11 +134,8 @@
     <PackageReference Include="Google.Protobuf" />
     <PackageReference Include="LiteDB" />
     <PackageReference Include="log4net" />
-    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
-    <PackageReference Include="Microsoft.Web.WebView2" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
     <PackageReference Include="MySql.Data" />
     <PackageReference Include="System.Data.Odbc" />
     <PackageReference Include="Newtonsoft.Json" />
@@ -146,9 +144,14 @@
     <PackageReference Include="Renci.SshNet.Async" />
     <PackageReference Include="ReportGenerator" />
     <PackageReference Include="SSH.NET" />
-    <PackageReference Include="System.Management" />
     <PackageReference Include="VncSharpCore" />
     <PackageReference Include="ZstdSharp.Port" />
+  </ItemGroup>
+  <ItemGroup Condition="'$([MSBuild]::IsOSPlatform(Windows))' == 'true'">
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" />
+    <PackageReference Include="Microsoft.Web.WebView2" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" />
+    <PackageReference Include="System.Management" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Language\Language.Designer.cs">
@@ -533,6 +536,8 @@
   <ItemGroup>
     <ProjectReference Include="..\ExternalConnectors\ExternalConnectors.csproj" />
     <ProjectReference Include="..\ObjectListView\ObjectListView.NetCore.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="UI\Font\HandelGotDBol.ttf">
@@ -594,5 +599,5 @@
     <RemoveDir Directories="$(TempBuildDir)" />
     <RemoveDir Directories="$(ProjectDir)bin\x64\Release Self-Contained" />
   </Target>
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v18.0\TextTemplating\Microsoft.TextTemplating.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v18.0\TextTemplating\Microsoft.TextTemplating.targets" Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v18.0\TextTemplating\Microsoft.TextTemplating.targets')" />
 </Project>

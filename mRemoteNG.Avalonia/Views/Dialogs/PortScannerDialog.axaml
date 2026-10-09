@@ -1,0 +1,141 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+        xmlns:proto="using:mRemoteNG.Core.Connection.Protocol"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.PortScannerDialog"
+        x:DataType="vm:PortScannerViewModel"
+        Classes="dialog"
+        Title="{l:Tr PortScan, English='Port Scanner'}"
+        Width="1120"
+        Height="700"
+        MinWidth="820"
+        MinHeight="520"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="DataGrid#ResultsGrid DataGridCell.mark">
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="DataGrid#ResultsGrid DataGridColumnHeader">
+            <Setter Property="Padding" Value="10,0,4,0"/>
+        </Style>
+        <Style Selector="DataGrid#ResultsGrid DataGridCell.mono">
+            <Setter Property="FontFamily" Value="{DynamicResource MonoFontFamily}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <ctl:DialogHeader Icon="Radar" Title="{l:Tr PortScan, English='Port Scanner'}"
+                          Subtitle="{l:Tr PortScannerSubtitle}"/>
+
+        <!-- Target -->
+        <Border Grid.Row="1" Classes="card" Margin="24,20,24,16">
+            <Grid ColumnDefinitions="*,16,Auto,16,Auto" RowDefinitions="Auto,Auto,16,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="field-label" Text="{l:Tr Hosts}"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Classes="field-label" Text="{l:Tr TimeoutMs}"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Classes="field-label" Text="{l:Tr Parallel}"/>
+                <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="3*,12,2*,8,Auto">
+                    <TextBox x:Name="HostsBox" Classes="mono" Text="{Binding Hosts}"
+                             Watermark="192.168.1.0/24, 10.0.0.1-50, server.example.com"/>
+                    <TextBox Grid.Column="2" x:Name="PortsBox" Classes="mono" Text="{Binding Ports}"
+                             Watermark="22, 80, 443, 5900-5910" ToolTip.Tip="{l:Tr Ports}"/>
+                    <Button Grid.Column="4" Content="{l:Tr DefaultPorts}" Command="{Binding DefaultPortsCommand}"/>
+                </Grid>
+                <NumericUpDown Grid.Row="1" Grid.Column="2" Width="130" Value="{Binding TimeoutMs}" FormatString="0"
+                               Minimum="50" Maximum="30000" Increment="100"/>
+                <NumericUpDown Grid.Row="1" Grid.Column="4" Width="120" Value="{Binding Parallelism}" FormatString="0"
+                               Minimum="1" Maximum="1024" Increment="8"/>
+
+                <Grid Grid.Row="3" Grid.ColumnSpan="5" ColumnDefinitions="*,Auto">
+                    <StackPanel Orientation="Horizontal" Spacing="24">
+                        <CheckBox Classes="switch" Content="{l:Tr IdentifyServicesBanners}" IsChecked="{Binding DetectServices}"/>
+                        <CheckBox Classes="switch" Content="{l:Tr ResolveHostNames}" IsChecked="{Binding ResolveHostNames}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="StopButton" Command="{Binding StopCommand}" MinWidth="88">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <mi:MaterialIcon Kind="Stop"/>
+                                <TextBlock Text="{l:Tr _Stop}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="StartButton" Classes="accent" Command="{Binding StartCommand}" IsDefault="True" MinWidth="110">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <mi:MaterialIcon Kind="Play"/>
+                                <TextBlock Text="{l:Tr StartScan}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Results with inline progress -->
+        <Grid Grid.Row="2" Margin="24,0,24,20" RowDefinitions="Auto,8,*">
+            <Grid ColumnDefinitions="Auto,16,*">
+                <TextBlock Classes="h2" Text="{l:Tr HostsWithOpenPorts}" VerticalAlignment="Center"/>
+                <Grid Grid.Column="2" ColumnDefinitions="*,12,200" VerticalAlignment="Center">
+                    <TextBlock x:Name="StatusLine" Classes="caption" Text="{Binding StatusText}" HorizontalAlignment="Right"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <ProgressBar Grid.Column="2" Minimum="0" Maximum="100" Value="{Binding ScanProgress}"
+                                 IsVisible="{Binding IsScanning}" VerticalAlignment="Center"/>
+                </Grid>
+            </Grid>
+            <DataGrid Grid.Row="2" x:Name="ResultsGrid"
+                      ItemsSource="{Binding Results}"
+                      AutoGenerateColumns="False"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="True">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected}" Width="44"/>
+                    <DataGridTextColumn Header="{l:Tr Host}" Binding="{Binding HostName}" Width="1.2*" MinWidth="140" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="{l:Tr AddressColumn}" Binding="{Binding Address}" Width="128" IsReadOnly="True" CellStyleClasses="mono"/>
+                    <DataGridTextColumn Header="SSH" Binding="{Binding Ssh}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="Telnet" Binding="{Binding Telnet}" Width="90" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="HTTP" Binding="{Binding Http}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="HTTPS" Binding="{Binding Https}" Width="90" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="rlogin" Binding="{Binding Rlogin}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="RDP" Binding="{Binding Rdp}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="VNC" Binding="{Binding Vnc}" Width="80" IsReadOnly="True" CellStyleClasses="mark"/>
+                    <DataGridTextColumn Header="{l:Tr OpenPorts, English='Open ports'}" Binding="{Binding OpenPorts}" Width="*" MinWidth="140"
+                                        IsReadOnly="True" CellStyleClasses="mono"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- Footer: import the checked hosts, close -->
+        <Border Grid.Row="3" Classes="dialog-footer">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanImport}" VerticalAlignment="Center">
+                    <TextBlock Text="{l:Tr ImportCheckedHostsAs}" Classes="secondary" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="ImportProtocolBox" ItemsSource="{Binding ImportProtocols}" SelectedItem="{Binding ImportProtocol}" MinWidth="140">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="proto:ProtocolType">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="{Binding Converter={x:Static conv:ProtocolConverters.Icon}}"
+                                                     Foreground="{Binding Converter={x:Static conv:ProtocolConverters.Brush}}"/>
+                                    <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="ImportButton" Command="{Binding ImportCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="DatabaseImportOutline"/>
+                            <TextBlock Text="{l:Tr ImportIntoTree}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Classes="dialog-actions">
+                    <Button x:Name="CloseButton" Content="{l:Tr _Close}" IsCancel="True"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

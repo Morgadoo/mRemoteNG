@@ -1,5 +1,6 @@
 using System.IO;
 using System.Xml;
+using mRemoteNG.Platform.Security;
 
 namespace mRemoteNG.Security
 {
@@ -8,6 +9,13 @@ namespace mRemoteNG.Security
     /// </summary>
     public static class SecureXmlHelper
     {
+        /// <summary>
+        /// Optional crypto provider for encrypt/decrypt operations on XML content.
+        /// When set, callers may use <see cref="ICryptoProvider.Protect"/> and
+        /// <see cref="ICryptoProvider.Unprotect"/> through this shared entry point.
+        /// </summary>
+        public static ICryptoProvider? CryptoProvider { get; set; }
+
         /// <summary>
         /// Creates an XmlDocument with secure settings that prevent XXE attacks
         /// </summary>

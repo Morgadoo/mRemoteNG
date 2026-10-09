@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        xmlns:dlg="using:mRemoteNG.Avalonia.Views.Dialogs"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.ImportDialog"
+        Classes="dialog"
+        Title="{l:Tr ImportConnections}"
+        Width="760"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <ctl:DialogHeader Icon="DatabaseImportOutline" Title="{l:Tr ImportConnections}"
+                          Subtitle="{l:Tr ImportDialogSubtitle}"/>
+
+        <StackPanel Grid.Row="1" Margin="24,20,24,24" Spacing="16">
+            <StackPanel Spacing="8">
+                <TextBlock Classes="field-label" Margin="0" Text="{l:Tr Source}"/>
+                <ListBox x:Name="SourceTypeBox" Classes="cards" Margin="0,0,-8,-8">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="dlg:ImportSourceCard">
+                            <Grid ColumnDefinitions="Auto,10,*,Auto" Height="36">
+                                <Border Classes="icon-tile neutral" Width="32" Height="32" CornerRadius="6">
+                                    <mi:MaterialIcon Kind="{Binding Icon}" Width="18" Height="18"/>
+                                </Border>
+                                <TextBlock Grid.Column="2" Text="{Binding Descriptor.DisplayName}" TextWrapping="Wrap"
+                                           MaxLines="2" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                           ToolTip.Tip="{Binding Descriptor.DisplayName}"/>
+                                <mi:MaterialIcon Grid.Column="3" Classes="card-check" Kind="CheckCircle" Margin="6,0,0,0"
+                                                 VerticalAlignment="Top"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Classes="stacked" x:Name="FileRow" Header="{l:Tr FileToImport}">
+                        <StackPanel Spacing="6">
+                            <Grid ColumnDefinitions="*,8,Auto">
+                                <TextBox Grid.Column="0" x:Name="FilePathBox" Classes="mono"
+                                         Watermark="{l:Tr SelectAFileToImport, Suffix='...'}"/>
+                                <Button Grid.Column="2" Content="{l:Tr _Browse}" x:Name="BrowseButton"/>
+                            </Grid>
+                            <TextBlock x:Name="SourceHintText" Classes="caption" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ImportInto}">
+                        <ComboBox x:Name="TargetFolderBox" Width="280"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="ErrorPanel" Classes="callout danger" IsVisible="False">
+                <Grid ColumnDefinitions="Auto,*">
+                    <mi:MaterialIcon Classes="callout-icon" Kind="AlertCircleOutline"/>
+                    <TextBlock Grid.Column="1" x:Name="ErrorText" TextWrapping="Wrap"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <StackPanel Classes="dialog-actions">
+                <Button Content="{l:Tr _Cancel}" x:Name="CancelButton" IsCancel="True"/>
+                <Button Content="{l:Tr _Import}" Classes="accent" x:Name="ImportButton" IsDefault="True"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

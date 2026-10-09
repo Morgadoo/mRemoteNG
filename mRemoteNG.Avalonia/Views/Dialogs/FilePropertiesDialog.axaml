@@ -1,0 +1,127 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.FilePropertiesDialog"
+        x:DataType="vm:FilePropertiesViewModel"
+        Classes="dialog"
+        Title="{Binding FileName, StringFormat={l:Tr ConnectionFilePropertiesTitleFormat}}"
+        Width="640"
+        SizeToContent="Height"
+        MaxHeight="820"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="Border.state">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{DynamicResource WarningTintBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource WarningBrush}"/>
+        </Style>
+        <Style Selector="Border.state.on">
+            <Setter Property="Background" Value="{DynamicResource SuccessTintBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource SuccessBrush}"/>
+        </Style>
+        <Style Selector="Border.state mi|MaterialIcon">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <ctl:DialogHeader Icon="FileLockOutline" Title="{l:Tr ConnectionFilePropertiesHeading}"
+                          Subtitle="{Binding FileName}"/>
+
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="24,20,24,24" Spacing="24">
+                <Border Classes="settings">
+                    <ctl:SettingRow Header="{l:Tr RootName}">
+                        <TextBox x:Name="RootNameBox" Width="280" Text="{Binding RootName}"/>
+                    </ctl:SettingRow>
+                </Border>
+
+                <!-- Master password -->
+                <StackPanel Classes="settings-group">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Classes="h2" Text="{l:Tr MasterPassword}" VerticalAlignment="Center"/>
+                        <Border Grid.Column="1" Classes="state" Classes.on="{Binding UsePassword}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Panel>
+                                    <mi:MaterialIcon Kind="LockOutline" IsVisible="{Binding UsePassword}"/>
+                                    <mi:MaterialIcon Kind="LockOpenVariantOutline" IsVisible="{Binding !UsePassword}"/>
+                                </Panel>
+                                <TextBlock FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                                           Text="{l:Tr PasswordProtected}" IsVisible="{Binding UsePassword}"/>
+                                <TextBlock FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                                           Text="{l:Tr NotPasswordProtected}" IsVisible="{Binding !UsePassword}"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    <Border Classes="settings">
+                        <StackPanel>
+                            <ctl:SettingRow Header="{l:Tr ProtectThisFileWithAMasterPassword}" Description="{Binding PasswordStatus}">
+                                <CheckBox x:Name="UsePasswordBox" Classes="switch" IsChecked="{Binding UsePassword}"/>
+                            </ctl:SettingRow>
+                            <ctl:SettingRow Classes="nested" Header="{l:Tr ChangeTheMasterPassword}" IsVisible="{Binding CanChangePassword}">
+                                <CheckBox x:Name="ChangePasswordBox" Classes="switch" IsChecked="{Binding ChangePassword}"/>
+                            </ctl:SettingRow>
+                            <ctl:SettingRow Classes="nested" Header="{l:Tr CurrentPassword}" IsVisible="{Binding NeedsCurrentPassword}">
+                                <TextBox x:Name="CurrentPasswordBox" Width="280" PasswordChar="●" Text="{Binding CurrentPassword}"/>
+                            </ctl:SettingRow>
+                            <ctl:SettingRow Classes="nested" Header="{l:Tr NewPassword}" IsVisible="{Binding NeedsNewPassword}">
+                                <TextBox x:Name="NewPasswordBox" Width="280" PasswordChar="●" Text="{Binding NewPassword}"/>
+                            </ctl:SettingRow>
+                            <ctl:SettingRow Classes="nested" Header="{l:Tr ConfirmPassword}" IsVisible="{Binding NeedsNewPassword}">
+                                <TextBox x:Name="ConfirmPasswordBox" Width="280" PasswordChar="●" Text="{Binding ConfirmPassword}"/>
+                            </ctl:SettingRow>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Encryption -->
+                <StackPanel Classes="settings-group">
+                    <TextBlock Classes="h2" Text="{l:Tr Encryption}"/>
+                    <Border Classes="settings">
+                        <StackPanel>
+                            <ctl:SettingRow Header="{l:Tr CipherEngine}">
+                                <ComboBox x:Name="EngineBox" Width="220" ItemsSource="{Binding Engines}" SelectedItem="{Binding Engine}"/>
+                            </ctl:SettingRow>
+                            <ctl:SettingRow Header="{l:Tr EncryptionBlockCipherMode, English='Block cipher mode'}">
+                                <ComboBox x:Name="ModeBox" Width="220" ItemsSource="{Binding Modes}" SelectedItem="{Binding Mode}"/>
+                            </ctl:SettingRow>
+                            <ctl:SettingRow Header="{l:Tr EncryptionKeyDerivationIterations, English='Key derivation iterations'}">
+                                <NumericUpDown x:Name="IterationsBox" Width="220"
+                                               Value="{Binding KeyDerivationIterations}" Minimum="{Binding MinIterations}"
+                                               Maximum="{Binding MaxIterations}" Increment="1000" FormatString="0"/>
+                            </ctl:SettingRow>
+                            <ctl:SettingRow Header="{l:Tr EncryptTheCompleteFile}">
+                                <CheckBox x:Name="FullFileBox" Classes="switch" IsChecked="{Binding FullFileEncryption}"/>
+                            </ctl:SettingRow>
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Classes="caption" Text="{l:Tr ChangesAreWrittenTheNextTimeThe}" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <Border Classes="callout danger"
+                        IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <mi:MaterialIcon Classes="callout-icon" Kind="AlertCircleOutline"/>
+                        <TextBlock Grid.Column="1" x:Name="ErrorTextBlock" Text="{Binding ErrorText}" TextWrapping="Wrap"
+                                   IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <StackPanel Classes="dialog-actions">
+                <Button Content="{l:Tr _Cancel}" IsCancel="True" Command="{Binding CancelCommand}"/>
+                <Button x:Name="OkButton" Content="{l:Tr _Ok}" Classes="accent" IsDefault="True" Command="{Binding OkCommand}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

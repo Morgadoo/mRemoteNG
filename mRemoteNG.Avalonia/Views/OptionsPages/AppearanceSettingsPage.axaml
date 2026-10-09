@@ -1,0 +1,126 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.AppearanceSettingsPage"
+             x:DataType="vm:AppearanceSettingsViewModel">
+
+    <UserControl.Resources>
+        <!-- A miniature window in the theme's colours: sidebar, tab strip, accent button, text lines -->
+        <DataTemplate x:Key="ThemeMiniature" x:DataType="vm:ThemePreview">
+            <Border Background="{Binding Background}" ClipToBounds="True">
+                <Grid ColumnDefinitions="34,*">
+                    <Border Background="{Binding Surface}" BorderBrush="{Binding Border}" BorderThickness="0,0,1,0">
+                        <StackPanel Margin="6,8" Spacing="5">
+                            <Border Height="4" CornerRadius="2" Background="{Binding Muted}" Width="18" HorizontalAlignment="Left"/>
+                            <Border Height="6" CornerRadius="2" Background="{Binding Accent}" Opacity="0.85"/>
+                            <Border Height="4" CornerRadius="2" Background="{Binding Muted}"/>
+                            <Border Height="4" CornerRadius="2" Background="{Binding Muted}" Width="16" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="8,8,8,0" Spacing="6">
+                        <Border Height="10" CornerRadius="3" Background="{Binding Raised}" BorderBrush="{Binding Border}" BorderThickness="1"/>
+                        <Border Height="4" CornerRadius="2" Background="{Binding Text}" Width="52" HorizontalAlignment="Left"/>
+                        <Border Height="4" CornerRadius="2" Background="{Binding Muted}" Width="70" HorizontalAlignment="Left"/>
+                        <Border Height="10" CornerRadius="3" Background="{Binding Accent}" Width="28" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr Appearance}" Classes="h1"/>
+            <TextBlock Text="{l:Tr AppearancePageDescription}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Theme}" Classes="h2"/>
+            <ListBox x:Name="ThemeCards" Classes="cards" ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}"
+                     AutomationProperties.Name="{l:Tr ColorTheme}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ThemeChoice">
+                        <StackPanel Width="152" Spacing="10">
+                            <Border Height="84" CornerRadius="6" ClipToBounds="True"
+                                    BorderBrush="{DynamicResource Border0Brush}" BorderThickness="1">
+                                <Grid ColumnDefinitions="*,*">
+                                    <ContentControl Grid.ColumnSpan="2" Content="{Binding Preview}"
+                                                    ContentTemplate="{StaticResource ThemeMiniature}"
+                                                    IsVisible="{Binding !IsSplit}"/>
+                                    <ContentControl Content="{Binding Preview}" ContentTemplate="{StaticResource ThemeMiniature}"
+                                                    IsVisible="{Binding IsSplit}"/>
+                                    <ContentControl Grid.Column="1" Content="{Binding AlternatePreview}"
+                                                    ContentTemplate="{StaticResource ThemeMiniature}"
+                                                    IsVisible="{Binding IsSplit}"/>
+                                </Grid>
+                            </Border>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" ToolTip.Tip="{Binding DisplayName}"/>
+                                <mi:MaterialIcon Grid.Column="1" Classes="card-check" Kind="CheckCircle"/>
+                            </Grid>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Border Classes="settings">
+                <ctl:SettingRow Header="{l:Tr ThemeEditorButton}" Description="{l:Tr CopyAThemeChangeItsColoursAnd}">
+                    <Button Click="OnOpenThemeEditor">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <mi:MaterialIcon Kind="PaletteSwatchOutline"/>
+                            <TextBlock Text="{l:Tr ThemeEditorButton, Suffix='…'}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </ctl:SettingRow>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr LanguageString}" Classes="h2"/>
+            <Border Classes="settings">
+                <ctl:SettingRow Header="{l:Tr UserInterfaceLanguage}" Description="{Binding LanguageRestartNote}">
+                    <ComboBox x:Name="LanguageCombo" Width="260"
+                              ItemsSource="{Binding Languages}"
+                              SelectedItem="{Binding SelectedLanguage}"/>
+                </ctl:SettingRow>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Font}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr FontFamily}" Description="{l:Tr FontFamilyDescription}">
+                        <TextBox Width="260" Text="{Binding FontFamily}" Watermark="{l:Tr ThemeDefault}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr FontSize}">
+                        <NumericUpDown Width="140" Value="{Binding FontSize}"
+                                       Minimum="8" Maximum="32" Increment="1" FormatString="0.#"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr Layout}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr ShowToolbar}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowToolbar}"/>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Header="{l:Tr ShowStatusBar}">
+                        <CheckBox Classes="switch" IsChecked="{Binding ShowStatusBar}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

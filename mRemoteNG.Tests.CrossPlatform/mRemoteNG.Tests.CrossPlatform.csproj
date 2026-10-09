@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>mRemoteNG.Tests.CrossPlatform</RootNamespace>
+    <Description>Cross-platform unit and integration tests for mRemoteNG Platform and Protocol layers</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Xunit.SkippableFact" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Protocols\mRemoteNG.Protocols.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
+    <ProjectReference Include="..\mRemoteNG.ExternalProviders\mRemoteNG.ExternalProviders.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Platform.Linux\mRemoteNG.Platform.Linux.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Platform.Mac\mRemoteNG.Platform.Mac.csproj" />
+  </ItemGroup>
+
+  <!-- Legacy sample connection files shared with the WinForms test suite -->
+  <ItemGroup>
+    <None Include="..\mRemoteNGTests\Resources\confCons_*.xml" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\mRemoteNGTests\Resources\test_rdcman_*.rdg" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\mRemoteNGTests\Resources\test_remotedesktopconnection.rdp" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\mRemoteNGTests\Resources\test_securecrt.xml" Link="Resources\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Import fixtures created for the cross-platform importers -->
+  <ItemGroup>
+    <None Include="Resources\Import\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Resources\Sql\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

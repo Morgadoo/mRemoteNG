@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:svc="using:mRemoteNG.Avalonia.Services"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.ThemeEditorDialog"
+        x:DataType="vm:ThemeEditorViewModel"
+        Classes="dialog"
+        Title="{l:Tr ThemeEditor}"
+        Width="680" Height="720" MinWidth="520" MinHeight="460"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <ctl:DialogHeader Icon="PaletteSwatchOutline" Title="{l:Tr ThemeEditor}"
+                          Subtitle="{l:Tr ColoursChangeEverywhereAsYouTypeRrggbb}"/>
+
+        <Border Grid.Row="1" Classes="settings" Margin="24,20,24,16">
+            <StackPanel>
+                <ctl:SettingRow Header="{l:Tr StartFrom}">
+                    <ComboBox x:Name="BaseCombo" Width="260" ItemsSource="{Binding AllThemes}" SelectedItem="{Binding BaseTheme}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="svc:ThemeDefinition">
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </ctl:SettingRow>
+                <ctl:SettingRow Header="{l:Tr SaveAs}">
+                    <TextBox x:Name="NameBox" Width="260" Text="{Binding Name}" Watermark="{l:Tr NameOfYourTheme}"/>
+                </ctl:SettingRow>
+            </StackPanel>
+        </Border>
+
+        <!-- Palette: swatch, key + description, hex value -->
+        <Border Grid.Row="2" Classes="card" Padding="0" Margin="24,0,24,20">
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Colors}" Margin="16,4">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ThemeColorEntry">
+                            <Border BorderBrush="{DynamicResource Border0Brush}" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="Auto,12,*,12,120">
+                                    <Border Width="32" Height="32" CornerRadius="6" BorderThickness="1"
+                                            BorderBrush="{DynamicResource Border1Brush}" Background="{Binding Swatch}"/>
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="{Binding Key}" FontWeight="Medium"/>
+                                        <TextBlock Text="{Binding Description}" Classes="caption" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                    <TextBox Grid.Column="4" Classes="mono" Text="{Binding Value}"
+                                             Classes.error="{Binding !IsValid}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <Border Grid.Row="3" Classes="dialog-footer">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Classes="danger" Command="{Binding DeleteCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="TrashCanOutline"/>
+                        <TextBlock Text="{l:Tr DeleteTheme}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Grid.Column="1" Text="{Binding Status}" Classes="caption" TextWrapping="Wrap"
+                           VerticalAlignment="Center" Margin="16,0"/>
+                <StackPanel Grid.Column="2" Classes="dialog-actions">
+                    <Button Content="{l:Tr _Close}" IsCancel="True" Click="OnClose"/>
+                    <Button Content="{l:Tr SaveAndApply}" Classes="accent" IsDefault="True" Click="OnSave"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

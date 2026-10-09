@@ -1,0 +1,41 @@
+# Code style for the cross-platform projects (mRemoteNG.Core, .Platform*, .Protocols, .Avalonia,
+# .ExternalProviders and their tests). The legacy WinForms app has its own mRemoteNG/.editorconfig
+# (root = true), so nothing here applies to it.
+# CI checks whitespace formatting with `dotnet format whitespace --verify-no-changes`.
+root = true
+
+[*]
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{cs,csx}]
+indent_size = 4
+
+[*.{axaml,xaml,xml,csproj,props,targets,resx}]
+indent_size = 4
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+# Braces on their own line (Allman), as in the WinForms app.
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+
+# `case X: { ... }` keeps the block at the case label's body indentation.
+csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = false
+csharp_indent_switch_labels = true
+
+# Usings: System first, no `this.` qualification.
+dotnet_sort_system_directives_first = true
+dotnet_style_qualification_for_field = false:silent
+dotnet_style_qualification_for_property = false:silent
+dotnet_style_qualification_for_method = false:silent
+dotnet_style_qualification_for_event = false:silent

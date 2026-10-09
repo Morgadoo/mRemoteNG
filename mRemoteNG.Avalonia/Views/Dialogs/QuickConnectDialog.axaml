@@ -1,0 +1,69 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:conv="using:mRemoteNG.Avalonia.Converters"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        xmlns:proto="using:mRemoteNG.Core.Connection.Protocol"
+        x:Class="mRemoteNG.Avalonia.Views.Dialogs.QuickConnectDialog"
+        x:DataType="vm:QuickConnectViewModel"
+        Classes="dialog"
+        Title="{l:Tr QuickConnect}"
+        Width="480"
+        SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,Auto">
+        <ctl:DialogHeader Icon="LightningBoltOutline"
+                          Title="{l:Tr QuickConnect}"
+                          Subtitle="{l:Tr QuickConnectSubtitle}"/>
+
+        <StackPanel Grid.Row="1" Margin="24,20,24,24" Spacing="16">
+            <Grid ColumnDefinitions="*,12,160">
+                <StackPanel>
+                    <TextBlock Classes="field-label" Text="{l:Tr HostnameLabel}"/>
+                    <TextBox x:Name="HostnameBox" Classes="mono"
+                             Text="{Binding Hostname}"
+                             Watermark="{l:Tr HostOrIPPort}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Classes="field-label" Text="{l:Tr Protocol}"/>
+                    <ComboBox HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Protocols}"
+                              SelectedItem="{Binding SelectedProtocol}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="proto:ProtocolType">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="{Binding Converter={x:Static conv:ProtocolConverters.Icon}}"
+                                                     Foreground="{Binding Converter={x:Static conv:ProtocolConverters.Brush}}"/>
+                                    <TextBlock Text="{Binding Converter={x:Static vm:EnumLabelConverter.Instance}}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,12,*">
+                <StackPanel>
+                    <TextBlock Classes="field-label" Text="{l:Tr Username}"/>
+                    <TextBox Text="{Binding Username}" Watermark="{l:Tr OptionalInParentheses}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Classes="field-label" Text="{l:Tr Password}"/>
+                    <TextBox Text="{Binding Password}" PasswordChar="●" Watermark="{l:Tr OptionalInParentheses}"/>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <StackPanel Classes="dialog-actions">
+                <Button x:Name="CancelBtn" Content="{l:Tr _Cancel}" IsCancel="True"/>
+                <Button Content="{l:Tr Connect}" Classes="accent" IsDefault="True" Command="{Binding ConnectCommand}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

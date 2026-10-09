@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>mRemoteNG.Avalonia</RootNamespace>
+    <AssemblyName>mRemoteNG.Avalonia</AssemblyName>
+    <Description>mRemoteNG — Cross-platform Avalonia UI</Description>
+    <Version>1.78.2-dev</Version>
+    <!-- Avalonia uses its own designer -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core Avalonia packages -->
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.ReactiveUI" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+
+    <!-- MVVM -->
+    <PackageReference Include="ReactiveUI" />
+    <PackageReference Include="ReactiveUI.Fody" />
+
+    <!-- Docking layout (cross-platform DockPanelSuite replacement) -->
+    <PackageReference Include="Dock.Model.Mvvm" />
+
+    <!-- DI -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+
+    <!-- Icons -->
+    <PackageReference Include="Material.Icons.Avalonia" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Protocols\mRemoteNG.Protocols.csproj" />
+    <ProjectReference Include="..\mRemoteNG.ExternalProviders\mRemoteNG.ExternalProviders.csproj" />
+    <!-- Linux/macOS platform services are plain net10.0 and are referenced directly so they are
+         always deployed next to the app; PlatformServiceFactory still selects one at runtime. -->
+    <ProjectReference Include="..\mRemoteNG.Platform.Linux\mRemoteNG.Platform.Linux.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Platform.Mac\mRemoteNG.Platform.Mac.csproj" />
+  </ItemGroup>
+
+  <!-- Windows platform services target net10.0-windows, so they can't be a normal reference of this
+       net10.0 app. Build them as a dependency (restore included) and deploy the DLL as content for
+       PlatformServiceFactory's Assembly.Load(). Only for Windows targets: a win-* RID, or a plain
+       build on a Windows host. -->
+  <PropertyGroup>
+    <_IncludeWindowsPlatform Condition="$(RuntimeIdentifier.StartsWith('win'))">true</_IncludeWindowsPlatform>
+    <_IncludeWindowsPlatform Condition="'$(RuntimeIdentifier)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">true</_IncludeWindowsPlatform>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(_IncludeWindowsPlatform)' == 'true'">
+    <ProjectReference Include="..\mRemoteNG.Platform.Windows\mRemoteNG.Platform.Windows.csproj"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=net10.0-windows10.0.17763.0"
+                      OutputItemType="Content"
+                      CopyToOutputDirectory="PreserveNewest"
+                      CopyToPublishDirectory="PreserveNewest" />
+    <!-- Runtime dependency of the Windows platform assembly (DPAPI); not flowed by the reference above. -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+
+  <!-- Avalonia assets (icons, themes) embedded as resources -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+    <AvaloniaResource Include="Themes/**" />
+  </ItemGroup>
+
+  <!-- Ensure AXAML code-behind files compile correctly -->
+  <ItemGroup>
+    <Compile Update="Views/**/*.axaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

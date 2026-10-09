@@ -1,0 +1,3 @@
+HostName=rawhost
+PortNumber=0
+Protocol=raw

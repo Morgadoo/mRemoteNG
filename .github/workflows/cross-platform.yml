@@ -1,0 +1,316 @@
+name: Cross-Platform Build & Test
+
+on:
+  push:
+    branches:
+      - 'claude/**'
+      - 'main'
+      - 'dev'
+      - 'develop'
+      - 'v1.78.2-dev'
+  # Every pull request, whatever its base (PRs into the default branch v1.78.2-dev included).
+  pull_request:
+  workflow_dispatch:
+
+# A newer push to the same branch/PR supersedes the running checks.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: '1'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  # Python helpers in ci/ print UTF-8 (the Windows runner defaults to cp1252).
+  PYTHONUTF8: '1'
+  # Minimum line coverage (%) of the cross-platform code measured by the Linux unit-test job
+  # (75.1% when the gate was introduced).
+  MIN_LINE_COVERAGE: '70'
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Static validation: formatting, vulnerable dependencies
+  # ─────────────────────────────────────────────
+  validate:
+    name: Validate (format, dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # Style rules live in the root .editorconfig (the legacy app keeps mRemoteNG/.editorconfig).
+      - name: Check whitespace formatting
+        run: |
+          status=0
+          for p in mRemoteNG.Core mRemoteNG.Platform mRemoteNG.Platform.Linux mRemoteNG.Platform.Mac \
+                   mRemoteNG.Platform.Windows mRemoteNG.Protocols mRemoteNG.ExternalProviders mRemoteNG.Avalonia \
+                   mRemoteNG.Tests.CrossPlatform mRemoteNG.Avalonia.Tests; do
+            echo "::group::$p"
+            dotnet format whitespace "$p/$p.csproj" --verify-no-changes || status=1
+            echo "::endgroup::"
+          done
+          if [ "$status" -ne 0 ]; then
+            echo "::error::Whitespace formatting differs from .editorconfig. Run 'dotnet format whitespace <project>' locally and commit."
+          fi
+          exit $status
+
+      - name: Check for vulnerable packages (High/Critical fail the build)
+        run: |
+          python3 ci/check-vulnerable-packages.py \
+            mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj \
+            mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj \
+            mRemoteNG.Avalonia.Tests/mRemoteNG.Avalonia.Tests.csproj
+
+
+  # ─────────────────────────────────────────────
+  # Platform abstraction layer (net10.0 — pure)
+  # ─────────────────────────────────────────────
+  build-platform-abstractions:
+    name: Build Platform Abstractions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore mRemoteNG.Platform/mRemoteNG.Platform.csproj
+
+      - name: Build
+        run: dotnet build mRemoteNG.Platform/mRemoteNG.Platform.csproj --no-restore -c Release
+
+      - name: Build Linux, macOS and Windows platform services
+        run: |
+          for p in Linux Mac Windows; do
+            dotnet build "mRemoteNG.Platform.$p/mRemoteNG.Platform.$p.csproj" -c Release
+          done
+
+      - name: Build Core
+        run: dotnet build mRemoteNG.Core/mRemoteNG.Core.csproj -c Release
+
+  # ─────────────────────────────────────────────
+  # Avalonia UI — build on all 3 platforms
+  # ─────────────────────────────────────────────
+  build-avalonia:
+    name: Build Avalonia UI (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Windows
+            runner: windows-latest
+          - os: Linux
+            runner: ubuntu-latest
+          - os: macOS
+            runner: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj
+
+      - name: Build
+        run: dotnet build mRemoteNG.Avalonia/mRemoteNG.Avalonia.csproj --no-restore -c Release
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mRemoteNG-Avalonia-${{ matrix.os }}
+          path: mRemoteNG.Avalonia/bin/Release/net10.0/
+
+  # ─────────────────────────────────────────────
+  # Original Windows build (keep green while migrating)
+  # ─────────────────────────────────────────────
+  build-windows-legacy:
+    name: Build Windows Legacy (WinForms)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # The WinForms app has COM references (MSTSCLib etc.); ResolveComReference only runs
+      # on the Visual Studio (.NET Framework) MSBuild, not on `dotnet build`.
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build (x64)
+        run: msbuild mRemoteNG/mRemoteNG.csproj -restore -p:Configuration=Release -p:Platform=x64 -verbosity:minimal
+
+  # ─────────────────────────────────────────────
+  # Unit tests — cross-platform
+  # ─────────────────────────────────────────────
+  test:
+    name: Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    needs: [build-platform-abstractions]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Linux
+            runner: ubuntu-latest
+          - os: macOS
+            runner: macos-latest
+          - os: Windows
+            runner: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore cross-platform tests
+        run: dotnet restore mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj
+
+      - name: Run cross-platform tests (Core, Platform, Protocols)
+        shell: bash
+        run: |
+          dotnet test mRemoteNG.Tests.CrossPlatform/mRemoteNG.Tests.CrossPlatform.csproj \
+            -c Release --logger trx --results-directory test-results-xplat/ \
+            --collect:"XPlat Code Coverage"
+
+      - name: Run headless UI tests (Avalonia)
+        if: success() || failure()
+        shell: bash
+        run: |
+          dotnet test mRemoteNG.Avalonia.Tests/mRemoteNG.Avalonia.Tests.csproj \
+            -c Release --logger trx --results-directory test-results-ui/ \
+            --collect:"XPlat Code Coverage"
+
+      - name: Test summary
+        if: always()
+        # Reporting only: a problem here must not hide test results or skip later steps.
+        continue-on-error: true
+        shell: bash
+        run: python3 ci/test-summary.py "Tests (${{ matrix.os }})" test-results-xplat test-results-ui
+
+      - name: Coverage report
+        if: runner.os == 'Linux' && (success() || failure())
+        shell: bash
+        run: |
+          dotnet tool restore
+          dotnet reportgenerator -reports:"test-results-*/**/coverage.cobertura.xml" -targetdir:coverage-report \
+            -reporttypes:"MarkdownSummaryGithub;HtmlInline_AzurePipelines;JsonSummary" \
+            -assemblyfilters:"-*Tests*;-ObjectListView*"
+          cat coverage-report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY'
+          import json, os, sys
+          summary = json.load(open("coverage-report/Summary.json"))["summary"]
+          line, minimum = float(summary["linecoverage"]), float(os.environ["MIN_LINE_COVERAGE"])
+          print(f"Line coverage {line:.1f}% (minimum {minimum:.0f}%)")
+          if line < minimum:
+              print(f"::error::Line coverage {line:.1f}% is below the minimum of {minimum:.0f}%")
+              sys.exit(1)
+          PY
+
+      - name: Upload coverage report
+        if: runner.os == 'Linux' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage-report/
+          if-no-files-found: ignore
+
+      - name: Restore legacy Windows tests
+        if: runner.os == 'Windows' && (success() || failure())
+        run: dotnet restore mRemoteNGTests/mRemoteNGTests.csproj
+
+      - name: Run legacy Windows tests (Windows only)
+        if: runner.os == 'Windows' && (success() || failure())
+        run: dotnet test mRemoteNGTests/mRemoteNGTests.csproj --no-restore -c Release --logger trx
+        continue-on-error: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: '**/*.trx'
+
+  # ─────────────────────────────────────────────
+  # Migration progress check
+  # ─────────────────────────────────────────────
+  migration-progress:
+    name: Migration Progress Report
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Count completed tasks
+        run: |
+          TOTAL=$(grep -c '^\- \[' MIGRATION_PROGRESS.md || echo 0)
+          DONE=$(grep -c '^\- \[x\]' MIGRATION_PROGRESS.md || echo 0)
+          IN_PROGRESS=$(grep -c '^\- \[~\]' MIGRATION_PROGRESS.md || echo 0)
+          BLOCKED=$(grep -c '^\- \[!\]' MIGRATION_PROGRESS.md || echo 0)
+          echo "Migration Progress: $DONE/$TOTAL tasks complete ($IN_PROGRESS in progress, $BLOCKED blocked)"
+          echo "MIGRATION_TOTAL=$TOTAL" >> $GITHUB_ENV
+          echo "MIGRATION_DONE=$DONE" >> $GITHUB_ENV
+
+      - name: Post progress summary
+        run: |
+          echo "## Migration Progress" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Completed ✅ | $(grep -c '^\- \[x\]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY
+          echo "| In Progress 🔄 | $(grep -c '^\- \[~\]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Blocked ❌ | $(grep -c '^\- \[!\]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Todo ⬜ | $(grep -c '^\- \[ \]' MIGRATION_PROGRESS.md || echo 0) |" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,101 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mi="using:Material.Icons.Avalonia">
+
+    <!-- Session chrome shared by the panels, the full-screen window and the protocols' own panels
+         (docs/design-system.md §6 "Empty states", §1 "Calm feedback"). Included by SessionPanelView and
+         SessionFullScreenWindow; every colour is a palette token. -->
+
+    <!-- Empty state inside the session area: 48 px muted icon, h2 title, caption -->
+    <Style Selector="StackPanel.session-empty">
+        <Setter Property="Spacing" Value="6"/>
+        <Setter Property="MaxWidth" Value="380"/>
+        <Setter Property="Margin" Value="24"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="StackPanel.session-empty > mi|MaterialIcon">
+        <Setter Property="Width" Value="48"/>
+        <Setter Property="Height" Value="48"/>
+        <Setter Property="Margin" Value="0,0,0,10"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="StackPanel.session-empty > TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="TextAlignment" Value="Center"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!-- Protocol message panels (RDP / IntApp "Preparing…", "waiting for the window", the HTTP
+         "opened in your browser" page): built in mRemoteNG.Protocols with these classes -->
+    <Style Selector="Border.session-message">
+        <Setter Property="Background" Value="{DynamicResource AppBg0Brush}"/>
+    </Style>
+    <Style Selector=":is(UserControl).session-message">
+        <Setter Property="Background" Value="{DynamicResource AppBg0Brush}"/>
+    </Style>
+    <Style Selector="TextBlock.session-message-text">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="LineHeight" Value="21"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+    </Style>
+    <Style Selector="TextBlock.session-message-url">
+        <Setter Property="Foreground" Value="{DynamicResource TextLinkBrush}"/>
+        <Setter Property="Margin" Value="0,2,0,2"/>
+    </Style>
+    <Style Selector="ContentControl.session-message-icon">
+        <Setter Property="Width" Value="48"/>
+        <Setter Property="Height" Value="48"/>
+        <Setter Property="Margin" Value="0,0,0,6"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
+    </Style>
+    <Style Selector="ContentControl.session-message-icon.rdp">
+        <Setter Property="Content">
+            <Template>
+                <mi:MaterialIcon Kind="MonitorScreenshot" Width="48" Height="48"/>
+            </Template>
+        </Setter>
+    </Style>
+    <Style Selector="ContentControl.session-message-icon.app">
+        <Setter Property="Content">
+            <Template>
+                <mi:MaterialIcon Kind="Application" Width="48" Height="48"/>
+            </Template>
+        </Setter>
+    </Style>
+    <Style Selector="ContentControl.session-message-icon.web">
+        <Setter Property="Content">
+            <Template>
+                <mi:MaterialIcon Kind="OpenInNew" Width="48" Height="48"/>
+            </Template>
+        </Setter>
+    </Style>
+
+    <!-- Connection state banner: calm, inline, icon + message + action -->
+    <Style Selector="Border.session-banner">
+        <Setter Property="Margin" Value="8,8,8,0"/>
+        <Setter Property="Padding" Value="12,8,8,8"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Background" Value="{DynamicResource AppBg2Brush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Border0Brush}"/>
+    </Style>
+    <Style Selector="Border.session-banner.error">
+        <Setter Property="Background" Value="{DynamicResource DangerTintBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerTintBrush}"/>
+    </Style>
+    <Style Selector="Border.session-banner.reconnecting">
+        <Setter Property="Background" Value="{DynamicResource WarningTintBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource WarningTintBrush}"/>
+    </Style>
+    <Style Selector="Border.session-banner mi|MaterialIcon.banner-icon">
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Height" Value="18"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.session-banner TextBlock.banner-title">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+</Styles>
