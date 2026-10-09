@@ -531,9 +531,13 @@ public partial class MainWindow : Window
     {
         try
         {
+            // /resetpanels starts with the default layout; /resetpos keeps the panels but not the window placement.
+            var arguments = AppServices.Provider.GetService(typeof(mRemoteNG.Core.App.StartupArguments)) as mRemoteNG.Core.App.StartupArguments;
+            if (arguments?.ResetPanels == true)
+                return;
             var json = AppServices.GetRequired<AppSettingsService>().Current.WindowLayout;
             if (WindowLayoutState.FromJson(json) is { } state)
-                ApplyLayout(state);
+                ApplyLayout(state, placement: arguments?.ResetWindowPosition != true);
         }
         catch (Exception ex)
         {

@@ -389,6 +389,11 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     /// <summary>Path of the loaded/saved file, or null for a new unsaved tree.</summary>
     public string? CurrentFilePath => _connectionsService.CurrentFilePath;
 
+    /// <summary>"MySQL host/db (read-only)" when the tree was loaded from a SQL database, else null.</summary>
+    public string? DatabaseName => _connectionsService.Database is { } db
+        ? db.DisplayName + (db.ReadOnly ? " (read-only)" : string.Empty)
+        : null;
+
     public bool HasCutNode => _cutNode is not null;
 
     /// <summary>
@@ -511,6 +516,8 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         Nodes.Clear();
         _cutNode = null;
         this.RaisePropertyChanged(nameof(HasCutNode));
+        this.RaisePropertyChanged(nameof(CurrentFilePath));
+        this.RaisePropertyChanged(nameof(DatabaseName));
         _expansionBeforeSearch = null;
 
         model.RootNode.IsExpanded = true;

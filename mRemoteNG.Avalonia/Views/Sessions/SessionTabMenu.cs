@@ -194,13 +194,30 @@ public static class SessionTabMenu
             await special.SendSpecialKeyAsync(key);
     }
 
-    /// <summary>Repaints the session view (legacy "Refresh screen").</summary>
+    /// <summary>
+    /// Legacy "Refresh screen": asks the server for a full update when the protocol supports it (VNC),
+    /// and repaints the session view.
+    /// </summary>
     private static void RefreshView(SessionTabViewModel session)
     {
+        if (session.Protocol is IRefreshableProtocol refreshable)
+            _ = RefreshRemoteAsync(refreshable);
         if (session.ContentView is not { } view) return;
         view.InvalidateMeasure();
         view.InvalidateArrange();
         view.InvalidateVisual();
+    }
+
+    private static async Task RefreshRemoteAsync(IRefreshableProtocol protocol)
+    {
+        try
+        {
+            await protocol.RefreshScreenAsync();
+        }
+        catch (Exception ex)
+        {
+            Report($"Could not refresh the screen: {ex.Message}");
+        }
     }
 
     private static async Task CopyHostnameAsync(SessionTabViewModel session, Window? owner)

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Avalonia.Views;
 using mRemoteNG.Avalonia.Views.Dialogs;
@@ -112,7 +113,9 @@ public sealed class MainWindowViewModel : ReactiveObject
     public event EventHandler? LayoutResetRequested;
 
     /// <summary>Status-bar text describing the open connection file.</summary>
-    public string FileStatus => ConnectionTree.CurrentFilePath ?? "New connection file (not saved yet)";
+    public string FileStatus => ConnectionTree.DatabaseName is { } database
+        ? $"SQL database: {database}"
+        : ConnectionTree.CurrentFilePath ?? "New connection file (not saved yet)";
 
     /// <summary>Child ViewModel for the connection tree panel.</summary>
     public ConnectionTreeViewModel ConnectionTree { get; }
@@ -158,6 +161,11 @@ public sealed class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ConnectSelectedToPanelCommand { get; }
     public ReactiveCommand<PanelArrangement, Unit> ArrangePanelsCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleMultiSshToolbarCommand { get; }
+    public ReactiveCommand<Unit, Unit> ExternalToolsCommand { get; }
+    public ReactiveCommand<Unit, Unit> UltraVncListenerCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenDatabaseCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReloadDatabaseCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenLogFileCommand { get; }
 
     public MainWindowViewModel(
         ConnectionTreeViewModel connectionTree,
@@ -217,12 +225,34 @@ public sealed class MainWindowViewModel : ReactiveObject
         ArrangePanelsCommand = ReactiveCommand.Create<PanelArrangement>(mode => _sessions.Arrangement = mode);
         ToggleMultiSshToolbarCommand = ReactiveCommand.Create(() => { IsMultiSshToolbarVisible = !IsMultiSshToolbarVisible; });
 
+        // Tools / storage
+        ExternalToolsCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (GetMainWindow() is { } owner)
+                await Views.ExternalToolsWindow.ShowAsync(owner, ConnectionTree.SelectedNode?.Model);
+        });
+        UltraVncListenerCommand = ReactiveCommand.Create(() => { Views.Dialogs.UltraVncListenerWindow.ShowOrActivate(GetMainWindow()); });
+        OpenDatabaseCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (GetMainWindow() is { } owner && await ConfirmDiscardOrSaveAsync())
+                await AppServices.GetRequired<StorageRuntime>().OpenDatabaseAsync(owner);
+        });
+        ReloadDatabaseCommand = ReactiveCommand.Create(
+            () => { AppServices.GetRequired<StorageRuntime>().ReloadDatabase(); },
+            ConnectionTree.WhenAnyValue(t => t.DatabaseName).Select(name => name is not null));
+        OpenLogFileCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            var path = AppServices.GetRequired<StorageRuntime>().LogFilePath;
+            if (!await FileLauncher.OpenFileAsync(GetMainWindow(), path))
+                _log.Log($"Could not open the log file {path}", LogLevel.Warning);
+        });
+
         // Track active connection count
         sessions.Sessions.CollectionChanged += (_, _) =>
             ActiveConnectionCount = sessions.Sessions.Count;
 
         // Title and status bar follow the file name and unsaved-changes state.
-        ConnectionTree.WhenAnyValue(t => t.IsDirty, t => t.CurrentFilePath)
+        ConnectionTree.WhenAnyValue(t => t.IsDirty, t => t.CurrentFilePath, t => t.DatabaseName)
             .Subscribe(_ =>
             {
                 UpdateTitle();
@@ -237,7 +267,8 @@ public sealed class MainWindowViewModel : ReactiveObject
                      QuickConnectCommand, OpenQuickConnectDialogCommand, AboutCommand, PortScannerCommand,
                      OpenSftpCommand, OpenGitHubCommand, OpenDocumentationCommand, ReportBugCommand,
                      CheckForUpdatesCommand, ReconnectAllCommand, DisconnectAllCommand, CloseAllSessionsCommand,
-                     ConnectSelectedToPanelCommand,
+                     ConnectSelectedToPanelCommand, ExternalToolsCommand, UltraVncListenerCommand,
+                     OpenDatabaseCommand, ReloadDatabaseCommand, OpenLogFileCommand,
                  })
         {
             command.ThrownExceptions.Subscribe(ex => _log.Log($"Error: {ex.Message}", LogLevel.Error));
@@ -247,7 +278,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     private void UpdateTitle()
     {
         var path = ConnectionTree.CurrentFilePath;
-        var document = path is null ? "Untitled" : System.IO.Path.GetFileName(path);
+        var document = ConnectionTree.DatabaseName
+                       ?? (path is null ? "Untitled" : System.IO.Path.GetFileName(path));
         var title = $"mRemoteNG — {document}{(ConnectionTree.IsDirty ? "*" : "")}";
         if (ActiveConnectionCount > 0)
             title += $" ({ActiveConnectionCount} active connection{(ActiveConnectionCount == 1 ? "" : "s")})";
@@ -344,6 +376,21 @@ public sealed class MainWindowViewModel : ReactiveObject
     /// <summary>Saves to the current file, or asks for one. Returns true when the tree was saved.</summary>
     public async Task<bool> SaveAsync()
     {
+        if (ConnectionTree.DatabaseName is { } database)
+        {
+            try
+            {
+                ConnectionTree.SaveToFile();
+                _log.Log($"Saved connections to SQL database {database}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.Log($"Failed to save connections to the SQL database: {ex.Message}", LogLevel.Error);
+                return false;
+            }
+        }
+
         if (ConnectionTree.CurrentFilePath is null)
             return await SaveAsAsync();
 
@@ -511,7 +558,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     {
         var importService = new global::mRemoteNG.Core.Config.Import.ConnectionImportService(
             AppServices.GetRequired<global::mRemoteNG.Core.Security.Factories.ICryptoProviderFactory>());
-        string? password = null;
+        // Sources that are not files (Active Directory) bring their password from the import dialog.
+        string? password = request.Password;
 
         while (true)
         {
@@ -744,7 +792,8 @@ public sealed class MainWindowViewModel : ReactiveObject
     public int OpenPreviousSessions()
     {
         var settings = AppServices.GetRequired<AppSettingsService>().Current;
-        if (!settings.OpenConnectionsFromLastSession || ConnectionTree.Root is not { } root)
+        if (!settings.OpenConnectionsFromLastSession || ConnectionTree.Root is not { } root
+            || AppServices.Provider.GetService(typeof(mRemoteNG.Core.App.StartupArguments)) is mRemoteNG.Core.App.StartupArguments { NoReconnect: true })
             return 0;
         var count = _sessions.OpenPreviousSessions(root, AppServices.GetRequired<IProtocolFactory>());
         if (count > 0)

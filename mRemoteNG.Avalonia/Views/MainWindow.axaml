@@ -35,12 +35,17 @@
                 <MenuItem Header="_Open Connection File..." Command="{Binding OpenConnectionFileCommand}" InputGesture="Ctrl+O"/>
                 <MenuItem Header="_Save Connection File" Command="{Binding SaveConnectionFileCommand}" InputGesture="Ctrl+S"/>
                 <MenuItem Header="Save Connection File _As..." Command="{Binding SaveAsConnectionFileCommand}" InputGesture="Ctrl+Shift+S"/>
+                <MenuItem Header="Open from SQL _Database" Command="{Binding OpenDatabaseCommand}"/>
+                <MenuItem Header="_Reload from SQL Database" Command="{Binding ReloadDatabaseCommand}"/>
                 <Separator/>
                 <MenuItem Header="New _Connection..." Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N"/>
                 <MenuItem Header="New _Folder..." Command="{Binding ConnectionTree.NewFolderCommand}"/>
-                <MenuItem Header="_Edit Selected..." Command="{Binding ConnectionTree.EditSelectedCommand}" InputGesture="F2"/>
+                <MenuItem Header="_Edit Selected..." Command="{Binding ConnectionTree.EditSelectedCommand}" InputGesture="Ctrl+E"/>
                 <MenuItem Header="_Duplicate Selected" Command="{Binding ConnectionTree.DuplicateSelectedCommand}" InputGesture="Ctrl+D"/>
                 <MenuItem Header="De_lete Selected..." Command="{Binding ConnectionTree.DeleteSelectedCommand}" InputGesture="Delete"/>
+                <Separator/>
+                <MenuItem Header="Default Connection Properties..." Command="{Binding ConnectionTree.EditDefaultConnectionCommand}"/>
+                <MenuItem Header="Connection File _Properties..." Command="{Binding ConnectionTree.FilePropertiesCommand}"/>
                 <Separator/>
                 <MenuItem Header="_Import Connections..." Command="{Binding ImportCommand}"/>
                 <MenuItem Header="_Export Connections..." Command="{Binding ExportCommand}"/>
@@ -58,6 +63,10 @@
                 <MenuItem Header="Multi-SSH Toolbar" ToggleType="CheckBox"
                           IsChecked="{Binding IsMultiSshToolbarVisible, Mode=OneWay}"
                           Command="{Binding ToggleMultiSshToolbarCommand}"/>
+                <Separator/>
+                <MenuItem Header="Expand All Folders" Command="{Binding ConnectionTree.ExpandAllCommand}"/>
+                <MenuItem Header="Collapse All Folders" Command="{Binding ConnectionTree.CollapseAllCommand}"/>
+                <MenuItem Header="Refresh PuTTY Sessions" Command="{Binding ConnectionTree.RefreshPuttySessionsCommand}"/>
                 <Separator/>
                 <MenuItem Header="New Panel" Command="{Binding NewPanelCommand}"/>
                 <MenuItem Header="Arrange Panels">
@@ -100,6 +109,8 @@
                 <MenuItem Header="SFTP File Transfer..." Command="{Binding OpenSftpCommand}"/>
                 <Separator/>
                 <MenuItem Header="Port Scanner..." Command="{Binding PortScannerCommand}"/>
+                <MenuItem Header="External Tools..." Command="{Binding ExternalToolsCommand}"/>
+                <MenuItem Header="UltraVNC SingleClick Listener..." Command="{Binding UltraVncListenerCommand}"/>
                 <Separator/>
                 <MenuItem Header="_Options..." Command="{Binding OpenOptionsCommand}" InputGesture="Ctrl+,"/>
             </MenuItem>
@@ -112,6 +123,7 @@
                 <MenuItem Header="GitHub Repository" Command="{Binding OpenGitHubCommand}"/>
                 <MenuItem Header="Documentation" Command="{Binding OpenDocumentationCommand}"/>
                 <MenuItem Header="Report a Bug" Command="{Binding ReportBugCommand}"/>
+                <MenuItem Header="Open Log File" Command="{Binding OpenLogFileCommand}"/>
             </MenuItem>
         </Menu>
 
@@ -140,7 +152,7 @@
                     <TextBlock Text="Save" FontSize="12"/>
                 </Button>
 
-                <Button ToolTip.Tip="Edit the selected connection or folder (F2)"
+                <Button ToolTip.Tip="Edit the selected connection or folder (Ctrl+E)"
                         Command="{Binding ConnectionTree.EditSelectedCommand}"
                         Padding="8,3">
                     <TextBlock Text="Edit" FontSize="12"/>
@@ -169,6 +181,9 @@
                         ToolTip.Tip="Connect (Enter)">
                     <TextBlock Text="Connect" FontSize="12"/>
                 </Button>
+
+                <Border Width="1" Background="{DynamicResource Border0Brush}" Margin="4,2"/>
+                <views:ExternalToolsToolbar/>
 
             </StackPanel>
         </Border>

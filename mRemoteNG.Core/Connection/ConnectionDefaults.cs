@@ -23,6 +23,7 @@ namespace mRemoteNG.Core.Connection
             info.RedirectSound = RDPSounds.DoNotPlay;
             info.RDGatewayUseConnectionCredentials = RDGatewayUseConnectionCredentials.Yes;
             info.VNCSmartSizeMode = VncSmartSizeMode.SmartSAspect;
+            info.VNCEncoding = VncEncoding.EncHextile;
             return info;
         }
 
