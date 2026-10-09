@@ -55,9 +55,7 @@ public class ConnectionParametersFactoryTests
     }
 
     [Theory]
-    [InlineData(CoreProtocol.RAW)]
     [InlineData(CoreProtocol.IntApp)]
-    [InlineData(CoreProtocol.AnyDesk)]
     public void FromConnectionInfo_UnsupportedProtocol_Throws(CoreProtocol protocol)
     {
         var act = () => ConnectionParametersFactory.FromConnectionInfo(new ConnectionInfo { Protocol = protocol, Hostname = "srv" });

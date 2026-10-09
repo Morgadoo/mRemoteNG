@@ -7,8 +7,16 @@
     <UserControl.Styles>
         <Style Selector="TreeViewItem" x:DataType="vm:ConnectionNodeViewModel">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+            <Setter Property="IsVisible" Value="{Binding IsVisible}"/>
         </Style>
-        <!-- Protocol badge colors -->
+        <Style Selector="TreeViewItem.drop-into /template/ Border#PART_LayoutRoot">
+            <Setter Property="Background" Value="#33569cd6"/>
+        </Style>
+        <Style Selector="TreeViewItem.drop-before /template/ Border#PART_LayoutRoot">
+            <Setter Property="BorderBrush" Value="#569cd6"/>
+            <Setter Property="BorderThickness" Value="0,2,0,0"/>
+        </Style>
+        <!-- Protocol badge -->
         <Style Selector="Border.protocol-badge">
             <Setter Property="CornerRadius" Value="2"/>
             <Setter Property="Padding" Value="4,1"/>
@@ -17,22 +25,29 @@
         </Style>
     </UserControl.Styles>
 
-    <TreeView ItemsSource="{Binding Nodes}"
+    <TreeView x:Name="Tree"
+              ItemsSource="{Binding Nodes}"
               SelectedItem="{Binding SelectedNode}"
               DoubleTapped="OnTreeDoubleTapped"
+              DragDrop.AllowDrop="True"
+              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
               Background="#1e1e1e">
 
         <TreeView.ContextMenu>
             <ContextMenu>
                 <MenuItem Header="Connect" Command="{Binding ConnectSelectedCommand}" />
-                <MenuItem Header="Connect in New Tab" Command="{Binding ConnectSelectedCommand}" />
                 <Separator/>
-                <MenuItem Header="New Folder" Command="{Binding NewFolderCommand}" />
-                <MenuItem Header="New Connection" Command="{Binding NewConnectionCommand}" />
+                <MenuItem Header="New Connection..." Command="{Binding NewConnectionCommand}" />
+                <MenuItem Header="New Folder..." Command="{Binding NewFolderCommand}" />
                 <Separator/>
-                <MenuItem Header="Edit..." />
-                <MenuItem Header="Duplicate" />
-                <MenuItem Header="Delete" Command="{Binding DeleteSelectedCommand}" />
+                <MenuItem Header="Edit..." Command="{Binding EditSelectedCommand}" InputGesture="F2" />
+                <MenuItem Header="Duplicate" Command="{Binding DuplicateSelectedCommand}" InputGesture="Ctrl+D" />
+                <MenuItem Header="Delete..." Command="{Binding DeleteSelectedCommand}" InputGesture="Delete" />
+                <Separator/>
+                <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGesture="Ctrl+X" />
+                <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGesture="Ctrl+V" />
+                <MenuItem Header="Move Up" Command="{Binding MoveUpCommand}" InputGesture="Ctrl+Up" />
+                <MenuItem Header="Move Down" Command="{Binding MoveDownCommand}" InputGesture="Ctrl+Down" />
                 <Separator/>
                 <MenuItem Header="Sort Alphabetically" Command="{Binding SortCommand}" />
             </ContextMenu>
@@ -40,13 +55,21 @@
 
         <TreeView.ItemTemplate>
             <TreeDataTemplate ItemsSource="{Binding Children}">
-                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
-                    <!-- Folder / connection icon -->
+                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2"
+                            Background="Transparent"
+                            Opacity="{Binding DisplayOpacity}"
+                            ToolTip.Tip="{Binding ToolTip}">
+                    <!-- Folder glyph or connection icon -->
                     <TextBlock Text="{Binding IsFolder, Converter={x:Static vm:BoolToIconConverter.Instance}}"
+                               IsVisible="{Binding IsFolder}"
                                FontFamily="Segoe MDL2 Assets,Apple Symbols,Noto Emoji"
                                FontSize="14"
                                VerticalAlignment="Center"
                                Foreground="#569cd6"/>
+                    <Image Source="{Binding IconImage}"
+                           IsVisible="{Binding !IsFolder}"
+                           Width="16" Height="16"
+                           VerticalAlignment="Center"/>
 
                     <!-- Node name -->
                     <TextBlock Text="{Binding Name}"
@@ -58,7 +81,7 @@
                     <Border Classes="protocol-badge"
                             IsVisible="{Binding !IsFolder}"
                             Background="#264f78">
-                        <TextBlock Text="{Binding Protocol}"
+                        <TextBlock Text="{Binding ProtocolLabel}"
                                    FontSize="10"
                                    Foreground="#9cdcfe"/>
                     </Border>

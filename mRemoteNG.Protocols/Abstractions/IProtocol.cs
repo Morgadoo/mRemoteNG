@@ -29,7 +29,11 @@ public enum ProtocolType
     Https,
     PowerShell,
     Serial,
-    ExternalApp
+    ExternalApp,
+    /// <summary>Plain TCP socket without Telnet option negotiation (PuTTY "Raw").</summary>
+    Raw,
+    /// <summary>Local shell (legacy Terminal and WSL protocols).</summary>
+    LocalShell
 }
 
 /// <summary>
