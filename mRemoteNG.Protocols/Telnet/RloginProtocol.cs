@@ -16,8 +16,9 @@ namespace mRemoteNG.Protocols.Telnet;
 ///   3. Wait for 0x00 acknowledgment from server
 ///   4. Bidirectional data flow begins
 ///
-/// Window-size updates are not sent: rlogin requests them with TCP urgent (out-of-band) data,
-/// which .NET sockets can't distinguish reliably from the normal stream.
+/// Window-size changes (BSD rlogin): one urgent byte <c>0x80</c> (<c>TIOCPKT_WINDOW</c>), then
+/// twelve in-band bytes — <c>FF FF 's' 's'</c> and rows, columns, x pixels, y pixels as
+/// big-endian 16-bit values. Sent after the handshake and on every terminal resize.
 /// </summary>
 public sealed class RloginProtocol : ProtocolBase, IVisualProtocol, ITerminalProtocol
 {
@@ -40,6 +41,7 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol, ITerminalPro
     {
         _view = new TerminalView();
         _view.DataToSend += OnTerminalDataToSend;
+        _view.TerminalResized += OnTerminalResized;
         return _view;
     }
 
@@ -68,6 +70,9 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol, ITerminalPro
             State = ConnectionState.Connected;
             RaiseStatus($"Connected (rlogin) to {parameters.DisplayName}");
 
+            if (_view is not null)
+                await SendWindowSizeAsync(_view.TerminalCols, _view.TerminalRows, ct: ct);
+
             _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             _ = ReadLoopAsync(_cts.Token);
         }
@@ -88,6 +93,82 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol, ITerminalPro
         handshake.AddRange(Encoding.ASCII.GetBytes(serverUser ?? clientUser)); handshake.Add(0);
         handshake.AddRange(Encoding.ASCII.GetBytes("xterm-256color/38400")); handshake.Add(0);
         return handshake.ToArray();
+    }
+
+    /// <summary>Urgent byte that tells the server a window-size message follows (<c>TIOCPKT_WINDOW</c>).</summary>
+    internal const byte WindowSizeMagic = 0x80;
+
+    /// <summary>
+    /// The twelve-byte in-band window message: <c>FF FF 's' 's'</c>, then rows, columns,
+    /// horizontal pixels and vertical pixels, each a big-endian unsigned 16-bit value.
+    /// </summary>
+    internal static byte[] BuildWindowChange(int columns, int rows, int pixelWidth = 0, int pixelHeight = 0)
+    {
+        var bytes = new byte[12];
+        bytes[0] = 0xFF;
+        bytes[1] = 0xFF;
+        bytes[2] = (byte)'s';
+        bytes[3] = (byte)'s';
+        WriteUInt16(bytes, 4, rows);
+        WriteUInt16(bytes, 6, columns);
+        WriteUInt16(bytes, 8, pixelWidth);
+        WriteUInt16(bytes, 10, pixelHeight);
+        return bytes;
+    }
+
+    /// <summary>
+    /// Tells the server the terminal size. No-op when not connected. A failure to send the urgent
+    /// byte skips the in-band message too: without the marker the server would treat it as keystrokes.
+    /// </summary>
+    internal async Task SendWindowSizeAsync(int columns, int rows, int pixelWidth = 0, int pixelHeight = 0, CancellationToken ct = default)
+    {
+        if (_tcp?.Client is not Socket socket || !socket.Connected || _stream is null)
+            return;
+
+        var payload = BuildWindowChange(columns, rows, pixelWidth, pixelHeight);
+        await _writeLock.WaitAsync(ct);
+        try
+        {
+            if (_tcp?.Client is not Socket current || !current.Connected || _stream is null)
+                return;
+            try
+            {
+                await current.SendAsync(new ReadOnlyMemory<byte>([WindowSizeMagic]), SocketFlags.OutOfBand, ct);
+            }
+            catch (SocketException ex)
+            {
+                _logger.LogDebug(ex, "Rlogin window-size urgent data was not sent");
+                return;
+            }
+
+            await _stream.WriteAsync(payload, ct);
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    private static void WriteUInt16(byte[] buffer, int offset, int value)
+    {
+        var clamped = (ushort)Math.Clamp(value, 0, ushort.MaxValue);
+        buffer[offset] = (byte)(clamped >> 8);
+        buffer[offset + 1] = (byte)clamped;
+    }
+
+    private void OnTerminalResized(object? sender, TerminalSizeEventArgs e) =>
+        _ = SendSafelyAsync(() => SendWindowSizeAsync(e.Columns, e.Rows, e.PixelWidth, e.PixelHeight));
+
+    private async Task SendSafelyAsync(Func<Task> send)
+    {
+        try
+        {
+            await send();
+        }
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or SocketException)
+        {
+            _logger.LogDebug(ex, "Rlogin write failed");
+        }
     }
 
     public override async Task DisconnectAsync(CancellationToken ct = default)
@@ -163,7 +244,10 @@ public sealed class RloginProtocol : ProtocolBase, IVisualProtocol, ITerminalPro
         if (disposing)
         {
             if (_view is not null)
+            {
                 _view.DataToSend -= OnTerminalDataToSend;
+                _view.TerminalResized -= OnTerminalResized;
+            }
             _cts?.Cancel();
             _cts?.Dispose();
             _stream?.Dispose();

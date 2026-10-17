@@ -185,15 +185,23 @@ public sealed class TerminalView : UserControl
             text.Clear();
             for (int x = start; x <= end; x++)
             {
-                bool flush = x == end || row[x].Rune.Value > 0x7E;
-                if (flush && text.Length > 0)
+                bool atEnd = x == end;
+                bool spacer = !atEnd && row[x].IsSpacer;
+                bool nonAscii = !atEnd && !spacer && row[x].Rune.Value > 0x7E;
+                if ((atEnd || nonAscii || spacer) && text.Length > 0)
                 {
                     DrawText(context, text.ToString(), segmentStart, top, typeface, brush);
                     text.Clear();
                 }
-                if (x == end)
+                if (atEnd)
                     break;
-                if (row[x].Rune.Value > 0x7E)
+                if (spacer)
+                {
+                    // The glyph was drawn with the first cell; this one only holds the second column.
+                    segmentStart = x + 1;
+                    continue;
+                }
+                if (nonAscii)
                 {
                     DrawText(context, row[x].Rune.ToString(), x, top, typeface, brush);
                     segmentStart = x + 1;
@@ -229,7 +237,10 @@ public sealed class TerminalView : UserControl
 
     private void DrawCursor(DrawingContext context)
     {
-        var rect = new Rect(_screen.CursorColumn * _cellWidth, _screen.CursorRow * _cellHeight, _cellWidth, _cellHeight);
+        int span = 1;
+        if (_screen.CursorColumn < _screen.Columns && _screen.GetCell(_screen.CursorRow, _screen.CursorColumn).IsWide)
+            span = 2;
+        var rect = new Rect(_screen.CursorColumn * _cellWidth, _screen.CursorRow * _cellHeight, span * _cellWidth, _cellHeight);
         var brush = BrushFor(TerminalPalette.DefaultForeground, 0xA0);
         if (IsFocused)
             context.FillRectangle(brush, rect);

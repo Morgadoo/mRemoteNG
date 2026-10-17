@@ -13,9 +13,10 @@ namespace mRemoteNG.Protocols.Ssh.Terminal;
 /// (DECSTBM), origin mode, auto-wrap, insert mode, tab stops, DEC line drawing, save/restore
 /// cursor, the alternate screen (47/1047/1049), cursor visibility, application cursor keys,
 /// bracketed paste, DSR/DA replies, OSC window titles and a scrollback buffer.
+/// East Asian wide and fullwidth characters, and emoji, occupy two cells
+/// (<see cref="DisplayWidth"/>); the second cell is a spacer.
 ///
 /// Not thread-safe: callers serialise access (the view locks around feeding and rendering).
-/// Characters are one cell wide; East Asian wide characters are not given two cells.
 /// </summary>
 public sealed class TerminalScreen
 {
@@ -119,7 +120,11 @@ public sealed class TerminalScreen
     {
         var sb = new StringBuilder(cells.Length);
         foreach (var cell in cells)
+        {
+            if (cell.IsSpacer)
+                continue;
             sb.Append(cell.Rune.ToString());
+        }
         return sb.ToString().TrimEnd(' ');
     }
 
@@ -648,6 +653,10 @@ public sealed class TerminalScreen
         if ((_activeCharset == 0 ? _g0 : _g1) == '0')
             rune = MapDecSpecialGraphics(rune);
 
+        int width = DisplayWidth.Of(rune);
+        if (width < 1)
+            return;
+
         if (_wrapPending && _autoWrap)
         {
             CursorColumn = 0;
@@ -655,16 +664,64 @@ public sealed class TerminalScreen
         }
         _wrapPending = false;
 
+        // A double-width character that does not fit on the rest of the line wraps first
+        // (xterm). With auto-wrap off there is nowhere to put it, so it is dropped.
+        if (CursorColumn > Columns - width)
+        {
+            if (!_autoWrap)
+                return;
+            CursorColumn = 0;
+            Index();
+        }
+
         var line = _buffer.Lines[CursorRow];
         if (_insertMode)
-            Array.Copy(line, CursorColumn, line, CursorColumn + 1, Columns - CursorColumn - 1);
-        line[CursorColumn] = new TerminalCell(rune, CurrentAttributes);
+        {
+            int count = Columns - CursorColumn - width;
+            if (count > 0)
+                Array.Copy(line, CursorColumn, line, CursorColumn + width, count);
+        }
+
+        line[CursorColumn] = new TerminalCell(rune, CurrentAttributes, width);
+        if (width == 2)
+            line[CursorColumn + 1] = TerminalCell.Spacer(CurrentAttributes);
+        RepairLine(line);
         _lastPrinted = rune;
 
-        if (CursorColumn == Columns - 1)
+        if (CursorColumn + width >= Columns)
+        {
+            CursorColumn = Columns - 1;
             _wrapPending = _autoWrap;
+        }
         else
-            CursorColumn++;
+        {
+            CursorColumn += width;
+        }
+    }
+
+    /// <summary>
+    /// Turns a double-width character that lost its spacer (or a spacer that lost its character)
+    /// into a blank cell. Editing, erasing and resizing all work in cells, so a pair can be split.
+    /// </summary>
+    private static void RepairLine(TerminalCell[] line)
+    {
+        for (int i = 0; i < line.Length; i++)
+        {
+            if (line[i].IsWide)
+            {
+                if (i + 1 < line.Length && line[i + 1].IsSpacer)
+                {
+                    i++;
+                    continue;
+                }
+
+                line[i] = TerminalCell.Blank(line[i].Attributes);
+            }
+            else if (line[i].IsSpacer)
+            {
+                line[i] = TerminalCell.Blank(line[i].Attributes);
+            }
+        }
     }
 
     private static Rune MapDecSpecialGraphics(Rune rune)
@@ -836,8 +893,10 @@ public sealed class TerminalScreen
 
     private void FillRow(int row, int from, int to)
     {
+        var line = _buffer.Lines[row];
         var cell = ErasedCell();
-        Array.Fill(_buffer.Lines[row], cell, from, Math.Max(0, to - from));
+        Array.Fill(line, cell, from, Math.Max(0, to - from));
+        RepairLine(line);
     }
 
     private void InsertCharacters(int n)
@@ -846,6 +905,7 @@ public sealed class TerminalScreen
         n = Math.Min(n, Columns - CursorColumn);
         Array.Copy(line, CursorColumn, line, CursorColumn + n, Columns - CursorColumn - n);
         Array.Fill(line, ErasedCell(), CursorColumn, n);
+        RepairLine(line);
     }
 
     private void DeleteCharacters(int n)
@@ -854,6 +914,7 @@ public sealed class TerminalScreen
         n = Math.Min(n, Columns - CursorColumn);
         Array.Copy(line, CursorColumn + n, line, CursorColumn, Columns - CursorColumn - n);
         Array.Fill(line, ErasedCell(), Columns - n, n);
+        RepairLine(line);
     }
 
     private void InsertLines(int n)
@@ -997,6 +1058,7 @@ public sealed class TerminalScreen
             var line = NewLine(columns, TerminalCell.Blank(TerminalAttributes.Default));
             if (source < lines.Length)
                 Array.Copy(lines[source], line, Math.Min(columns, lines[source].Length));
+            RepairLine(line);
             result[r] = line;
         }
         return result;

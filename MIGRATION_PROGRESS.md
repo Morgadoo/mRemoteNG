@@ -7,7 +7,7 @@
 > - Run `grep -r "\[~\]" MIGRATION_PROGRESS.md` to see active tasks
 > - Each PR should reference the task ID (e.g. "Implements P1-1.1.1")
 
-**Last updated:** 2026-10-09 (end of day: features completed, CI green on Linux/macOS/Windows)
+**Last updated:** 2026-10-17 (terminal wide characters, rlogin window size, SQL local connection state)
 **Current Phase:** Phase 4 — packaging verification and signing
 **Branch:** `dev`
 
@@ -50,10 +50,11 @@ UI tests.
 - VNC: ZlibHex falls back to Zlib; UltraVNC Ultra encoding, chat, file transfer and VeNCrypt are not done.
 - HTTP/HTTPS is not embedded (no maintained WebView for Avalonia 11). IntApp is not embedded on macOS or
   native Wayland.
-- SQL storage cannot hold TabColor, ConnectionFrameColor, Vault fields or the RD Gateway access token (the
-  legacy schema has no columns for them); `LocalConnectionProperties.xml` and ODBC are not ported.
+- SQL storage has no legacy columns for TabColor, ConnectionFrameColor, Vault fields or the RD Gateway
+  access token. Those are kept in `SqlConnectionProperties.xml` on this machine (not shared through the
+  database, and not visible to the WinForms app). `LocalConnectionProperties.xml` is shared with the
+  WinForms app for open sessions, expanded folders and favourites. ODBC is not ported.
 - Session tabs cannot be dragged between panels (use Move to Panel).
-- Terminal: Rlogin does not send window-size changes; wide (CJK) characters use one cell.
 - Translations: ~280 strings that exist only in the new app (`mRemoteNG.Core/Localization/Strings.resx`) show
   in English in every language; legacy translations are used as they are (some are partial or inaccurate).
 - Packaging: Flatpak, Snap and macOS DMG/Homebrew scripts have not been run; code signing needs certificates.
@@ -422,7 +423,7 @@ Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done a
   - PR: claude/analyze-cross-platform-portability-FndER
 
 - [x] **P3-3.2.2** — Create `RloginProtocol.cs` — @automated 2026-03-10
-  > 2026-10-09: keystrokes now sent; async handshake with timeout; stateful UTF-8. Window-size updates are not supported (needs TCP urgent data).
+  > 2026-10-17: window-size changes are sent (urgent byte 0x80, then the 12-byte BSD `ss` message) on connect and on resize.
   - RFC 1282 three-part handshake (null + client-user + server-user + term)
   - Bidirectional I/O via TerminalView
   - PR: claude/analyze-cross-platform-portability-FndER
@@ -652,6 +653,7 @@ Flatpak/Snap builds; P4-4.3.x macOS packaging run.
 | 2026-10-09 | Status audit; reopened stubbed items; fixed Linux/macOS startup crash, legacy confCons crypto compatibility, master passwords, FreeRDP launch, session tabs | claude |
 | 2026-10-09 | Completed VNC, SSH security/SFTP/terminal, RDP embedding, Telnet/Rlogin input, import/export, settings persistence, tree editing, Light theme, headless UI tests; CI green on all OSes; Linux packages verified | claude |
 | 2026-10-09 | Feature parity pass: RDP options/Hyper-V, External Tools/IntApp, credential & address providers, session tabs/panels/layout/Multi-SSH, SQL storage/backups/portable/logging/themes, VNC encodings/auth/proxies, AD import, port scanner, UltraVNC SingleClick, PuTTY sessions/SSH tunnels | claude |
+| 2026-10-17 | Terminal gives East Asian wide characters two cells; rlogin sends window-size updates; SQL load/save keeps WinForms `LocalConnectionProperties.xml` and the properties the legacy schema cannot store | cursor |
 
 ---
 

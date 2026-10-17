@@ -160,10 +160,15 @@ Unlike the WinForms app, a provider error stops the connection instead of silent
 
 - **RDP:** embedding is not available on macOS (FreeRDP runs in its own window), and has only been tested on
   Linux so far. RD Gateway and Windows Server NLA scenarios have not been validated yet.
-- **VNC:** Tight and Zlib encodings and VNC proxy settings are not supported.
+- **VNC:** Raw, RRE, CoRRE, Hextile, Zlib, ZRLE and Tight (including JPEG) work, as do HTTP, SOCKS5 and
+  UltraVNC repeater proxies. ZlibHex falls back to Zlib. UltraVNC Ultra encoding, VeNCrypt, chat and file
+  transfer are not implemented.
 - **HTTP/HTTPS** pages are not embedded in a tab.
 - **IntApp** cannot show the tool inside the tab on macOS or native Wayland; the tool runs in its own window.
 - **Credential providers:** Vault/OpenBao was tested against a real server; Delinea, Passwordstate, 1Password
   and AWS were tested against simulated services only.
-- **Rlogin** does not send window-size changes.
+- **SQL storage** shares the legacy tables with the WinForms app. Open sessions, expanded folders and
+  favourites are kept in `LocalConnectionProperties.xml` (the same file the WinForms app uses), so each
+  person has their own. Tab colour, frame colour, Vault/OpenBao settings and the RD Gateway access token
+  have no columns in that schema; this app keeps them in `SqlConnectionProperties.xml` on this machine.
 - **Serial ports** depend on the operating system exposing the device (e.g. `/dev/ttyUSB0`).

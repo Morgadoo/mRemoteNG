@@ -323,4 +323,70 @@ public sealed class MySqlConnectionsStoreTests
         new SqlConnectionsStore(db.Settings()).Load().Model.RootNode.Children.Single().Name.Should().Be("added");
         service.LastDatabaseUpdate.Should().NotBeNull();
     }
+
+    [SkippableFact]
+    public void LocalState_SurvivesTheDatabase_AndIsNotSharedWithIt()
+    {
+        RequireServer();
+        using var db = MariaDbTestServer.CreateDatabase();
+        var directory = Path.Combine(Path.GetTempPath(), "mrng-sql-local-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var state = new SqlLocalConnectionState(directory);
+            var service = new ConnectionsService(new CryptoProviderFactory()) { SqlLocalState = state };
+            var store = new SqlConnectionsStore(db.Settings());
+
+            var tree = new ExportTestTree();
+            tree.Prod.IsExpanded = false;
+            store.Save(new ConnectionTreeModel(tree.Root));
+
+            // The database has no columns for these. They are set on the loaded tree, then saved:
+            // the shared tables stay without them and the per-user files keep them.
+            service.LoadFromDatabase(store);
+            var loadedProd = service.ConnectionTreeModel!.RootNode.Children.OfType<ContainerInfo>().Single(c => c.Name == "Prod");
+            loadedProd.IsExpanded = false;
+            var loadedWeb = loadedProd.Children.Single(c => c.Name == "web");
+            loadedWeb.PleaseConnect = true;
+            loadedWeb.Favorite = true;
+            loadedWeb.TabColor = "#c0392b";
+            loadedWeb.ConnectionFrameColor = ConnectionFrameColor.Red;
+            loadedWeb.VaultOpenbaoMount = "secret";
+            loadedWeb.VaultOpenbaoRole = "ops";
+            loadedWeb.VaultOpenbaoSecretEngine = VaultOpenbaoSecretEngine.SSHOTP;
+            loadedWeb.RDGatewayAccessToken = "tok&en<1>";
+            service.SaveToDatabase();
+
+            var bare = new SqlConnectionsStore(db.Settings()).Load().Model.GetRecursiveChildList().Single(c => c.Name == "web");
+            bare.PleaseConnect.Should().BeFalse();
+            bare.TabColor.Should().BeEmpty();
+            bare.ConnectionFrameColor.Should().Be(ConnectionFrameColor.None);
+            bare.VaultOpenbaoMount.Should().BeEmpty();
+            bare.VaultOpenbaoSecretEngine.Should().Be(VaultOpenbaoSecretEngine.Kv);
+            bare.RDGatewayAccessToken.Should().BeEmpty();
+
+            // Another client expands the folder in the shared database. This client's file still says collapsed.
+            var other = new SqlConnectionsStore(db.Settings()).Load().Model;
+            other.RootNode.Children.OfType<ContainerInfo>().Single(c => c.Name == "Prod").IsExpanded = true;
+            new SqlConnectionsStore(db.Settings()).Save(other);
+
+            var again = new ConnectionsService(new CryptoProviderFactory()) { SqlLocalState = state };
+            again.LoadFromDatabase(new SqlConnectionsStore(db.Settings()));
+            var prod = again.ConnectionTreeModel!.RootNode.Children.OfType<ContainerInfo>().Single(c => c.Name == "Prod");
+            prod.IsExpanded.Should().BeFalse();
+            var web = prod.Children.Single(c => c.Name == "web");
+            web.PleaseConnect.Should().BeTrue();
+            web.Favorite.Should().BeTrue();
+            web.TabColor.Should().Be("#c0392b");
+            web.ConnectionFrameColor.Should().Be(ConnectionFrameColor.Red);
+            web.VaultOpenbaoMount.Should().Be("secret");
+            web.VaultOpenbaoRole.Should().Be("ops");
+            web.VaultOpenbaoSecretEngine.Should().Be(VaultOpenbaoSecretEngine.SSHOTP);
+            web.RDGatewayAccessToken.Should().Be("tok&en<1>");
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
 }
