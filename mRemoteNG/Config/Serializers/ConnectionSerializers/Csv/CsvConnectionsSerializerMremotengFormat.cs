@@ -5,6 +5,7 @@ using System.Text;
 using mRemoteNG.Connection;
 using mRemoteNG.Container;
 using mRemoteNG.Credential;
+using mRemoteNG.Plugins;
 using mRemoteNG.Security;
 using mRemoteNG.Tools;
 using mRemoteNG.Tree;
@@ -58,19 +59,19 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
             if (_saveFilter.SaveDomain)
                 sb.Append("Domain;");
 
-            sb.Append("Hostname;Port;VmId;Protocol;SSHTunnelConnectionName;OpeningCommand;SSHOptions;PuttySession;ConnectToConsole;UseCredSsp;UseRestrictedAdmin;UseRCG;UseVmId;UseEnhancedMode;RenderingEngine;RDPAuthenticationLevel;" +
+            sb.Append("Hostname;Port;VmId;Protocol;SSHTunnelConnectionName;OpeningCommand;SSHOptions;PuttySession;ConnectToConsole;UseCredSsp;UseRestrictedAdmin;UseRCG;UseRedirectionServerName;UseVmId;UseEnhancedMode;RenderingEngine;TerminalBackend;RDPAuthenticationLevel;" +
                       "LoadBalanceInfo;Colors;Resolution;AutomaticResize;DisplayWallpaper;DisplayThemes;EnableFontSmoothing;EnableDesktopComposition;DisableFullWindowDrag;DisableMenuAnimations;DisableCursorShadow;DisableCursorBlinking;" +
                       "CacheBitmaps;RedirectDiskDrives;RedirectDiskDrivesCustomRedirectPorts;RedirectPrinters;RedirectClipboard;RedirectSmartCards;RedirectSound;RedirectKeys;" +
                       "PreExtApp;PostExtApp;MacAddress;UserField;EnvironmentTags;ExtApp;Favorite;VNCCompression;VNCEncoding;VNCAuthMode;VNCProxyType;VNCProxyIP;" +
                       "VNCProxyPort;VNCProxyUsername;VNCProxyPassword;VNCColors;VNCSmartSizeMode;VNCViewOnly;RDGatewayUsageMethod;RDGatewayHostname;" +
-                      "RDGatewayUseConnectionCredentials;RDGatewayUsername;RDGatewayPassword;RDGatewayDomain;RDGatewayExternalCredentialProvider;RDGatewayUserViaAPI;RedirectAudioCapture;RdpVersion;RDPStartProgram;RDPStartProgramWorkDir;UserViaAPI;EC2InstanceId;EC2Region;ExternalCredentialProvider;ExternalAddressProvider;");
+                      "RDGatewayUseConnectionCredentials;RDGatewayUsername;RDGatewayPassword;RDGatewayDomain;RDGatewayExternalCredentialProvider;RDGatewayUserViaAPI;RedirectAudioCapture;RdpVersion;RDPStartProgram;RDPStartProgramWorkDir;UserViaAPI;EC2InstanceId;EC2Region;ExternalCredentialProvider;ExternalAddressProvider;PluginData;");
 
             if (_saveFilter.SaveInheritance)
                 sb.Append("InheritCacheBitmaps;InheritColors;InheritDescription;InheritDisplayThemes;InheritDisplayWallpaper;" +
                           "InheritEnableFontSmoothing;InheritEnableDesktopComposition;InheritDisableFullWindowDrag;InheritDisableMenuAnimations;InheritDisableCursorShadow;InheritDisableCursorBlinking;InheritDomain;InheritIcon;InheritPanel;InheritTabColor;InheritConnectionFrameColor;InheritPassword;InheritPort;" +
                           "InheritProtocol;InheritSSHTunnelConnectionName;InheritOpeningCommand;InheritSSHOptions;InheritPuttySession;InheritRedirectDiskDrives;InheritRedirectDiskDrivesCustom;InheritRedirectKeys;InheritRedirectPorts;InheritRedirectPrinters;" +
                           "InheritRedirectClipboard;InheritRedirectSmartCards;InheritRedirectSound;InheritResolution;InheritAutomaticResize;" +
-                          "InheritUseConsoleSession;InheritUseCredSsp;InheritUseRestrictedAdmin;InheritUseRCG;InheritUseVmId;InheritUseEnhancedMode;InheritVmId;InheritRenderingEngine;InheritUsername;" +
+                          "InheritUseConsoleSession;InheritUseCredSsp;InheritUseRestrictedAdmin;InheritUseRCG;InheritUseRedirectionServerName;InheritUseVmId;InheritUseEnhancedMode;InheritVmId;InheritRenderingEngine;InheritTerminalBackend;InheritUsername;" +
                           "InheritRDPAuthenticationLevel;InheritLoadBalanceInfo;InheritPreExtApp;InheritPostExtApp;InheritMacAddress;InheritUserField;" +
                           "InheritEnvironmentTags;InheritFavorite;InheritExtApp;InheritVNCCompression;InheritVNCEncoding;InheritVNCAuthMode;InheritVNCProxyType;InheritVNCProxyIP;" +
                           "InheritVNCProxyPort;InheritVNCProxyUsername;InheritVNCProxyPassword;InheritVNCColors;InheritVNCSmartSizeMode;InheritVNCViewOnly;" +
@@ -132,9 +133,11 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
               .Append(FormatForCsv(con.UseCredSsp))
               .Append(FormatForCsv(con.UseRestrictedAdmin))
               .Append(FormatForCsv(con.UseRCG))
+              .Append(FormatForCsv(con.UseRedirectionServerName))
               .Append(FormatForCsv(con.UseVmId))
               .Append(FormatForCsv(con.UseEnhancedMode))
               .Append(FormatForCsv(con.RenderingEngine))
+              .Append(FormatForCsv(con.TerminalBackend))
               .Append(FormatForCsv(con.RDPAuthenticationLevel))
               .Append(FormatForCsv(con.LoadBalanceInfo))
               .Append(FormatForCsv(con.Colors))
@@ -192,6 +195,7 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
               .Append(FormatForCsv(con.EC2Region))
               .Append(FormatForCsv(con.ExternalCredentialProvider))
               .Append(FormatForCsv(con.ExternalAddressProvider))
+              .Append(FormatForCsv(PluginConnectionDataSerializer.Serialize(con.PluginProperties)))
               ;
 
 
@@ -235,10 +239,12 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
               .Append(FormatForCsv(con.Inheritance.UseCredSsp))
               .Append(FormatForCsv(con.Inheritance.UseRestrictedAdmin))
               .Append(FormatForCsv(con.Inheritance.UseRCG))
+              .Append(FormatForCsv(con.Inheritance.UseRedirectionServerName))
               .Append(FormatForCsv(con.Inheritance.UseVmId))
               .Append(FormatForCsv(con.Inheritance.UseEnhancedMode))
               .Append(FormatForCsv(con.Inheritance.VmId))
               .Append(FormatForCsv(con.Inheritance.RenderingEngine))
+              .Append(FormatForCsv(con.Inheritance.TerminalBackend))
               .Append(FormatForCsv(con.Inheritance.Username))
               .Append(FormatForCsv(con.Inheritance.RDPAuthenticationLevel))
               .Append(FormatForCsv(con.Inheritance.LoadBalanceInfo))

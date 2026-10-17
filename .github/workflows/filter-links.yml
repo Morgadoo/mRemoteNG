@@ -16,12 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Sanitize links
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const githubRepoRegex =
-              /\[[^\]]*\]\((?!https?:\/\/github\.com\/user-attachments\/assets\/)[^\)]*https?:\/\/github\.com\/(?!user-attachments\/assets\/)[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+[^\s)]*\)|https?:\/\/github\.com\/(?!user-attachments\/assets\/)[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+[^\s)]*/gi;
-            
+              /\[[^\]]*\]\((?!https?:\/\/github\.com\/(?:user-attachments\/assets|mRemoteNG)\/)[^\)]*https?:\/\/github\.com\/(?!user-attachments\/assets\/)(?!mRemoteNG\/)[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+[^\s)]*\)|https?:\/\/github\.com\/(?!user-attachments\/assets\/)(?!mRemoteNG\/)[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+[^\s)]*/gi;
+  
             // CASE 1: Comment
             if (context.payload.comment) {
               const comment = context.payload.comment;

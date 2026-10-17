@@ -38,7 +38,9 @@ namespace mRemoteNG.Connection
         public void OpenConnection(
             ContainerInfo containerInfo,
             ConnectionInfo.Force force = ConnectionInfo.Force.None,
-            ConnectionWindow conForm = null)
+            ConnectionWindow conForm = null,
+            DockPane targetPane = null,
+            int? targetContentIndex = null)
         {
             if (containerInfo == null || containerInfo.Children.Count == 0)
                 return;
@@ -46,9 +48,9 @@ namespace mRemoteNG.Connection
             foreach (ConnectionInfo child in containerInfo.Children)
             {
                 if (child is ContainerInfo childAsContainer)
-                    OpenConnection(childAsContainer, force, conForm);
+                    OpenConnection(childAsContainer, force, conForm, targetPane, targetContentIndex);
                 else
-                    OpenConnection(child, force, conForm);
+                    OpenConnection(child, force, conForm, targetPane, targetContentIndex);
             }
         }
 
@@ -56,25 +58,17 @@ namespace mRemoteNG.Connection
         public async void OpenConnection(
             ConnectionInfo connectionInfo,
             ConnectionInfo.Force force = ConnectionInfo.Force.None,
-            ConnectionWindow conForm = null)
+            ConnectionWindow conForm = null,
+            DockPane targetPane = null,
+            int? targetContentIndex = null,
+            DockContent? targetPanePlaceholder = null)
         {
             if (connectionInfo == null)
                 return;
 
             try
             {
-                if (!string.IsNullOrEmpty(connectionInfo.EC2InstanceId))
-                {
-                    try
-                    {
-                        string host = await ExternalConnectors.AWS.EC2FetchDataService.GetEC2InstanceDataAsync("AWSAPI:" + connectionInfo.EC2InstanceId, connectionInfo.EC2Region);
-                        if (!string.IsNullOrEmpty(host))
-                            connectionInfo.Hostname = host;
-                    }
-                    catch
-                    {
-                    }
-                }
+                await Runtime.PluginService.ResolveConnectionAddressAsync(connectionInfo);
 
                 if (string.IsNullOrEmpty(connectionInfo.Hostname))
                 {
@@ -149,7 +143,7 @@ namespace mRemoteNG.Connection
 
                     SetConnectionFormEventHandlers(protocolSshTunnel, connectionForm);
                     SetConnectionEventHandlers(protocolSshTunnel);
-                    connectionContainer = SetConnectionContainer(connectionInfo, connectionForm);
+                    connectionContainer = SetConnectionContainer(connectionInfo, connectionForm, targetPane, targetContentIndex);
                     BuildConnectionInterfaceController(connectionInfoSshTunnel, protocolSshTunnel, connectionContainer);
                     protocolSshTunnel.InterfaceControl.OriginalInfo = connectionInfoSshTunnel;
 
@@ -222,7 +216,7 @@ namespace mRemoteNG.Connection
                 SetConnectionFormEventHandlers(newProtocol, connectionForm);
                 SetConnectionEventHandlers(newProtocol);
                 // in case of connection through SSH tunnel the container is already defined and must be use, else it needs to be created here
-                if (connectionContainer == null) connectionContainer = SetConnectionContainer(connectionInfo, connectionForm);
+                if (connectionContainer == null) connectionContainer = SetConnectionContainer(connectionInfo, connectionForm, targetPane, targetContentIndex);
                 BuildConnectionInterfaceController(connectionInfo, newProtocol, connectionContainer);
                 // in case of connection through SSH tunnel the connectionInfo was modified but connectionInfoOriginal in all cases retains the original info
                 // and is stored in interface control for further use
@@ -251,6 +245,11 @@ namespace mRemoteNG.Connection
             catch (Exception ex)
             {
                 Runtime.MessageCollector.AddExceptionStackTrace(Language.ConnectionOpenFailed, ex);
+            }
+            finally
+            {
+                if (targetPanePlaceholder is { IsDisposed: false })
+                    targetPanePlaceholder.Close();
             }
         }
 
@@ -309,6 +308,11 @@ namespace mRemoteNG.Connection
             if (connectionInfo.Panel != "" && !force.HasFlag(ConnectionInfo.Force.OverridePanel) && !Properties.OptionsTabsPanelsPage.Default.AlwaysShowPanelSelectionDlg)
                 return connectionInfo.Panel;
 
+            if (!Properties.OptionsTabsPanelsPage.Default.AlwaysShowPanelSelectionDlg)
+            {
+                return PanelAdder.DefaultPanelName;
+            }
+
             FrmChoosePanel frmPnl = new();
             return frmPnl.ShowDialog() == DialogResult.OK
                 ? frmPnl.Panel
@@ -320,18 +324,21 @@ namespace mRemoteNG.Connection
             ConnectionWindow connectionForm = conForm ?? Runtime.WindowList.FromString(connectionPanel) as ConnectionWindow;
 
             if (connectionForm == null)
-                // Don't show the panel immediately - it will be shown when first tab is added
-                connectionForm = _panelAdder.AddPanel(connectionPanel, showImmediately: false);
+            {
+                connectionForm = _panelAdder.AddPanel(connectionPanel, showImmediately: true);
+            }
             else
+            {
                 connectionForm.Show(FrmMain.Default.pnlDock);
+            }
 
             connectionForm.Focus();
             return connectionForm;
         }
 
-        private static Control SetConnectionContainer(ConnectionInfo connectionInfo, ConnectionWindow connectionForm)
+        private static Control SetConnectionContainer(ConnectionInfo connectionInfo, ConnectionWindow connectionForm, DockPane targetPane = null, int? targetContentIndex = null)
         {
-            Control connectionContainer = connectionForm.AddConnectionTab(connectionInfo);
+            Control connectionContainer = connectionForm.AddConnectionTab(connectionInfo, targetPane, targetContentIndex);
 
             if (connectionInfo.Protocol != ProtocolType.IntApp) return connectionContainer;
 

@@ -62,7 +62,10 @@ namespace mRemoteNG.Connection.Protocol.RDP
             }
             else if (connectionInfo.UseRCG)
             {
-                SetExtendedProperty("DisableCredentialsDelegation", true);
+                if (ShouldDisableCredentialsDelegation(connectionInfo.Username))
+                {
+                    SetExtendedProperty("DisableCredentialsDelegation", true);
+                }
                 SetExtendedProperty("RedirectedAuthentication", true);
             }
             
@@ -236,18 +239,13 @@ namespace mRemoteNG.Connection.Protocol.RDP
                 return;
             }
 
-            if (!(InterfaceControl.Info.Resolution == RDPResolutions.FitToWindow ||
-                  InterfaceControl.Info.Resolution == RDPResolutions.Fullscreen))
+            // FitToWindow: fixed resolution set at connect time, scrollbars handle overflow.
+            // SmartSize: SmartSizing scales the image client-side, no session resize needed.
+            // Only Fullscreen benefits from dynamically changing the remote session resolution.
+            if (InterfaceControl.Info.Resolution != RDPResolutions.Fullscreen)
             {
                 Runtime.MessageCollector.AddMessage(MessageClass.DebugMsg,
-                    $"Resize skipped for '{connectionInfo.Hostname}': Resolution is {InterfaceControl.Info.Resolution} (needs FitToWindow or Fullscreen)");
-                return;
-            }
-
-            if (SmartSize)
-            {
-                Runtime.MessageCollector.AddMessage(MessageClass.DebugMsg,
-                    $"Resize skipped for '{connectionInfo.Hostname}': SmartSize is enabled (use client-side scaling instead)");
+                    $"Resize skipped for '{connectionInfo.Hostname}': Resolution is {InterfaceControl.Info.Resolution} (only Fullscreen supports dynamic resize)");
                 return;
             }
 
@@ -284,6 +282,10 @@ namespace mRemoteNG.Connection.Protocol.RDP
 
             // Check if controls are being disposed during shutdown
             if (Control.IsDisposed || InterfaceControl.IsDisposed) return false;
+
+            // FitToWindow: control is undocked at a fixed size with scrollbars; don't touch it.
+            if (InterfaceControl.Info.Resolution == RDPResolutions.FitToWindow)
+                return false;
 
             Runtime.MessageCollector?.AddMessage(MessageClass.DebugMsg,
                 $"DoResizeControl - Before: Control.Size={Control.Size}, InterfaceControl.Size={InterfaceControl.Size}, Control.Dock={Control.Dock}");
@@ -328,10 +330,9 @@ namespace mRemoteNG.Connection.Protocol.RDP
 
         protected virtual void UpdateSessionDisplaySettings(uint width, uint height)
         {
-            if (RdpClient8 != null)
-            {
-                RdpClient8.Reconnect(width, height);
-            }
+            string host = connectionInfo?.Hostname ?? "unknown";
+            Runtime.MessageCollector?.AddMessage(MessageClass.DebugMsg,
+                $"Dynamic session resize is not supported for RDP client v8; keeping current resolution for '{host}'.");
         }
 
         public override void Close()

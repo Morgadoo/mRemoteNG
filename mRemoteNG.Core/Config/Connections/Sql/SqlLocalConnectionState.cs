@@ -21,9 +21,10 @@ namespace mRemoteNG.Core.Config.Connections.Sql;
 ///   </item>
 ///   <item>
 ///     <c>SqlConnectionProperties.xml</c> holds the connection properties the legacy
-///     <c>tblCons</c> schema has no columns for (tab colour, frame colour, Vault/OpenBao and the RD
-///     Gateway access token). The WinForms app never reads or writes this file, so a WinForms save
-///     cannot wipe them. They stay on this machine; they are not shared through the database.
+///     <c>tblCons</c> schema has no columns for (tab colour, frame colour, Vault/OpenBao, the RD
+///     Gateway access token and the RDP redirection-server flag). The WinForms app never reads or
+///     writes this file, so a WinForms save cannot wipe them. They stay on this machine; they are
+///     not shared through the database.
 ///   </item>
 /// </list>
 /// </summary>
@@ -176,6 +177,10 @@ public sealed class SqlLocalConnectionState
             node.VaultOpenbaoSecretEngine = extra.VaultOpenbaoSecretEngine.Value;
         if (extra.RDGatewayAccessToken is not null)
             node.RDGatewayAccessToken = extra.RDGatewayAccessToken;
+        if (extra.UseRedirectionServerName)
+            node.UseRedirectionServerName = true;
+        if (extra.InheritUseRedirectionServerName)
+            node.Inheritance.UseRedirectionServerName = true;
     }
 
     // ── XML ────────────────────────────────────────────────────────────────
@@ -228,13 +233,16 @@ public sealed class SqlLocalConnectionState
         string? VaultOpenbaoMount,
         string? VaultOpenbaoRole,
         VaultEngine? VaultOpenbaoSecretEngine,
-        string? RDGatewayAccessToken)
+        string? RDGatewayAccessToken,
+        bool UseRedirectionServerName,
+        bool InheritUseRedirectionServerName)
     {
         public static SchemaGapState Capture(ConnectionInfo node)
         {
             var inheritance = node.Inheritance;
             var inheritTab = inheritance.TabColor;
             var inheritFrame = inheritance.ConnectionFrameColor;
+            var inheritRedirection = inheritance.UseRedirectionServerName;
             inheritance.DisableInheritance();
             try
             {
@@ -246,7 +254,9 @@ public sealed class SqlLocalConnectionState
                     NullIfEmpty(node.VaultOpenbaoMount),
                     NullIfEmpty(node.VaultOpenbaoRole),
                     node.VaultOpenbaoSecretEngine == VaultEngine.Kv ? null : node.VaultOpenbaoSecretEngine,
-                    NullIfEmpty(node.RDGatewayAccessToken));
+                    NullIfEmpty(node.RDGatewayAccessToken),
+                    node.UseRedirectionServerName,
+                    inheritRedirection);
             }
             finally
             {
@@ -273,7 +283,9 @@ public sealed class SqlLocalConnectionState
                 NullIfEmpty(element.Attribute("VaultOpenbaoMount")?.Value),
                 NullIfEmpty(element.Attribute("VaultOpenbaoRole")?.Value),
                 engine,
-                NullIfEmpty(element.Attribute("RDGatewayAccessToken")?.Value));
+                NullIfEmpty(element.Attribute("RDGatewayAccessToken")?.Value),
+                BoolAttribute(element, "UseRedirectionServerName"),
+                BoolAttribute(element, "InheritUseRedirectionServerName"));
         }
 
         public XElement? ToElement(string connectionId)
@@ -298,13 +310,17 @@ public sealed class SqlLocalConnectionState
                 element.Add(new XAttribute("VaultOpenbaoSecretEngine", VaultOpenbaoSecretEngine.Value.ToString()));
             if (RDGatewayAccessToken is not null)
                 element.Add(new XAttribute("RDGatewayAccessToken", RDGatewayAccessToken));
+            if (UseRedirectionServerName)
+                element.Add(new XAttribute("UseRedirectionServerName", true));
+            if (InheritUseRedirectionServerName)
+                element.Add(new XAttribute("InheritUseRedirectionServerName", true));
             return element;
         }
 
         private bool IsEmpty =>
             TabColor is null && ConnectionFrameColor is null && !InheritTabColor && !InheritConnectionFrameColor
             && VaultOpenbaoMount is null && VaultOpenbaoRole is null && VaultOpenbaoSecretEngine is null
-            && RDGatewayAccessToken is null;
+            && RDGatewayAccessToken is null && !UseRedirectionServerName && !InheritUseRedirectionServerName;
 
         private static string? NullIfEmpty(string? value) =>
             string.IsNullOrEmpty(value) ? null : value;

@@ -111,7 +111,10 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("Type", isContainer ? "Container" : "Connection");
 
             if (node is ContainerInfo container)
+            {
                 element.SetAttribute("Expanded", container.IsExpanded.ToString().ToLowerInvariant());
+                element.SetAttribute("IsRootGroup", container.IsRootGroup.ToString().ToLowerInvariant());
+            }
 
             element.SetAttribute("Descr", node.Description);
             element.SetAttribute("Icon", node.Icon);
@@ -186,6 +189,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("UseCredSsp", node.UseCredSsp.ToString().ToLowerInvariant());
             element.SetAttribute("UseRestrictedAdmin", node.UseRestrictedAdmin.ToString().ToLowerInvariant());
             element.SetAttribute("UseRCG", node.UseRCG.ToString().ToLowerInvariant());
+            element.SetAttribute("UseRedirectionServerName", node.UseRedirectionServerName.ToString().ToLowerInvariant());
             element.SetAttribute("RDPAuthenticationLevel", node.RDPAuthenticationLevel.ToString());
             element.SetAttribute("RDPMinutesToIdleTimeout", node.RDPMinutesToIdleTimeout.ToString());
             element.SetAttribute("RDPAlertIdleTimeout", node.RDPAlertIdleTimeout.ToString().ToLowerInvariant());
@@ -204,6 +208,10 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("RDGatewayPassword",
                 _saveFilter.SavePassword
                     ? _cryptoProvider.Encrypt(node.RDGatewayPassword, _encryptionKey)
+                    : "");
+            element.SetAttribute("RDGatewayAccessToken",
+                _saveFilter.SavePassword
+                    ? _cryptoProvider.Encrypt(node.RDGatewayAccessToken, _encryptionKey)
                     : "");
             element.SetAttribute("RDGatewayDomain", _saveFilter.SaveDomain ? node.RDGatewayDomain : "");
             element.SetAttribute("RDGatewayExternalCredentialProvider", node.RDGatewayExternalCredentialProvider.ToString());
@@ -283,6 +291,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("InheritUseCredSsp", inh.UseCredSsp.ToString().ToLowerInvariant());
             element.SetAttribute("InheritUseRestrictedAdmin", inh.UseRestrictedAdmin.ToString().ToLowerInvariant());
             element.SetAttribute("InheritUseRCG", inh.UseRCG.ToString().ToLowerInvariant());
+            element.SetAttribute("InheritUseRedirectionServerName", inh.UseRedirectionServerName.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRenderingEngine", inh.RenderingEngine.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDPAuthenticationLevel", inh.RDPAuthenticationLevel.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDPMinutesToIdleTimeout", inh.RDPMinutesToIdleTimeout.ToString().ToLowerInvariant());
@@ -315,6 +324,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("InheritRDGatewayUseConnectionCredentials", inh.RDGatewayUseConnectionCredentials.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDGatewayUsername", inh.RDGatewayUsername.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDGatewayPassword", inh.RDGatewayPassword.ToString().ToLowerInvariant());
+            element.SetAttribute("InheritRDGatewayAccessToken", inh.RDGatewayAccessToken.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDGatewayDomain", inh.RDGatewayDomain.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDGatewayExternalCredentialProvider", inh.RDGatewayExternalCredentialProvider.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDGatewayUserViaAPI", inh.RDGatewayUserViaAPI.ToString().ToLowerInvariant());

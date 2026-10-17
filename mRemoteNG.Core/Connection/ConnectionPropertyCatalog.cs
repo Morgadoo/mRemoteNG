@@ -236,6 +236,7 @@ namespace mRemoteNG.Core.Connection
             [nameof(ConnectionInfo.UseConsoleSession)] = ("UseConsoleSession", "PropertyDescriptionUseConsoleSession"),
             [nameof(ConnectionInfo.UseRestrictedAdmin)] = ("UseRestrictedAdmin", "PropertyDescriptionUseRestrictedAdmin"),
             [nameof(ConnectionInfo.UseRCG)] = ("UseRCG", "PropertyDescriptionUseRCG"),
+            [nameof(ConnectionInfo.UseRedirectionServerName)] = ("UseRedirectionServerName", "PropertyDescriptionUseRedirectionServerName"),
             [nameof(ConnectionInfo.RDPMinutesToIdleTimeout)] = ("MinutesToIdleTimeout", "PropertyDescriptionRDPMinutesToIdleTimeout"),
             [nameof(ConnectionInfo.RDPAlertIdleTimeout)] = (null, "PropertyDescriptionRDPAlertIdleTimeout"),
             [nameof(ConnectionInfo.RDPStartProgram)] = ("RDPStartProgram", "PropertyDescriptionRDPStartProgram"),
@@ -480,6 +481,9 @@ namespace mRemoteNG.Core.Connection
                 "Use restricted admin mode on the target host (local system context).", ConnectionPropertyEditor.Boolean, Rdp);
             Add(nameof(ConnectionInfo.UseRCG), protocol, rdp, "Remote Credential Guard",
                 "Use Remote Credential Guard to tunnel authentication back to this computer through the RDP channel.",
+                ConnectionPropertyEditor.Boolean, Rdp);
+            Add(nameof(ConnectionInfo.UseRedirectionServerName), protocol, rdp, "Use redirection server name",
+                "Use the redirection server name instead of the connection hostname for RDP connections.",
                 ConnectionPropertyEditor.Boolean, Rdp);
             Add(nameof(ConnectionInfo.RDPMinutesToIdleTimeout), protocol, rdp, "Idle timeout (minutes)",
                 "Minutes the session may sit idle before it is disconnected automatically (0 for no limit).",

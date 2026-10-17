@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using mRemoteNG.App;
 using mRemoteNG.Config;
 using mRemoteNG.Config.Connections;
@@ -14,13 +15,13 @@ namespace mRemoteNG.UI.Forms.OptionsPages
     {
         #region Private Fields
         private OptRegistryConnectionsPage pageRegSettingsInstance;
-        private readonly FrmMain _frmMain = FrmMain.Default;
 
         #endregion
 
         public ConnectionsPage()
         {
             InitializeComponent();
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime) return;
             ApplyTheme();
             PageIcon = Resources.ImageConverter.GetImageAsIcon(Properties.Resources.ASPWebSite_16x);
 
@@ -60,6 +61,7 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             chkUseFilterSearch.Text = Language.FilterSearchMatchesInConnectionTree;
             chkPlaceSearchBarAboveConnectionTree.Text = Language.PlaceSearchBarAboveConnectionTree;
             chkDoNotTrimUsername.Text = Language.DoNotTrimUsername;
+            chkSlowClickRename.Text = Language.SlowClickRenameEnabled;
 
             lblRdpReconnectionCount.Text = Language.RdpReconnectCount;
             lblRDPConTimeout.Text = Language.RdpOverallConnectionTimeout;
@@ -84,6 +86,7 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             chkUseFilterSearch.Checked = Settings.Default.UseFilterSearch;
             chkPlaceSearchBarAboveConnectionTree.Checked = Settings.Default.PlaceSearchBarAboveConnectionTree;
             chkDoNotTrimUsername.Checked = Settings.Default.DoNotTrimUsername;
+            chkSlowClickRename.Checked = Settings.Default.SlowClickRenameEnabled;
 
             numRdpReconnectionCount.Value = Convert.ToDecimal(Settings.Default.RdpReconnectionCount);
             numRDPConTimeout.Value = Convert.ToDecimal(Settings.Default.ConRDPOverallConnectionTimeout);
@@ -136,18 +139,19 @@ namespace mRemoteNG.UI.Forms.OptionsPages
             Properties.Settings.Default.UseFilterSearch = chkUseFilterSearch.Checked;
             Properties.Settings.Default.PlaceSearchBarAboveConnectionTree = chkPlaceSearchBarAboveConnectionTree.Checked;
             Properties.Settings.Default.DoNotTrimUsername = chkDoNotTrimUsername.Checked;
+            Properties.Settings.Default.SlowClickRenameEnabled = chkSlowClickRename.Checked;
 
             Properties.Settings.Default.RdpReconnectionCount = (int)numRdpReconnectionCount.Value;
             Properties.Settings.Default.ConRDPOverallConnectionTimeout = (int)numRDPConTimeout.Value;
             Properties.OptionsBackupPage.Default.AutoSaveEveryMinutes = (int)numAutoSave.Value;
             if (Properties.OptionsBackupPage.Default.AutoSaveEveryMinutes > 0)
             {
-                _frmMain.tmrAutoSave.Interval = Properties.OptionsBackupPage.Default.AutoSaveEveryMinutes * 60000;
-                _frmMain.tmrAutoSave.Enabled = true;
+                FrmMain.Default.tmrAutoSave.Interval = Properties.OptionsBackupPage.Default.AutoSaveEveryMinutes * 60000;
+                FrmMain.Default.tmrAutoSave.Enabled = true;
             }
             else
             {
-                _frmMain.tmrAutoSave.Enabled = false;
+                FrmMain.Default.tmrAutoSave.Enabled = false;
             }
 
             // Save ConfirmCloseConnection setting
@@ -207,6 +211,9 @@ namespace mRemoteNG.UI.Forms.OptionsPages
 
             if (pageRegSettingsInstance.DoNotTrimUsername.IsSet)
                 DisableControl(chkDoNotTrimUsername);
+
+            if (pageRegSettingsInstance.SlowClickRenameEnabled.IsSet)
+                DisableControl(chkSlowClickRename);
 
             if (pageRegSettingsInstance.RdpReconnectionCount.IsSet)
                 DisableControl(numRdpReconnectionCount);

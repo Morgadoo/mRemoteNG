@@ -6,6 +6,7 @@ using mRemoteNG.Connection;
 using mRemoteNG.Connection.Protocol;
 using mRemoteNG.Connection.Protocol.Http;
 using mRemoteNG.Connection.Protocol.RDP;
+using mRemoteNG.Connection.Protocol.Terminal;
 using mRemoteNG.Connection.Protocol.VNC;
 using mRemoteNG.Credential;
 using mRemoteNG.Security;
@@ -105,9 +106,10 @@ namespace mRemoteNGTests.Config.Serializers.ConnectionSerializers.Csv
                 UseVmId = false,
                 UseEnhancedMode = false,
                 RenderingEngine = HTTPBase.RenderingEngine.EdgeChromium,
+                TerminalBackend = TerminalBackend.WindowsTerminal,
                 RDPAuthenticationLevel = AuthenticationLevel.WarnOnFailedAuth,
                 Colors = RDPColors.Colors16Bit,
-                Resolution = RDPResolutions.Res1366x768,
+                Resolution = RDPResolutions.SmartSize,
                 AutomaticResize = true,
                 DisplayWallpaper = true,
                 DisplayThemes = true,

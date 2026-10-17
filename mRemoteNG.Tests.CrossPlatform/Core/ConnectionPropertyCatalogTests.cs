@@ -13,7 +13,7 @@ public class ConnectionPropertyCatalogTests
 {
     /// <summary>
     /// ConnectionInfo properties that are not edited in the connection dialog: tree state, runtime flags,
-    /// and values the XML file does not store (Color, RDGatewayAccessToken).
+    /// Color, and the RD Gateway access token (stored in the file, filled by the gateway rather than the dialog).
     /// </summary>
     private static readonly string[] NotEditable =
     [
@@ -39,7 +39,7 @@ public class ConnectionPropertyCatalogTests
         var flags = new ConnectionInfo().Inheritance.GetProperties()
             .Where(p => p.PropertyType == typeof(bool))
             .Select(p => p.Name)
-            .Except([nameof(ConnectionInfo.Color)]);
+            .Except([nameof(ConnectionInfo.Color), nameof(ConnectionInfo.RDGatewayAccessToken)]);
 
         ConnectionPropertyCatalog.All.Where(d => d.SupportsInheritance).Select(d => d.Name)
             .Should().BeEquivalentTo(flags);

@@ -27,9 +27,11 @@ namespace mRemoteNG.Connection
 {
     [SupportedOSPlatform("windows")]
     [DefaultProperty("Name")]
+    [TypeDescriptionProvider(typeof(ConnectionInfoTypeDescriptionProvider))]
     public class ConnectionInfo : AbstractConnectionRecord, IHasParent, IInheritable
     {
         private ConnectionInfoInheritance _inheritance;
+        private readonly Dictionary<string, string> _pluginProperties = new(StringComparer.OrdinalIgnoreCase);
 
         #region Public Properties
 
@@ -55,6 +57,9 @@ namespace mRemoteNG.Connection
 
         [Browsable(false)]
         public bool PleaseConnect { get; set; }
+
+        [Browsable(false)]
+        public IReadOnlyDictionary<string, string> PluginProperties => _pluginProperties;
 
         #endregion
 
@@ -108,8 +113,65 @@ namespace mRemoteNG.Connection
                 property.SetValue(this, remotePropertyValue, null);
             }
 
+            _pluginProperties.Clear();
+            foreach (KeyValuePair<string, string> entry in sourceConnectionInfo.PluginProperties)
+            {
+                _pluginProperties[entry.Key] = entry.Value;
+            }
+
             ConnectionInfoInheritance clonedInheritance = sourceConnectionInfo.Inheritance.Clone(this);
             Inheritance = clonedInheritance;
+        }
+
+        public string GetPluginProperty(string key, string defaultValue = "")
+        {
+            return _pluginProperties.TryGetValue(key, out string? value) ? value : defaultValue;
+        }
+
+        public bool TryGetPluginProperty(string key, out string value)
+        {
+            return _pluginProperties.TryGetValue(key, out value!);
+        }
+
+        public void SetPluginProperty(string key, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentException("Plugin property key cannot be null or whitespace.", nameof(key));
+            }
+
+            if (string.IsNullOrEmpty(value))
+            {
+                if (_pluginProperties.Remove(key))
+                {
+                    RaisePropertyChangedEvent(this, new PropertyChangedEventArgs(key));
+                }
+
+                return;
+            }
+
+            if (_pluginProperties.TryGetValue(key, out string? existingValue) &&
+                string.Equals(existingValue, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _pluginProperties[key] = value;
+            RaisePropertyChangedEvent(this, new PropertyChangedEventArgs(key));
+        }
+
+        internal void ReplacePluginProperties(IEnumerable<KeyValuePair<string, string>> properties)
+        {
+            _pluginProperties.Clear();
+            foreach (KeyValuePair<string, string> property in properties)
+            {
+                if (string.IsNullOrWhiteSpace(property.Key))
+                {
+                    continue;
+                }
+
+                _pluginProperties[property.Key] = property.Value ?? string.Empty;
+            }
         }
 
         public virtual TreeNodeType GetTreeNodeType()
@@ -324,9 +386,11 @@ namespace mRemoteNG.Connection
             RDPAlertIdleTimeout = Settings.Default.ConDefaultRDPAlertIdleTimeout;
             LoadBalanceInfo = Settings.Default.ConDefaultLoadBalanceInfo;
             RenderingEngine = (HTTPBase.RenderingEngine)Enum.Parse(typeof(HTTPBase.RenderingEngine), Settings.Default.ConDefaultRenderingEngine);
+            TerminalBackend = (TerminalBackend)Enum.Parse(typeof(TerminalBackend), Settings.Default.ConDefaultTerminalBackend);
             UseCredSsp = Settings.Default.ConDefaultUseCredSsp;
             UseRestrictedAdmin = Settings.Default.ConDefaultUseRestrictedAdmin;
             UseRCG = Settings.Default.ConDefaultUseRCG;
+            UseRedirectionServerName = Settings.Default.ConDefaultUseRedirectionServerName;
             UseVmId = Settings.Default.ConDefaultUseVmId;
             UseEnhancedMode = Settings.Default.ConDefaultUseEnhancedMode;
         }
@@ -345,13 +409,16 @@ namespace mRemoteNG.Connection
             RDGatewayUsername = Settings.Default.ConDefaultRDGatewayUsername;
             RDGatewayPassword = Settings.Default.ConDefaultRDGatewayPassword;
             RDGatewayDomain = Settings.Default.ConDefaultRDGatewayDomain;
+            RDGatewayAccessToken = Settings.Default.ConDefaultRDGatewayAccessToken;
             RDGatewayExternalCredentialProvider = (ExternalCredentialProvider)Enum.Parse(typeof(ExternalCredentialProvider), Settings.Default.ConDefaultRDGatewayExternalCredentialProvider);
             RDGatewayUserViaAPI = Settings.Default.ConDefaultRDGatewayUserViaAPI;
         }
 
         private void SetAppearanceDefaults()
         {
-            Resolution = (RDPResolutions)Enum.Parse(typeof(RDPResolutions), Settings.Default.ConDefaultResolution);
+            Resolution = Enum.TryParse(Settings.Default.ConDefaultResolution, out RDPResolutions res)
+                ? res
+                : RDPResolutions.SmartSize;
             AutomaticResize = Settings.Default.ConDefaultAutomaticResize;
             Colors = (RDPColors)Enum.Parse(typeof(RDPColors), Settings.Default.ConDefaultColors);
             CacheBitmaps = Settings.Default.ConDefaultCacheBitmaps;
@@ -368,7 +435,9 @@ namespace mRemoteNG.Connection
         private void SetRedirectDefaults()
         {
             RedirectKeys = Settings.Default.ConDefaultRedirectKeys;
-            RedirectDiskDrives = (RDPDiskDrives)Enum.Parse(typeof(RDPDiskDrives), Settings.Default.ConDefaultRedirectDiskDrives);
+            RedirectDiskDrives = Settings.Default.ConDefaultRedirectDiskDrives 
+                ? RDPDiskDrives.All 
+                : RDPDiskDrives.None;
             RedirectDiskDrivesCustom = Settings.Default.ConDefaultRedirectDiskDrivesCustom;
             RedirectPrinters = Settings.Default.ConDefaultRedirectPrinters;
             RedirectClipboard = Settings.Default.ConDefaultRedirectClipboard;

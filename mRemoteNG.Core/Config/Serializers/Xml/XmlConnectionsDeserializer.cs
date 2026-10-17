@@ -201,6 +201,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             var container = new ContainerInfo(id);
             PopulateConnectionInfo(container, element, confVersion);
             container.IsExpanded = GetBool(element, "Expanded", true);
+            container.IsRootGroup = GetBool(element, "IsRootGroup", false);
             return container;
         }
 
@@ -285,6 +286,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             node.UseCredSsp = GetBool(e, "UseCredSsp", true);
             node.UseRestrictedAdmin = GetBool(e, "UseRestrictedAdmin", false);
             node.UseRCG = GetBool(e, "UseRCG", false);
+            node.UseRedirectionServerName = GetBool(e, "UseRedirectionServerName", false);
             node.RDPAuthenticationLevel = GetEnum(e, "RDPAuthenticationLevel", AuthenticationLevel.NoAuth);
             node.RDPMinutesToIdleTimeout = GetInt(e, "RDPMinutesToIdleTimeout", 0);
             node.RDPAlertIdleTimeout = GetBool(e, "RDPAlertIdleTimeout", false);
@@ -301,10 +303,10 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             node.RDGatewayUseConnectionCredentials = GetEnum(e, "RDGatewayUseConnectionCredentials", RDGatewayUseConnectionCredentials.Yes);
             node.RDGatewayUsername = GetAttr(e, "RDGatewayUsername", "");
             node.RDGatewayPassword = DecryptAttribute(e, "RDGatewayPassword");
+            node.RDGatewayAccessToken = DecryptAttribute(e, "RDGatewayAccessToken");
             node.RDGatewayDomain = GetAttr(e, "RDGatewayDomain", "");
             node.RDGatewayExternalCredentialProvider = GetEnum(e, "RDGatewayExternalCredentialProvider", ExternalCredentialProvider.None);
             node.RDGatewayUserViaAPI = GetAttr(e, "RDGatewayUserViaAPI", "");
-            node.RDGatewayAccessToken = GetAttr(e, "RDGatewayAccessToken", "");
 
             // VNC
             node.VNCCompression = GetEnum(e, "VNCCompression", VncCompression.CompNone);
@@ -385,6 +387,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             inh.UseCredSsp = GetBool(e, "InheritUseCredSsp", false);
             inh.UseRestrictedAdmin = GetBool(e, "InheritUseRestrictedAdmin", false);
             inh.UseRCG = GetBool(e, "InheritUseRCG", false);
+            inh.UseRedirectionServerName = GetBool(e, "InheritUseRedirectionServerName", false);
             inh.RenderingEngine = GetBool(e, "InheritRenderingEngine", false);
             inh.RDPAuthenticationLevel = GetBool(e, "InheritRDPAuthenticationLevel", false);
             inh.RDPMinutesToIdleTimeout = GetBool(e, "InheritRDPMinutesToIdleTimeout", false);
@@ -417,6 +420,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             inh.RDGatewayUseConnectionCredentials = GetBool(e, "InheritRDGatewayUseConnectionCredentials", false);
             inh.RDGatewayUsername = GetBool(e, "InheritRDGatewayUsername", false);
             inh.RDGatewayPassword = GetBool(e, "InheritRDGatewayPassword", false);
+            inh.RDGatewayAccessToken = GetBool(e, "InheritRDGatewayAccessToken", false);
             inh.RDGatewayDomain = GetBool(e, "InheritRDGatewayDomain", false);
             inh.RDGatewayExternalCredentialProvider = GetBool(e, "InheritRDGatewayExternalCredentialProvider", false);
             inh.RDGatewayUserViaAPI = GetBool(e, "InheritRDGatewayUserViaAPI", false);

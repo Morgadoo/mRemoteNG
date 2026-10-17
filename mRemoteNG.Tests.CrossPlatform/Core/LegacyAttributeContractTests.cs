@@ -40,8 +40,10 @@ public class LegacyAttributeContractTests : IDisposable
     {
         var legacySource = File.ReadAllText(Path.Combine(RepoRoot(),
             "mRemoteNG", "Config", "Serializers", "ConnectionSerializers", "Xml", "XmlConnectionNodeSerializer28.cs"));
-        var legacyAttributes = Regex.Matches(legacySource, @"XAttribute\(""(\w+)""")
-            .Select(m => m.Groups[1].Value)
+        // Inheritance names moved to AddInheritanceAttribute(..., "InheritX"); the attribute is still written.
+        var legacyAttributes = Regex.Matches(legacySource,
+                @"XAttribute\(""(\w+)""|AddInheritanceAttribute\([^""]*""(\w+)""\)")
+            .Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value)
             .ToHashSet();
         legacyAttributes.Should().HaveCountGreaterThan(100, "the legacy source was parsed");
 
@@ -60,6 +62,56 @@ public class LegacyAttributeContractTests : IDisposable
         var written = doc.DocumentElement!.FirstChild!.Attributes!.Cast<XmlAttribute>().Select(a => a.Name).ToHashSet();
 
         legacyAttributes.Except(written).Should().BeEmpty("these legacy attributes would be lost on save");
+    }
+
+    [Fact]
+    public void IsRootGroup_RoundTripsAndDefaultsToFalseWhenTheAttributeIsMissing()
+    {
+        var path = Path.Combine(_tempDir, "roots.xml");
+        var marker = new CryptoProviderFactory().Build().Encrypt("ThisIsNotProtected", "mR3m");
+        File.WriteAllText(path, $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <Connections Name="Connections" EncryptionEngine="AES" BlockCipherMode="GCM" KdfIterations="1000" FullFileEncryption="false" Protected="{marker}" ConfVersion="2.8">
+              <Node Name="extra" Type="Container" IsRootGroup="true" Expanded="true" Id="33333333-3333-3333-3333-333333333333">
+                <Node Name="nested" Type="Container" Expanded="true" Id="44444444-4444-4444-4444-444444444444" />
+              </Node>
+            </Connections>
+            """);
+
+        var service = new ConnectionsService(new CryptoProviderFactory());
+        var folders = service.LoadFromFile(path).RootNode.Children.OfType<mRemoteNG.Core.Container.ContainerInfo>().ToList();
+        folders.Should().ContainSingle();
+        folders[0].IsRootGroup.Should().BeTrue();
+        folders[0].Children.OfType<mRemoteNG.Core.Container.ContainerInfo>().Single().IsRootGroup.Should().BeFalse();
+
+        service.SaveToFile(path);
+        var reloaded = new ConnectionsService(new CryptoProviderFactory()).LoadFromFile(path);
+        reloaded.RootNode.Children.OfType<mRemoteNG.Core.Container.ContainerInfo>().Single().IsRootGroup.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GatewayTokenAndRedirectionServerName_RoundTrip()
+    {
+        var path = Path.Combine(_tempDir, "gateway.xml");
+        var service = new ConnectionsService(new CryptoProviderFactory());
+        var root = service.CreateNew().RootNode;
+        var node = new ConnectionInfo { Name = "gw", Hostname = "host", Protocol = mRemoteNG.Core.Connection.Protocol.ProtocolType.RDP };
+        node.RDGatewayAccessToken = "tok&en<1>";
+        node.UseRedirectionServerName = true;
+        node.Inheritance.RDGatewayAccessToken = true;
+        node.Inheritance.UseRedirectionServerName = true;
+        root.AddChild(node);
+        service.SaveToFile(path);
+
+        var loaded = new ConnectionsService(new CryptoProviderFactory()).LoadFromFile(path).GetConnections().Single();
+        loaded.RDGatewayAccessToken.Should().Be("tok&en<1>");
+        loaded.UseRedirectionServerName.Should().BeTrue();
+        loaded.Inheritance.RDGatewayAccessToken.Should().BeTrue();
+        loaded.Inheritance.UseRedirectionServerName.Should().BeTrue();
+
+        var element = (XmlElement)new XmlDocument().Also(d => d.Load(path)).DocumentElement!.FirstChild!;
+        element.GetAttribute("RDGatewayAccessToken").Should().NotBe("tok&en<1>");
+        element.GetAttribute("UseRedirectionServerName").Should().Be("true");
     }
 
     [Fact]

@@ -201,6 +201,12 @@ namespace mRemoteNG.Connection
         public bool RenderingEngine { get; set; }
 
         [LocalizedAttributes.LocalizedCategory(nameof(Language.Protocol), 4),
+         LocalizedAttributes.LocalizedDisplayNameInherit(nameof(Language.TerminalBackend)),
+         LocalizedAttributes.LocalizedDescriptionInherit(nameof(Language.PropertyDescriptionTerminalBackend)),
+         TypeConverter(typeof(MiscTools.YesNoTypeConverter))]
+        public bool TerminalBackend { get; set; }
+
+        [LocalizedAttributes.LocalizedCategory(nameof(Language.Protocol), 4),
          LocalizedAttributes.LocalizedDisplayNameInherit(nameof(Language.UseConsoleSession)),
          LocalizedAttributes.LocalizedDescriptionInherit(nameof(Language.PropertyDescriptionUseConsoleSession)),
          TypeConverter(typeof(MiscTools.YesNoTypeConverter))]
@@ -223,6 +229,12 @@ namespace mRemoteNG.Connection
          LocalizedAttributes.LocalizedDescriptionInherit(nameof(Language.PropertyDescriptionUseRCG)),
          TypeConverter(typeof(MiscTools.YesNoTypeConverter))]
         public bool UseRCG { get; set; }
+
+        [LocalizedAttributes.LocalizedCategory(nameof(Language.Protocol), 4),
+         LocalizedAttributes.LocalizedDisplayNameInherit(nameof(Language.UseRedirectionServerName)),
+         LocalizedAttributes.LocalizedDescriptionInherit(nameof(Language.PropertyDescriptionUseRedirectionServerName)),
+         TypeConverter(typeof(MiscTools.YesNoTypeConverter))]
+        public bool UseRedirectionServerName { get; set; }
 
         [LocalizedAttributes.LocalizedCategory(nameof(Language.Protocol), 4),
          LocalizedAttributes.LocalizedDisplayNameInherit(nameof(Language.UseVmId)),
@@ -269,6 +281,12 @@ namespace mRemoteNG.Connection
          LocalizedAttributes.LocalizedDescriptionInherit(nameof(Language.PropertyDescriptionRdpGatewayPassword)),
          TypeConverter(typeof(MiscTools.YesNoTypeConverter))]
         public bool RDGatewayPassword { get; set; }
+
+        [LocalizedAttributes.LocalizedCategory(nameof(Language.RDPGateway), 5),
+         LocalizedAttributes.LocalizedDisplayNameInherit(nameof(Language.RdpGatewayAccessToken)),
+         LocalizedAttributes.LocalizedDescriptionInherit(nameof(Language.PropertyDescriptionRdpGatewayAccessToken)),
+         TypeConverter(typeof(MiscTools.YesNoTypeConverter))]
+        public bool RDGatewayAccessToken { get; set; }
 
         [LocalizedAttributes.LocalizedCategory(nameof(Language.RDPGateway), 5),
          LocalizedAttributes.LocalizedDisplayNameInherit(nameof(Language.RdpGatewayDomain)),

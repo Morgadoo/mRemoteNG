@@ -4,6 +4,7 @@ using mRemoteNG.Connection;
 using mRemoteNG.Credential;
 using mRemoteNG.Credential.Repositories;
 using mRemoteNG.Messages;
+using mRemoteNG.Plugins;
 using mRemoteNG.Security;
 using mRemoteNG.Tools;
 using mRemoteNG.Tree.Root;
@@ -11,10 +12,15 @@ using mRemoteNG.UI;
 using mRemoteNG.UI.Forms;
 using mRemoteNG.UI.TaskDialog;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security;
 using System.Threading;
 using System.Windows.Forms;
+using System.Linq;
+using mRemoteNG.Config.Settings;
+using mRemoteNG.Config.UserProfiles;
+using mRemoteNG.Security.Factories;
 using mRemoteNG.Properties;
 using mRemoteNG.Resources.Language;
 using System.Runtime.Versioning;
@@ -41,10 +47,11 @@ namespace mRemoteNG.App
         /// </summary>
         public static bool UseCredentialManager => false;
 
-        public static WindowList WindowList { get; set; }
+        public static WindowList WindowList { get; set; } = null!; // initialized during FrmMain startup
         public static MessageCollector MessageCollector { get; } = new MessageCollector();
-        public static NotificationAreaIcon NotificationAreaIcon { get; set; }
+        public static NotificationAreaIcon NotificationAreaIcon { get; set; } = null!; // initialized on demand by settings/UI
         public static ExternalToolsService ExternalToolsService { get; } = new ExternalToolsService();
+        public static PluginService PluginService { get; } = new PluginService();
 
         public static SecureString EncryptionKey { get; set; } = new RootNodeInfo(RootNodeType.Connection).PasswordString.ConvertToSecureString();
 
@@ -53,8 +60,63 @@ namespace mRemoteNG.App
         public static ConnectionInitiator ConnectionInitiator { get; set; } = new ConnectionInitiator();
 
         public static ConnectionsService ConnectionsService { get; } = new ConnectionsService(PuttySessionsManager.Instance);
+        public static SqliteUserProfileStore UserProfileStore { get; private set; }
+        public static UserProfileSession UserProfileSession { get; private set; }
+
+        /// <summary>
+        /// Dev-only options repository manager. Only initialized in DEBUG builds.
+        /// </summary>
+        public static OptionsRepositoryManager OptionsRepositoryManager { get; set; } = new();
 
         #region Connections Loading/Saving
+
+        public static bool TryInitializeUserProfile()
+        {
+            string profilesPath = SettingsFileInfo.SettingsPath;
+            string databasePath = Path.Combine(profilesPath, SqliteUserProfileStore.DatabaseFileName);
+            Optional<SecureString> passwordResult = MiscTools.PasswordDialog("Profile password", true);
+            if (!passwordResult.Any())
+                return false;
+            SecureString password = passwordResult.First();
+
+            try
+            {
+                UserProfileStore = new SqliteUserProfileStore(
+                    profilesPath,
+                    File.Exists(databasePath) ? null : password);
+                UserProfile user = UserProfileStore.EnsureFirstRunUsers(Environment.UserName);
+                UserProfileSession administratorSession = UserProfileStore.Authenticate("Admin", password);
+                if (administratorSession is not null && !user.HasPassword)
+                    UserProfileStore.SetInitialUserPassword(administratorSession, user.Id, password);
+                UserProfileSession session = UserProfileStore.Authenticate(user.UserName, password);
+                if (session is null)
+                    return false;
+
+                IReadOnlyList<ConnectionProfile> profiles = UserProfileStore.GetProfiles(session);
+                if (profiles.Count == 0)
+                {
+                    string defaultProfilePath = Path.Combine(profilesPath, "connections.profile.db");
+                    profiles = new[] { UserProfileStore.AddProfile(session, "Default", defaultProfilePath) };
+                }
+                ConnectionProfile profile = ProfileSelectionDialog.Select(profiles);
+                if (profile is null)
+                    return false;
+                UserProfileSession = session;
+                ConnectionsService.ProfileDataProvider = UserProfileStore.OpenProfile(
+                    session,
+                    profile.Id,
+                    new CryptoProviderFactoryFromSettings().Build(),
+                    password);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageCollector.AddExceptionMessage("Could not initialize user profiles.", ex);
+                UserProfileStore?.Dispose();
+                UserProfileStore = null;
+                return false;
+            }
+        }
 
         public static void LoadConnectionsAsync()
         {
@@ -105,7 +167,7 @@ namespace mRemoteNG.App
                 {
                     ConnectionsService.LastSqlUpdate = DateTime.Now.ToUniversalTime();
                 } 
-				else
+				else if (ConnectionsService.ProfileDataProvider is null)
                 {
                     ConnectionsService.LastFileUpdate =  System.IO.File.GetLastWriteTime(connectionFileName);
                 }
@@ -115,13 +177,13 @@ namespace mRemoteNG.App
             }
             catch (Exception ex)
             {
-                FrmSplashScreenNew.GetInstance().Close();
+                ProgramRoot.CloseSplash();
 
                 if (Properties.OptionsDBsPage.Default.UseSQLServer)
                 {
                     MessageCollector.AddExceptionMessage(Language.LoadFromSqlFailed, ex);
                     string commandButtons = string.Join("|", Language._TryAgain, Language.CommandOpenConnectionFile, string.Format(Language.CommandExitProgram, Application.ProductName));
-                    CTaskDialog.ShowCommandBox(Application.ProductName, Language.LoadFromSqlFailed, Language.LoadFromSqlFailedContent, MiscTools.GetExceptionMessageRecursive(ex), "", "", commandButtons, false, ESysIcons.Error, ESysIcons.Error);
+                    CTaskDialog.ShowCommandBox(Application.ProductName ?? string.Empty, Language.LoadFromSqlFailed, Language.LoadFromSqlFailedContent, MiscTools.GetExceptionMessageRecursive(ex), "", "", commandButtons, false, ESysIcons.Error, ESysIcons.Error);
                     switch (CTaskDialog.CommandButtonResult)
                     {
                         case 0:
@@ -157,7 +219,7 @@ namespace mRemoteNG.App
                     {
                         try
                         {
-                            CTaskDialog.ShowTaskDialogBox(GeneralAppInfo.ProductName, Language.ConnectionFileNotFound, "", "", "", "", "", string.Join(" | ", commandButtons), ETaskDialogButtons.None, ESysIcons.Question, ESysIcons.Question);
+                            CTaskDialog.ShowTaskDialogBox(GeneralAppInfo.ProductName ?? string.Empty, Language.ConnectionFileNotFound, "", "", "", "", "", string.Join(" | ", commandButtons), ETaskDialogButtons.None, ESysIcons.Question, ESysIcons.Question);
 
                             switch (CTaskDialog.CommandButtonResult)
                             {

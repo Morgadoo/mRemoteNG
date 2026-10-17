@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System;
 using System.Data;
 using System.Linq;
 using System.Runtime.Versioning;
@@ -9,10 +10,12 @@ using mRemoteNG.App;
 using mRemoteNG.Connection;
 using mRemoteNG.Connection.Protocol;
 using mRemoteNG.Connection.Protocol.Http;
+using mRemoteNG.Connection.Protocol.Terminal;
 using mRemoteNG.Connection.Protocol.RDP;
 using mRemoteNG.Connection.Protocol.VNC;
 using mRemoteNG.Container;
 using mRemoteNG.Messages;
+using mRemoteNG.Plugins;
 using mRemoteNG.Security;
 using mRemoteNG.Tools;
 using mRemoteNG.Tree;
@@ -110,6 +113,8 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Sql
             //connectionInfo.Password = DecryptValue(pw ?? "").ConvertToSecureString();
             connectionInfo.Password = DecryptValue(pw ?? "");
             connectionInfo.Port = (int)dataRow["Port"];
+            if (dataRow.Table.Columns.Contains("PluginData"))
+                connectionInfo.ReplacePluginProperties(PluginConnectionDataSerializer.Deserialize(dataRow["PluginData"] as string ?? string.Empty));
             connectionInfo.PostExtApp = (string)dataRow["PostExtApp"];
             connectionInfo.PreExtApp = (string)dataRow["PreExtApp"];
             connectionInfo.Protocol = (ProtocolType)Enum.Parse(typeof(ProtocolType), (string)dataRow["Protocol"]);
@@ -135,7 +140,11 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Sql
             connectionInfo.RedirectSmartCards = MiscTools.GetBooleanValue(dataRow["RedirectSmartCards"]);
             connectionInfo.RedirectSound = (RDPSounds)Enum.Parse(typeof(RDPSounds), (string)dataRow["RedirectSound"]);
             connectionInfo.RenderingEngine = (HTTPBase.RenderingEngine)Enum.Parse(typeof(HTTPBase.RenderingEngine), (string)dataRow["RenderingEngine"]);
-            connectionInfo.Resolution = (RDPResolutions)Enum.Parse(typeof(RDPResolutions), (string)dataRow["Resolution"]);
+            if (dataRow.Table.Columns.Contains("TerminalBackend") && Enum.TryParse(Convert.ToString(dataRow["TerminalBackend"]), out TerminalBackend terminalBackend))
+                connectionInfo.TerminalBackend = terminalBackend;
+            connectionInfo.Resolution = Enum.TryParse<RDPResolutions>((string)dataRow["Resolution"], true, out var resolution)
+                ? resolution
+                : RDPResolutions.SmartSize;
             connectionInfo.SoundQuality = (RDPSoundQuality)Enum.Parse(typeof(RDPSoundQuality), (string)dataRow["SoundQuality"]);
             connectionInfo.SSHOptions = (string)dataRow["SSHOptions"];
             connectionInfo.SSHTunnelConnectionName = (string)dataRow["SSHTunnelConnectionName"];
@@ -215,6 +224,8 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Sql
             connectionInfo.Inheritance.RedirectSmartCards = MiscTools.GetBooleanValue(dataRow["InheritRedirectSmartCards"]);
             connectionInfo.Inheritance.RedirectSound = MiscTools.GetBooleanValue(dataRow["InheritRedirectSound"]);
             connectionInfo.Inheritance.RenderingEngine = MiscTools.GetBooleanValue(dataRow["InheritRenderingEngine"]);
+            if (dataRow.Table.Columns.Contains("InheritTerminalBackend"))
+                connectionInfo.Inheritance.TerminalBackend = MiscTools.GetBooleanValue(dataRow["InheritTerminalBackend"]);
             connectionInfo.Inheritance.Resolution = MiscTools.GetBooleanValue(dataRow["InheritResolution"]);
             connectionInfo.Inheritance.SoundQuality = MiscTools.GetBooleanValue(dataRow["InheritSoundQuality"]);
             connectionInfo.Inheritance.SSHOptions = MiscTools.GetBooleanValue(dataRow["InheritSSHOptions"]);
@@ -241,6 +252,7 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Sql
             connectionInfo.Inheritance.VNCProxyUsername = MiscTools.GetBooleanValue(dataRow["InheritVNCProxyUsername"]);
             connectionInfo.Inheritance.VNCSmartSizeMode = MiscTools.GetBooleanValue(dataRow["InheritVNCSmartSizeMode"]);
             connectionInfo.Inheritance.VNCViewOnly = MiscTools.GetBooleanValue(dataRow["InheritVNCViewOnly"]);
+            LegacyPluginDataMigrator.Migrate(connectionInfo);
         }
 
         private string DecryptValue(string cipherText)

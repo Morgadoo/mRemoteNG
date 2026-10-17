@@ -4,7 +4,6 @@ using mRemoteNG.App;
 using mRemoteNG.Connection;
 using mRemoteNG.Connection.Protocol;
 using mRemoteNG.Messages;
-using mRemoteNG.Resources.Language;
 using NUnit.Framework;
 
 namespace mRemoteNGTests.Connection
@@ -46,7 +45,7 @@ namespace mRemoteNGTests.Connection
             // Assert - poll for message with timeout
             var foundMessage = WaitForMessage(MessageClass.ErrorMsg, timeoutMs: 1000);
             Assert.That(foundMessage, Is.Not.Null, "Expected an error message to be added");
-            Assert.That(foundMessage.Text, Is.EqualTo(Language.ConnectionOpenFailedNoHostname));
+            Assert.That(foundMessage.Text, Is.EqualTo("Cannot open connection: No hostname specified!"));
         }
 
         [Test]
@@ -66,7 +65,7 @@ namespace mRemoteNGTests.Connection
             // Assert - poll for message with timeout
             var foundMessage = WaitForMessage(MessageClass.ErrorMsg, timeoutMs: 1000);
             Assert.That(foundMessage, Is.Not.Null, "Expected an error message to be added");
-            Assert.That(foundMessage.Text, Is.EqualTo(Language.ConnectionOpenFailedNoHostname));
+            Assert.That(foundMessage.Text, Is.EqualTo("Cannot open connection: No hostname specified!"));
         }
 
         [Test]
@@ -88,7 +87,7 @@ namespace mRemoteNGTests.Connection
 
             // Assert
             var hostnameErrors = _messageCollector.Messages
-                .Where(m => m.Text == Language.ConnectionOpenFailedNoHostname)
+                .Where(m => m.Text == "Cannot open connection: No hostname specified!")
                 .ToList();
 
             Assert.That(hostnameErrors, Is.Empty, 

@@ -83,6 +83,8 @@ public sealed class SqlLocalConnectionStateTests : IDisposable
         connection.VaultOpenbaoRole = "ops";
         connection.VaultOpenbaoSecretEngine = VaultOpenbaoSecretEngine.SSHOTP;
         connection.RDGatewayAccessToken = "tok&en<1>";
+        connection.UseRedirectionServerName = true;
+        connection.Inheritance.UseRedirectionServerName = true;
 
         var state = new SqlLocalConnectionState(_directory);
         state.Save(model);
@@ -92,6 +94,7 @@ public sealed class SqlLocalConnectionStateTests : IDisposable
         var host = restored.GetRecursiveChildList().Single(n => n.Name == "host");
         host.Inheritance.TabColor.Should().BeTrue();
         host.Inheritance.ConnectionFrameColor.Should().BeFalse();
+        host.Inheritance.UseRedirectionServerName.Should().BeTrue();
         host.Inheritance.DisableInheritance();
         host.TabColor.Should().Be("#c0392b");
         host.ConnectionFrameColor.Should().Be(ConnectionFrameColor.Red);
@@ -99,6 +102,7 @@ public sealed class SqlLocalConnectionStateTests : IDisposable
         host.VaultOpenbaoRole.Should().Be("ops");
         host.VaultOpenbaoSecretEngine.Should().Be(VaultOpenbaoSecretEngine.SSHOTP);
         host.RDGatewayAccessToken.Should().Be("tok&en<1>");
+        host.UseRedirectionServerName.Should().BeTrue();
 
         connection.TabColor = "";
         connection.ConnectionFrameColor = ConnectionFrameColor.None;
@@ -107,6 +111,8 @@ public sealed class SqlLocalConnectionStateTests : IDisposable
         connection.VaultOpenbaoRole = "";
         connection.VaultOpenbaoSecretEngine = VaultOpenbaoSecretEngine.Kv;
         connection.RDGatewayAccessToken = "";
+        connection.UseRedirectionServerName = false;
+        connection.Inheritance.UseRedirectionServerName = false;
         state.Save(model);
 
         var cleared = Tree();

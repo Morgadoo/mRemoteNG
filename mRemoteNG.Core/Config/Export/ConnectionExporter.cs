@@ -118,6 +118,7 @@ namespace mRemoteNG.Core.Config.Export
             if (source is ContainerInfo sourceContainer && copy is ContainerInfo copyContainer)
             {
                 copyContainer.IsExpanded = sourceContainer.IsExpanded;
+                copyContainer.IsRootGroup = sourceContainer.IsRootGroup;
                 foreach (var child in sourceContainer.Children)
                     copyContainer.AddChild(CopyWithIds(child));
             }
