@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -181,5 +182,77 @@ public sealed class TelnetIntegrationTests : IDisposable
         rlogin.State.Should().Be(ConnectionState.Error);
         await server;
         listener.Stop();
+    }
+
+    [Fact]
+    public void Rlogin_WindowChange_IsTheTwelveByteBsdMessage()
+    {
+        RloginProtocol.WindowSizeMagic.Should().Be(0x80);
+        RloginProtocol.BuildWindowChange(132, 43, 1056, 774).Should().Equal(
+            new byte[]
+            {
+                0xFF, 0xFF, (byte)'s', (byte)'s',
+                0x00, 43,
+                0x00, 132,
+                0x04, 0x20,
+                0x03, 0x06,
+            });
+    }
+
+    [Fact]
+    public async Task Rlogin_SendsWindowSizeAsUrgentData()
+    {
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+
+        var server = Task.Run(async () =>
+        {
+            using var client = await listener.AcceptTcpClientAsync();
+            var stream = client.GetStream();
+            var handshake = new byte[RloginProtocol.BuildHandshake(Environment.UserName, "alice").Length];
+            await stream.ReadExactlyAsync(handshake);
+            await stream.WriteAsync(new byte[] { 0 });
+
+            // recv(MSG_OOB) does not wait for urgent data that has not arrived yet (it returns EINVAL),
+            // so wait until the in-band window message is buffered. The urgent byte is read first.
+            client.Client.ReceiveTimeout = 5000;
+            var deadline = DateTime.UtcNow.AddSeconds(5);
+            while (client.Available == 0 && DateTime.UtcNow < deadline)
+                await Task.Delay(10);
+            byte? magic = OperatingSystem.IsLinux() ? ReadUrgentByte(client.Client) : null;
+            var payload = new byte[12];
+            await stream.ReadExactlyAsync(payload);
+            return (magic, payload);
+        });
+
+        using var rlogin = new RloginProtocol(NullLogger<RloginProtocol>.Instance);
+        await rlogin.ConnectAsync(new ConnectionParameters
+        {
+            Hostname = "127.0.0.1",
+            Port = port,
+            Protocol = ProtocolType.Rlogin,
+            Username = "alice",
+        });
+        await rlogin.SendWindowSizeAsync(132, 43, 1056, 774);
+
+        var (magic, payload) = await server.WaitAsync(TimeSpan.FromSeconds(10));
+        listener.Stop();
+
+        if (OperatingSystem.IsLinux())
+            magic.Should().Be(RloginProtocol.WindowSizeMagic);
+        payload.Should().Equal(RloginProtocol.BuildWindowChange(132, 43, 1056, 774));
+    }
+
+    private const int MsgOob = 1;
+
+    [DllImport("libc", EntryPoint = "recv", SetLastError = true)]
+    private static extern nint NativeRecv(IntPtr socket, byte[] buffer, nuint length, int flags);
+
+    private static byte? ReadUrgentByte(Socket socket)
+    {
+        var buffer = new byte[1];
+        var read = NativeRecv(socket.Handle, buffer, 1, MsgOob);
+        return read == 1 ? buffer[0] : null;
     }
 }

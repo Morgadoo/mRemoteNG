@@ -74,7 +74,59 @@ public sealed class TerminalScreenTests
         s.Feed("\ude00!");
 
         s.GetLineText(0).Should().Be("😀!");
-        s.CursorColumn.Should().Be(2);
+        s.CursorColumn.Should().Be(3);
+        s.GetCell(0, 0).IsWide.Should().BeTrue();
+        s.GetCell(0, 1).IsSpacer.Should().BeTrue();
+        s.GetCell(0, 2).Rune.ToString().Should().Be("!");
+    }
+
+    [Fact]
+    public void WideCharacters_OccupyTwoCells_AndNarrowOnesStayOne()
+    {
+        var s = Screen(cols: 10, input: "中Ａｱ");
+
+        s.GetLineText(0).Should().Be("中Ａｱ");
+        s.CursorColumn.Should().Be(5);
+        s.GetCell(0, 0).IsWide.Should().BeTrue();
+        s.GetCell(0, 1).IsSpacer.Should().BeTrue();
+        s.GetCell(0, 2).Rune.ToString().Should().Be("Ａ");
+        s.GetCell(0, 3).IsSpacer.Should().BeTrue();
+        s.GetCell(0, 4).IsWide.Should().BeFalse();
+        s.GetCell(0, 4).Rune.ToString().Should().Be("ｱ");
+    }
+
+    [Fact]
+    public void WideCharacter_WrapsBeforeTheLastColumn_WhenItDoesNotFit()
+    {
+        var s = Screen(cols: 3, input: "ab中");
+
+        s.GetLineText(0).Should().Be("ab");
+        s.GetLineText(1).Should().Be("中");
+        s.GetCell(1, 0).IsWide.Should().BeTrue();
+        s.GetCell(1, 1).IsSpacer.Should().BeTrue();
+    }
+
+    [Fact]
+    public void OverwritingOrErasingHalfOfAWideCharacter_ClearsThePair()
+    {
+        var overwritten = Screen(input: "中X\rA");
+        overwritten.GetLineText(0).Should().Be("A X");
+        overwritten.GetCell(0, 1).IsSpacer.Should().BeFalse();
+
+        var erased = Screen(input: "中AB\r\x1b[2P");
+        erased.GetLineText(0).Should().Be("AB");
+        erased.CursorColumn.Should().Be(0);
+    }
+
+    [Fact]
+    public void Resize_DropsAWideCharacterCutInHalf()
+    {
+        var s = Screen(cols: 4, input: "中Z");
+        s.Resize(1, 2);
+
+        s.GetCell(0, 0).IsWide.Should().BeFalse();
+        s.GetCell(0, 0).IsSpacer.Should().BeFalse();
+        s.GetLineText(0).Should().Be("");
     }
 
     // ── SGR ────────────────────────────────────────────────────────────────

@@ -52,10 +52,21 @@ public readonly record struct TerminalAttributes(TerminalColor Foreground, Termi
         this with { Style = on ? Style | style : Style & ~style };
 }
 
-/// <summary>One character cell on the screen.</summary>
-public readonly record struct TerminalCell(Rune Rune, TerminalAttributes Attributes)
+/// <summary>
+/// One character cell on the screen.
+/// <see cref="Width"/> is 1 for a normal character, 2 for the first cell of a double-width
+/// character and 0 for the spacer cell that follows it.
+/// </summary>
+public readonly record struct TerminalCell(Rune Rune, TerminalAttributes Attributes, int Width = 1)
 {
     public static readonly Rune Space = new(' ');
 
+    public bool IsWide => Width == 2;
+
+    public bool IsSpacer => Width == 0;
+
     public static TerminalCell Blank(TerminalAttributes attributes) => new(Space, attributes);
+
+    /// <summary>The second cell of a double-width character; it carries the same colours but no glyph.</summary>
+    public static TerminalCell Spacer(TerminalAttributes attributes) => new(default, attributes, 0);
 }

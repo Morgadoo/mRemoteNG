@@ -42,6 +42,12 @@ namespace mRemoteNG.Core.Config.Connections
         /// <summary>The SQL database the tree was loaded from, or null for a file.</summary>
         public SqlConnectionsStore? Database { get; private set; }
 
+        /// <summary>
+        /// Per-user files applied on top of a SQL database (open sessions, expanded folders, favourites,
+        /// and the properties the legacy schema cannot store). The app sets this; tests leave it unset.
+        /// </summary>
+        public SqlLocalConnectionState? SqlLocalState { get; set; }
+
         /// <summary>True when the tree is stored in a SQL database (<see cref="Database"/>).</summary>
         public bool UsingDatabase => Database is not null;
 
@@ -111,6 +117,7 @@ namespace mRemoteNG.Core.Config.Connections
             ArgumentNullException.ThrowIfNull(store);
             var result = store.Load(password);
             ConnectionTreeModel = result.Model;
+            SqlLocalState?.Apply(ConnectionTreeModel);
             Encryption = new ConnectionFileEncryption();
             CurrentFilePath = null;
             Database = store;
@@ -184,7 +191,12 @@ namespace mRemoteNG.Core.Config.Connections
                 throw new InvalidOperationException("No connection tree loaded.");
 
             lock (_saveSync)
+            {
+                // Written even when the database save is refused (read-only): the WinForms app does the same,
+                // so favourites and open sessions are remembered without changing the shared tables.
+                SqlLocalState?.Save(ConnectionTreeModel);
                 LastDatabaseUpdate = store.Save(ConnectionTreeModel);
+            }
             Saved?.Invoke(this, new ConnectionsStorageEventArgs(ConnectionsStorageKind.Database, store.DisplayName));
         }
 

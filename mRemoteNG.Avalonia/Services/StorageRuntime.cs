@@ -74,6 +74,8 @@ public sealed class StorageRuntime : IDisposable
         _autoSaver = new ConnectionsAutoSaver(action => Dispatcher.UIThread.Post(action), _logger);
         _autoSaver.Attach(new TreeAutoSaveTarget(this));
         _autoSaver.AutoSaved += OnAutoSaved;
+        // Same folder the WinForms app uses for LocalConnectionProperties.xml, next to the other settings.
+        _connections.SqlLocalState = new SqlLocalConnectionState(ApplicationPaths.SettingsDirectory);
     }
 
     /// <summary>The automatic saver (exposed for status display and tests).</summary>
