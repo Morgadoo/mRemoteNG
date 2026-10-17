@@ -21,6 +21,26 @@ Consider donating — every contribution counts!
   An open source, multi-protocol, tabbed remote connections manager allowing you to view all of your connections in a simple yet powerful interface
 </p>
 
+## Screenshots
+
+The cross-platform app, on Windows, Linux and macOS. The same connection file opens in the classic Windows app.
+
+<p align="center">
+  <img alt="Main window in the dark theme, with the connection tree and an open session" src="docs/images/main-window-dark.png" width="900"><br>
+  <em>Main window, dark theme</em>
+</p>
+
+<p align="center">
+  <img alt="Main window in the light theme" src="docs/images/main-window-light.png" width="49%">
+  <img alt="Options window on the Appearance page, choosing a theme" src="docs/images/options-appearance.png" width="49%"><br>
+  <em>Light theme, and Options → Appearance</em>
+</p>
+
+<p align="center">
+  <img alt="Command palette searching connections, with web-01 selected" src="docs/images/command-palette.png" width="900"><br>
+  <em>Command palette (Ctrl+K)</em>
+</p>
+
 <p align="center">
   <img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/mremoteng/mremoteng/total?label=Overall%20Downloads&style=for-the-badge">
 </p>
@@ -80,9 +100,9 @@ For a detailed feature list and general usage support, refer to the [Documentati
 
 ### Cross-Platform Installation
 
-The cross-platform (Avalonia) app is in development on the `dev` branch of this fork. No packages are
-published to Flatpak, Snap, Homebrew or winget yet; build them with the scripts in `packaging/`, or download
-the artifacts of the nightly workflow.
+The cross-platform (Avalonia) app runs on Windows, Linux and macOS. The screenshots above are that app,
+from the `dev` branch of this fork. No packages are published to Flatpak, Snap, Homebrew or winget yet;
+build them with the scripts in `packaging/`, or download the artifacts of the nightly workflow.
 
 **Linux**
 ```bash
