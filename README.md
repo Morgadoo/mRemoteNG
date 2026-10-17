@@ -96,13 +96,26 @@ The following protocols are supported:
 
 For a detailed feature list and general usage support, refer to the [Documentation](https://mremoteng.readthedocs.io/en/latest/).
 
+## This fork
+
+[Morgadoo/mRemoteNG](https://github.com/Morgadoo/mRemoteNG) is the cross-platform edition. Development stays on the `dev` branch of this fork.
+
+New work from [mRemoteNG/mRemoteNG](https://github.com/mRemoteNG/mRemoteNG) `v1.78.2-dev` is merged in here. Nothing from this fork is pushed or pull-requested back to that repository.
+
+```bash
+git remote add upstream https://github.com/mRemoteNG/mRemoteNG.git   # once
+git fetch upstream
+git checkout dev
+git merge upstream/v1.78.2-dev
+```
+
 ## Installation
 
 ### Cross-Platform Installation
 
-The cross-platform (Avalonia) app runs on Windows, Linux and macOS. The screenshots above are that app,
-from the `dev` branch of this fork. No packages are published to Flatpak, Snap, Homebrew or winget yet;
-build them with the scripts in `packaging/`, or download the artifacts of the nightly workflow.
+The cross-platform (Avalonia) app runs on Windows, Linux and macOS. The screenshots above are that app.
+No packages are published to Flatpak, Snap, Homebrew or winget yet; build them with the scripts in
+`packaging/`, or download the artifacts of the nightly workflow.
 
 **Linux**
 ```bash
@@ -201,7 +214,7 @@ _If you are using the Portable version, simply deleting the folder that contains
 If you find mRemoteNG useful and would like to contribute, it would be greatly appreciated. When you contribute, you make it possible for the team to cover the costs of producing mRemoteNG.
 
 ### Submit Code
-Check out the [Wiki page](https://github.com/mRemoteNG/mRemoteNG/wiki) on how to configure your development environment and submit a pull request.
+Open a pull request against the `dev` branch of this fork. The [upstream wiki](https://github.com/mRemoteNG/mRemoteNG/wiki) describes the development environment.
 
 ### Translate
 Check out the [Wiki page](https://github.com/mRemoteNG/mRemoteNG/wiki) on how to help make mRemoteNG a polyglot.
