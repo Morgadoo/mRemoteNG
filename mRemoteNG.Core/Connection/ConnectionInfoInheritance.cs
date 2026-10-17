@@ -46,6 +46,7 @@ namespace mRemoteNG.Core.Connection
         public bool UseCredSsp { get; set; }
         public bool UseRestrictedAdmin { get; set; }
         public bool UseRCG { get; set; }
+        public bool UseRedirectionServerName { get; set; }
         public bool UseVmId { get; set; }
         public bool UseEnhancedMode { get; set; }
 
@@ -55,6 +56,7 @@ namespace mRemoteNG.Core.Connection
         public bool RDGatewayUseConnectionCredentials { get; set; }
         public bool RDGatewayUsername { get; set; }
         public bool RDGatewayPassword { get; set; }
+        public bool RDGatewayAccessToken { get; set; }
         public bool RDGatewayDomain { get; set; }
         public bool RDGatewayExternalCredentialProvider { get; set; }
         public bool RDGatewayUserViaAPI { get; set; }

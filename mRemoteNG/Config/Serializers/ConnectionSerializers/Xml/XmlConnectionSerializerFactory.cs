@@ -13,7 +13,7 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Xml
         public ISerializer<ConnectionInfo, string> Build(
             ICryptographyProvider cryptographyProvider,
             ConnectionTreeModel connectionTreeModel,
-            SaveFilter saveFilter = null,
+            SaveFilter? saveFilter = null,
             bool useFullEncryption = false)
         {
             System.Security.SecureString encryptionKey = connectionTreeModel
@@ -21,7 +21,7 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Xml
                 .First().PasswordString
                 .ConvertToSecureString();
 
-            XmlConnectionNodeSerializer28 connectionNodeSerializer = new(
+            XmlConnectionNodeSerializer29 connectionNodeSerializer = new(
                 cryptographyProvider,
                 encryptionKey,
                 saveFilter ?? new SaveFilter());

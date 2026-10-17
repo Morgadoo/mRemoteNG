@@ -12,6 +12,7 @@ namespace mRemoteNG.Core.Container
     public class ContainerInfo : ConnectionInfo, INotifyCollectionChanged
     {
         private bool _isExpanded;
+        private bool _isRootGroup;
 
         public List<ConnectionInfo> Children { get; } = [];
 
@@ -19,6 +20,17 @@ namespace mRemoteNG.Core.Container
         {
             get => _isExpanded;
             set => SetField(ref _isExpanded, value);
+        }
+
+        /// <summary>
+        /// When true, this folder is an extra root group. The connection tree shows it as a
+        /// peer of the main Connections root, while it stays a child of its parent on disk.
+        /// Missing from older files, so the default is false.
+        /// </summary>
+        public bool IsRootGroup
+        {
+            get => _isRootGroup;
+            set => SetField(ref _isRootGroup, value);
         }
 
         public override bool IsContainer

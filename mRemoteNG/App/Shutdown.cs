@@ -17,14 +17,14 @@ namespace mRemoteNG.App
     [SupportedOSPlatform("windows")]
     public static class Shutdown
     {
-        private static string _updateFilePath;
+        private static string? _updateFilePath;
 
         private static bool UpdatePending
         {
             get { return !string.IsNullOrEmpty(_updateFilePath); }
         }
 
-        public static void Quit(string updateFilePath = null)
+        public static void Quit(string? updateFilePath = null)
         {
             _updateFilePath = updateFilePath;
             FrmMain.Default.Close();
@@ -41,6 +41,8 @@ namespace mRemoteNG.App
                 StopPuttySessionWatcher();
                 DisposeNotificationAreaIcon();
                 SaveConnections();
+                (Runtime.ConnectionsService.ProfileDataProvider as IDisposable)?.Dispose();
+                Runtime.UserProfileStore?.Dispose();
                 SaveSettings(quickConnectToolStrip, externalToolsToolStrip, multiSshToolStrip, frmMain);
                 UnregisterBrowsers();
             }
@@ -120,7 +122,7 @@ namespace mRemoteNG.App
 
         private static void RunUpdateFile()
         {
-            if (UpdatePending)
+            if (UpdatePending && !string.IsNullOrEmpty(_updateFilePath))
             {
                 // Validate the update file path to prevent command injection
                 Tools.PathValidator.ValidateExecutablePathOrThrow(_updateFilePath, nameof(_updateFilePath));

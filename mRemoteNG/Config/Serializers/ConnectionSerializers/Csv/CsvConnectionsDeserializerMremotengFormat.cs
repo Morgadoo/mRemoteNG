@@ -6,8 +6,10 @@ using mRemoteNG.Connection;
 using mRemoteNG.Connection.Protocol;
 using mRemoteNG.Connection.Protocol.Http;
 using mRemoteNG.Connection.Protocol.RDP;
+using mRemoteNG.Connection.Protocol.Terminal;
 using mRemoteNG.Connection.Protocol.VNC;
 using mRemoteNG.Container;
+using mRemoteNG.Plugins;
 using mRemoteNG.Security;
 using mRemoteNG.Tree;
 using mRemoteNG.Tree.Root;
@@ -258,6 +260,11 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
                 if (bool.TryParse(connectionCsv[headers.IndexOf("UseRCG")], out bool value))
                     connectionRecord.UseRCG = value;
             }
+            if (headers.Contains("UseRedirectionServerName"))
+            {
+                if (bool.TryParse(connectionCsv[headers.IndexOf("UseRedirectionServerName")], out bool value))
+                    connectionRecord.UseRedirectionServerName = value;
+            }
 
 
             if (headers.Contains("UseVmId"))
@@ -276,6 +283,12 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
             {
                 if (Enum.TryParse(connectionCsv[headers.IndexOf("RenderingEngine")], out HTTPBase.RenderingEngine value))
                     connectionRecord.RenderingEngine = value;
+            }
+
+            if (headers.Contains("TerminalBackend"))
+            {
+                if (Enum.TryParse(connectionCsv[headers.IndexOf("TerminalBackend")], out TerminalBackend value))
+                    connectionRecord.TerminalBackend = value;
             }
 
             if (headers.Contains("RDPAuthenticationLevel"))
@@ -485,6 +498,11 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
                 if (Enum.TryParse(connectionCsv[headers.IndexOf("ExternalAddressProvider")], out ExternalAddressProvider value))
                     connectionRecord.ExternalAddressProvider = value;
             }
+            if (headers.Contains("PluginData"))
+            {
+                connectionRecord.ReplacePluginProperties(PluginConnectionDataSerializer.Deserialize(connectionCsv[headers.IndexOf("PluginData")]));
+            }
+            LegacyPluginDataMigrator.Migrate(connectionRecord);
 
             #region Inheritance
 
@@ -697,6 +715,11 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
                 if (bool.TryParse(connectionCsv[headers.IndexOf("InheritUseRCG")], out bool value))
                     connectionRecord.Inheritance.UseRCG = value;
             }
+            if (headers.Contains("InheritUseRedirectionServerName"))
+            {
+                if (bool.TryParse(connectionCsv[headers.IndexOf("InheritUseRedirectionServerName")], out bool value))
+                    connectionRecord.Inheritance.UseRedirectionServerName = value;
+            }
 
 
             if (headers.Contains("InheritUseVmId"))
@@ -715,6 +738,12 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Csv
             {
                 if (bool.TryParse(connectionCsv[headers.IndexOf("InheritRenderingEngine")], out bool value))
                     connectionRecord.Inheritance.RenderingEngine = value;
+            }
+
+            if (headers.Contains("InheritTerminalBackend") &&
+                bool.TryParse(connectionCsv[headers.IndexOf("InheritTerminalBackend")], out bool inheritTerminalBackend))
+            {
+                connectionRecord.Inheritance.TerminalBackend = inheritTerminalBackend;
             }
 
             if (headers.Contains("InheritExternalCredentialProvider"))

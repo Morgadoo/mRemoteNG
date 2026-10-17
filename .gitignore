@@ -291,3 +291,4 @@ dist/
 
 # Claude Code agent worktrees
 .claude/worktrees/
+/.cr/personal/FavoritesList

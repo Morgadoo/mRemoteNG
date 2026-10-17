@@ -67,6 +67,7 @@ namespace mRemoteNG.Core.Config.Import
             if (node is ContainerInfo oldContainer && copy is ContainerInfo newContainer)
             {
                 newContainer.IsExpanded = oldContainer.IsExpanded;
+                newContainer.IsRootGroup = oldContainer.IsRootGroup;
                 foreach (var grandChild in oldContainer.Children.ToArray())
                     newContainer.AddChild(grandChild);
             }

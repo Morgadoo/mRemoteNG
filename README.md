@@ -109,6 +109,44 @@ git checkout dev
 git merge upstream/v1.78.2-dev
 ```
 
+## Build environment
+
+This project must be built on Windows using Visual Studio 2026 tooling. Use the MSBuild.exe from the Visual Studio 2026 installation instead of the .NET Core `dotnet build` fallback; the Windows desktop project requires the Visual Studio build environment and COM/desktop targets.
+
+For local builds, prefer:
+
+```powershell
+& "$env:ProgramFiles(x86)\Microsoft Visual Studio\2026\Enterprise\MSBuild\Current\Bin\MSBuild.exe" mRemoteNG.sln /p:Configuration=Debug /p:Platform=x64
+```
+
+If your installation path differs, locate the VS2026 MSBuild from `vswhere.exe` first and then call that `MSBuild.exe` explicitly.
+
+## Plugin development workflow
+
+Plugin projects are built from a separate plugin-only solution and loaded from the app's plugin folder at runtime.
+
+To build the plugin set:
+
+```powershell
+dotnet build mRemoteNG.Plugins.sln -c Release -p:Platform=x64
+```
+
+Then copy the generated plugin DLLs into the app plugin folder, while keeping the shared contracts assembly in the app's `Assemblies` folder:
+
+The example below uses the x64 output path. For ARM64 builds, replace `x64` with `arm64`.
+
+```powershell
+Copy-Item .\mRemoteNG.PluginContracts\bin\x64\Release\net10.0-windows10.0.26100.0\mRp.Contracts.dll .\mRemoteNG\bin\x64\Release\Assemblies\
+Copy-Item .\mRemoteNG.Plugins.PortScan\bin\x64\Release\net10.0-windows10.0.26100.0\mRp.PortScan.dll .\mRemoteNG\bin\x64\Release\Plugins\
+Copy-Item .\mRemoteNG.Plugins.SshTransfer\bin\x64\Release\net10.0-windows10.0.26100.0\mRp.SshTransfer.dll .\mRemoteNG\bin\x64\Release\Plugins\
+Copy-Item .\mRemoteNG.Plugins.AWS\bin\x64\Release\net10.0-windows10.0.26100.0\mRp.AWS.dll .\mRemoteNG\bin\x64\Release\Plugins\
+Copy-Item .\mRemoteNG.Plugins.MultiAddress\bin\x64\Release\net10.0-windows10.0.26100.0\mRp.MultiAddress.dll .\mRemoteNG\bin\x64\Release\Plugins\
+```
+
+See [README.plugins.md](README.plugins.md) for the full workflow and details.
+
+The WinForms app and the installer need that Visual Studio build. The cross-platform projects (`mRemoteNG.Avalonia`, `mRemoteNG.Core`, `mRemoteNG.Protocols`) build with the .NET 10 SDK on Windows, Linux and macOS.
+
 ## Installation
 
 ### Cross-Platform Installation
@@ -177,14 +215,18 @@ mRemoteNG is available as a redistributable MSI package or as a portable ZIP pac
 
 The MSI package of mRemoteNG can be installed using the command line:
 
-`msiexec /i [/qn] C:\Path\To\mRemoteNG-Installer.exe [INSTALLDIR=value] [IGNOREPREREQUISITES=value] [/lv* <log path>]`
+`msiexec /i C:\Path\To\mRemoteNG-Installer.msi [/qn] [INSTALLDIR=value] [IGNOREPREREQUISITES=value] [/lv* <log path>]`
+
+**Note on privileges**: The MSI installer supports dual-mode installation. By default, it will prompt for an installation scope in the UI. When running silently (`/qn`), it skips the UI and installs **per-machine** by default (which requires Administrator privileges). If you want to silently install it for the current user without requiring Administrator privileges, you must set the `MSIINSTALLPERUSER=1 ALLUSERS=2` properties from the command line.
 
 | Argument/Property | Value | Description |
 |-|-|-|
 | /qn | `Silent Installation` | Will run the installer silently in the background. |
 | /lv* | `Silent Installation` | Will write a logfile to the specified location. (For paths that contain spaces, enclose the path in double quotes) |
 | INSTALLDIR | `folder path` | Allows you to set the installation directory from the command line. (For paths that contain spaces, enclose the path in double quotes) |
-| IGNOREPREREQUISITES | `0` or `1` | When set to `1`, the installer will not be halted if any prerequisite check is not met. You must still run the installer as administrator. |
+| IGNOREPREREQUISITES | `0` or `1` | When set to `1`, the installer will not be halted if any prerequisite check is not met. Administrator privileges are still required for a per-machine installation. |
+| ALLUSERS | `2` | Enables single-package authoring so `MSIINSTALLPERUSER` can select the installation scope. |
+| MSIINSTALLPERUSER | `1` | With `ALLUSERS=2`, installs for the current user; omit this property for a per-machine installation. |
 
 ## Manual Uninstall
 

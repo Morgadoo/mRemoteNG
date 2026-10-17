@@ -57,6 +57,7 @@ namespace mRemoteNG.Core.Connection
         private bool _useCredSsp;
         private bool _useRestrictedAdmin;
         private bool _useRCG;
+        private bool _useRedirectionServerName;
         private bool _useVmId;
 
         private RDGatewayUsageMethod _rdGatewayUsageMethod;
@@ -352,6 +353,12 @@ namespace mRemoteNG.Core.Connection
         {
             get => GetPropertyValue(nameof(UseRCG), _useRCG);
             set => SetField(ref _useRCG, value);
+        }
+
+        public bool UseRedirectionServerName
+        {
+            get => GetPropertyValue(nameof(UseRedirectionServerName), _useRedirectionServerName);
+            set => SetField(ref _useRedirectionServerName, value);
         }
 
         public bool UseVmId

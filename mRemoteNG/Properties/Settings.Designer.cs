@@ -12,7 +12,7 @@ namespace mRemoteNG.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.4.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.5.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -97,7 +97,7 @@ namespace mRemoteNG.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("FitToWindow")]
+        [global::System.Configuration.DefaultSettingValueAttribute("SmartSize")]
         public string ConDefaultResolution {
             get {
                 return ((string)(this["ConDefaultResolution"]));
@@ -169,31 +169,16 @@ namespace mRemoteNG.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Local")]
-        public string ConDefaultRedirectDiskDrives {
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ConDefaultRedirectDiskDrives {
             get {
-                return ((string)(this["ConDefaultRedirectDiskDrives"]));
+                return ((bool)(this["ConDefaultRedirectDiskDrives"]));
             }
             set {
                 this["ConDefaultRedirectDiskDrives"] = value;
             }
         }
-
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ConDefaultRedirectDiskDrivesCustom
-        {
-            get
-            {
-                return ((string)(this["ConDefaultRedirectDiskDrivesCustom"]));
-            }
-            set
-            {
-                this["ConDefaultRedirectDiskDrivesCustom"] = value;
-            }
-        }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
@@ -1009,6 +994,18 @@ namespace mRemoteNG.Properties {
                 this["InhDefaultRenderingEngine"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool InhDefaultTerminalBackend {
+            get {
+                return ((bool)(this["InhDefaultTerminalBackend"]));
+            }
+            set {
+                this["InhDefaultTerminalBackend"] = value;
+            }
+        }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1465,7 +1462,31 @@ namespace mRemoteNG.Properties {
                 this["ConDefaultUseRCG"] = value;
             }
         }
-        
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool InhDefaultUseRedirectionServerName {
+            get {
+                return ((bool)(this["InhDefaultUseRedirectionServerName"]));
+            }
+            set {
+                this["InhDefaultUseRedirectionServerName"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ConDefaultUseRedirectionServerName {
+            get {
+                return ((bool)(this["ConDefaultUseRedirectionServerName"]));
+            }
+            set {
+                this["ConDefaultUseRedirectionServerName"] = value;
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
@@ -2212,6 +2233,18 @@ namespace mRemoteNG.Properties {
                 this["ConDefaultRenderingEngine"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("PuttyNg")]
+        public string ConDefaultTerminalBackend {
+            get {
+                return ((string)(this["ConDefaultTerminalBackend"]));
+            }
+            set {
+                this["ConDefaultTerminalBackend"] = value;
+            }
+        }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -2378,6 +2411,78 @@ namespace mRemoteNG.Properties {
             }
             set {
                 this["ConDefaultRDGatewayExternalCredentialProvider"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SlowClickRenameEnabled {
+            get {
+                return ((bool)(this["SlowClickRenameEnabled"]));
+            }
+            set {
+                this["SlowClickRenameEnabled"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ConDefaultRDGatewayAccessToken {
+            get {
+                return ((string)(this["ConDefaultRDGatewayAccessToken"]));
+            }
+            set {
+                this["ConDefaultRDGatewayAccessToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ConDefaultRedirectDiskDrivesCustom {
+            get {
+                return ((string)(this["ConDefaultRedirectDiskDrivesCustom"]));
+            }
+            set {
+                this["ConDefaultRedirectDiskDrivesCustom"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DisabledPlugins {
+            get {
+                return ((string)(this["DisabledPlugins"]));
+            }
+            set {
+                this["DisabledPlugins"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PluginFolderPath {
+            get {
+                return ((string)(this["PluginFolderPath"]));
+            }
+            set {
+                this["PluginFolderPath"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PluginPanelAssignments {
+            get {
+                return ((string)(this["PluginPanelAssignments"]));
+            }
+            set {
+                this["PluginPanelAssignments"] = value;
             }
         }
     }

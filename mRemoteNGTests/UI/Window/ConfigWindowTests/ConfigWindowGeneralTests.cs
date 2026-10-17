@@ -186,7 +186,7 @@ namespace mRemoteNGTests.UI.Window.ConfigWindowTests
                 : new ConnectionInfo();
 
             node.Protocol = protocol;
-            node.Resolution = RDPResolutions.Res800x600;
+            node.Resolution = RDPResolutions.FitToWindow;
             node.RDGatewayUsageMethod = RDGatewayUsageMethod.Never;
             node.RDGatewayUseConnectionCredentials = RDGatewayUseConnectionCredentials.Yes;
             node.RedirectSound = RDPSounds.DoNotPlay;
@@ -287,6 +287,7 @@ namespace mRemoteNGTests.UI.Window.ConfigWindowTests
                         nameof(ConnectionInfo.Password),
                         nameof(ConnectionInfo.Port),
                         nameof(ConnectionInfo.SSHOptions),
+                        nameof(ConnectionInfo.TerminalBackend),
                         nameof(ConnectionInfo.PuttySession),
                         nameof(ConnectionInfo.OpeningCommand),
                         nameof(ConnectionInfo.ExternalCredentialProvider),
@@ -299,6 +300,7 @@ namespace mRemoteNGTests.UI.Window.ConfigWindowTests
                         nameof(ConnectionInfo.Password),
                         nameof(ConnectionInfo.Port),
                         nameof(ConnectionInfo.SSHOptions),
+                        nameof(ConnectionInfo.TerminalBackend),
                         nameof(ConnectionInfo.PuttySession),
                         nameof(ConnectionInfo.OpeningCommand),
                         nameof(ConnectionInfo.ExternalAddressProvider),
