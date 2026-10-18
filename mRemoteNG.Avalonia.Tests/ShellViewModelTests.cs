@@ -199,6 +199,7 @@ public class ShellViewModelTests
 
         var toast = toasts.Toasts.Should().ContainSingle().Subject;
         toast.IsError.Should().BeTrue();
+        toast.ErrorToCopy.Should().Be("Connection to db:5432 failed: timeout");
         toast.ActionCommand.Execute().Subscribe();
         shown.Should().Be(1);
         toasts.Toasts.Should().BeEmpty();

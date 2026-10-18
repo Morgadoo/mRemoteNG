@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using FluentAssertions;
 using mRemoteNG.Avalonia.ViewModels.Docking;
+using mRemoteNG.Avalonia.Views.Sessions;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Protocols.Abstractions;
 using Xunit;
@@ -158,6 +159,11 @@ public class SessionLifecycleTests
         Pump();
         SessionDock.IsAutoReconnecting(tab).Should().BeFalse();
         tab.ShowStatusBanner.Should().BeTrue("the drop is shown in the session");
+        tab.IsBannerError.Should().BeTrue();
+        tab.ErrorToCopy.Should().NotBeNullOrWhiteSpace();
+        var host = TestHost.MainWindow.GetVisualDescendantsOfType<SessionContentHost>()
+            .Single(h => ReferenceEquals(h.Session, tab));
+        host.FindControl<Button>("CopyErrorButton")!.IsVisible.Should().BeTrue();
 
         SessionDock.AutoReconnectBaseDelay = TimeSpan.FromSeconds(5);
         Settings.Update(s => s.ReconnectOnDisconnect = true);

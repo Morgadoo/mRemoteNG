@@ -1,5 +1,6 @@
 using System.Collections.Specialized;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 
@@ -48,4 +49,10 @@ public partial class LogView : UserControl
     /// <summary>All rows as text ("12:00:01 [Warning] message"), one per line.</summary>
     public static string Format(LogDockableBase log) =>
         string.Join(Environment.NewLine, log.Entries.Select(entry => entry.ToString()));
+
+    private async void OnCopyEntry(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: LogEntry entry })
+            await TextClipboard.SetAsync(this, entry.Message);
+    }
 }

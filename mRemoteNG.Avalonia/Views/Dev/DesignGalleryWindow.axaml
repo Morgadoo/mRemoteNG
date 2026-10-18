@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
         xmlns:mi="using:Material.Icons.Avalonia"
         xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
         xmlns:conv="using:mRemoteNG.Avalonia.Converters"
@@ -263,12 +264,17 @@
                         </Border>
                         <TextBlock Text="TOAST" Classes="overline" Margin="0,12,0,0"/>
                         <Border Classes="elevated" Padding="12" Width="320" HorizontalAlignment="Left">
-                            <Grid ColumnDefinitions="Auto,10,*">
+                            <Grid ColumnDefinitions="Auto,10,*,Auto">
                                 <mi:MaterialIcon Kind="AlertCircleOutline" Width="20" Height="20" Foreground="{DynamicResource DangerBrush}" VerticalAlignment="Top"/>
                                 <StackPanel Grid.Column="2" Spacing="2">
                                     <TextBlock Text="Connection failed" FontWeight="SemiBold"/>
                                     <TextBlock Text="rdp-gateway: the remote computer refused the connection." Classes="caption" TextWrapping="Wrap"/>
                                 </StackPanel>
+                                <Button Grid.Column="3" Classes="icon" Width="24" Height="24" Padding="0"
+                                        VerticalAlignment="Top" IsHitTestVisible="False"
+                                        ToolTip.Tip="{l:Tr CopyErrorTip}">
+                                    <mi:MaterialIcon Kind="ContentCopy" Width="14" Height="14"/>
+                                </Button>
                             </Grid>
                         </Border>
                     </StackPanel>

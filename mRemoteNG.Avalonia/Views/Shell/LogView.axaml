@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
              xmlns:mi="using:Material.Icons.Avalonia"
              xmlns:dock="using:mRemoteNG.Avalonia.ViewModels.Docking"
              x:Class="mRemoteNG.Avalonia.Views.Shell.LogView"
@@ -16,7 +17,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="dock:LogEntry">
-                    <Grid ColumnDefinitions="Auto,Auto,*" Margin="12,0,12,0" MinHeight="22">
+                    <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="12,0,4,0" MinHeight="22">
                         <TextBlock Grid.Column="0" Classes="mono muted" Text="{Binding FormattedTime}"
                                    VerticalAlignment="Top" Margin="0,3,10,0"/>
                         <mi:MaterialIcon Grid.Column="1" Classes="log-level"
@@ -26,6 +27,12 @@
                                          VerticalAlignment="Top" Margin="0,4,8,0"/>
                         <SelectableTextBlock Grid.Column="2" Classes="mono" Text="{Binding Message}"
                                              TextWrapping="Wrap" Margin="0,3,0,3"/>
+                        <Button Grid.Column="3" Classes="icon copy-error" Width="22" Height="22"
+                                Margin="4,1,0,0" Padding="0" VerticalAlignment="Top"
+                                IsVisible="{Binding IsError}" Click="OnCopyEntry"
+                                ToolTip.Tip="{l:Tr CopyErrorTip}">
+                            <mi:MaterialIcon Kind="ContentCopy" Width="13" Height="13"/>
+                        </Button>
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

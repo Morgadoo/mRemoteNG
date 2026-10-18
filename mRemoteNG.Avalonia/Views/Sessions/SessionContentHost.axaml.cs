@@ -77,6 +77,12 @@ public partial class SessionContentHost : UserControl
         PlaceholderPanel.IsVisible = Placeholder.Text.Length > 0;
     }
 
+    private async void OnCopyErrorClick(object? sender, RoutedEventArgs e)
+    {
+        if (_session is { ErrorToCopy.Length: > 0 } session)
+            await TextClipboard.SetAsync(this, session.ErrorToCopy);
+    }
+
     private async void OnReconnectClick(object? sender, RoutedEventArgs e)
     {
         if (_session?.Panel?.Owner is { } dock && SessionsDockable.CanReconnect(_session))

@@ -179,6 +179,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
             this.RaisePropertyChanged(nameof(StatusBannerText));
             this.RaisePropertyChanged(nameof(StatusBannerDetail));
             this.RaisePropertyChanged(nameof(HasStatusBannerDetail));
+            this.RaisePropertyChanged(nameof(ErrorToCopy));
             this.RaisePropertyChanged(nameof(ToolTipText));
         }
     }
@@ -237,6 +238,11 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
 
     public bool HasStatusBannerDetail => StatusBannerDetail.Length > 0;
 
+    /// <summary>The banner's error as one line for the clipboard; empty unless the banner is an error.</summary>
+    public string ErrorToCopy => IsBannerError
+        ? HasStatusBannerDetail ? $"{StatusBannerTitle}: {StatusBannerDetail}" : StatusBannerTitle
+        : string.Empty;
+
     private void RaiseStatusPresentationChanged()
     {
         this.RaisePropertyChanged(nameof(HasStatusDot));
@@ -249,6 +255,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         this.RaisePropertyChanged(nameof(StatusBannerTitle));
         this.RaisePropertyChanged(nameof(StatusBannerDetail));
         this.RaisePropertyChanged(nameof(HasStatusBannerDetail));
+        this.RaisePropertyChanged(nameof(ErrorToCopy));
     }
 
     /// <summary>Show the strip above the session view (not connected, or reconnecting).</summary>
