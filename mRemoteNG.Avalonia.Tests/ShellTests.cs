@@ -87,6 +87,35 @@ public class ShellTests
     }
 
     [AvaloniaFact]
+    public async Task BottomTerminal_ShowsTheLocalShellPrompt()
+    {
+        if (!OperatingSystem.IsLinux() || !File.Exists("/bin/bash"))
+            return;
+
+        var window = TestHost.MainWindow;
+        window.Width = 1100;
+        window.Height = 700;
+        Vm.IsLogPanelVisible = true;
+        Vm.IsBottomPanelExpanded = true;
+        Vm.BottomTab = BottomPanelTab.Terminal;
+        window.UpdateLayout();
+        Pump();
+
+        var host = window.FindControl<Border>("LocalTerminalHost");
+        var view = host?.Child as TerminalView;
+        view.Should().NotBeNull("selecting the Terminal tab starts the local shell view");
+
+        try
+        {
+            await WaitUntil(() => view!.GetScreenText().Contains('$'), timeoutMs: 5000);
+        }
+        catch (TimeoutException)
+        {
+            throw new TimeoutException($"Local shell produced no prompt. Screen:\n[{view!.GetScreenText()}]");
+        }
+    }
+
+    [AvaloniaFact]
     public void ShortcutPolicy_LeavesTerminalAndTextKeysAlone()
     {
         static bool Allows(string gesture, ShortcutFocus focus) => ShortcutPolicy.Allows(KeyGesture.Parse(gesture), focus);

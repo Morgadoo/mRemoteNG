@@ -190,7 +190,7 @@ public sealed class TerminalView : UserControl
                 bool nonAscii = !atEnd && !spacer && row[x].Rune.Value > 0x7E;
                 if ((atEnd || nonAscii || spacer) && text.Length > 0)
                 {
-                    DrawText(context, text.ToString(), segmentStart, top, typeface, brush);
+                    DrawText(context, text.ToString(), segmentStart, top, typeface, brush, text.Length);
                     text.Clear();
                 }
                 if (atEnd)
@@ -203,7 +203,7 @@ public sealed class TerminalView : UserControl
                 }
                 if (nonAscii)
                 {
-                    DrawText(context, row[x].Rune.ToString(), x, top, typeface, brush);
+                    DrawText(context, row[x].Rune.ToString(), x, top, typeface, brush, Math.Max(1, row[x].Width));
                     segmentStart = x + 1;
                 }
                 else
@@ -227,12 +227,31 @@ public sealed class TerminalView : UserControl
         }
     }
 
-    private void DrawText(DrawingContext context, string text, int column, double top, Typeface typeface, IBrush brush)
+    /// <summary>
+    /// Draws <paramref name="text"/> starting at <paramref name="column"/>, occupying
+    /// <paramref name="columns"/> cells. Each glyph is placed on that grid: one
+    /// <see cref="FormattedText"/> for a whole run follows the font's own advances, and the
+    /// rasterizer rounds each one to a pixel, so a long run ends wider than the cells behind it
+    /// and paints over the next run.
+    /// </summary>
+    private void DrawText(DrawingContext context, string text, int column, double top, Typeface typeface, IBrush brush, int columns)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(text) || columns <= 0)
             return;
-        var formatted = new FormattedText(text, CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeface, TextSize, brush);
-        context.DrawText(formatted, new Point(column * _cellWidth, top));
+
+        int runes = text.EnumerateRunes().Count();
+        if (runes == 0)
+            return;
+
+        int index = 0;
+        foreach (var rune in text.EnumerateRunes())
+        {
+            int cell = column + (int)((long)index * columns / runes);
+            var formatted = new FormattedText(rune.ToString(), CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
+                typeface, TextSize, brush);
+            context.DrawText(formatted, new Point(cell * _cellWidth, top));
+            index++;
+        }
     }
 
     private void DrawCursor(DrawingContext context)
@@ -269,18 +288,21 @@ public sealed class TerminalView : UserControl
     /// <summary>Measures the monospace cell once the control is attached (fonts are available then).</summary>
     private void MeasureCellSize()
     {
-        if (_metricsMeasured)
-            return;
-        _metricsMeasured = true;
-
-        var probe = new FormattedText(new string('M', 20), CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
-            _typefaces[0], TextSize, Brushes.White);
-        if (probe.WidthIncludingTrailingWhitespace > 0 && probe.Height > 0)
+        if (!_metricsMeasured)
         {
-            _cellWidth = probe.WidthIncludingTrailingWhitespace / 20;
-            _cellHeight = Math.Ceiling(probe.Height);
-            _baseline = probe.Baseline;
+            var probe = new FormattedText(new string('M', 20), CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
+                _typefaces[0], TextSize, Brushes.White);
+            if (probe.WidthIncludingTrailingWhitespace > 0 && probe.Height > 0)
+            {
+                _cellWidth = probe.WidthIncludingTrailingWhitespace / 20;
+                _cellHeight = Math.Ceiling(probe.Height);
+                _baseline = probe.Baseline;
+                _metricsMeasured = true;
+            }
         }
+
+        // Attachment can happen after a 0-size layout pass. Measure again so the
+        // remote side hears the real window size.
         UpdateTerminalSize();
     }
 

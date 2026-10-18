@@ -51,7 +51,8 @@ internal sealed class UnixPseudoTerminal : IDisposable
         IReadOnlyList<string> arguments,
         IReadOnlyDictionary<string, string> environment,
         int columns,
-        int rows)
+        int rows,
+        string? workingDirectory = null)
     {
         if (!IsSupported)
             throw new PlatformNotSupportedException("Pseudo-terminals are only supported on Linux.");
@@ -71,7 +72,7 @@ internal sealed class UnixPseudoTerminal : IDisposable
             string slaveName = System.Text.Encoding.UTF8.GetString(nameBuffer, 0, Array.IndexOf(nameBuffer, (byte)0));
 
             SetWindowSize(master, columns, rows);
-            int pid = Spawn(program, arguments, environment, slaveName);
+            int pid = Spawn(program, arguments, environment, slaveName, workingDirectory);
             return new UnixPseudoTerminal(master, pid);
         }
         catch
@@ -81,7 +82,7 @@ internal sealed class UnixPseudoTerminal : IDisposable
         }
     }
 
-    private static int Spawn(string program, IReadOnlyList<string> arguments, IReadOnlyDictionary<string, string> environment, string slaveName)
+    private static int Spawn(string program, IReadOnlyList<string> arguments, IReadOnlyDictionary<string, string> environment, string slaveName, string? workingDirectory)
     {
         // posix_spawn_file_actions_t / posix_spawnattr_t / sigset_t are opaque; these buffers are larger than
         // any Linux libc's definition (glibc: 80, 336 and 128 bytes).
@@ -98,6 +99,8 @@ internal sealed class UnixPseudoTerminal : IDisposable
             Check(Native.posix_spawn_file_actions_addopen(fileActions, 0, slaveName, Native.O_RDWR, 0), "posix_spawn_file_actions_addopen");
             Check(Native.posix_spawn_file_actions_adddup2(fileActions, 0, 1), "posix_spawn_file_actions_adddup2");
             Check(Native.posix_spawn_file_actions_adddup2(fileActions, 0, 2), "posix_spawn_file_actions_adddup2");
+            if (!string.IsNullOrEmpty(workingDirectory))
+                Check(Native.posix_spawn_file_actions_addchdir_np(fileActions, workingDirectory), "posix_spawn_file_actions_addchdir_np");
 
             Check(Native.posix_spawnattr_init(attributes), "posix_spawnattr_init");
             attributesReady = true;
@@ -389,6 +392,7 @@ internal sealed class UnixPseudoTerminal : IDisposable
         [DllImport(Libc)] public static extern int posix_spawn_file_actions_destroy(IntPtr actions);
         [DllImport(Libc)] public static extern int posix_spawn_file_actions_addopen(IntPtr actions, int fd, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, int flags, int mode);
         [DllImport(Libc)] public static extern int posix_spawn_file_actions_adddup2(IntPtr actions, int fd, int newFd);
+        [DllImport(Libc, EntryPoint = "posix_spawn_file_actions_addchdir_np")] public static extern int posix_spawn_file_actions_addchdir_np(IntPtr actions, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
         [DllImport(Libc)] public static extern int posix_spawnattr_init(IntPtr attributes);
         [DllImport(Libc)] public static extern int posix_spawnattr_destroy(IntPtr attributes);
         [DllImport(Libc)] public static extern int posix_spawnattr_setflags(IntPtr attributes, short flags);

@@ -14,6 +14,7 @@ using mRemoteNG.Avalonia.Views.Shell;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Core.Localization;
 using mRemoteNG.Core.Settings;
+using mRemoteNG.Protocols.Shell;
 using mRemoteNG.Protocols.Ssh;
 using Material.Icons;
 using Material.Icons.Avalonia;
@@ -28,7 +29,8 @@ public partial class MainWindow : Window
     private static readonly GridLength DefaultBottomHeight = new(WindowLayoutState.DefaultBottomHeight);
 
     private TerminalView? _localTerminal;
-    private System.Diagnostics.Process? _localShellProcess;
+    private InteractiveShell? _localShell;
+    private DateTime _localShellStartedUtc = DateTime.MinValue;
     private DebugConsoleTraceListener? _traceListener;
     private NotifyCollectionChangedEventHandler? _sessionsHandler;
     private MainWindowViewModel? _boundViewModel;
@@ -157,12 +159,12 @@ public partial class MainWindow : Window
         _vmSubscriptions.Add(vm.WhenAnyValue(x => x.IsLogPanelVisible).Subscribe(SetBottomPanelVisible));
         _vmSubscriptions.Add(vm.WhenAnyValue(x => x.IsBottomPanelExpanded).Subscribe(SetBottomPanelExpanded));
         _vmSubscriptions.Add(vm.WhenAnyValue(x => x.IsFullScreen).Subscribe(SetFullScreen));
-        // The local terminal starts the first time its tab is shown.
+        // The local terminal starts when its tab is shown, and again if that shell has died.
         _vmSubscriptions.Add(vm.WhenAnyValue(x => x.BottomTab, x => x.IsBottomPanelExpanded, x => x.IsLogPanelVisible)
             .Subscribe(state =>
             {
-                if (state is { Item1: BottomPanelTab.Terminal, Item2: true, Item3: true } && _localTerminal is null)
-                    InitializeLocalTerminal();
+                if (state is { Item1: BottomPanelTab.Terminal, Item2: true, Item3: true })
+                    Dispatcher.UIThread.Post(EnsureLocalTerminal);
             }));
         vm.LayoutResetRequested += OnLayoutResetRequested;
         vm.QuickConnectFocusRequested += OnQuickConnectFocusRequested;
@@ -326,80 +328,33 @@ public partial class MainWindow : Window
         }
     }
 
-    private void InitializeLocalTerminal()
+    private void EnsureLocalTerminal()
     {
-        _localTerminal = new TerminalView();
-        LocalTerminalHost.Child = _localTerminal;
+        if (_localShell is { IsRunning: true })
+            return;
+        // A shell that dies as it starts must not be relaunched by the layout pass that follows.
+        if (DateTime.UtcNow - _localShellStartedUtc < TimeSpan.FromSeconds(1))
+            return;
+
+        _localShell?.Dispose();
+        _localShell = null;
+        _localShellStartedUtc = DateTime.UtcNow;
+
+        _localTerminal ??= new TerminalView();
+        if (!ReferenceEquals(LocalTerminalHost.Child, _localTerminal))
+            LocalTerminalHost.Child = _localTerminal;
+
+        try
+        {
+            // After the view is in the tree, so the shell starts at the panel's real size.
+            _localShell = InteractiveShell.Start(_localTerminal);
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError($"Could not start the local shell: {ex}");
+            _localTerminal.Write($"Could not start a shell: {ex.Message}\r\n");
+        }
         _localTerminal.Focus();
-
-        // Determine shell: PowerShell on Windows, bash/sh on Unix
-        string shell;
-        string shellArgs;
-        if (OperatingSystem.IsWindows())
-        {
-            shell = "powershell.exe";
-            shellArgs = "-NoLogo -NoProfile";
-        }
-        else if (File.Exists("/bin/bash"))
-        {
-            shell = "/bin/bash";
-            shellArgs = "--login";
-        }
-        else
-        {
-            shell = "/bin/sh";
-            shellArgs = "";
-        }
-
-        var psi = new ProcessStartInfo
-        {
-            FileName = shell,
-            Arguments = shellArgs,
-            UseShellExecute = false,
-            RedirectStandardInput = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true,
-            Environment = { ["TERM"] = "xterm-256color" },
-        };
-
-        _localShellProcess = new System.Diagnostics.Process { StartInfo = psi };
-        _localShellProcess.Start();
-
-        // Read stdout -> terminal (break on EOF to avoid spin loop)
-        _ = Task.Run(async () =>
-        {
-            var buffer = new char[4096];
-            while (!_localShellProcess.HasExited)
-            {
-                int read = await _localShellProcess.StandardOutput.ReadAsync(buffer, 0, buffer.Length);
-                if (read == 0) break;
-                _localTerminal.Write(new string(buffer, 0, read));
-            }
-        });
-
-        // Read stderr -> terminal (break on EOF to avoid spin loop)
-        _ = Task.Run(async () =>
-        {
-            var buffer = new char[4096];
-            while (!_localShellProcess.HasExited)
-            {
-                int read = await _localShellProcess.StandardError.ReadAsync(buffer, 0, buffer.Length);
-                if (read == 0) break;
-                _localTerminal.Write(new string(buffer, 0, read));
-            }
-        });
-
-        // Terminal keystrokes -> stdin
-        _localTerminal.DataToSend += (_, data) =>
-        {
-            if (_localShellProcess is { HasExited: false })
-            {
-                _localShellProcess.StandardInput.Write(
-                    System.Text.Encoding.UTF8.GetString(data));
-                _localShellProcess.StandardInput.Flush();
-            }
-        };
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
@@ -408,11 +363,7 @@ public partial class MainWindow : Window
         if (_traceListener is not null)
             Trace.Listeners.Remove(_traceListener);
 
-        // Clean up local shell process
-        if (_localShellProcess is { HasExited: false })
-        {
-            try { _localShellProcess.Kill(); } catch { }
-        }
+        _localShell?.Dispose();
     }
 
     private void UpdateSessionPanelVisibility(MainWindowViewModel vm)
