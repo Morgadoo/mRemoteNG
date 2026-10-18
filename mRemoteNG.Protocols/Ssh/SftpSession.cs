@@ -25,7 +25,7 @@ public readonly record struct TransferProgress(long BytesTransferred, long Total
 /// An SFTP connection with host key verification, used by the SSH file transfer dialog.
 /// All operations run on the thread pool and may be awaited from the UI thread.
 /// </summary>
-public sealed class SftpSession : IDisposable
+public sealed class SftpSession : IRemoteFileSession
 {
     private readonly SshConnector _connector;
     private readonly ILogger<SftpSession> _logger;
@@ -160,6 +160,12 @@ public sealed class SftpSession : IDisposable
         int index = trimmed.LastIndexOf('/');
         return index <= 0 ? "/" : trimmed[..index];
     }
+
+    string IRemoteFileSession.Combine(string directory, string name) => CombinePath(directory, name);
+
+    string IRemoteFileSession.Parent(string path) => ParentPath(path);
+
+    bool IRemoteFileSession.IsValidName(string name) => !string.IsNullOrWhiteSpace(name) && !name.Contains('/');
 
     private SftpClient RequireClient() =>
         _client is { IsConnected: true } client

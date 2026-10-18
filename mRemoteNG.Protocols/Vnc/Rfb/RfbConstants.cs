@@ -97,6 +97,12 @@ internal static class RfbClientMessage
     public const byte KeyEvent = 4;
     public const byte PointerEvent = 5;
     public const byte ClientCutText = 6;
+
+    /// <summary>UltraVNC file transfer (same number in both directions).</summary>
+    public const byte FileTransfer = 7;
+
+    /// <summary>UltraVNC text chat (same number in both directions).</summary>
+    public const byte TextChat = 11;
 }
 
 internal static class RfbServerMessage
@@ -105,7 +111,80 @@ internal static class RfbServerMessage
     public const byte SetColourMapEntries = 1;
     public const byte Bell = 2;
     public const byte ServerCutText = 3;
+    public const byte FileTransfer = RfbClientMessage.FileTransfer;
+    public const byte TextChat = RfbClientMessage.TextChat;
 }
+
+/// <summary>UltraVNC text chat: special lengths that open, close and end the chat instead of carrying text.</summary>
+public static class RfbTextChat
+{
+    public const uint Open = 0xFFFFFFFF;
+    public const uint Close = 0xFFFFFFFE;
+    public const uint Finished = 0xFFFFFFFD;
+
+    /// <summary>Longest message servers accept.</summary>
+    public const int MaxLength = 4096;
+}
+
+/// <summary>What a received UltraVNC text chat message means.</summary>
+public enum RfbTextChatKind
+{
+    Text,
+    Opened,
+    Closed,
+    Finished,
+}
+
+public sealed record RfbTextChatMessage(RfbTextChatKind Kind, string Text = "");
+
+/// <summary>UltraVNC file transfer content types and parameters (rfbproto.h, file transfer version 2).</summary>
+public static class RfbFileTransfer
+{
+    public const byte DirContentRequest = 1;
+    public const byte DirPacket = 2;
+    public const byte FileTransferRequest = 3;
+    public const byte FileHeader = 4;
+    public const byte FilePacket = 5;
+    public const byte EndOfFile = 6;
+    public const byte AbortFileTransfer = 7;
+    public const byte FileTransferOffer = 8;
+    public const byte FileAcceptHeader = 9;
+    public const byte Command = 10;
+    public const byte CommandReturn = 11;
+    public const byte FileChecksums = 12;
+    public const byte FileTransferAccess = 14;
+
+    // DirContentRequest parameters
+    public const byte RequestDirContent = 1;
+    public const byte RequestDrivesList = 2;
+
+    // DirPacket / CommandReturn parameters
+    public const byte AnswerDirectory = 1;
+    public const byte AnswerFile = 2;
+    public const byte AnswerDrivesList = 3;
+    public const byte AnswerDirCreate = 4;
+    public const byte AnswerDirDelete = 5;
+    public const byte AnswerFileDelete = 7;
+    public const byte AnswerFileRename = 8;
+
+    // Command parameters
+    public const byte CommandDirCreate = 1;
+    public const byte CommandDirDelete = 2;
+    public const byte CommandFileDelete = 4;
+    public const byte CommandFileRename = 5;
+
+    /// <summary>Sent in <see cref="AbortFileTransfer"/>'s parameter to ask for access (servers answer <see cref="FileTransferAccess"/>).</summary>
+    public const byte ProtocolVersion = 2;
+
+    /// <summary>File data is sent in blocks of this size (before compression).</summary>
+    public const int BlockSize = 8192;
+
+    /// <summary>The "size" of a failed request or command.</summary>
+    public const uint Error = 0xFFFFFFFF;
+}
+
+/// <summary>A received UltraVNC file transfer message.</summary>
+public sealed record RfbFileTransferMessage(byte ContentType, byte ContentParam, uint Size, byte[] Data, uint SizeHigh = 0);
 
 /// <summary>Pointer button bits of an RFB PointerEvent (button N is bit N-1).</summary>
 [Flags]

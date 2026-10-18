@@ -28,7 +28,8 @@ public enum VncScaling
 /// JPEG levels, colour depth, authentication mode and proxy. A session can also run over a connection the server
 /// opened to us (UltraVNC SingleClick / reverse VNC): see <see cref="UseIncomingConnection"/>.
 /// </summary>
-public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysProtocol, IDisplayOptionsProtocol, IRefreshableProtocol
+public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysProtocol, IDisplayOptionsProtocol, IRefreshableProtocol,
+    IFileTransferProtocol, ITextChatProtocol
 {
     private static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(20);
 
@@ -171,6 +172,7 @@ public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysPro
             client.FramebufferUpdated += (_, _) => _view?.OnFramebufferUpdated();
             client.CursorChanged += (_, cursor) => _view?.OnCursorChanged(cursor);
             client.ServerCutTextReceived += OnServerCutText;
+            client.TextChatReceived += OnTextChat;
             client.BellReceived += (_, _) => _logger.LogDebug("VNC bell from {Host}", parameters.Hostname);
             client.Disconnected += OnClientDisconnected;
             _client = client;
@@ -312,6 +314,46 @@ public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysPro
     {
         if (AcceptsInput) _client?.SendClientCutText(text);
     }
+
+    // ── IFileTransferProtocol ──────────────────────────────────────────────
+
+    public async Task<IRemoteFileSession> OpenFileTransferAsync(CancellationToken ct = default)
+    {
+        var client = _client;
+        if (client is null || State != ConnectionState.Connected)
+            throw new InvalidOperationException("The VNC session is not connected.");
+        return await UltraVncFileTransfer.OpenAsync(client, _logger, ct: ct).ConfigureAwait(false);
+    }
+
+    // ── ITextChatProtocol ──────────────────────────────────────────────────
+
+    public event EventHandler<TextChatEvent>? TextChatReceived;
+
+    public void OpenTextChat()
+    {
+        if (State == ConnectionState.Connected) _client?.SendTextChatControl(RfbTextChat.Open);
+    }
+
+    public bool SendTextChat(string text)
+    {
+        var client = _client;
+        if (client is null || State != ConnectionState.Connected) return false;
+        client.SendTextChat(text);
+        return true;
+    }
+
+    public void CloseTextChat()
+    {
+        if (State == ConnectionState.Connected) _client?.SendTextChatControl(RfbTextChat.Close);
+    }
+
+    private void OnTextChat(object? sender, RfbTextChatMessage message) =>
+        TextChatReceived?.Invoke(this, message.Kind switch
+        {
+            RfbTextChatKind.Text => new TextChatEvent(TextChatEventKind.Message, message.Text),
+            RfbTextChatKind.Opened => new TextChatEvent(TextChatEventKind.Opened),
+            _ => new TextChatEvent(TextChatEventKind.Closed),
+        });
 
     // ── Helpers ────────────────────────────────────────────────────────────
 

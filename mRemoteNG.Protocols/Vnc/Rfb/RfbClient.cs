@@ -120,8 +120,8 @@ public sealed class RfbClient : IDisposable
     private Stream _stream;
     private RfbReader _reader;
     private readonly IReadOnlyList<int> _encodings;
-    private readonly Channel<byte[]> _sendQueue =
-        Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly Channel<Outgoing> _sendQueue =
+        Channel.CreateUnbounded<Outgoing>(new UnboundedChannelOptions { SingleReader = true });
     private readonly Dictionary<int, IRectangleDecoder> _decoders = new();
     private PixelConverter _converter = PixelConverter.Bgra32;
     private readonly ConcurrentDictionary<int, long> _rectangleCounts = new();
@@ -179,6 +179,12 @@ public sealed class RfbClient : IDisposable
     public event EventHandler? BellReceived;
     public event EventHandler<string>? ServerCutTextReceived;
     public event EventHandler<RfbCursor>? CursorChanged;
+
+    /// <summary>Raised for UltraVNC text chat messages from the server.</summary>
+    public event EventHandler<RfbTextChatMessage>? TextChatReceived;
+
+    /// <summary>Raised for UltraVNC file transfer messages from the server.</summary>
+    public event EventHandler<RfbFileTransferMessage>? FileTransferReceived;
 
     /// <summary>
     /// Raised once when the receive loop ends: with the error that ended it, or null when the client was disposed.
@@ -278,28 +284,88 @@ public sealed class RfbClient : IDisposable
         Enqueue(msg);
     }
 
+    /// <summary>UltraVNC text chat: text (cut to <see cref="RfbTextChat.MaxLength"/> bytes of UTF-8).</summary>
+    public void SendTextChat(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        var bytes = Encoding.UTF8.GetBytes(text);
+        if (bytes.Length > RfbTextChat.MaxLength)
+            bytes = bytes[..RfbTextChat.MaxLength];
+        Enqueue(TextChatMessage((uint)bytes.Length, bytes));
+    }
+
+    /// <summary>UltraVNC text chat control message: <see cref="RfbTextChat.Open"/>, <see cref="RfbTextChat.Close"/> or <see cref="RfbTextChat.Finished"/>.</summary>
+    public void SendTextChatControl(uint control)
+    {
+        if (control is not (RfbTextChat.Open or RfbTextChat.Close or RfbTextChat.Finished))
+            throw new ArgumentOutOfRangeException(nameof(control), control, "Not a text chat control value.");
+        Enqueue(TextChatMessage(control, []));
+    }
+
+    private static byte[] TextChatMessage(uint length, byte[] text)
+    {
+        var msg = new byte[8 + text.Length];
+        msg[0] = RfbClientMessage.TextChat;
+        BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(4), length);
+        text.CopyTo(msg, 8);
+        return msg;
+    }
+
+    /// <summary>
+    /// Sends an UltraVNC file transfer message; <paramref name="sizeHigh"/> is appended after the data (the high
+    /// 32 bits of a file size, sent with a file offer). Completes when the message has been written, so that file
+    /// data can be paced by the connection.
+    /// </summary>
+    public Task SendFileTransferAsync(byte contentType, byte contentParam, uint size, ReadOnlySpan<byte> data, uint? sizeHigh = null)
+    {
+        var msg = new byte[12 + data.Length + (sizeHigh is null ? 0 : 4)];
+        msg[0] = RfbClientMessage.FileTransfer;
+        msg[1] = contentType;
+        msg[2] = contentParam;
+        BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(4), size);
+        BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(8), (uint)data.Length);
+        data.CopyTo(msg.AsSpan(12));
+        if (sizeHigh is { } high)
+            BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(12 + data.Length), high);
+
+        var written = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (_disposed || !_sendQueue.Writer.TryWrite(new Outgoing(msg, written)))
+            written.TrySetException(new IOException("The VNC connection is closed."));
+        return written.Task;
+    }
+
     private void Enqueue(byte[] message)
     {
-        if (!_disposed) _sendQueue.Writer.TryWrite(message);
+        if (!_disposed) _sendQueue.Writer.TryWrite(new Outgoing(message, null));
     }
 
     private async Task SendLoopAsync()
     {
+        Outgoing current = default;
         try
         {
             await foreach (var message in _sendQueue.Reader.ReadAllAsync().ConfigureAwait(false))
-                await _stream.WriteAsync(message).ConfigureAwait(false);
+            {
+                current = message;
+                await _stream.WriteAsync(message.Data).ConfigureAwait(false);
+                message.Written?.TrySetResult();
+                current = default;
+            }
         }
-        catch (Exception) when (_disposed)
+        catch (Exception ex)
         {
-            // Closing the stream interrupts a pending write.
-        }
-        catch (Exception)
-        {
+            current.Written?.TrySetException(new IOException("The VNC connection is closed.", ex));
             // A broken connection also ends the receive loop, which reports it; just unblock the stream.
-            _stream.Dispose();
+            if (!_disposed) _stream.Dispose();
+        }
+        finally
+        {
+            while (_sendQueue.Reader.TryRead(out var pending))
+                pending.Written?.TrySetException(new IOException("The VNC connection is closed."));
         }
     }
+
+    private readonly record struct Outgoing(byte[] Data, TaskCompletionSource? Written);
 
     // ── Handshake ──────────────────────────────────────────────────────────
 
@@ -650,6 +716,12 @@ public sealed class RfbClient : IDisposable
                         _reader.Skip(3);
                         ServerCutTextReceived?.Invoke(this, _reader.ReadString());
                         break;
+                    case RfbServerMessage.TextChat:
+                        TextChatReceived?.Invoke(this, ReadTextChat());
+                        break;
+                    case RfbServerMessage.FileTransfer:
+                        FileTransferReceived?.Invoke(this, ReadFileTransfer());
+                        break;
                     default:
                         throw new RfbProtocolException($"Unknown server message type {type}.");
                 }
@@ -720,6 +792,55 @@ public sealed class RfbClient : IDisposable
         // After a resize, ask for the whole (new) desktop rather than changes.
         RequestUpdate(incremental: !resized);
     }
+
+    private RfbTextChatMessage ReadTextChat()
+    {
+        _reader.Skip(3);
+        var length = _reader.ReadUInt32();
+        switch (length)
+        {
+            case RfbTextChat.Open: return new RfbTextChatMessage(RfbTextChatKind.Opened);
+            case RfbTextChat.Close: return new RfbTextChatMessage(RfbTextChatKind.Closed);
+            case RfbTextChat.Finished: return new RfbTextChatMessage(RfbTextChatKind.Finished);
+        }
+        if (length > MaxTextChatLength)
+            throw new RfbProtocolException($"Text chat message of {length} bytes exceeds the {MaxTextChatLength} byte limit.");
+        return new RfbTextChatMessage(RfbTextChatKind.Text, DecodeText(_reader.ReadBytes((int)length)));
+    }
+
+    private const int MaxTextChatLength = 64 * 1024;
+    private const int MaxFileTransferLength = 16 * 1024 * 1024;
+
+    private RfbFileTransferMessage ReadFileTransfer()
+    {
+        var contentType = _reader.ReadByte();
+        var contentParam = _reader.ReadByte();
+        _reader.Skip(1);
+        var size = _reader.ReadUInt32();
+        var length = _reader.ReadUInt32();
+        if (length > MaxFileTransferLength)
+            throw new RfbProtocolException($"File transfer message of {length} bytes exceeds the {MaxFileTransferLength} byte limit.");
+        var data = _reader.ReadBytes((int)length);
+        // A successful FileHeader (the answer to a download request) is followed by the high 32 bits of the size.
+        var sizeHigh = contentType == RfbFileTransfer.FileHeader && size != RfbFileTransfer.Error ? _reader.ReadUInt32() : 0;
+        return new RfbFileTransferMessage(contentType, contentParam, size, data, sizeHigh);
+    }
+
+    /// <summary>UTF-8 when the bytes are valid UTF-8, otherwise Latin-1 (older UltraVNC versions send ANSI text).</summary>
+    internal static string DecodeText(ReadOnlySpan<byte> bytes)
+    {
+        var text = bytes.IndexOf((byte)0) is var nul and >= 0 ? bytes[..nul] : bytes;
+        try
+        {
+            return StrictUtf8.GetString(text);
+        }
+        catch (DecoderFallbackException)
+        {
+            return Encoding.Latin1.GetString(text);
+        }
+    }
+
+    private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, throwOnInvalidBytes: true);
 
     private RfbCursor ReadCursor(RfbRect rect)
     {
