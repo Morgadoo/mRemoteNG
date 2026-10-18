@@ -309,6 +309,8 @@ EOF
     else
         # What the systemd units do: runtime directories, then sesman as root and xrdp as its own user.
         as_root /bin/sh /usr/share/xrdp/socksetup
+        # xrdp writes its pid files to /var/run/xrdp; some containers have a real /var/run, not a link to /run.
+        [[ /var/run -ef /run ]] || as_root ln -sfn /run/xrdp /var/run/xrdp
         local pidfile
         for pidfile in /run/xrdp/xrdp-sesman.pid /run/xrdp/xrdp.pid; do # left behind by a reboot
             if as_root test -f "$pidfile" && ! as_root kill -0 "$(as_root cat "$pidfile")" 2>/dev/null; then
