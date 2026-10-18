@@ -56,9 +56,27 @@ modules:
     cleanup:
       - /bin
 
+  # Kerberos for FreeRDP's NLA in domains (the runtime has no krb5).
+  - name: krb5
+    subdir: src
+    config-opts:
+      - --disable-static
+      - --without-system-verto
+      - --localstatedir=/var/lib
+    sources:
+      - type: archive
+        url: https://kerberos.org/dist/krb5/1.22/krb5-1.22.2.tar.gz
+        sha256: 3243ffbc8ea4d4ac22ddc7dd2a1dc54c57874c40648b60ff97009763554eaf13
+    cleanup:
+      - /bin
+      - /sbin
+      - /share/examples
+      - /var
+
   # FreeRDP client (xfreerdp) for RDP connections; the app starts it as an external process.
   - name: freerdp
     buildsystem: cmake-ninja
+    builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_LIBDIR=lib
