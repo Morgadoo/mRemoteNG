@@ -169,6 +169,9 @@ public static class AppServices
         // and their connection preparation steps; unsaved provider secrets are asked for in a dialog.
         services.AddSingleton<mRemoteNG.ExternalProviders.IExternalProviderPrompt, Services.AvaloniaExternalProviderPrompt>();
         mRemoteNG.ExternalProviders.ExternalProviderServiceCollectionExtensions.AddExternalProviders(services);
+
+        // Plugins (mRp.Contracts): connection properties, address resolvers (a preparation step) and tree actions.
+        mRemoteNG.ExternalProviders.Plugins.PluginServiceCollectionExtensions.AddPlugins(services);
     }
 
     /// <summary>
@@ -187,5 +190,8 @@ public static class AppServices
         // Log application start
         var log = GetRequired<ViewModels.Docking.LogPanelDockable>();
         log.Log("Application started successfully.");
+
+        Services.PluginIntegration.Start(GetRequired<mRemoteNG.ExternalProviders.Plugins.PluginHost>(), connectionTree, log,
+            GetRequired<Services.ToastService>());
     }
 }

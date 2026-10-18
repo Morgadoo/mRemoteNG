@@ -93,6 +93,7 @@ public partial class OptionsWindow : Window
         "saving" => new SavingSettingsPage(),
         "sql" => new SqlServerSettingsPage(),
         "logging" => new LoggingSettingsPage(),
+        "plugins" => new PluginsSettingsPage(),
         _ => null,
     };
 }

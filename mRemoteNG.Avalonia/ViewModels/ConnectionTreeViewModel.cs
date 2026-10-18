@@ -908,6 +908,9 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     /// <summary>Names of the configured external tools (for the dialog's before/after/IntApp fields).</summary>
     public Func<IReadOnlyList<string>>? ExternalToolNames { get; set; }
 
+    /// <summary>The connection properties of the loaded plugins (for the dialog's Plugins page).</summary>
+    public Func<IReadOnlyList<ConnectionPropertyDescriptor>>? PluginProperties { get; set; }
+
     public ConnectionDialogOptions CreateDialogOptions(bool isDefaultConnection = false) => new()
     {
         IsDefaultConnection = isDefaultConnection,
@@ -915,6 +918,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         SshTunnels = Root is { } r ? ConnectionTreeOperations.SshTunnelCandidates(r) : [],
         PuttySessions = _puttySessionsTree?.Root.Children.Select(s => s.PuttySession).ToList() ?? [],
         ExternalTools = ExternalToolNames?.Invoke() ?? [],
+        PluginProperties = PluginProperties?.Invoke() ?? [],
     };
 
     private async Task NewConnectionAsync()

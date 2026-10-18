@@ -38,6 +38,12 @@ public sealed class ConnectionDialogOptions
 
     /// <summary>External tool names (filled once External Tools are available; free text until then).</summary>
     public IReadOnlyList<string> ExternalTools { get; init; } = [];
+
+    /// <summary>
+    /// Connection properties the loaded plugins define (<see cref="ConnectionPropertyDescriptor.ForPlugin"/>), shown on a
+    /// Plugins page for connections.
+    /// </summary>
+    public IReadOnlyList<ConnectionPropertyDescriptor> PluginProperties { get; init; } = [];
 }
 
 /// <summary>
@@ -53,6 +59,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
 
     private readonly ConnectionInfo _target;
     private readonly Dictionary<string, PropertyFieldViewModel> _fields = new(StringComparer.Ordinal);
+    private readonly IReadOnlyList<ConnectionPropertyDescriptor> _descriptors;
     private string _statusText = string.Empty;
     private bool _updatingInheritEverything;
     private bool? _inheritEverythingChoice;
@@ -84,8 +91,16 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
             _ => [],
         };
 
-        foreach (var descriptor in ConnectionPropertyCatalog.All)
+        // Plugin values are stored per connection (no defaults, no inheritance), so folders, the root and the
+        // default connection do not get them.
+        var pluginProperties = IsDefaultConnection || IsFolder
+            ? []
+            : options.PluginProperties.Where(d => d.IsPluginProperty).ToList();
+        _descriptors = [.. ConnectionPropertyCatalog.All, .. pluginProperties];
+        foreach (var descriptor in _descriptors)
         {
+            if (_fields.ContainsKey(descriptor.Name))
+                continue;
             var field = PropertyFieldViewModel.Create(descriptor, target, IsDefaultConnection ? null : parent,
                 CanInherit, IsDefaultConnection, ParentName, Suggestions);
             _fields.Add(descriptor.Name, field);
@@ -94,7 +109,8 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
                 field.WhenAnyValue(f => f.Inherit).Skip(1).Subscribe(_ => RaiseInheritEverything());
         }
 
-        Fields = ConnectionPropertyCatalog.All.Select(d => _fields[d.Name]).ToList();
+        _descriptors = _descriptors.Where(d => ReferenceEquals(_fields[d.Name].Descriptor, d)).ToList();
+        Fields = _descriptors.Select(d => _fields[d.Name]).ToList();
         InheritanceSections = Fields.Where(f => f.SupportsInheritance)
             .GroupBy(f => f.Descriptor.Category == ConnectionPropertyCategories.Protocol ? f.Descriptor.Section : f.Descriptor.Category)
             .Select(g => new PropertySectionViewModel(ConnectionPropertyCategories.GetDisplayName(g.Key), g.ToList()))
@@ -117,7 +133,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
 
     /// <summary>
     /// The editor's pages, in navigation order: General, Credentials, Protocol, Display, Redirection, Gateway,
-    /// External providers, Appearance, Miscellaneous and Inheritance. A page is hidden when none of its
+    /// External providers, Appearance, Miscellaneous, Plugins and Inheritance. A page is hidden when none of its
     /// properties applies (or matches <see cref="SearchText"/>).
     /// </summary>
     public IReadOnlyList<PropertyPageViewModel> Pages { get; }
@@ -401,6 +417,7 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
 
         static string PageOf(ConnectionPropertyDescriptor d) => (d.Category, SectionOf(d)) switch
         {
+            _ when d.IsPluginProperty => "plugins",
             (_, ConnectionPropertyCategories.Connection) => "general",
             (ConnectionPropertyCategories.Display, _) => "appearance",
             (ConnectionPropertyCategories.Credentials, ConnectionPropertyCategories.Credentials) => "credentials",
@@ -424,11 +441,12 @@ public sealed class ConnectionDialogViewModel : ReactiveObject
             ("providers", Localizer.Get("ExternalProviders"), MaterialIconKind.ShieldKeyOutline),
             ("appearance", Localizer.Get("Appearance"), MaterialIconKind.PaletteOutline),
             ("advanced", Localizer.Get("Miscellaneous"), MaterialIconKind.DotsHorizontalCircleOutline),
+            ("plugins", Localizer.Get("Plugins"), MaterialIconKind.PuzzleOutline),
         };
 
         var result = pages.Select(page =>
         {
-            var sections = ConnectionPropertyCatalog.All
+            var sections = _descriptors
                 .Where(d => PageOf(d) == page.Key)
                 .GroupBy(SectionOf)
                 .Select(g => new PropertySectionViewModel(ConnectionPropertyCategories.GetDisplayName(g.Key),

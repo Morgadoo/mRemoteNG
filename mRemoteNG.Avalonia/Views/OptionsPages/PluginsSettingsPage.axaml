@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="using:mRemoteNG.Avalonia.Localization"
+             xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+             xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+             xmlns:mi="using:Material.Icons.Avalonia"
+             x:Class="mRemoteNG.Avalonia.Views.OptionsPages.PluginsSettingsPage"
+             x:DataType="vm:PluginsSettingsViewModel">
+    <StackPanel Classes="settings-page">
+        <StackPanel Classes="page-title">
+            <TextBlock Text="{l:Tr Plugins}" Classes="h1"/>
+            <TextBlock Text="{l:Tr PluginsPageDescription}" Classes="caption" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr InstalledPlugins}" Classes="h2"/>
+            <TextBlock Text="{Binding LoadedSummary}" Classes="caption" Margin="0,0,0,8"
+                       IsVisible="{Binding HasPlugins}"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Header="{l:Tr NoPluginsFound}" Description="{l:Tr NoPluginsFoundDescription}"
+                                    IsVisible="{Binding !HasPlugins}"/>
+                    <ItemsControl x:Name="PluginList" ItemsSource="{Binding Entries}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PluginEntryViewModel">
+                                <ctl:SettingRow Header="{Binding DisplayName}" Description="{Binding Details}"
+                                                ToolTip.Tip="{Binding AssemblyPath}">
+                                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
+                                                    ToolTip.Tip="{Binding Message}">
+                                            <Border Classes="dot" Classes.success="{Binding IsLoaded}"
+                                                    Classes.danger="{Binding IsProblem}"/>
+                                            <TextBlock Text="{Binding StateText}" Classes="caption" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <CheckBox Classes="switch" IsChecked="{Binding IsEnabled}" IsVisible="{Binding CanToggle}"/>
+                                    </StackPanel>
+                                </ctl:SettingRow>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+            <TextBlock Text="{l:Tr PluginChangesAfterRestart}" Classes="caption" Margin="0,8,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Classes="settings-group">
+            <TextBlock Text="{l:Tr PluginFolders}" Classes="h2"/>
+            <Border Classes="settings">
+                <StackPanel>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr PluginFoldersAlwaysSearched}">
+                        <StackPanel Spacing="8">
+                            <SelectableTextBlock Text="{Binding DefaultFolders}" Classes="mono secondary" TextWrapping="Wrap"/>
+                            <Button HorizontalAlignment="Left" Click="OnOpenFolder">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <mi:MaterialIcon Kind="FolderOpenOutline"/>
+                                    <TextBlock Text="{l:Tr OpenPluginFolder}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ctl:SettingRow>
+                    <ctl:SettingRow Classes="stacked" Header="{l:Tr AdditionalPluginFolders}"
+                                    Description="{l:Tr AdditionalPluginFoldersDescription}">
+                        <TextBox Classes="mono" Text="{Binding PluginFolderPaths}"/>
+                    </ctl:SettingRow>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

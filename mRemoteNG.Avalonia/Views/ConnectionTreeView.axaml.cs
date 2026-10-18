@@ -48,6 +48,10 @@ public partial class ConnectionTreeView : UserControl
             ExternalToolsMenu.Attach(ExternalToolsMenuItem,
                 AppServices.GetRequired<Protocols.External.ExternalToolsService>(),
                 () => (DataContext as ConnectionTreeViewModel)?.SelectedNode?.Model);
+            PluginTreeMenu.Attach(TreeMenu, WakeOnLanMenuItem,
+                AppServices.GetRequired<mRemoteNG.ExternalProviders.Plugins.PluginHost>(),
+                () => (DataContext as ConnectionTreeViewModel)?.SelectedNode is { IsReadOnly: false } node ? node.Model : null,
+                () => (DataContext as ConnectionTreeViewModel)?.MarkDirty());
         }
 
         Tree.AddHandler(KeyDownEvent, OnTreeKeyDown, RoutingStrategies.Tunnel);

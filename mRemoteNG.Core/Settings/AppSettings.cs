@@ -283,6 +283,17 @@ public sealed class AppSettings
     /// <summary>How many automatic reconnect attempts to make (with exponential back-off).</summary>
     [PersistedSetting("Sessions")] public int ReconnectAttempts { get; set; } = DefaultReconnectAttempts;
 
+    // ── Plugins ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Extra folders to load plugins from, separated by ';' (legacy "PluginFolderPath"). The Plugins folder next
+    /// to the executable and the one in the data directory are always searched.
+    /// </summary>
+    [PersistedSetting("Plugins")] public string PluginFolderPaths { get; set; } = string.Empty;
+
+    /// <summary>Ids of the plugins not to load, separated by ';' (legacy "DisabledPlugins").</summary>
+    [PersistedSetting("Plugins")] public string DisabledPlugins { get; set; } = string.Empty;
+
     // ── Layout ───────────────────────────────────────────────────────────
 
     /// <summary>Main window and session panel layout as JSON (not shown in the UI); empty for the default layout.</summary>

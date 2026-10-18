@@ -35,7 +35,9 @@ public abstract class PropertyFieldViewModel : ReactiveObject
         _alwaysEditable = alwaysEditable;
         SupportsInheritance = descriptor.SupportsInheritance;
         CanInherit = canInherit && SupportsInheritance;
-        _own = ConnectionInheritanceAccessor.GetOwnValue<object?>(target, descriptor.Name);
+        _own = descriptor.IsPluginProperty
+            ? descriptor.GetPluginValue(target)
+            : ConnectionInheritanceAccessor.GetOwnValue<object?>(target, descriptor.Name);
         _inherit = CanInherit && ConnectionInheritanceAccessor.GetInheritFlag(target, descriptor.Name);
         _parentValue = CanInherit && parent is not null
             ? ConnectionInheritanceAccessor.GetValue<object?>(parent, descriptor.Name)
@@ -144,6 +146,12 @@ public abstract class PropertyFieldViewModel : ReactiveObject
     internal bool ApplyTo(ConnectionInfo target)
     {
         var changed = IsModified;
+        if (Descriptor.IsPluginProperty)
+        {
+            if (changed)
+                Descriptor.SetPluginValue(target, _own);
+            return changed;
+        }
         ConnectionInheritanceAccessor.SetOwnValue(target, Name, _own);
         // Flags of nodes that cannot inherit (directly under the root) are inactive; keep them as loaded.
         if (CanInherit)
@@ -331,7 +339,7 @@ public sealed class PropertyPageViewModel(string key, string title, MaterialIcon
     private bool _hasErrors;
 
     /// <summary>"general", "credentials", "protocol", "display", "redirection", "gateway", "providers",
-    /// "appearance", "advanced" or "inheritance".</summary>
+    /// "appearance", "advanced", "plugins" or "inheritance".</summary>
     public string Key { get; } = key;
 
     public string Title { get; } = title;

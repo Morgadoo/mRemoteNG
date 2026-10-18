@@ -21,10 +21,13 @@
     <ProjectReference Include="..\mRemoteNG.Core\mRemoteNG.Core.csproj" />
     <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
     <ProjectReference Include="..\mRemoteNG.Protocols\mRemoteNG.Protocols.csproj" />
+    <!-- Plugin host (Plugins/): the net10.0 build of the contracts, without the WinForms tool-window interface. -->
+    <ProjectReference Include="..\mRemoteNG.PluginContracts\mRemoteNG.PluginContracts.csproj" SetTargetFramework="TargetFramework=net10.0" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="mRemoteNG.Tests.CrossPlatform" />
+    <InternalsVisibleTo Include="mRemoteNG.Avalonia.Tests" />
   </ItemGroup>
 
 </Project>

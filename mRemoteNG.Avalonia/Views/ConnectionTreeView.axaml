@@ -147,7 +147,7 @@
                                   CommandParameter="{x:Static vm:ConnectPreset.ViewOnly}"/>
                     </MenuItem>
                     <MenuItem Header="{l:Tr Disconnect}" Command="{Binding DisconnectCommand}"/>
-                    <MenuItem Header="{l:Tr WakeOnLAN}" Command="{Binding WakeOnLanCommand}"/>
+                    <MenuItem x:Name="WakeOnLanMenuItem" Header="{l:Tr WakeOnLAN}" Command="{Binding WakeOnLanCommand}"/>
                     <Separator/>
                     <MenuItem Header="{l:Tr NewConnection, Suffix='...'}" Command="{Binding NewConnectionCommand}" InputGesture="Ctrl+N">
                         <MenuItem.Icon><mi:MaterialIcon Kind="Plus"/></MenuItem.Icon>

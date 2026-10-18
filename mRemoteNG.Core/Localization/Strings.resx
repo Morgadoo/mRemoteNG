@@ -2701,4 +2701,84 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
     <value>Send</value>
     <comment>Chat window: send button</comment>
   </data>
+  <data name="PluginLoadedFormat" xml:space="preserve">
+    <value>Plugin {0} {1} loaded.</value>
+    <comment>Log; {0} = plugin name, {1} = version</comment>
+  </data>
+  <data name="PluginNotLoadedFormat" xml:space="preserve">
+    <value>Plugin {0} was not loaded: {1}</value>
+    <comment>Log; {0} = plugin name or file, {1} = reason</comment>
+  </data>
+  <data name="PluginImportNoFileFormat" xml:space="preserve">
+    <value>{0} connection(s) from a plugin were not imported: no connection file is open.</value>
+    <comment>Log; {0} = count</comment>
+  </data>
+  <data name="PluginImportedFormat" xml:space="preserve">
+    <value>Imported {0} connection(s) from a plugin into "{1}".</value>
+    <comment>Log; {0} = count, {1} = folder name</comment>
+  </data>
+  <data name="PluginsLoadedSummaryFormat" xml:space="preserve">
+    <value>{0} of {1} loaded.</value>
+    <comment>Options &gt; Plugins; {0} = loaded plugins, {1} = plugins found</comment>
+  </data>
+  <data name="PluginStateLoaded" xml:space="preserve">
+    <value>Loaded</value>
+    <comment>Options &gt; Plugins: plugin state</comment>
+  </data>
+  <data name="PluginStateDisabled" xml:space="preserve">
+    <value>Disabled</value>
+    <comment>Options &gt; Plugins: plugin state</comment>
+  </data>
+  <data name="PluginStateIncompatible" xml:space="preserve">
+    <value>Needs a newer version</value>
+    <comment>Options &gt; Plugins: plugin state (the plugin requires a newer mRemoteNG)</comment>
+  </data>
+  <data name="PluginStateDuplicate" xml:space="preserve">
+    <value>Duplicate</value>
+    <comment>Options &gt; Plugins: plugin state (another plugin has the same id)</comment>
+  </data>
+  <data name="PluginStateUnsupported" xml:space="preserve">
+    <value>Windows app only</value>
+    <comment>Options &gt; Plugins: plugin state (WinForms tool-window plugin)</comment>
+  </data>
+  <data name="PluginStateFailed" xml:space="preserve">
+    <value>Failed to load</value>
+    <comment>Options &gt; Plugins: plugin state</comment>
+  </data>
+  <data name="InstalledPlugins" xml:space="preserve">
+    <value>Installed plugins</value>
+    <comment>Options &gt; Plugins: heading</comment>
+  </data>
+  <data name="NoPluginsFound" xml:space="preserve">
+    <value>No plugins found</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="NoPluginsFoundDescription" xml:space="preserve">
+    <value>Copy a plugin's DLL into one of the plugin folders below and restart mRemoteNG.</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="PluginChangesAfterRestart" xml:space="preserve">
+    <value>Enabling, disabling or adding plugins takes effect the next time mRemoteNG starts. Tool-window plugins use Windows Forms and only work in the Windows app.</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="PluginFolders" xml:space="preserve">
+    <value>Plugin folders</value>
+    <comment>Options &gt; Plugins: heading</comment>
+  </data>
+  <data name="PluginFoldersAlwaysSearched" xml:space="preserve">
+    <value>Always searched</value>
+    <comment>Options &gt; Plugins: the default plugin folders</comment>
+  </data>
+  <data name="OpenPluginFolder" xml:space="preserve">
+    <value>Open plugin folder</value>
+    <comment>Options &gt; Plugins: button (creates and opens the Plugins folder in the data directory)</comment>
+  </data>
+  <data name="AdditionalPluginFolders" xml:space="preserve">
+    <value>Additional folders</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="AdditionalPluginFoldersDescription" xml:space="preserve">
+    <value>More folders to load plugins from, separated by semicolons (;).</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
 </root>

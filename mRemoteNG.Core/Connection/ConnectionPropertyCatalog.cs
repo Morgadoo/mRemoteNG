@@ -48,6 +48,9 @@ namespace mRemoteNG.Core.Connection
 
         public static IReadOnlyList<string> All { get; } = [Display, Connection, Credentials, Protocol, Miscellaneous];
 
+        /// <summary>Properties that plugins define (<see cref="ConnectionPropertyDescriptor.ForPlugin"/>); not in <see cref="All"/>.</summary>
+        public const string Plugins = "Plugins";
+
         // Resource keys of the category and section headings (sections not listed are shown as they are).
         private static readonly Dictionary<string, (string Key, bool KeepEnglish)> HeadingKeys = new(StringComparer.Ordinal)
         {
@@ -85,11 +88,103 @@ namespace mRemoteNG.Core.Connection
     /// </summary>
     public delegate object? ConnectionPropertyValueLookup(string propertyName);
 
-    /// <summary>Describes one editable <see cref="ConnectionInfo"/> property.</summary>
+    /// <summary>
+    /// Describes one editable <see cref="ConnectionInfo"/> property, or a value a plugin stores on connections
+    /// (<see cref="ConnectionInfo.PluginProperties"/>, see <see cref="ForPlugin"/>).
+    /// </summary>
     public sealed class ConnectionPropertyDescriptor
     {
         private readonly HashSet<ProtocolType>? _protocols;
         private readonly Func<ConnectionPropertyValueLookup, bool>? _condition;
+        private readonly PropertyInfo? _property;
+        private readonly Type? _pluginValueType;
+
+        private ConnectionPropertyDescriptor(string pluginKey, string section, string displayName, string description,
+            ConnectionPropertyEditor editor, string defaultValue, IEnumerable<ProtocolType>? protocols)
+        {
+            Name = pluginKey;
+            PluginKey = pluginKey;
+            PluginDefaultValue = defaultValue;
+            Category = ConnectionPropertyCategories.Plugins;
+            Section = section;
+            EnglishDisplayName = displayName;
+            EnglishDescription = description;
+            Editor = editor;
+            _pluginValueType = editor switch
+            {
+                ConnectionPropertyEditor.Boolean => typeof(bool),
+                ConnectionPropertyEditor.Number => typeof(int),
+                _ => typeof(string),
+            };
+            _protocols = protocols is null ? null : [.. protocols];
+            Minimum = int.MinValue;
+            Maximum = int.MaxValue;
+            ConnectionOnly = true;
+        }
+
+        /// <summary>
+        /// A plugin's connection property: a string value stored under <paramref name="key"/> in
+        /// <see cref="ConnectionInfo.PluginProperties"/>, edited as text, a check box (<see cref="ConnectionPropertyEditor.Boolean"/>,
+        /// stored as "True"/"False") or a number (<see cref="ConnectionPropertyEditor.Number"/>, invariant culture).
+        /// Plugin properties have no Inherit flag and do not apply to folders.
+        /// </summary>
+        /// <param name="section">Heading the property is shown under (the plugin's category).</param>
+        /// <param name="defaultValue">The value assumed while the connection does not store one.</param>
+        /// <param name="protocols">The protocols the property applies to; null for every protocol.</param>
+        public static ConnectionPropertyDescriptor ForPlugin(string key, string section, string displayName, string description,
+            ConnectionPropertyEditor editor = ConnectionPropertyEditor.Text, string defaultValue = "",
+            IEnumerable<ProtocolType>? protocols = null)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("A plugin property needs a key.", nameof(key));
+            if (editor is not (ConnectionPropertyEditor.Text or ConnectionPropertyEditor.Boolean or ConnectionPropertyEditor.Number))
+                throw new ArgumentOutOfRangeException(nameof(editor), editor, "Plugin properties are text, Boolean or numbers.");
+            return new ConnectionPropertyDescriptor(key, string.IsNullOrWhiteSpace(section) ? ConnectionPropertyCategories.Plugins : section,
+                string.IsNullOrWhiteSpace(displayName) ? key : displayName, description ?? string.Empty, editor, defaultValue ?? string.Empty, protocols);
+        }
+
+        /// <summary>The key in <see cref="ConnectionInfo.PluginProperties"/> for a plugin property; null for a <see cref="ConnectionInfo"/> property.</summary>
+        public string? PluginKey { get; }
+
+        public bool IsPluginProperty => PluginKey is not null;
+
+        /// <summary>The value of a plugin property while the connection does not store one.</summary>
+        public string PluginDefaultValue { get; } = string.Empty;
+
+        /// <summary>A plugin property's value on <paramref name="node"/>: a string, bool or int depending on <see cref="Editor"/>.</summary>
+        public object GetPluginValue(ConnectionInfo node)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+            var key = PluginKey ?? throw new InvalidOperationException($"{Name} is not a plugin property.");
+            var raw = node.GetPluginProperty(key, PluginDefaultValue);
+            return Editor switch
+            {
+                ConnectionPropertyEditor.Boolean => bool.TryParse(raw, out var b) && b,
+                ConnectionPropertyEditor.Number => int.TryParse(raw, System.Globalization.NumberStyles.Integer,
+                    System.Globalization.CultureInfo.InvariantCulture, out var i) ? i : 0,
+                _ => raw,
+            };
+        }
+
+        /// <summary>
+        /// Stores a plugin property's value on <paramref name="node"/>. An empty text removes the value; a value equal
+        /// to <see cref="PluginDefaultValue"/> is not added to a connection that does not store one yet.
+        /// </summary>
+        public void SetPluginValue(ConnectionInfo node, object? value)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+            var key = PluginKey ?? throw new InvalidOperationException($"{Name} is not a plugin property.");
+            var text = value switch
+            {
+                bool b => b ? bool.TrueString : bool.FalseString,
+                int i => i.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                null => string.Empty,
+                _ => value.ToString() ?? string.Empty,
+            };
+            if (!node.TryGetPluginProperty(key, out _) && Equals(GetPluginValue(node), value ?? string.Empty))
+                return;
+            node.SetPluginProperty(key, text);
+        }
 
         internal ConnectionPropertyDescriptor(
             string name,
@@ -105,7 +200,7 @@ namespace mRemoteNG.Core.Connection
             int maximum,
             bool connectionOnly)
         {
-            Property = typeof(ConnectionInfo).GetProperty(name, BindingFlags.Public | BindingFlags.Instance)
+            _property = typeof(ConnectionInfo).GetProperty(name, BindingFlags.Public | BindingFlags.Instance)
                 ?? throw new ArgumentException($"ConnectionInfo has no property {name}.", nameof(name));
             Name = name;
             Category = category;
@@ -161,14 +256,17 @@ namespace mRemoteNG.Core.Connection
         /// <summary>True for properties folders do not have (the host name).</summary>
         public bool ConnectionOnly { get; }
 
-        public PropertyInfo Property { get; }
-        public Type PropertyType => Property.PropertyType;
+        /// <summary>The <see cref="ConnectionInfo"/> property (throws for a plugin property, which has none).</summary>
+        public PropertyInfo Property => _property ?? throw new InvalidOperationException($"{Name} is a plugin property.");
+
+        /// <summary>The value type: the property's, or string, bool or int for a plugin property.</summary>
+        public Type PropertyType => _property?.PropertyType ?? _pluginValueType!;
 
         /// <summary>The protocols the property applies to; null for every protocol.</summary>
         public IReadOnlyCollection<ProtocolType>? Protocols => _protocols;
 
         /// <summary>True when the property has an Inherit flag.</summary>
-        public bool SupportsInheritance => ConnectionInheritanceAccessor.SupportsInheritance(Name);
+        public bool SupportsInheritance => !IsPluginProperty && ConnectionInheritanceAccessor.SupportsInheritance(Name);
 
         public bool AppliesTo(ProtocolType protocol) => _protocols is null || _protocols.Contains(protocol);
 
