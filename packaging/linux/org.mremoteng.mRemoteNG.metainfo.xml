@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.mremoteng.mRemoteNG</id>
+  <name>mRemoteNG</name>
+  <summary>Multi-protocol remote connection manager</summary>
+  <developer id="org.mremoteng">
+    <name>mRemoteNG Contributors</name>
+  </developer>
+  <description>
+    <p>
+      mRemoteNG is an open source, tabbed, multi-protocol remote connection manager. It keeps your
+      connections in a tree with inherited settings and opens them side by side in tabs and panels.
+    </p>
+    <p>Supported protocols:</p>
+    <ul>
+      <li>SSH (with SFTP file transfer and port forwarding), Telnet, rlogin and raw sockets</li>
+      <li>RDP through FreeRDP</li>
+      <li>VNC, including UltraVNC chat and file transfer</li>
+      <li>HTTP and HTTPS in the default browser</li>
+      <li>PowerShell remoting and external applications</li>
+    </ul>
+    <p>Connection files from the Windows version of mRemoteNG can be opened unchanged.</p>
+  </description>
+  <launchable type="desktop-id">org.mremoteng.mRemoteNG.desktop</launchable>
+  <url type="homepage">https://mremoteng.org</url>
+  <url type="bugtracker">https://github.com/mRemoteNG/mRemoteNG/issues</url>
+  <url type="vcs-browser">https://github.com/mRemoteNG/mRemoteNG</url>
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <content_rating type="oars-1.1"/>
+  <categories>
+    <category>Network</category>
+    <category>RemoteAccess</category>
+  </categories>
+  <releases>
+    <release version="1.78.2-dev" date="2026-10-17"/>
+  </releases>
+</component>

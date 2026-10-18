@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=mRemoteNG
+GenericName=Remote Connection Manager
+Comment=Multi-protocol remote connection manager (SSH, RDP, VNC, Telnet)
+Exec=mremoteng %F
+Icon=org.mremoteng.mRemoteNG
+Terminal=false
+Categories=Network;RemoteAccess;
+Keywords=ssh;rdp;vnc;telnet;remote;connection;
+StartupNotify=true
+StartupWMClass=mRemoteNG.Avalonia
