@@ -28,7 +28,9 @@ public sealed class SqlSchemaTests
         names.Should().OnlyHaveUniqueItems();
         names.Should().Contain(["ID", "ConstantID", "PositionID", "ParentID", "LastChange", "Name", "Type", "Password",
             "InheritUseRestrictedAdmin", "UserViaAPI", "RedirectDiskDrivesCustom", "VNCSmartSizeMode", "StartProgramWorkDir"]);
-        SqlSchema.ConnectionColumns.Count(c => !c.IsExtension).Should().Be(163, "the legacy 3.0 script has 163 columns");
+        SqlSchema.ConnectionColumns.Count(c => !c.IsExtension).Should().Be(166,
+            "the legacy 3.0 script has 163 columns, 3.1 adds PluginData and 3.2 TerminalBackend/InheritTerminalBackend");
+        names.Should().Contain(["PluginData", "TerminalBackend", "InheritTerminalBackend"]);
     }
 
     [Fact]

@@ -10,6 +10,8 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
         TinyInt,
         Int,
         String,
+        /// <summary>Unbounded text (MySQL <c>longtext</c>, SQL Server <c>nvarchar(max)</c>), stored off-row.</summary>
+        Text,
         DateTime,
     }
 
@@ -26,7 +28,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
         bool IsExtension = false);
 
     /// <summary>
-    /// The connection database schema of the legacy app (<c>SqlDatabaseMetaDataRetriever</c>, version 3.0):
+    /// The connection database schema of the legacy app (<c>SqlDatabaseMetaDataRetriever</c>, version 3.2):
     /// <c>tblCons</c> (one row per connection/folder), <c>tblRoot</c> (name, password check, schema version) and
     /// <c>tblUpdate</c> (time of the last save, polled by other clients).
     /// </summary>
@@ -37,7 +39,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
         public const string UpdateTable = "tblUpdate";
 
         /// <summary>The schema version written to <c>tblRoot.ConfVersion</c>.</summary>
-        public static readonly Version CurrentVersion = new(3, 0);
+        public static readonly Version CurrentVersion = new(3, 2);
 
         public static IReadOnlyList<string> Tables { get; } = [ConnectionsTable, RootTable, UpdateTable];
 
@@ -101,6 +103,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
             new SqlColumn("RedirectSmartCards", SqlColumnKind.Bool),
             new SqlColumn("RedirectSound", SqlColumnKind.String, Size: 64),
             new SqlColumn("RenderingEngine", SqlColumnKind.String, Size: 32, Nullable: true),
+            new SqlColumn("TerminalBackend", SqlColumnKind.String, Size: 32, Nullable: true),
             new SqlColumn("Resolution", SqlColumnKind.String, Size: 32),
             new SqlColumn("SSHOptions", SqlColumnKind.String, Size: 1024),
             new SqlColumn("SSHTunnelConnectionName", SqlColumnKind.String, Size: 128),
@@ -172,6 +175,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
             new SqlColumn("InheritRedirectSmartCards", SqlColumnKind.Bool),
             new SqlColumn("InheritRedirectSound", SqlColumnKind.Bool),
             new SqlColumn("InheritRenderingEngine", SqlColumnKind.Bool),
+            new SqlColumn("InheritTerminalBackend", SqlColumnKind.Bool),
             new SqlColumn("InheritResolution", SqlColumnKind.Bool),
             new SqlColumn("InheritSSHOptions", SqlColumnKind.Bool),
             new SqlColumn("InheritSSHTunnelConnectionName", SqlColumnKind.Bool),
@@ -207,6 +211,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
             new SqlColumn("ExternalCredentialProvider", SqlColumnKind.String, Size: 256, Nullable: true),
             new SqlColumn("ExternalAddressProvider", SqlColumnKind.String, Size: 256, Nullable: true),
             new SqlColumn("UserViaAPI", SqlColumnKind.String, Size: 512),
+            new SqlColumn("PluginData", SqlColumnKind.Text, Nullable: true),
             // Written by the legacy DataTableSerializer but missing from its CREATE TABLE script; created here
             // so legacy clients can save to a database initialised by this version.
             new SqlColumn("EnvironmentTags", SqlColumnKind.String, Size: 1024, Nullable: true, IsExtension: true),
@@ -215,6 +220,31 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
             new SqlColumn("RDGatewayUserViaAPI", SqlColumnKind.String, Size: 512, Nullable: true, IsExtension: true),
             new SqlColumn("EnhancedMode", SqlColumnKind.Bool, Nullable: true, IsExtension: true),
             new SqlColumn("InheritEnhancedMode", SqlColumnKind.Bool, Nullable: true, IsExtension: true),
+            // Connection properties newer than the legacy schema. Nullable: NULL means the row was written by a
+            // client that does not know the column, and the value then comes from SqlConnectionProperties.xml.
+            new SqlColumn("TabColor", SqlColumnKind.String, Size: 64, Nullable: true, IsExtension: true),
+            new SqlColumn("InheritTabColor", SqlColumnKind.Bool, Nullable: true, IsExtension: true),
+            new SqlColumn("ConnectionFrameColor", SqlColumnKind.String, Size: 32, Nullable: true, IsExtension: true),
+            new SqlColumn("InheritConnectionFrameColor", SqlColumnKind.Bool, Nullable: true, IsExtension: true),
+            new SqlColumn("VaultOpenbaoMount", SqlColumnKind.String, Size: 512, Nullable: true, IsExtension: true),
+            new SqlColumn("VaultOpenbaoRole", SqlColumnKind.String, Size: 512, Nullable: true, IsExtension: true),
+            new SqlColumn("VaultOpenbaoSecretEngine", SqlColumnKind.String, Size: 32, Nullable: true, IsExtension: true),
+            new SqlColumn("RDGatewayAccessToken", SqlColumnKind.Text, Nullable: true, IsExtension: true),
+            new SqlColumn("InheritRDGatewayAccessToken", SqlColumnKind.Bool, Nullable: true, IsExtension: true),
+            new SqlColumn("UseRedirectionServerName", SqlColumnKind.Bool, Nullable: true, IsExtension: true),
+            new SqlColumn("InheritUseRedirectionServerName", SqlColumnKind.Bool, Nullable: true, IsExtension: true),
+        ];
+
+        /// <summary>
+        /// The extension columns that replaced <c>SqlConnectionProperties.xml</c>: values in them are shared with
+        /// every client, the local file only fills in rows where they are NULL.
+        /// </summary>
+        public static IReadOnlyList<string> SharedLocalFallbackColumns { get; } =
+        [
+            "TabColor", "InheritTabColor", "ConnectionFrameColor", "InheritConnectionFrameColor",
+            "VaultOpenbaoMount", "VaultOpenbaoRole", "VaultOpenbaoSecretEngine",
+            "RDGatewayAccessToken", "InheritRDGatewayAccessToken",
+            "UseRedirectionServerName", "InheritUseRedirectionServerName",
         ];
 
         private static readonly Dictionary<string, SqlColumn> ByName =

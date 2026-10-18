@@ -90,7 +90,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
             {
                 defaultValue = column.Kind switch
                 {
-                    SqlColumnKind.String => "''",
+                    SqlColumnKind.String or SqlColumnKind.Text => "''",
                     SqlColumnKind.DateTime => "CURRENT_TIMESTAMP",
                     _ => "0",
                 };
@@ -132,6 +132,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
                 SqlColumnKind.Bool or SqlColumnKind.TinyInt => "tinyint",
                 SqlColumnKind.Int => "int",
                 SqlColumnKind.String => StringType(column.Size),
+                SqlColumnKind.Text => "longtext",
                 SqlColumnKind.DateTime => "datetime",
                 _ => throw new ArgumentOutOfRangeException(nameof(column)),
             };
@@ -169,6 +170,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
                 SqlColumnKind.TinyInt => "tinyint",
                 SqlColumnKind.Int => "int",
                 SqlColumnKind.String => StringType(column.Size),
+                SqlColumnKind.Text => "nvarchar(max)",
                 SqlColumnKind.DateTime => "datetime",
                 _ => throw new ArgumentOutOfRangeException(nameof(column)),
             };

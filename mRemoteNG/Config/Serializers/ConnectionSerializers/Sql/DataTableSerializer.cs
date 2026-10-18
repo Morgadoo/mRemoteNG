@@ -532,7 +532,74 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Sql
             bool pwd = dataRow["Password"].Equals(_saveFilter.SavePassword ? _cryptographyProvider.Encrypt(connectionInfo.Password, _encryptionKey) : "") &&
                       dataRow["VNCProxyPassword"].Equals(_cryptographyProvider.Encrypt(connectionInfo.VNCProxyPassword, _encryptionKey)) &&
                       dataRow["RDGatewayPassword"].Equals(_cryptographyProvider.Encrypt(connectionInfo.RDGatewayPassword, _encryptionKey));
+            isFieldNotChange = isFieldNotChange && SharedColumnsUnchanged(connectionInfo, dataRow);
             return !(pwd && isFieldNotChange && isInheritanceFieldNotChange);
+        }
+
+        /// <summary>
+        /// Nullable columns the cross-platform app adds to tblCons (tab and frame colour, Vault/OpenBao,
+        /// RD Gateway access token, redirection server name). Written only when the database has them.
+        /// </summary>
+        private bool SharedColumnsUnchanged(ConnectionInfo connectionInfo, DataRow dataRow)
+        {
+            bool inherit = _saveFilter.SaveInheritance;
+            return ColumnUnchanged(dataRow, "TabColor", connectionInfo.TabColor ?? string.Empty) &&
+                   ColumnUnchanged(dataRow, "ConnectionFrameColor", connectionInfo.ConnectionFrameColor.ToString()) &&
+                   ColumnUnchanged(dataRow, "VaultOpenbaoMount", connectionInfo.VaultOpenbaoMount ?? string.Empty) &&
+                   ColumnUnchanged(dataRow, "VaultOpenbaoRole", connectionInfo.VaultOpenbaoRole ?? string.Empty) &&
+                   ColumnUnchanged(dataRow, "VaultOpenbaoSecretEngine", connectionInfo.VaultOpenbaoSecretEngine.ToString()) &&
+                   AccessTokenUnchanged(connectionInfo, dataRow) &&
+                   ColumnUnchanged(dataRow, "UseRedirectionServerName", connectionInfo.UseRedirectionServerName) &&
+                   ColumnUnchanged(dataRow, "InheritTabColor", inherit && connectionInfo.Inheritance.TabColor) &&
+                   ColumnUnchanged(dataRow, "InheritConnectionFrameColor", inherit && connectionInfo.Inheritance.ConnectionFrameColor) &&
+                   ColumnUnchanged(dataRow, "InheritRDGatewayAccessToken", inherit && connectionInfo.Inheritance.RDGatewayAccessToken) &&
+                   ColumnUnchanged(dataRow, "InheritUseRedirectionServerName", inherit && connectionInfo.Inheritance.UseRedirectionServerName);
+        }
+
+        private bool AccessTokenUnchanged(ConnectionInfo connectionInfo, DataRow dataRow)
+        {
+            if (!dataRow.Table.Columns.Contains("RDGatewayAccessToken"))
+                return true;
+            string stored = dataRow["RDGatewayAccessToken"] as string;
+            string token = _saveFilter.SavePassword ? connectionInfo.RDGatewayAccessToken ?? string.Empty : string.Empty;
+            if (string.IsNullOrEmpty(stored))
+                return stored != null && token.Length == 0;
+            try
+            {
+                return _cryptographyProvider.Decrypt(stored, _encryptionKey) == token;
+            }
+            catch (EncryptionException)
+            {
+                return false;
+            }
+        }
+
+        private void SerializeSharedColumns(ConnectionInfo connectionInfo, DataRow dataRow)
+        {
+            bool inherit = _saveFilter.SaveInheritance;
+            SetColumn(dataRow, "TabColor", connectionInfo.TabColor ?? string.Empty);
+            SetColumn(dataRow, "ConnectionFrameColor", connectionInfo.ConnectionFrameColor.ToString());
+            SetColumn(dataRow, "VaultOpenbaoMount", connectionInfo.VaultOpenbaoMount ?? string.Empty);
+            SetColumn(dataRow, "VaultOpenbaoRole", connectionInfo.VaultOpenbaoRole ?? string.Empty);
+            SetColumn(dataRow, "VaultOpenbaoSecretEngine", connectionInfo.VaultOpenbaoSecretEngine.ToString());
+            string token = _saveFilter.SavePassword ? connectionInfo.RDGatewayAccessToken ?? string.Empty : string.Empty;
+            SetColumn(dataRow, "RDGatewayAccessToken", token.Length == 0 ? string.Empty : _cryptographyProvider.Encrypt(token, _encryptionKey));
+            SetColumn(dataRow, "UseRedirectionServerName", connectionInfo.UseRedirectionServerName);
+            SetColumn(dataRow, "InheritTabColor", inherit && connectionInfo.Inheritance.TabColor);
+            SetColumn(dataRow, "InheritConnectionFrameColor", inherit && connectionInfo.Inheritance.ConnectionFrameColor);
+            SetColumn(dataRow, "InheritRDGatewayAccessToken", inherit && connectionInfo.Inheritance.RDGatewayAccessToken);
+            SetColumn(dataRow, "InheritUseRedirectionServerName", inherit && connectionInfo.Inheritance.UseRedirectionServerName);
+        }
+
+        private static bool ColumnUnchanged(DataRow dataRow, string column, object value)
+        {
+            return !dataRow.Table.Columns.Contains(column) || dataRow[column].Equals(value);
+        }
+
+        private static void SetColumn(DataRow dataRow, string column, object value)
+        {
+            if (dataRow.Table.Columns.Contains(column))
+                dataRow[column] = value;
         }
 
         private void SerializeConnectionInfo(ConnectionInfo connectionInfo)
@@ -804,6 +871,8 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Sql
                 dataRow["InheritCacheBitmaps"] = false;
                 dataRow["UserViaAPI"] = "";
             }
+
+            SerializeSharedColumns(connectionInfo, dataRow);
 
             if (isNewRow) _dataTable.Rows.Add(dataRow);
         }
