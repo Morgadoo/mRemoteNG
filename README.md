@@ -152,7 +152,7 @@ The WinForms app and the installer need that Visual Studio build. The cross-plat
 ### Cross-Platform Installation
 
 The cross-platform (Avalonia) app runs on Windows, Linux and macOS. The screenshots above are that app.
-No packages are published to Flatpak, Snap, Homebrew or winget yet; build them with the scripts in
+No packages are published to Flathub, the Snap Store, Homebrew or winget yet; build them with the scripts in
 `packaging/`, or download the artifacts of the nightly workflow.
 
 **Linux**
@@ -166,6 +166,28 @@ sudo apt install ./mremoteng_*.deb
 
 For RDP install FreeRDP 3 (`sudo apt install freerdp3-x11`); everything else (SSH, SFTP, VNC, Telnet, …) is
 built in.
+
+```bash
+# Flatpak — builds the committed HEAD, installs it for the current user
+./packaging/linux/build-flatpak.sh --bundle      # also writes dist/flatpak/mRemoteNG.flatpak
+flatpak run org.mremoteng.mRemoteNG
+
+# Snap — needs snapcraft (snap install snapcraft --classic)
+cd packaging/linux && snapcraft pack
+sudo snap install --dangerous mremoteng_*.snap && sudo snap connect mremoteng:ssh-keys
+```
+
+The Flatpak and the Snap include FreeRDP 3 (with Kerberos in the Flatpak) and the unixODBC driver manager.
+They are sandboxed. The app can only start programs that are inside the package, so External Tools and
+IntApp do not see the host's terminal emulators or tools, and PowerShell connections need `pwsh` inside the
+sandbox. SQL storage over ODBC needs a driver inside the sandbox too: put the driver's `.so` under your home
+folder and register it in `~/.odbcinst.ini` (in the Snap, `~` is `~/snap/mremoteng/current`), because the
+host's `/usr/lib` and `/etc/odbcinst.ini` are not visible. For Kerberos in the Flatpak, the KDC is found through DNS, because the host's `/etc/krb5.conf` is not
+visible either.
+
+SQL storage over ODBC (Options ▸ SQL Server ▸ ODBC data source) also works outside the packages. On Linux
+and macOS it needs unixODBC (`sudo apt install unixodbc`, `brew install unixodbc`) and the database's ODBC
+driver; on Windows it uses the ODBC Data Source Administrator.
 
 **macOS** — `packaging/macos/build-dmg.sh` builds a DMG; RDP needs `brew install freerdp`.
 
