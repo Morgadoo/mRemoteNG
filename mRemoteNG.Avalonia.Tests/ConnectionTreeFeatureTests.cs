@@ -413,6 +413,60 @@ public class ConnectionTreeFeatureTests
         Tree.Nodes.Should().ContainSingle();
     }
 
+    [AvaloniaFact]
+    public void RootGroups_AreListedAsExtraRoots_AndFollowTheFlag()
+    {
+        var window = TestHost.MainWindow;
+        Tree.CreateNewTree();
+        var root = Tree.Root!;
+        var office = new ContainerInfo { Name = "Office" };
+        var deep = new ContainerInfo { Name = "Deep", IsRootGroup = true };
+        office.AddChild(deep);
+        root.AddChild(office);
+        var lab = new ContainerInfo { Name = "Lab", IsRootGroup = true };
+        lab.AddChild(new ConnectionInfo { Name = "lab-srv", Hostname = "lab.local" });
+        root.AddChild(lab);
+        Dispatcher.UIThread.RunJobs();
+
+        Tree.Nodes.Select(n => n.Name).Should().Equal("Connections", "Deep", "Lab");
+        Tree.Nodes[0].Children.Select(c => c.Name).Should().Equal("Office");
+        Node("Office").Children.Should().BeEmpty("Deep is shown as a root, not inside Office");
+        Node("Lab").ShowsAsRoot.Should().BeTrue();
+        Node("lab-srv").Should().NotBeNull();
+        window.GetVisualDescendants().OfType<TreeViewItem>().Select(i => i.DataContext)
+            .Should().Contain(Tree.Nodes[2], "the extra root is rendered");
+
+        var path = Path.Combine(TestHost.ConfigDirectory, $"{Guid.NewGuid():N}-rootgroups.xml");
+        Tree.SaveToFile(path);
+        Tree.LoadFromFile(path);
+        Dispatcher.UIThread.RunJobs();
+        Tree.Nodes.Select(n => n.Name).Should().Equal("Connections", "Deep", "Lab");
+        lab = (ContainerInfo)Node("Lab").Model;
+
+        Tree.SelectedNode = Node("Lab");
+        lab.IsRootGroup = false;
+        Dispatcher.UIThread.RunJobs();
+        Tree.Nodes.Select(n => n.Name).Should().Equal("Connections", "Deep");
+        Tree.Nodes[0].Children.Select(c => c.Name).Should().Equal("Office", "Lab");
+        Tree.SelectedNode!.Model.Should().BeSameAs(lab, "the selection follows the folder");
+
+        var deepNode = Tree.Nodes[1];
+        Tree.CanDrop(deepNode, Node("Lab"), TreeDropPosition.Into).Should().BeTrue();
+        Tree.Drop(deepNode, Node("Lab"), TreeDropPosition.Into);
+        Dispatcher.UIThread.RunJobs();
+        Tree.Nodes.Select(n => n.Name).Should().Equal("Connections");
+        ((ContainerInfo)Node("Deep").Model).IsRootGroup.Should().BeFalse("moved into an ordinary folder, as in WinForms");
+        Node("Lab").Children.Select(c => c.Name).Should().Equal("lab-srv", "Deep");
+
+        Tree.NewRootGroupCommand.Execute().Subscribe();
+        Dispatcher.UIThread.RunJobs();
+        var added = Tree.Nodes.Should().HaveCount(2).And.Subject.Last();
+        added.IsRootGroup.Should().BeTrue();
+        added.IsEditing.Should().BeTrue("the new root is renamed in place");
+        added.Model.Parent.Should().BeSameAs(Tree.Root, "it is stored in the main root");
+        Tree.IsDirty.Should().BeTrue();
+    }
+
     // ── File properties ───────────────────────────────────────────────────
 
     [AvaloniaFact]

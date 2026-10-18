@@ -187,6 +187,8 @@ public static class ProtocolVisuals
                 return MaterialIconKind.ConsoleNetworkOutline;
             case RootNodeInfo:
                 return MaterialIconKind.Database;
+            case ContainerInfo { IsRootGroup: true }:
+                return MaterialIconKind.DatabaseOutline;
             case ContainerInfo container:
                 return expanded ?? container.IsExpanded ? MaterialIconKind.FolderOpen : MaterialIconKind.Folder;
             case ConnectionInfo info:

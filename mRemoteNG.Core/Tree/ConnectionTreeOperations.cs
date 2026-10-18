@@ -85,6 +85,10 @@ namespace mRemoteNG.Core.Tree
             if (!CanMoveInto(node, target))
                 throw new InvalidOperationException($"Cannot move \"{node.Name}\" into \"{target.Name}\".");
 
+            // As in the WinForms tree: a root group moved into an ordinary folder becomes an ordinary folder.
+            if (node is ContainerInfo { IsRootGroup: true } group && target is not RootNodeInfo)
+                group.IsRootGroup = false;
+
             if (ReferenceEquals(node.Parent, target))
             {
                 var current = target.Children.IndexOf(node);
@@ -106,6 +110,22 @@ namespace mRemoteNG.Core.Tree
                 ?? throw new InvalidOperationException("The reference node is not in a tree.");
             if (ReferenceEquals(node, reference)) return;
             MoveInto(node, target, target.Children.IndexOf(reference));
+        }
+
+        /// <summary>
+        /// Folders below <paramref name="container"/> flagged as <see cref="ContainerInfo.IsRootGroup"/>, depth first.
+        /// The tree shows them as extra roots next to the main root instead of inside their parent.
+        /// </summary>
+        public static IEnumerable<ContainerInfo> RootGroups(ContainerInfo container)
+        {
+            ArgumentNullException.ThrowIfNull(container);
+            foreach (var child in container.Children.OfType<ContainerInfo>())
+            {
+                if (child.IsRootGroup)
+                    yield return child;
+                foreach (var nested in RootGroups(child))
+                    yield return nested;
+            }
         }
 
         /// <summary>Number of folders and connections below <paramref name="container"/> (recursive).</summary>

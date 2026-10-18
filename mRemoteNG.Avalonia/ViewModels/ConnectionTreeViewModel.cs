@@ -79,6 +79,12 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
     public bool IsFolder => Model is ContainerInfo;
     public bool IsRoot => Model is RootNodeInfo;
 
+    /// <summary>A folder shown as an extra root next to the main one (see <see cref="ContainerInfo.IsRootGroup"/>).</summary>
+    public bool IsRootGroup => Model is ContainerInfo { IsRootGroup: true };
+
+    /// <summary>Drawn as a root: the main root or a root group.</summary>
+    public bool ShowsAsRoot => IsRoot || IsRootGroup;
+
     /// <summary>The "PuTTY Sessions" root.</summary>
     public bool IsPuttyRoot => Model is RootPuttySessionsNodeInfo;
 
@@ -214,6 +220,15 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
 
     private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // A child folder became (or stopped being) a root group: it moves between this list and the tree's roots.
+        if (e.PropertyName == nameof(ContainerInfo.IsRootGroup) && sender is ContainerInfo { Parent: var parent }
+            && ReferenceEquals(parent, Model))
+        {
+            SyncChildren();
+            _tree.OnStructureChanged();
+            return;
+        }
+
         // Containers bubble their descendants' notifications; only react to this node's own.
         if (!ReferenceEquals(sender, Model)) return;
 
@@ -237,11 +252,14 @@ public sealed class ConnectionNodeViewModel : ReactiveObject, IDisposable
         _tree.OnStructureChanged();
     }
 
-    /// <summary>Mirrors the container's child list, reusing existing view models so state is kept.</summary>
+    /// <summary>
+    /// Mirrors the container's child list, reusing existing view models so state is kept. Root groups are
+    /// left out: the tree lists them as roots.
+    /// </summary>
     private void SyncChildren()
     {
         if (Model is not ContainerInfo container) return;
-        var models = container.Children;
+        var models = container.Children.Where(c => c is not ContainerInfo { IsRootGroup: true }).ToList();
 
         for (var i = 0; i < models.Count; i++)
         {
@@ -366,6 +384,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
             preset => ConnectSelectedAsync(ConnectWithOptionsViewModel.ForPreset(preset)), canConnect);
         DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectSelectedAsync, hasNode);
         NewFolderCommand = ReactiveCommand.CreateFromTask(NewFolderAsync);
+        NewRootGroupCommand = ReactiveCommand.Create(() => { AddRootGroup(); });
         NewConnectionCommand = ReactiveCommand.CreateFromTask(NewConnectionAsync);
         EditSelectedCommand = ReactiveCommand.CreateFromTask(EditSelectedAsync, editable);
         RenameSelectedCommand = ReactiveCommand.Create(() => { if (SelectedNode is { } n) BeginRename(n); }, editable);
@@ -393,7 +412,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         foreach (var command in new IHandleObservableErrors[]
                  {
                      ConnectSelectedCommand, ConnectWithOptionsCommand, ConnectChoosePanelCommand, ConnectWithPresetCommand,
-                     DisconnectCommand, NewFolderCommand, NewConnectionCommand, EditSelectedCommand, RenameSelectedCommand,
+                     DisconnectCommand, NewFolderCommand, NewRootGroupCommand, NewConnectionCommand, EditSelectedCommand, RenameSelectedCommand,
                      DuplicateSelectedCommand, DeleteSelectedCommand, CopyHostnameCommand, SortCommand, SortAscendingCommand,
                      SortDescendingCommand, ExpandAllCommand, CollapseAllCommand, MoveUpCommand, MoveDownCommand, CutCommand,
                      PasteCommand, ApplyInheritanceToChildrenCommand, ApplyDefaultInheritanceCommand,
@@ -494,6 +513,10 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
     /// <summary>Closes the sessions opened from the selected connection (or any connection in the selected folder).</summary>
     public ReactiveCommand<Unit, Unit> DisconnectCommand { get; }
     public ReactiveCommand<Unit, Unit> NewFolderCommand { get; }
+
+    /// <summary>Adds a folder shown as an extra root next to the main one (WinForms "Add Root").</summary>
+    public ReactiveCommand<Unit, Unit> NewRootGroupCommand { get; }
+
     public ReactiveCommand<Unit, Unit> NewConnectionCommand { get; }
 
     /// <summary>Opens the property editor (File ▸ Properties for the root).</summary>
@@ -675,6 +698,7 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         Nodes.Add(rootVm);
         if (_puttyRootNode is not null)
             Nodes.Add(_puttyRootNode);
+        SyncRootGroups();
         SelectedNode = rootVm;
 
         _tracker = new ConnectionTreeChangeTracker(model.RootNode);
@@ -713,6 +737,12 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         var newRoot = new ConnectionNodeViewModel(model.RootNode, null, this);
         Nodes[0] = newRoot;
         oldRoot.Dispose();
+        foreach (var group in Nodes.Skip(1).Where(n => !n.IsPuttyRoot).ToList())
+        {
+            Nodes.Remove(group);
+            group.Dispose();
+        }
+        SyncRootGroups();
         SelectedNode = (selected is null ? null : FindNode(selected)) ?? newRoot;
 
         UpdateEmptyState();
@@ -1287,11 +1317,75 @@ public sealed class ConnectionTreeViewModel : ReactiveObject
         SelectedNode = FindNode(model);
     }
 
+    // ── Root groups ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Lists the root groups of the connection file as top-level nodes between the main root and the
+    /// PuTTY root (in tree order), reusing their view models. Each stays a child of its parent in the file.
+    /// </summary>
+    private void SyncRootGroups()
+    {
+        if (Nodes.Count == 0 || Nodes[0].Model is not RootNodeInfo root) return;
+        var selected = SelectedNode;
+        var groups = ConnectionTreeOperations.RootGroups(root).ToList();
+
+        for (var i = 0; i < groups.Count; i++)
+        {
+            var at = i + 1;
+            var existing = -1;
+            for (var j = at; j < Nodes.Count; j++)
+            {
+                if (ReferenceEquals(Nodes[j].Model, groups[i]))
+                {
+                    existing = j;
+                    break;
+                }
+            }
+
+            if (existing == at) continue;
+            if (existing > at)
+                Nodes.Move(existing, at);
+            else
+                Nodes.Insert(at, new ConnectionNodeViewModel(groups[i], null, this));
+        }
+
+        var removedSelection = false;
+        for (var j = Nodes.Count - 1; j > groups.Count; j--)
+        {
+            var stale = Nodes[j];
+            if (ReferenceEquals(stale, _puttyRootNode)) continue;
+            Nodes.RemoveAt(j);
+            removedSelection |= ReferenceEquals(stale, selected) || (selected is not null && stale.SelfAndDescendants().Contains(selected));
+            stale.Dispose();
+        }
+
+        // A folder that stopped being a root group is now listed (with a new view model) inside its parent.
+        if (removedSelection && selected is not null)
+            SelectedNode = FindNode(selected.Model) ?? Nodes.FirstOrDefault();
+    }
+
+    /// <summary>Adds an empty root group (stored in the main root) and starts renaming it, like WinForms' "Add Root".</summary>
+    public ConnectionNodeViewModel? AddRootGroup()
+    {
+        var root = Root ?? throw new InvalidOperationException("No connection tree loaded.");
+        var group = CreateFromDefaults(new ContainerInfo());
+        group.IsRootGroup = true;
+        group.IsExpanded = true;
+        root.AddChild(group);
+
+        var vm = FindNode(group);
+        if (vm is null) return null;
+        SelectedNode = vm;
+        BeginRename(vm);
+        return vm;
+    }
+
     // ── Search ────────────────────────────────────────────────────────────
 
     /// <summary>Called by nodes after their children changed.</summary>
     internal void OnStructureChanged()
     {
+        SyncRootGroups();
         UpdateEmptyState();
         if (string.IsNullOrWhiteSpace(SearchFilter) || _filterRefreshPending) return;
         // Child view models of a newly added folder sync after this notification; filter once they exist.

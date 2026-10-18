@@ -399,7 +399,7 @@ public partial class ConnectionTreeView : UserControl
         target = over;
         item = overItem;
 
-        if (over.IsRoot)
+        if (over.ShowsAsRoot)
         {
             position = TreeDropPosition.Into;
             return true;

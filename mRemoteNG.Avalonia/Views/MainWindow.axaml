@@ -53,6 +53,9 @@
                 <MenuItem Header="{l:Tr NewFolder, Suffix='...', English='New _Folder'}" Command="{Binding ConnectionTree.NewFolderCommand}">
                     <MenuItem.Icon><mi:MaterialIcon Kind="FolderPlusOutline"/></MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="{l:Tr AddRoot}" Command="{Binding ConnectionTree.NewRootGroupCommand}">
+                    <MenuItem.Icon><mi:MaterialIcon Kind="DatabasePlusOutline"/></MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="{l:Tr EditSelected, Suffix='...'}" Command="{Binding ConnectionTree.EditSelectedCommand}" InputGesture="Ctrl+E">
                     <MenuItem.Icon><mi:MaterialIcon Kind="PencilOutline"/></MenuItem.Icon>
                 </MenuItem>
