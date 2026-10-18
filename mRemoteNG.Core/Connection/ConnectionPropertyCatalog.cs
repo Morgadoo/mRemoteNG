@@ -281,6 +281,7 @@ namespace mRemoteNG.Core.Connection
             [nameof(ConnectionInfo.VNCProxyUsername)] = ("ProxyUsername", "PropertyDescriptionVNCProxyUsername"),
             [nameof(ConnectionInfo.VNCProxyPassword)] = ("ProxyPassword", "PropertyDescriptionVNCProxyPassword"),
             [nameof(ConnectionInfo.RenderingEngine)] = ("RenderingEngine", "PropertyDescriptionRenderingEngine"),
+            [nameof(ConnectionInfo.TerminalBackend)] = ("TerminalBackend", null),
             [nameof(ConnectionInfo.ExtApp)] = ("ExternalTool", "PropertyDescriptionExternalTool"),
             [nameof(ConnectionInfo.PreExtApp)] = ("ExternalToolBefore", "PropertyDescriptionExternalToolBefore"),
             [nameof(ConnectionInfo.PostExtApp)] = ("ExternalToolAfter", "PropertyDescriptionExternalToolAfter"),
@@ -410,6 +411,10 @@ namespace mRemoteNG.Core.Connection
                 "Additional options for the SSH connection (PuTTY command-line syntax).", protocols: Ssh);
             Add(nameof(ConnectionInfo.OpeningCommand), connection, "SSH / PuTTY", "Opening command",
                 "Command sent to the host after logging in.", protocols: Ssh);
+            Add(nameof(ConnectionInfo.TerminalBackend), connection, "SSH / PuTTY", "Terminal backend",
+                "Opens the SSH connection in the built-in terminal, or runs the system OpenSSH client (ssh) in the tab. " +
+                "The OpenSSH client reads ~/.ssh/config and your SSH agent; the PuTTY session and SSH options are not used.",
+                ConnectionPropertyEditor.Choice, Ssh);
 
             Add(nameof(ConnectionInfo.RdpVersion), connection, "Remote Desktop", "RDP version",
                 "Sets the version of RDP to use when opening connections.", ConnectionPropertyEditor.Choice, Rdp);

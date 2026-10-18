@@ -42,6 +42,7 @@ namespace mRemoteNG.Core.Connection
         public bool RDPAlertIdleTimeout { get; set; }
         public bool LoadBalanceInfo { get; set; }
         public bool RenderingEngine { get; set; }
+        public bool TerminalBackend { get; set; }
         public bool UseConsoleSession { get; set; }
         public bool UseCredSsp { get; set; }
         public bool UseRestrictedAdmin { get; set; }

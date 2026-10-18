@@ -145,6 +145,12 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
                     continue;
                 }
 
+                if (header.Equals("PluginData", StringComparison.OrdinalIgnoreCase))
+                {
+                    node.ReplacePluginProperties(PluginPropertySerializer.Deserialize(value));
+                    continue;
+                }
+
                 var propertyName = header.Equals("ConnectToConsole", StringComparison.OrdinalIgnoreCase)
                     ? nameof(ConnectionInfo.UseConsoleSession)
                     : header;

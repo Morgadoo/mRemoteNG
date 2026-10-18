@@ -17,6 +17,7 @@ using mRemoteNG.Core.Tree.Root;
 using mRemoteNG.Protocols.Abstractions;
 using ReactiveUI;
 using CoreProtocolType = mRemoteNG.Core.Connection.Protocol.ProtocolType;
+using TerminalBackend = mRemoteNG.Core.Connection.Protocol.TerminalBackend;
 
 namespace mRemoteNG.Avalonia.ViewModels;
 
@@ -624,6 +625,8 @@ public sealed class EnumLabelConverter : IValueConverter
         [VncColors.Col8Bit] = "8-bit",
         [RenderingEngine.IE] = "Internet Explorer",
         [RenderingEngine.EdgeChromium] = "Edge (Chromium)",
+        [TerminalBackend.PuttyNg] = "Built-in terminal",
+        [TerminalBackend.WindowsTerminal] = "System OpenSSH client (ssh)",
         [ExternalCredentialProvider.DelineaSecretServer] = "Delinea Secret Server",
         [ExternalCredentialProvider.ClickstudiosPasswordState] = "Clickstudios PasswordState",
         [ExternalCredentialProvider.OnePassword] = "1Password",
@@ -704,6 +707,8 @@ public sealed class EnumLabelConverter : IValueConverter
         [ConsoleSessionChoice.AsConfigured] = "ConsoleSessionAsConfigured",
         [ConsoleSessionChoice.Console] = "ConnectToConsoleSession",
         [ConsoleSessionChoice.NoConsole] = "DontConnectToConsoleSession",
+        [TerminalBackend.PuttyNg] = "TerminalBackendBuiltInTerminal",
+        [TerminalBackend.WindowsTerminal] = "TerminalBackendOpenSshClient",
     };
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

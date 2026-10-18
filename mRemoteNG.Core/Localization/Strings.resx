@@ -2653,4 +2653,12 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
     <value>Delete the theme "{0}"? This cannot be undone.</value>
     <comment>Confirmation before a user theme is deleted; {0} = theme name</comment>
   </data>
+  <data name="TerminalBackendBuiltInTerminal" xml:space="preserve">
+    <value>Built-in terminal</value>
+    <comment>Terminal backend choice for SSH connections: the app's own SSH terminal</comment>
+  </data>
+  <data name="TerminalBackendOpenSshClient" xml:space="preserve">
+    <value>System OpenSSH client (ssh)</value>
+    <comment>Terminal backend choice for SSH connections: run the ssh command in the tab</comment>
+  </data>
 </root>
