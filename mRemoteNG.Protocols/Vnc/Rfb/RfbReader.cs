@@ -20,6 +20,9 @@ public sealed class RfbReader
         _buffer = new byte[bufferSize];
     }
 
+    /// <summary>Bytes already read from the stream but not yet consumed.</summary>
+    public int BufferedCount => _length - _position;
+
     /// <summary>Fills <paramref name="destination"/> completely or throws <see cref="EndOfStreamException"/>.</summary>
     public void ReadExactly(Span<byte> destination)
     {

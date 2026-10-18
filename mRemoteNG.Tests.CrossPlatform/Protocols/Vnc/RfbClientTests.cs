@@ -221,11 +221,11 @@ public sealed class RfbClientTests : IAsyncLifetime
         var act = () => ConnectAsync(async () =>
         {
             await _server.NegotiateVersionAsync("003.008");
-            await _server.SendAsync(new RfbBytes().U8(2).U8(18).U8(19));
+            await _server.SendAsync(new RfbBytes().U8(2).U8(16).U8(18));
         });
 
         (await act.Should().ThrowAsync<RfbProtocolException>())
-            .WithMessage("*VeNCrypt*");
+            .WithMessage("*Tight (16), TLS (18)*");
     }
 
     [Fact]

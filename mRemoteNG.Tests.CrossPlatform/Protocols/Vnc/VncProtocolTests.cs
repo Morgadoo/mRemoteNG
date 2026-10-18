@@ -174,4 +174,32 @@ public sealed class VncProtocolTests : IAsyncLifetime
         await _protocol.DisconnectAsync().WaitAsync(Timeout);
         _protocol.State.Should().Be(ConnectionState.Disconnected);
     }
+
+    [Fact]
+    public async Task Connect_WhenVeNCryptOffersOnlyAnonymousTls_ConnectsAgainWithoutVeNCrypt()
+    {
+        var connect = _protocol.ConnectAsync(Parameters(password: "pw"));
+
+        await _server.AcceptAsync();
+        await _server.NegotiateVersionAsync("003.008");
+        await _server.SendAsync(new RfbBytes().U8(2).U8(RfbSecurityType.VeNCrypt).U8(RfbSecurityType.VncAuthentication));
+        (await _server.ReceiveAsync(1))[0].Should().Be(RfbSecurityType.VeNCrypt);
+        await _server.SendAsync(new RfbBytes().U8(0).U8(2));
+        await _server.ReceiveAsync(2);
+        await _server.SendAsync(new RfbBytes().U8(0).U8(1).U32(VeNCryptSubtype.TlsVnc));
+
+        await _server.AcceptAsync();
+        await _server.NegotiateVersionAsync("003.008");
+        await _server.SendAsync(new RfbBytes().U8(2).U8(RfbSecurityType.VeNCrypt).U8(RfbSecurityType.VncAuthentication));
+        (await _server.ReceiveAsync(1))[0].Should().Be(RfbSecurityType.VncAuthentication, "the second attempt leaves VeNCrypt out");
+        var challenge = new byte[16];
+        await _server.SendAsync(challenge);
+        (await _server.ReceiveAsync(16)).Should().Equal(VncAuthentication.ComputeResponse("pw", challenge));
+        await _server.SendAsync(new RfbBytes().U32(0));
+        await _server.InitialiseAsync(64, 48, "fallback");
+
+        await connect.WaitAsync(Timeout);
+        _protocol.State.Should().Be(ConnectionState.Connected);
+        _protocol.SecurityType.Should().Be(RfbSecurityType.VncAuthentication);
+    }
 }

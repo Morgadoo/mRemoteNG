@@ -1,5 +1,8 @@
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Channels;
 using mRemoteNG.Protocols.Vnc.Rfb.Decoders;
@@ -27,9 +30,13 @@ public sealed class RfbClientOptions
         RfbEncoding.Cursor,
     ];
 
-    /// <summary>Security types this client implements, in the default order of preference.</summary>
+    /// <summary>
+    /// Security types this client implements, in the default order of preference. VeNCrypt comes first so that a
+    /// server offering TLS is used encrypted; its unencrypted sub-types work like the plain types.
+    /// </summary>
     public static IReadOnlyList<byte> DefaultSecurityTypes { get; } =
     [
+        RfbSecurityType.VeNCrypt,
         RfbSecurityType.None,
         RfbSecurityType.VncAuthentication,
         RfbSecurityType.AppleRemoteDesktop,
@@ -78,7 +85,22 @@ public sealed class RfbClientOptions
     /// satisfy is used (Apple Remote Desktop and MS-Logon need a user name).
     /// </summary>
     public IReadOnlyList<byte> SecurityTypes { get; init; } = DefaultSecurityTypes;
+
+    /// <summary>Server name for TLS (VeNCrypt X509 sub-types): sent as SNI and checked against the certificate.</summary>
+    public string? TlsTargetHost { get; init; }
+
+    /// <summary>
+    /// Decides whether the server's TLS certificate is trusted. Without one, only certificates the system trusts
+    /// for <see cref="TlsTargetHost"/> are accepted.
+    /// </summary>
+    public RfbCertificateValidator? ValidateServerCertificate { get; init; }
 }
+
+/// <summary>
+/// Returns true to trust <paramref name="certificate"/>; <paramref name="message"/> explains a rejection (or notes
+/// how a certificate was trusted).
+/// </summary>
+public delegate bool RfbCertificateValidator(X509Certificate2 certificate, SslPolicyErrors errors, out string? message);
 
 /// <summary>Cursor shape sent through the Cursor pseudo-encoding; transparent pixels are 0.</summary>
 public sealed record RfbCursor(int Width, int Height, int HotspotX, int HotspotY, uint[] Bgra);
@@ -94,8 +116,9 @@ public sealed record RfbCursor(int Width, int Height, int HotspotX, int HotspotY
 /// </summary>
 public sealed class RfbClient : IDisposable
 {
-    private readonly Stream _stream;
-    private readonly RfbReader _reader;
+    // Replaced by a TLS stream when VeNCrypt negotiates encryption, before the receive and send loops start.
+    private Stream _stream;
+    private RfbReader _reader;
     private readonly IReadOnlyList<int> _encodings;
     private readonly Channel<byte[]> _sendQueue =
         Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions { SingleReader = true });
@@ -118,6 +141,22 @@ public sealed class RfbClient : IDisposable
     /// <summary>Negotiated protocol version, e.g. 3.8.</summary>
     public Version ProtocolVersion { get; private set; } = new(3, 3);
     public byte SecurityType { get; private set; }
+
+    /// <summary>The <see cref="Rfb.VeNCryptSubtype"/>, when <see cref="SecurityType"/> is VeNCrypt.</summary>
+    public uint? SecuritySubtype { get; private set; }
+
+    /// <summary>How the server's TLS certificate was trusted, when the certificate validator said so.</summary>
+    public string? TlsVerdict { get; private set; }
+
+    /// <summary>True when the session runs over TLS.</summary>
+    public bool IsEncrypted => _stream is SslStream;
+
+    /// <summary>The server's TLS certificate, for an encrypted session.</summary>
+    public X509Certificate2? ServerCertificate { get; private set; }
+
+    /// <summary>Set when the credentials were sent unencrypted (the VeNCrypt Plain sub-type).</summary>
+    public bool SentCleartextPassword { get; private set; }
+
     public string DesktopName { get; private set; } = string.Empty;
     public PixelFormat ServerPixelFormat { get; private set; }
 
@@ -324,6 +363,7 @@ public sealed class RfbClient : IDisposable
     {
         var minor = ProtocolVersion.Minor;
         byte type;
+        byte[] offeredTypes = [];
         if (minor == 3)
         {
             // RFB 3.3: the server dictates the type.
@@ -340,6 +380,7 @@ public sealed class RfbClient : IDisposable
             if (count == 0)
                 throw new RfbAuthenticationException($"The server refused the connection: {_reader.ReadString()}");
             var offered = _reader.ReadBytes(count);
+            offeredTypes = offered;
             type = ChooseSecurityType(offered, options)
                 ?? throw new RfbProtocolException("The server offers no supported security type (offered: "
                     + string.Join(", ", offered.Select(SecurityTypeName)) + "). Supported: "
@@ -348,9 +389,18 @@ public sealed class RfbClient : IDisposable
         }
         SecurityType = type;
 
-        switch (type)
+        // The authentication that follows: the security type itself, or the VeNCrypt sub-type.
+        uint authentication = type;
+        if (type == RfbSecurityType.VeNCrypt)
         {
-            case RfbSecurityType.VncAuthentication:
+            _stream.Flush();
+            authentication = NegotiateVeNCrypt(options, offeredTypes.Any(t => t != RfbSecurityType.VeNCrypt
+                && options.SecurityTypes.Contains(t) && RfbClientOptions.DefaultSecurityTypes.Contains(t)));
+        }
+
+        switch (authentication)
+        {
+            case RfbSecurityType.VncAuthentication or VeNCryptSubtype.TlsVnc or VeNCryptSubtype.X509Vnc:
             {
                 var challenge = _reader.ReadBytes(VncAuthentication.ChallengeLength);
                 if (options.Password is null)
@@ -378,6 +428,22 @@ public sealed class RfbClient : IDisposable
                 _stream.Write(MsLogon2Authentication.ComputeResponse(generator, modulus, serverPublic, options.Username, options.Password ?? ""));
                 break;
             }
+
+            case VeNCryptSubtype.Plain or VeNCryptSubtype.TlsPlain or VeNCryptSubtype.X509Plain:
+            {
+                if (string.IsNullOrEmpty(options.Username))
+                    throw new RfbAuthenticationException("The server requires a user name and password (VeNCrypt Plain): configure them for this connection.");
+                var user = Encoding.UTF8.GetBytes(options.Username);
+                var password = Encoding.UTF8.GetBytes(options.Password ?? "");
+                var message = new byte[8 + user.Length + password.Length];
+                BinaryPrimitives.WriteUInt32BigEndian(message, (uint)user.Length);
+                BinaryPrimitives.WriteUInt32BigEndian(message.AsSpan(4), (uint)password.Length);
+                user.CopyTo(message, 8);
+                password.CopyTo(message, 8 + user.Length);
+                _stream.Write(message);
+                SentCleartextPassword = !IsEncrypted;
+                break;
+            }
         }
         _stream.Flush();
 
@@ -396,10 +462,119 @@ public sealed class RfbClient : IDisposable
             catch (IOException) { /* some servers just close the connection */ }
         }
         reason ??= result == 2 ? "too many authentication attempts" : "the server rejected the credentials";
-        throw new RfbAuthenticationException(type == RfbSecurityType.None
+        throw new RfbAuthenticationException(authentication is RfbSecurityType.None or VeNCryptSubtype.TlsNone or VeNCryptSubtype.X509None
             ? $"The server rejected the connection: {reason}"
-            : $"{SecurityTypeName(type)} failed: {reason}");
+            : SecuritySubtype is { } subtype
+                ? $"VeNCrypt {VeNCryptSubtype.Name(subtype)} authentication failed: {reason}"
+                : $"{SecurityTypeName(type)} failed: {reason}");
     }
+
+    /// <summary>
+    /// VeNCrypt 0.2: agrees on a sub-type and, for the X509 ones, switches the connection to TLS.
+    /// Returns the sub-type, whose authentication follows (inside TLS when encrypted).
+    /// </summary>
+    private uint NegotiateVeNCrypt(RfbClientOptions options, bool otherTypesOffered)
+    {
+        int major = _reader.ReadByte();
+        int minor = _reader.ReadByte();
+        if (major != 0 || minor < 2)
+            throw new RfbProtocolException($"The server speaks VeNCrypt {major}.{minor}; only 0.2 is supported.");
+        _stream.Write([0, 2]);
+        _stream.Flush();
+        if (_reader.ReadByte() != 0)
+            throw new RfbProtocolException("The server refused VeNCrypt version 0.2.");
+
+        int count = _reader.ReadByte();
+        var offered = new uint[count];
+        for (var i = 0; i < count; i++)
+            offered[i] = _reader.ReadUInt32();
+
+        var subtype = ChooseVeNCryptSubtype(offered, options)
+            ?? throw new RfbVeNCryptUnsupportedException(
+                "The server offers no usable VeNCrypt sub-type (offered: "
+                + (count == 0 ? "none" : string.Join(", ", offered.Select(VeNCryptSubtype.Name)))
+                + "). Anonymous TLS (the TLS* sub-types) is not supported; configure the server to use an X509 certificate.",
+                otherTypesOffered);
+        Span<byte> choice = stackalloc byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(choice, subtype);
+        _stream.Write(choice);
+        _stream.Flush();
+        SecuritySubtype = subtype;
+
+        if (VeNCryptSubtype.UsesX509(subtype))
+        {
+            if (_reader.ReadByte() != 1)
+                throw new RfbProtocolException($"The server refused the VeNCrypt {VeNCryptSubtype.Name(subtype)} sub-type.");
+            StartTls(options);
+        }
+        return subtype;
+    }
+
+    /// <summary>
+    /// The preferred VeNCrypt sub-type: TLS with a certificate first (user name and password, VNC password, then
+    /// none, as the credentials allow), then the unencrypted VNC password and None, and Plain (clear-text password)
+    /// last. Failing that, a sub-type that needs a missing credential, so the error names it; null when nothing fits.
+    /// </summary>
+    internal static uint? ChooseVeNCryptSubtype(IReadOnlyCollection<uint> offered, RfbClientOptions options)
+    {
+        var hasUser = !string.IsNullOrEmpty(options.Username);
+        var hasPassword = options.Password is not null;
+        var preferred = new List<uint>();
+        if (hasUser) preferred.Add(VeNCryptSubtype.X509Plain);
+        if (hasPassword) preferred.Add(VeNCryptSubtype.X509Vnc);
+        preferred.Add(VeNCryptSubtype.X509None);
+        if (hasPassword) preferred.Add(VeNCryptSubtype.VncAuthentication);
+        preferred.Add(VeNCryptSubtype.None);
+        if (hasUser) preferred.Add(VeNCryptSubtype.Plain);
+        preferred.AddRange([VeNCryptSubtype.X509Vnc, VeNCryptSubtype.X509Plain, VeNCryptSubtype.VncAuthentication, VeNCryptSubtype.Plain]);
+        foreach (var subtype in preferred)
+        {
+            if (offered.Contains(subtype)) return subtype;
+        }
+        return null;
+    }
+
+    private void StartTls(RfbClientOptions options)
+    {
+        if (_reader.BufferedCount != 0)
+            throw new RfbProtocolException("The server sent unexpected data before the TLS handshake.");
+
+        string? verdict = null;
+        var tls = new SslStream(_stream, leaveInnerStreamOpen: false);
+        var authentication = new SslClientAuthenticationOptions
+        {
+            TargetHost = options.TlsTargetHost ?? string.Empty,
+            RemoteCertificateValidationCallback = (_, certificate, _, errors) =>
+            {
+                if (certificate is null)
+                {
+                    verdict = "The server did not present a TLS certificate.";
+                    return false;
+                }
+                var server = certificate as X509Certificate2 ?? X509CertificateLoader.LoadCertificate(certificate.GetRawCertData());
+                if (options.ValidateServerCertificate is { } validate)
+                    return validate(server, errors, out verdict);
+                if (errors == SslPolicyErrors.None) return true;
+                verdict = $"The server's TLS certificate is not trusted ({errors}).";
+                return false;
+            },
+        };
+        try
+        {
+            tls.AuthenticateAsClientAsync(authentication).GetAwaiter().GetResult();
+        }
+        catch (AuthenticationException ex)
+        {
+            tls.Dispose();
+            throw new RfbAuthenticationException(verdict ?? $"The TLS handshake with the server failed: {ex.Message}");
+        }
+
+        ServerCertificate = tls.RemoteCertificate as X509Certificate2;
+        TlsVerdict = verdict;
+        _stream = tls;
+        _reader = new RfbReader(tls);
+    }
+
 
     /// <summary>
     /// The first preferred type the server offers that the credentials can satisfy; failing that, the first
@@ -438,7 +613,7 @@ public sealed class RfbClient : IDisposable
         5 or 6 => $"RA2 ({type})",
         16 => "Tight (16)",
         18 => "TLS (18)",
-        19 => "VeNCrypt (19)",
+        RfbSecurityType.VeNCrypt => "VeNCrypt (19)",
         RfbSecurityType.AppleRemoteDesktop => "Apple Remote Desktop authentication",
         RfbSecurityType.MsLogon2 => "MS-Logon II authentication",
         _ => type.ToString(System.Globalization.CultureInfo.InvariantCulture),

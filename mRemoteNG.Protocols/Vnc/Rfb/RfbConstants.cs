@@ -42,11 +42,51 @@ public static class RfbSecurityType
     public const byte None = 1;
     public const byte VncAuthentication = 2;
 
+    /// <summary>VeNCrypt: a second negotiation of <see cref="VeNCryptSubtype"/>s, most of them wrapped in TLS.</summary>
+    public const byte VeNCrypt = 19;
+
     /// <summary>Apple Remote Desktop: Diffie-Hellman + AES-128 encrypted user name and password (macOS Screen Sharing).</summary>
     public const byte AppleRemoteDesktop = 30;
 
     /// <summary>UltraVNC MS-Logon II: Diffie-Hellman + DES-CBC encrypted Windows user name and password.</summary>
     public const byte MsLogon2 = 113;
+}
+
+/// <summary>
+/// VeNCrypt sub-types. "TLS" types use anonymous (certificate-less) TLS, "X509" types a server certificate;
+/// None (1) and VNC authentication (2) may also be offered as unencrypted sub-types.
+/// </summary>
+public static class VeNCryptSubtype
+{
+    public const uint None = RfbSecurityType.None;
+    public const uint VncAuthentication = RfbSecurityType.VncAuthentication;
+
+    /// <summary>User name and password in clear text.</summary>
+    public const uint Plain = 256;
+    public const uint TlsNone = 257;
+    public const uint TlsVnc = 258;
+    public const uint TlsPlain = 259;
+    public const uint X509None = 260;
+    public const uint X509Vnc = 261;
+    public const uint X509Plain = 262;
+
+    public static bool UsesX509(uint subtype) => subtype is X509None or X509Vnc or X509Plain;
+
+    public static bool UsesAnonymousTls(uint subtype) => subtype is TlsNone or TlsVnc or TlsPlain;
+
+    public static string Name(uint subtype) => subtype switch
+    {
+        None => "None",
+        VncAuthentication => "VncAuth",
+        Plain => "Plain",
+        TlsNone => "TLSNone",
+        TlsVnc => "TLSVnc",
+        TlsPlain => "TLSPlain",
+        X509None => "X509None",
+        X509Vnc => "X509Vnc",
+        X509Plain => "X509Plain",
+        _ => subtype.ToString(System.Globalization.CultureInfo.InvariantCulture),
+    };
 }
 
 internal static class RfbClientMessage
@@ -91,4 +131,16 @@ public class RfbProtocolException : Exception
 public sealed class RfbAuthenticationException : RfbProtocolException
 {
     public RfbAuthenticationException(string message) : base(message) { }
+}
+
+/// <summary>
+/// The server offered VeNCrypt, but none of its sub-types can be used. The connection is lost (RFB has no way to go
+/// back), but a new connection without VeNCrypt may succeed when <see cref="OtherSecurityTypesOffered"/> is true.
+/// </summary>
+public sealed class RfbVeNCryptUnsupportedException : RfbProtocolException
+{
+    public RfbVeNCryptUnsupportedException(string message, bool otherSecurityTypesOffered) : base(message) =>
+        OtherSecurityTypesOffered = otherSecurityTypesOffered;
+
+    public bool OtherSecurityTypesOffered { get; }
 }

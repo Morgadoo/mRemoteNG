@@ -230,7 +230,7 @@ public sealed class VncSecurityTests : IAsyncLifetime
     [InlineData(new byte[] { 30, 2 }, "alice", null, RfbSecurityType.AppleRemoteDesktop)] // no VNC password: use the account
     [InlineData(new byte[] { 30, 2 }, null, null, RfbSecurityType.VncAuthentication)]     // nothing usable: first preference, to name the missing password
     [InlineData(new byte[] { 113 }, "bob", "pw", RfbSecurityType.MsLogon2)]
-    [InlineData(new byte[] { 16, 19 }, "bob", "pw", null)]
+    [InlineData(new byte[] { 16, 18 }, "bob", "pw", null)]
     public void ChooseSecurityType_PrefersSatisfiableTypes(byte[] offered, string? user, string? password, byte? expected)
     {
         var options = new RfbClientOptions { Username = user, Password = password };

@@ -1,4 +1,6 @@
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using Avalonia.Controls;
 using Microsoft.Extensions.Logging;
 using mRemoteNG.Protocols.Abstractions;
@@ -31,6 +33,7 @@ public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysPro
     private static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(20);
 
     private readonly ILogger<VncProtocol> _logger;
+    private readonly IVncCertificateVerifier? _certificates;
     private VncView? _view;
     private TcpClient? _tcp;
     private TcpClient? _incoming;
@@ -39,7 +42,13 @@ public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysPro
     private volatile bool _viewOnly;
     private VncScaling _scaledMode = VncScaling.Fit;
 
-    public VncProtocol(ILogger<VncProtocol> logger) => _logger = logger;
+    /// <param name="logger">Logger.</param>
+    /// <param name="certificates">Trust decisions for TLS (VeNCrypt) certificates; without one only system-trusted certificates are accepted.</param>
+    public VncProtocol(ILogger<VncProtocol> logger, IVncCertificateVerifier? certificates = null)
+    {
+        _logger = logger;
+        _certificates = certificates;
+    }
 
     public VncScaling Scaling { get; private set; } = VncScaling.Fit;
 
@@ -132,8 +141,33 @@ public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysPro
                 Encodings = Settings.Encodings,
                 PixelFormat = Settings.PixelFormat,
                 SecurityTypes = Settings.SecurityTypes,
+                TlsTargetHost = parameters.Hostname,
+                ValidateServerCertificate = CertificateValidator(parameters.Hostname, parameters.Port),
             };
-            var client = await RfbClient.ConnectAsync(_tcp.GetStream(), options, timeout.Token).ConfigureAwait(false);
+            RfbClient client;
+            try
+            {
+                client = await RfbClient.ConnectAsync(_tcp.GetStream(), options, timeout.Token).ConfigureAwait(false);
+            }
+            catch (RfbVeNCryptUnsupportedException ex) when (ex.OtherSecurityTypesOffered && incoming is null)
+            {
+                // RFB cannot back out of VeNCrypt once chosen, so connect again without it.
+                _logger.LogInformation("VNC server {Target}: {Reason} Connecting again without VeNCrypt", target, ex.Message);
+                _tcp.Dispose();
+                _tcp = await VncTransport.ConnectAsync(parameters.Hostname, parameters.Port, Settings.Proxy, timeout.Token).ConfigureAwait(false);
+                _tcp.NoDelay = true;
+                options = new RfbClientOptions
+                {
+                    Username = options.Username,
+                    Password = options.Password,
+                    Encodings = options.Encodings,
+                    PixelFormat = options.PixelFormat,
+                    SecurityTypes = options.SecurityTypes.Where(t => t != RfbSecurityType.VeNCrypt).ToList(),
+                    TlsTargetHost = options.TlsTargetHost,
+                    ValidateServerCertificate = options.ValidateServerCertificate,
+                };
+                client = await RfbClient.ConnectAsync(_tcp.GetStream(), options, timeout.Token).ConfigureAwait(false);
+            }
             client.FramebufferUpdated += (_, _) => _view?.OnFramebufferUpdated();
             client.CursorChanged += (_, cursor) => _view?.OnCursorChanged(cursor);
             client.ServerCutTextReceived += OnServerCutText;
@@ -143,11 +177,16 @@ public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysPro
 
             State = ConnectionState.Connected;
             RaiseStatus($"VNC connected to {target}: \"{client.DesktopName}\" "
-                + $"{client.Framebuffer.Width}×{client.Framebuffer.Height}, RFB {client.ProtocolVersion}");
+                + $"{client.Framebuffer.Width}×{client.Framebuffer.Height}, RFB {client.ProtocolVersion}"
+                + (client.IsEncrypted ? ", encrypted (TLS)" : ""));
+            if (client.TlsVerdict is { } verdict)
+                RaiseStatus(verdict);
+            if (client.SentCleartextPassword)
+                RaiseStatus("Warning: the VNC server asked for the user name and password without encryption (VeNCrypt Plain).");
             _logger.LogInformation(
                 "VNC connected to {Target} ({Name}, {Width}x{Height}, RFB {Version}, {Security}, server format {Format}, client format {ClientFormat}, proxy {Proxy})",
                 target, client.DesktopName, client.Framebuffer.Width, client.Framebuffer.Height, client.ProtocolVersion,
-                RfbClient.SecurityTypeName(client.SecurityType), client.ServerPixelFormat, client.PixelFormat,
+                SecurityDescription(client), client.ServerPixelFormat, client.PixelFormat,
                 Settings.Proxy?.Kind ?? VncProxyKind.None);
 
             _view?.OnConnected();
@@ -275,6 +314,26 @@ public sealed class VncProtocol : ProtocolBase, IVisualProtocol, ISpecialKeysPro
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
+
+    private RfbCertificateValidator CertificateValidator(string host, int port) =>
+        (X509Certificate2 certificate, SslPolicyErrors errors, out string? message) =>
+        {
+            if (_certificates is null)
+            {
+                message = errors == SslPolicyErrors.None ? null : $"The server's TLS certificate is not trusted ({errors}).";
+                return errors == SslPolicyErrors.None;
+            }
+            var verdict = _certificates.Verify(host, port, certificate, errors);
+            if (!verdict.IsTrusted)
+                _logger.LogWarning("Rejected the TLS certificate of VNC server {Host}:{Port}: {Reason}", host, port, verdict.Message);
+            message = verdict.Message;
+            return verdict.IsTrusted;
+        };
+
+    private static string SecurityDescription(RfbClient client) =>
+        client.SecuritySubtype is { } subtype
+            ? $"{RfbClient.SecurityTypeName(client.SecurityType)} {VeNCryptSubtype.Name(subtype)}"
+            : RfbClient.SecurityTypeName(client.SecurityType);
 
     internal static VncScaling ParseScaling(string? value) => value?.ToLowerInvariant() switch
     {

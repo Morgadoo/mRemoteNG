@@ -62,8 +62,8 @@ public sealed record VncSessionSettings
     /// <summary>Security types in order of preference for <see cref="AuthMode"/>.</summary>
     public IReadOnlyList<byte> SecurityTypes => AuthMode switch
     {
-        VncAuthenticationMode.Windows => [RfbSecurityType.MsLogon2, RfbSecurityType.VncAuthentication, RfbSecurityType.None, RfbSecurityType.AppleRemoteDesktop],
-        VncAuthenticationMode.AppleRemoteDesktop => [RfbSecurityType.AppleRemoteDesktop, RfbSecurityType.VncAuthentication, RfbSecurityType.None, RfbSecurityType.MsLogon2],
+        VncAuthenticationMode.Windows => [RfbSecurityType.MsLogon2, RfbSecurityType.VeNCrypt, RfbSecurityType.VncAuthentication, RfbSecurityType.None, RfbSecurityType.AppleRemoteDesktop],
+        VncAuthenticationMode.AppleRemoteDesktop => [RfbSecurityType.AppleRemoteDesktop, RfbSecurityType.VeNCrypt, RfbSecurityType.VncAuthentication, RfbSecurityType.None, RfbSecurityType.MsLogon2],
         _ => RfbClientOptions.DefaultSecurityTypes,
     };
 
