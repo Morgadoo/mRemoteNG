@@ -1401,7 +1401,7 @@
     <value>DSN 名称或 ODBC 连接字符串</value>
   </data>
   <data name="SqlDatabaseHintOdbc" xml:space="preserve">
-    <value>可选（数据源的数据库）</value>
+    <value>可选</value>
   </data>
   <data name="SqlOdbcDescription" xml:space="preserve">
     <value>odbc.ini 中的数据源（例如 mremoteng），或类似 Driver={MariaDB Unicode};Server=db;Port=3306 的连接字符串。需要 unixODBC 和该数据库的 ODBC 驱动程序。请在“密码”字段中输入密码，不要写在字符串中。</value>

@@ -1401,7 +1401,7 @@
     <value>DSN-Name oder ODBC-Verbindungszeichenfolge</value>
   </data>
   <data name="SqlDatabaseHintOdbc" xml:space="preserve">
-    <value>optional (Datenbank der Datenquelle)</value>
+    <value>optional</value>
   </data>
   <data name="SqlOdbcDescription" xml:space="preserve">
     <value>Eine Datenquelle aus odbc.ini (z. B. mremoteng) oder eine Verbindungszeichenfolge wie Driver={MariaDB Unicode};Server=db;Port=3306. Benötigt unixODBC und den ODBC-Treiber der Datenbank. Geben Sie das Kennwort im Feld „Kennwort“ ein, nicht in der Zeichenfolge.</value>

@@ -1401,7 +1401,7 @@ Ouvrez-y une connexion depuis l'arborescence des connexions.</value>
     <value>Nom DSN ou chaîne de connexion ODBC</value>
   </data>
   <data name="SqlDatabaseHintOdbc" xml:space="preserve">
-    <value>facultatif (base de données de la source)</value>
+    <value>facultatif</value>
   </data>
   <data name="SqlOdbcDescription" xml:space="preserve">
     <value>Une source de données de odbc.ini (p. ex. mremoteng) ou une chaîne de connexion telle que Driver={MariaDB Unicode};Server=db;Port=3306. Nécessite unixODBC et le pilote ODBC de la base de données. Saisissez le mot de passe dans le champ Mot de passe, pas dans la chaîne.</value>

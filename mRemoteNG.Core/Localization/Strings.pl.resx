@@ -1401,7 +1401,7 @@ Otwórz w nim połączenie z drzewa połączeń.</value>
     <value>Nazwa DSN lub ciąg połączenia ODBC</value>
   </data>
   <data name="SqlDatabaseHintOdbc" xml:space="preserve">
-    <value>opcjonalnie (baza danych źródła danych)</value>
+    <value>opcjonalnie</value>
   </data>
   <data name="SqlOdbcDescription" xml:space="preserve">
     <value>Źródło danych z odbc.ini (np. mremoteng) lub ciąg połączenia, np. Driver={MariaDB Unicode};Server=db;Port=3306. Wymaga unixODBC i sterownika ODBC bazy danych. Hasło wpisz w polu Hasło, a nie w ciągu.</value>

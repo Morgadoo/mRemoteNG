@@ -1401,7 +1401,7 @@
     <value>Имя DSN или строка подключения ODBC</value>
   </data>
   <data name="SqlDatabaseHintOdbc" xml:space="preserve">
-    <value>необязательно (база данных источника)</value>
+    <value>необязательно</value>
   </data>
   <data name="SqlOdbcDescription" xml:space="preserve">
     <value>Источник данных из odbc.ini (например, mremoteng) или строка подключения вида Driver={MariaDB Unicode};Server=db;Port=3306. Нужны unixODBC и ODBC-драйвер базы данных. Указывайте пароль в поле «Пароль», а не в строке.</value>

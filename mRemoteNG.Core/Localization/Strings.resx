@@ -1874,8 +1874,8 @@ Open a connection in it from the connection tree.</value>
     <comment>Options &gt; SQL Server: host watermark for ODBC</comment>
   </data>
   <data name="SqlDatabaseHintOdbc" xml:space="preserve">
-    <value>optional (the data source's database)</value>
-    <comment>Options &gt; SQL Server: database watermark for ODBC</comment>
+    <value>optional</value>
+    <comment>Options &gt; SQL Server: database watermark for ODBC (empty uses the data source's database); keep it one word, the field is narrow</comment>
   </data>
   <data name="SqlOdbcDescription" xml:space="preserve">
     <value>A data source from odbc.ini (e.g. mremoteng) or a connection string such as Driver={MariaDB Unicode};Server=db;Port=3306. Needs unixODBC and the database's ODBC driver. Put the password in the Password field, not in the string.</value>
