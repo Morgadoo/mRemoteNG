@@ -12,6 +12,9 @@ internal sealed record FreeRdpLaunchOptions
     /// <summary>Installed FreeRDP major version (2 or 3); decides the syntax of a few options.</summary>
     public int MajorVersion { get; init; } = 3;
 
+    /// <summary>The FreeRDP build has <c>+remoteGuard</c> (built with the RDPEAR channel).</summary>
+    public bool SupportsRemoteGuard { get; init; }
+
     /// <summary>Native window (XID / HWND) FreeRDP should create its desktop window in, or null for a top-level window.</summary>
     public nint? ParentWindow { get; init; }
 
@@ -123,6 +126,17 @@ public sealed partial class RdpProtocol
         if (Flag(Keys.RdpConsole, false)) args.Add("/admin");
         if (Text(Keys.RdpLoadBalanceInfo) is { } lb) args.Add($"/load-balance-info:{lb}");
 
+        // Connection broker redirection (IMsRdpPreferredRedirectionInfo.UseRedirectionServerName): reconnect to
+        // the target by its name rather than its IP address. FreeRDP 3 tries the FQDN first anyway; the explicit
+        // order also keeps the NetBIOS name ahead of the address.
+        if (Flag(Keys.RdpUseRedirectionServerName, false))
+        {
+            if (v3)
+                args.Add("/redirect-prefer:FQDN,NETBIOS,IP");
+            else
+                options.Warn?.Invoke("FreeRDP 2 has no option for the redirection server name; FreeRDP's own order is used.");
+        }
+
         // Experience (performance) options; absent keys keep FreeRDP's defaults.
         AddToggle(args, "wallpaper", OptionalFlag(Keys.RdpWallpaper));
         AddToggle(args, "themes", OptionalFlag(Keys.RdpThemes));
@@ -132,6 +146,9 @@ public sealed partial class RdpProtocol
         AddToggle(args, "menu-anims", OptionalFlag(Keys.RdpMenuAnimations));
         if (Flag(Keys.RdpPersistentBitmapCache, false))
             args.Add(v3 ? "/cache:persist" : "+persist-cache");
+        // FreeRDP has the performance flags for these but no option (nor .rdp key) that sets them.
+        if (Flag(Keys.RdpDisableCursorShadow, false) || Flag(Keys.RdpDisableCursorBlinking, false))
+            options.Warn?.Invoke("FreeRDP cannot turn off the cursor shadow or cursor blinking; those settings are ignored.");
 
         // Keyboard. FreeRDP grabs the keyboard while the pointer is over its window, sending Alt+Tab, the
         // Windows key… to the server (mstsc's "apply Windows key combinations on the remote computer").
@@ -201,10 +218,18 @@ public sealed partial class RdpProtocol
         }
         else if (Flag(Keys.RdpRemoteCredentialGuard, false) && vmId is null && v3)
         {
-            // FreeRDP (3.32) cannot do Remote Credential Guard. The part that matters for security is kept:
-            // the password is not delegated to the server, which then asks for it on its own logon screen.
-            args.Add("-credentials-delegation");
-            options.Warn?.Invoke("FreeRDP does not support Remote Credential Guard; credentials are not delegated, so the server will ask for them.");
+            if (options.SupportsRemoteGuard)
+            {
+                // Kerberos requests are sent back through the RDPEAR channel; the server never gets the credentials.
+                args.Add("+remoteGuard");
+            }
+            else
+            {
+                // Builds without the RDPEAR channel cannot do Remote Credential Guard. The part that matters for
+                // security is kept: the password is not delegated, so the server asks for it on its own logon screen.
+                args.Add("-credentials-delegation");
+                options.Warn?.Invoke("This FreeRDP build does not support Remote Credential Guard; credentials are not delegated, so the server will ask for them.");
+            }
         }
 
         // Certificate policy. FreeRDP 2 only understands the older /cert-* spellings reliably.

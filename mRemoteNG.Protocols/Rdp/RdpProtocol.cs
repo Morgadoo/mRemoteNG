@@ -150,6 +150,9 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
 
         _majorVersion = await GetFreeRdpMajorVersionAsync(freerdp, ct);
         bool argsFromEnvironment = _majorVersion >= 3;
+        bool remoteGuard = argsFromEnvironment
+                           && IsTrue(parameters.Extras, ConnectionParametersFactory.Keys.RdpRemoteCredentialGuard)
+                           && await FreeRdpSupportsRemoteGuardAsync(freerdp, ct);
 
         var display = RdpDisplaySettings.From(parameters);
         // Full screen always means FreeRDP's own window.
@@ -161,6 +164,7 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         var args = BuildFreeRdpArgs(parameters, new FreeRdpLaunchOptions
         {
             MajorVersion = _majorVersion == 0 ? 3 : _majorVersion,
+            SupportsRemoteGuard = remoteGuard,
             ParentWindow = parent?.Handle,
             Size = size,
             Title = parent is null ? $"{parameters.Hostname} - mRemoteNG" : null,
@@ -608,31 +612,50 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         return null;
     }
 
-    private async Task<int> GetFreeRdpMajorVersionAsync(string freerdpBin, CancellationToken ct)
+    private async Task<int> GetFreeRdpMajorVersionAsync(string freerdpBin, CancellationToken ct) =>
+        ParseFreeRdpMajorVersion(await ProbeFreeRdpAsync(freerdpBin, "/version", ct));
+
+    /// <summary>
+    /// True when the FreeRDP build lists <c>+remoteGuard</c> in its help: the option only exists when FreeRDP
+    /// was built with the RDPEAR channel (many distribution builds are not).
+    /// </summary>
+    private async Task<bool> FreeRdpSupportsRemoteGuardAsync(string freerdpBin, CancellationToken ct) =>
+        HelpListsRemoteGuard(await ProbeFreeRdpAsync(freerdpBin, "/help", ct));
+
+    internal static bool HelpListsRemoteGuard(string helpOutput) =>
+        RemoteGuardHelpRegex().IsMatch(helpOutput);
+
+    /// <summary>Runs FreeRDP with a single informational argument and returns its standard output ("" on failure).</summary>
+    private async Task<string> ProbeFreeRdpAsync(string freerdpBin, string argument, CancellationToken ct)
     {
         try
         {
-            using var probe = Process.Start(new ProcessStartInfo(freerdpBin, "/version")
+            using var probe = Process.Start(new ProcessStartInfo(freerdpBin, argument)
             {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true,
             });
-            if (probe is null) return 0;
+            if (probe is null) return string.Empty;
 
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeout.CancelAfter(TimeSpan.FromSeconds(5));
+            var stderr = probe.StandardError.ReadToEndAsync(timeout.Token);
             string output = await probe.StandardOutput.ReadToEndAsync(timeout.Token);
+            await stderr;
             await probe.WaitForExitAsync(timeout.Token);
-            return ParseFreeRdpMajorVersion(output);
+            return output;
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !ct.IsCancellationRequested)
         {
-            _logger.LogDebug(ex, "Could not determine FreeRDP version");
-            return 0;
+            _logger.LogDebug(ex, "FreeRDP probe {Argument} failed", argument);
+            return string.Empty;
         }
     }
+
+    [GeneratedRegex(@"^\s*[+/]remoteGuard\b", RegexOptions.Multiline)]
+    private static partial Regex RemoteGuardHelpRegex();
 
     /// <summary>Parses output such as "This is FreeRDP version 3.5.1 (...)".</summary>
     internal static int ParseFreeRdpMajorVersion(string versionOutput)

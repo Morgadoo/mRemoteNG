@@ -512,6 +512,68 @@ public class FreeRdpLegacySettingsTests
         warnings.Should().ContainSingle().Which.Should().Contain("Remote Credential Guard");
     }
 
+    [Fact]
+    public void RemoteCredentialGuard_UsesRemoteGuard_WhenTheFreeRdpBuildHasIt()
+    {
+        var info = Rdp();
+        info.UseRCG = true;
+        var warnings = new List<string>();
+
+        var args = ArgsFor(info, Separate() with { SupportsRemoteGuard = true, Warn = warnings.Add });
+
+        args.Should().Contain("+remoteGuard").And.NotContain("-credentials-delegation");
+        warnings.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void RemoteGuardSupport_IsReadFromTheHelpOutput()
+    {
+        const string withRdpear = """
+                +restricted-admin                 Restricted admin mode
+                +remoteGuard                      Remote guard credentials
+                /rfx                              RemoteFX
+            """;
+        const string without = """
+                +restricted-admin                 Restricted admin mode
+                /rfx                              RemoteFX
+                +auto-request-control             Automatically request remote assistance
+            """;
+
+        RdpProtocol.HelpListsRemoteGuard(withRdpear).Should().BeTrue();
+        RdpProtocol.HelpListsRemoteGuard(without).Should().BeFalse();
+        RdpProtocol.HelpListsRemoteGuard(string.Empty).Should().BeFalse();
+    }
+
+    [Fact]
+    public void UseRedirectionServerName_PrefersTheTargetNameAfterABrokerRedirection()
+    {
+        var info = Rdp();
+        ArgsFor(info).Should().NotContain(a => a.StartsWith("/redirect-prefer", StringComparison.Ordinal));
+
+        info.UseRedirectionServerName = true;
+        ArgsFor(info).Should().Contain("/redirect-prefer:FQDN,NETBIOS,IP");
+
+        var warnings = new List<string>();
+        ArgsFor(info, Separate() with { MajorVersion = 2, Warn = warnings.Add })
+            .Should().NotContain(a => a.StartsWith("/redirect-prefer", StringComparison.Ordinal));
+        warnings.Should().ContainSingle().Which.Should().Contain("redirection server name");
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void CursorShadowAndBlinking_AreReportedAsUnsupported(bool shadow, bool blinking)
+    {
+        var info = Rdp();
+        var baseline = ArgsFor(info);
+        info.DisableCursorShadow = shadow;
+        info.DisableCursorBlinking = blinking;
+        var warnings = new List<string>();
+
+        ArgsFor(info, Separate() with { Warn = warnings.Add }).Should().Equal(baseline);
+        warnings.Should().ContainSingle().Which.Should().Contain("cursor");
+    }
+
     // ── Start program ──────────────────────────────────────────────────────
 
     [Fact]
@@ -738,6 +800,9 @@ public class FreeRdpLegacySettingsTests
         info.RedirectDiskDrivesCustom = "C,D";
         info.UseRestrictedAdmin = true;
         info.UseRCG = true;
+        info.UseRedirectionServerName = true;
+        info.DisableCursorShadow = true;
+        info.DisableCursorBlinking = true;
         info.RDPStartProgram = "notepad.exe";
         info.RDPStartProgramWorkDir = @"C:\";
         info.CacheBitmaps = true;
@@ -752,6 +817,9 @@ public class FreeRdpLegacySettingsTests
         extras[Keys.RdpDrivesCustom].Should().Be("C,D");
         extras[Keys.RdpRestrictedAdmin].Should().Be("true");
         extras[Keys.RdpRemoteCredentialGuard].Should().Be("true");
+        extras[Keys.RdpUseRedirectionServerName].Should().Be("true");
+        extras[Keys.RdpDisableCursorShadow].Should().Be("true");
+        extras[Keys.RdpDisableCursorBlinking].Should().Be("true");
         extras[Keys.RdpStartProgram].Should().Be("notepad.exe");
         extras[Keys.RdpStartProgramWorkDir].Should().Be(@"C:\");
         extras[Keys.RdpPersistentBitmapCache].Should().Be("true");

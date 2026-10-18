@@ -61,6 +61,10 @@ public static class ConnectionParametersFactory
         public const string RdpSoundQuality = "rdp.soundQuality";
         public const string RdpRestrictedAdmin = "rdp.restrictedAdmin";
         public const string RdpRemoteCredentialGuard = "rdp.remoteCredentialGuard";
+        /// <summary>RDP: after a broker redirection, connect to the target by name (FQDN/NetBIOS) rather than by IP.</summary>
+        public const string RdpUseRedirectionServerName = "rdp.useRedirectionServerName";
+        public const string RdpDisableCursorShadow = "rdp.disableCursorShadow";
+        public const string RdpDisableCursorBlinking = "rdp.disableCursorBlinking";
         /// <summary>RDP: disconnect after this many minutes without user input (0 = never).</summary>
         public const string RdpIdleTimeoutMinutes = "rdp.idleTimeoutMinutes";
         /// <summary>RDP: tell the user when the session was disconnected for inactivity.</summary>
@@ -243,6 +247,9 @@ public static class ConnectionParametersFactory
         };
         extras[Keys.RdpRestrictedAdmin] = Bool(info.UseRestrictedAdmin);
         extras[Keys.RdpRemoteCredentialGuard] = Bool(info.UseRCG);
+        extras[Keys.RdpUseRedirectionServerName] = Bool(info.UseRedirectionServerName);
+        extras[Keys.RdpDisableCursorShadow] = Bool(info.DisableCursorShadow);
+        extras[Keys.RdpDisableCursorBlinking] = Bool(info.DisableCursorBlinking);
         if (info.RDPMinutesToIdleTimeout > 0)
         {
             extras[Keys.RdpIdleTimeoutMinutes] = info.RDPMinutesToIdleTimeout.ToString(CultureInfo.InvariantCulture);
