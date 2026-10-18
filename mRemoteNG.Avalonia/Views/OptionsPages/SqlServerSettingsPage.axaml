@@ -22,11 +22,11 @@
                     <ctl:SettingRow Header="{l:Tr ServerType}" IsEnabled="{Binding UseSqlServer}">
                         <ComboBox Width="280" ItemsSource="{Binding ServerTypes}" SelectedItem="{Binding SelectedServerType}"/>
                     </ctl:SettingRow>
-                    <ctl:SettingRow Header="{l:Tr Host}" IsEnabled="{Binding UseSqlServer}">
+                    <ctl:SettingRow Header="{l:Tr Host}" Description="{Binding HostDescription}" IsEnabled="{Binding UseSqlServer}">
                         <TextBox x:Name="HostBox" Width="280" Classes="mono" Text="{Binding Host}" Watermark="{Binding HostWatermark}"/>
                     </ctl:SettingRow>
                     <ctl:SettingRow Header="{l:Tr DatabaseLabel}" IsEnabled="{Binding UseSqlServer}">
-                        <TextBox x:Name="DatabaseBox" Width="280" Classes="mono" Text="{Binding DatabaseName}" Watermark="mremoteng"/>
+                        <TextBox x:Name="DatabaseBox" Width="280" Classes="mono" Text="{Binding DatabaseName}" Watermark="{Binding DatabaseWatermark}"/>
                     </ctl:SettingRow>
                     <ctl:SettingRow Header="{l:Tr Username, English='User name'}"
                                     Description="{l:Tr SQLServerEmptyForWindowsAuthentication}" IsEnabled="{Binding UseSqlServer}">

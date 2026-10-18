@@ -1385,6 +1385,21 @@ Otwórz w nim połączenie z drzewa połączeń.</value>
   <data name="SqlHostHintMsSql" xml:space="preserve">
     <value>host, host:port lub host\instancja (domyślny port 1433)</value>
   </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>Źródło danych ODBC (SQL Server lub MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>Nazwa DSN lub ciąg połączenia ODBC</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>opcjonalnie (baza danych źródła danych)</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Źródło danych z odbc.ini (np. mremoteng) lub ciąg połączenia, np. Driver={MariaDB Unicode};Server=db;Port=3306. Wymaga unixODBC i sterownika ODBC bazy danych. Hasło wpisz w polu Hasło, a nie w ciągu.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Źródło danych z Administratora źródeł danych ODBC (np. mremoteng) lub ciąg połączenia, np. Driver={ODBC Driver 18 for SQL Server};Server=db. Hasło wpisz w polu Hasło, a nie w ciągu.</value>
+  </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>Debugowanie (wszystko)</value>
   </data>

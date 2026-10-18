@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace mRemoteNG.Core.Config.DatabaseConnectors
 {
-    /// <summary>SQL servers that can store connections (legacy <c>SQLServerType</c>: "mssql" / "mysql").</summary>
+    /// <summary>SQL servers that can store connections (legacy <c>SQLServerType</c>: "mssql" / "mysql" / "odbc").</summary>
     public enum DatabaseServerType
     {
         /// <summary>Microsoft SQL Server (Microsoft.Data.SqlClient).</summary>
@@ -10,10 +10,20 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
 
         /// <summary>MySQL or MariaDB (MySqlConnector).</summary>
         MySql,
+
+        /// <summary>
+        /// An ODBC data source (System.Data.Odbc) whose database is SQL Server or MySQL/MariaDB; the SQL flavour is
+        /// detected when connecting. Needs the ODBC driver manager (unixODBC on Linux and macOS) and the driver.
+        /// </summary>
+        Odbc,
     }
 
     /// <summary>Where the connection database lives and how to log in.</summary>
-    /// <param name="Host">Server name, optionally with a port: "db.example.com", "db:3307", "db\INSTANCE".</param>
+    /// <param name="Host">
+    /// Server name, optionally with a port: "db.example.com", "db:3307", "db\INSTANCE". For
+    /// <see cref="DatabaseServerType.Odbc"/>: a DSN name or an ODBC connection string.
+    /// </param>
+    /// <param name="DatabaseName">The database; optional for ODBC (the data source usually names it).</param>
     /// <param name="Username">Login; empty means Windows integrated authentication on SQL Server.</param>
     /// <param name="ReadOnly">Never write to the database (legacy <c>SQLReadOnly</c>).</param>
     public sealed record DatabaseConnectionSettings(
@@ -31,6 +41,19 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
         public int ConnectTimeoutSeconds { get; init; } = 15;
 
         public int DefaultPort => ServerType == DatabaseServerType.MySql ? DefaultMySqlPort : DefaultMsSqlPort;
+
+        /// <summary>
+        /// "host/database" for messages and logs. An ODBC connection string is reduced to its DSN, driver and
+        /// server so a password in it is never shown.
+        /// </summary>
+        public string DisplayName
+        {
+            get
+            {
+                var source = ServerType == DatabaseServerType.Odbc ? OdbcDatabaseConnector.DescribeDataSource(Host) : Host;
+                return string.IsNullOrWhiteSpace(DatabaseName) ? source : $"{source}/{DatabaseName}";
+            }
+        }
 
         /// <summary>Splits "host:port" (legacy format). Returns the port as null when none is given.</summary>
         public static (string Host, int? Port) SplitHost(string host)
@@ -65,6 +88,15 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
         public IReadOnlyList<string> Validate()
         {
             var errors = new List<string>();
+            if (ServerType == DatabaseServerType.Odbc)
+            {
+                if (string.IsNullOrWhiteSpace(Host))
+                    errors.Add("Enter the ODBC data source name (DSN) or connection string.");
+                else if (!OdbcDatabaseConnector.TryBuildConnectionString(this, out _, out var error))
+                    errors.Add(error);
+                return errors;
+            }
+
             if (string.IsNullOrWhiteSpace(Host))
                 errors.Add("Enter the SQL server host name.");
             if (string.IsNullOrWhiteSpace(DatabaseName))

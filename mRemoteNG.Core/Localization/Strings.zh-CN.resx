@@ -1385,6 +1385,21 @@
   <data name="SqlHostHintMsSql" xml:space="preserve">
     <value>主机、主机:端口 或 主机\实例（默认端口 1433）</value>
   </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC 数据源（SQL Server 或 MySQL / MariaDB）</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN 名称或 ODBC 连接字符串</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>可选（数据源的数据库）</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>odbc.ini 中的数据源（例如 mremoteng），或类似 Driver={MariaDB Unicode};Server=db;Port=3306 的连接字符串。需要 unixODBC 和该数据库的 ODBC 驱动程序。请在“密码”字段中输入密码，不要写在字符串中。</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>ODBC 数据源管理器中的数据源（例如 mremoteng），或类似 Driver={ODBC Driver 18 for SQL Server};Server=db 的连接字符串。请在“密码”字段中输入密码，不要写在字符串中。</value>
+  </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>调试（全部）</value>
   </data>

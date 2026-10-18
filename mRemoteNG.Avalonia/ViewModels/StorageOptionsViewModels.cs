@@ -132,6 +132,7 @@ public sealed class SqlServerSettingsViewModel : SettingsPageViewModel
     [
         new(DatabaseServerType.MsSql, "Microsoft SQL Server"),
         new(DatabaseServerType.MySql, "MySQL / MariaDB"),
+        new(DatabaseServerType.Odbc, Localizer.Get("SqlServerTypeOdbc")),
     ];
 
     public decimal MinInterval => AppSettings.MinSqlUpdateCheckSeconds;
@@ -152,12 +153,26 @@ public sealed class SqlServerSettingsViewModel : SettingsPageViewModel
             if (value is null) return;
             Set(Working.SqlServerType, value.Value, v => Working.SqlServerType = v);
             this.RaisePropertyChanged(nameof(HostWatermark));
+            this.RaisePropertyChanged(nameof(HostDescription));
+            this.RaisePropertyChanged(nameof(DatabaseWatermark));
         }
     }
 
-    public string HostWatermark => Working.SqlServerType == DatabaseServerType.MySql
-        ? Localizer.Get("SqlHostHintMySql")
-        : Localizer.Get("SqlHostHintMsSql");
+    public string HostWatermark => Working.SqlServerType switch
+    {
+        DatabaseServerType.MySql => Localizer.Get("SqlHostHintMySql"),
+        DatabaseServerType.Odbc => Localizer.Get("SqlHostHintOdbc"),
+        _ => Localizer.Get("SqlHostHintMsSql"),
+    };
+
+    /// <summary>Shown under the host for ODBC: what the field takes and what has to be installed.</summary>
+    public string HostDescription => Working.SqlServerType == DatabaseServerType.Odbc
+        ? Localizer.Get(OperatingSystem.IsWindows() ? "SqlOdbcDescriptionWindows" : "SqlOdbcDescription")
+        : string.Empty;
+
+    public string DatabaseWatermark => Working.SqlServerType == DatabaseServerType.Odbc
+        ? Localizer.Get("SqlDatabaseHintOdbc")
+        : "mremoteng";
 
     public string Host
     {

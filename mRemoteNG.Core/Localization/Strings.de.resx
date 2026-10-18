@@ -1385,6 +1385,21 @@
   <data name="SqlHostHintMsSql" xml:space="preserve">
     <value>Host, Host:Port oder Host\Instanz (Standardport 1433)</value>
   </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC-Datenquelle (SQL Server oder MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN-Name oder ODBC-Verbindungszeichenfolge</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>optional (Datenbank der Datenquelle)</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Eine Datenquelle aus odbc.ini (z. B. mremoteng) oder eine Verbindungszeichenfolge wie Driver={MariaDB Unicode};Server=db;Port=3306. Benötigt unixODBC und den ODBC-Treiber der Datenbank. Geben Sie das Kennwort im Feld „Kennwort“ ein, nicht in der Zeichenfolge.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Eine Datenquelle aus dem ODBC-Datenquellen-Administrator (z. B. mremoteng) oder eine Verbindungszeichenfolge wie Driver={ODBC Driver 18 for SQL Server};Server=db. Geben Sie das Kennwort im Feld „Kennwort“ ein, nicht in der Zeichenfolge.</value>
+  </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>Debug (alles)</value>
   </data>

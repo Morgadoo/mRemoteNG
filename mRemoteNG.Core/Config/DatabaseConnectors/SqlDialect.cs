@@ -15,8 +15,13 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
 
         public static SqlDialect MsSql { get; } = new MsSqlDialect();
 
-        public static SqlDialect For(DatabaseServerType serverType) =>
-            serverType == DatabaseServerType.MySql ? MySql : MsSql;
+        /// <summary>The dialect of SQL Server or MySQL; ODBC data sources detect theirs when connected.</summary>
+        public static SqlDialect For(DatabaseServerType serverType) => serverType switch
+        {
+            DatabaseServerType.MySql => MySql,
+            DatabaseServerType.MsSql => MsSql,
+            _ => throw new ArgumentOutOfRangeException(nameof(serverType), serverType, "ODBC data sources detect their SQL flavour when connected."),
+        };
 
         public abstract DatabaseServerType ServerType { get; }
 

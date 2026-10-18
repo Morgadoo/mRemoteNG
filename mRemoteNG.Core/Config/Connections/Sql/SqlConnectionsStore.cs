@@ -70,7 +70,7 @@ namespace mRemoteNG.Core.Config.Connections.Sql
         public IReadOnlySet<string> KnownColumns { get; private set; } = new HashSet<string>();
 
         /// <summary>A short description for logs and the window title, e.g. "MySql db:3306/mremoteng".</summary>
-        public string DisplayName => $"{Settings.ServerType} {Settings.Host}/{Settings.DatabaseName}";
+        public string DisplayName => $"{Settings.ServerType} {Settings.DisplayName}";
 
         // ── Load ──────────────────────────────────────────────────────────────
 

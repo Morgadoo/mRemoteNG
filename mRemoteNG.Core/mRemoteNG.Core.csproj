@@ -20,6 +20,8 @@
     <!-- SQL connection storage (legacy tblCons/tblRoot/tblUpdate schema) -->
     <PackageReference Include="MySqlConnector" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
+    <!-- ODBC data sources (needs unixODBC's libodbc on Linux and macOS at run time) -->
+    <PackageReference Include="System.Data.Odbc" />
     <!-- LDAP for the Active Directory importer (wldap32 on Windows, libldap on Linux and macOS) -->
     <PackageReference Include="System.DirectoryServices.Protocols" />
   </ItemGroup>

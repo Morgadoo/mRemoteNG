@@ -507,8 +507,11 @@ public sealed class AppSettings
         if (UseSqlServer)
         {
             if (string.IsNullOrWhiteSpace(SqlHost))
-                errors.Add("Enter the SQL server host name.");
-            if (string.IsNullOrWhiteSpace(SqlDatabaseName))
+                errors.Add(SqlServerType == DatabaseServerType.Odbc
+                    ? "Enter the ODBC data source name (DSN) or connection string."
+                    : "Enter the SQL server host name.");
+            // An ODBC data source usually names the database itself.
+            if (string.IsNullOrWhiteSpace(SqlDatabaseName) && SqlServerType != DatabaseServerType.Odbc)
                 errors.Add("Enter the SQL database name.");
         }
 

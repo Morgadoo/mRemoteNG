@@ -4,7 +4,7 @@
 #
 # What it does:
 #   * installs the apt packages the tests look for (sshd, TigerVNC, x11vnc/Xvfb, ImageMagick, xdotool,
-#     socat, inetutils telnetd, FreeRDP 3, xrdp, MariaDB, OpenLDAP slapd, ...);
+#     socat, inetutils telnetd, FreeRDP 3, xrdp, MariaDB + its ODBC driver, OpenLDAP slapd, ...);
 #   * downloads a pinned OpenBao release (SHA-256 checked) for the Vault/OpenBao tests;
 #   * makes sure pwsh is available (Microsoft's apt repository when it is missing);
 #   * starts the two servers the tests do not start themselves:
@@ -60,6 +60,7 @@ APT_PACKAGES=(
     xrdp xorgxrdp xauth ssl-cert    # the RDP server
     openbox                         # window manager that keeps the RDP session alive
     slapd ldap-utils                # OpenLDAP (Active Directory import, Vault LDAP engine)
+    unixodbc odbc-mariadb           # ODBC driver manager + MariaDB Connector/ODBC (OdbcConnectionsStoreTests)
     curl ca-certificates            # OpenBao download
 )
 

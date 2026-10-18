@@ -1385,6 +1385,21 @@ Ouvrez-y une connexion depuis l'arborescence des connexions.</value>
   <data name="SqlHostHintMsSql" xml:space="preserve">
     <value>hôte, hôte:port ou hôte\instance (port par défaut 1433)</value>
   </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>Source de données ODBC (SQL Server ou MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>Nom DSN ou chaîne de connexion ODBC</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>facultatif (base de données de la source)</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Une source de données de odbc.ini (p. ex. mremoteng) ou une chaîne de connexion telle que Driver={MariaDB Unicode};Server=db;Port=3306. Nécessite unixODBC et le pilote ODBC de la base de données. Saisissez le mot de passe dans le champ Mot de passe, pas dans la chaîne.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Une source de données de l'Administrateur de sources de données ODBC (p. ex. mremoteng) ou une chaîne de connexion telle que Driver={ODBC Driver 18 for SQL Server};Server=db. Saisissez le mot de passe dans le champ Mot de passe, pas dans la chaîne.</value>
+  </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>Débogage (tout)</value>
   </data>

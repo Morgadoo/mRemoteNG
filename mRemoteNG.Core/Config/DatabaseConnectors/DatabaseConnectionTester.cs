@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Data.Odbc;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 
@@ -12,6 +13,9 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
         CredentialsRejected,
         UnknownDatabase,
         InvalidSettings,
+
+        /// <summary>The ODBC driver manager, driver or data source is not installed.</summary>
+        DriverMissing,
         UnknownError,
     }
 
@@ -50,7 +54,10 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
                 await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                 var schema = await SchemaStateAsync(connector, cancellationToken).ConfigureAwait(false);
-                return new ConnectionTestResult(ConnectionTestStatus.Succeeded, $"Connected to {settings.Host}/{settings.DatabaseName}. {schema}");
+                var flavour = connector.ServerType == DatabaseServerType.Odbc
+                    ? connector.Dialect.ServerType == DatabaseServerType.MySql ? " (MySQL/MariaDB)" : " (SQL Server)"
+                    : string.Empty;
+                return new ConnectionTestResult(ConnectionTestStatus.Succeeded, $"Connected to {settings.DisplayName}{flavour}. {schema}");
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -96,10 +103,21 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
                         -1 or 2 or 53 or 10060 or 10061 or 11001 => ConnectionTestStatus.ServerNotAccessible,
                         _ => ClassifyMessage(sql.Message),
                     };
+                case OdbcException odbc:
+                    return (odbc.Errors.Count > 0 ? odbc.Errors[0].SQLState : string.Empty) switch
+                    {
+                        "28000" => ConnectionTestStatus.CredentialsRejected,
+                        "08001" or "08004" or "08S01" or "HYT00" or "HYT01" => ConnectionTestStatus.ServerNotAccessible,
+                        // Data source name not found / driver could not be loaded.
+                        "IM002" or "IM003" => ConnectionTestStatus.DriverMissing,
+                        _ => ClassifyMessage(odbc.Message),
+                    };
                 case DbException db:
                     return ClassifyMessage(db.Message);
                 case System.Net.Sockets.SocketException or TimeoutException:
                     return ConnectionTestStatus.ServerNotAccessible;
+                case DllNotFoundException or TypeInitializationException { InnerException: DllNotFoundException }:
+                    return ConnectionTestStatus.DriverMissing;
                 default:
                     return ClassifyMessage(exception.Message);
             }
@@ -109,8 +127,11 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
         {
             if (message.Contains("server was not found", StringComparison.OrdinalIgnoreCase)
                 || message.Contains("network-related", StringComparison.OrdinalIgnoreCase)
-                || message.Contains("Unable to connect", StringComparison.OrdinalIgnoreCase))
+                || message.Contains("Unable to connect", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("Can't connect", StringComparison.OrdinalIgnoreCase))
                 return ConnectionTestStatus.ServerNotAccessible;
+            if (message.Contains("unixODBC", StringComparison.OrdinalIgnoreCase))
+                return ConnectionTestStatus.DriverMissing;
             if (message.Contains("Cannot open database", StringComparison.OrdinalIgnoreCase)
                 || message.Contains("Unknown database", StringComparison.OrdinalIgnoreCase))
                 return ConnectionTestStatus.UnknownDatabase;
@@ -125,6 +146,8 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
             ConnectionTestStatus.ServerNotAccessible => $"The server could not be reached: {ex.Message}",
             ConnectionTestStatus.CredentialsRejected => $"The server rejected the user name or password: {ex.Message}",
             ConnectionTestStatus.UnknownDatabase => $"The database does not exist: {ex.Message}",
+            ConnectionTestStatus.DriverMissing =>
+                $"The ODBC data source or driver was not found. ODBC needs the driver manager (unixODBC on Linux and macOS) and the database's ODBC driver: {ex.Message}",
             _ => $"Connection failed: {ex.Message}",
         };
     }

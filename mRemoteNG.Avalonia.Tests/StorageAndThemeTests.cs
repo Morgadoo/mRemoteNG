@@ -4,6 +4,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using FluentAssertions;
 using mRemoteNG.Avalonia.Services;
 using mRemoteNG.Avalonia.ViewModels;
@@ -178,6 +179,54 @@ public class StorageAndThemeTests
         }
         finally
         {
+            settings.Apply(before).Should().BeEmpty();
+        }
+    }
+
+    [AvaloniaFact]
+    public void SqlPage_Odbc_ExplainsTheDataSource_NeedsNoDatabase_AndTestsThroughOdbc()
+    {
+        _ = TestHost.MainWindow;
+        var settings = AppServices.GetRequired<AppSettingsService>();
+        var before = settings.CreateEditableCopy();
+        var options = AppServices.GetRequired<OptionsWindowViewModel>();
+        var window = new OptionsWindow { DataContext = options };
+        window.Show();
+        try
+        {
+            options.SelectCategory("sql");
+            var sql = (SqlServerSettingsViewModel)options.CurrentPage!;
+            sql.UseSqlServer = true;
+            sql.HostDescription.Should().BeEmpty();
+            sql.SelectedServerType = sql.ServerTypes.Single(t => t.Value == DatabaseServerType.Odbc);
+            sql.SelectedServerType.ToString().Should().Contain("ODBC");
+            sql.Host = "no-such-dsn-for-mremoteng-tests";
+            sql.DatabaseName = string.Empty;
+            Dispatcher.UIThread.RunJobs();
+
+            sql.HostWatermark.Should().Be("DSN name or ODBC connection string");
+            sql.DatabaseWatermark.Should().StartWith("optional");
+            var page = window.GetVisualDescendants().OfType<Views.OptionsPages.SqlServerSettingsPage>().Single();
+            page.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsEffectivelyVisible).Select(t => t.Text)
+                .Should().Contain(sql.HostDescription, "the host row explains what an ODBC data source is");
+
+            sql.TestConnectionCommand.Execute().Subscribe();
+            var deadline = DateTime.UtcNow.AddSeconds(15);
+            while (sql.TestStatus.StartsWith("Connecting", StringComparison.Ordinal) && DateTime.UtcNow < deadline)
+            {
+                Dispatcher.UIThread.RunJobs();
+                Thread.Sleep(20);
+            }
+            sql.TestSucceeded.Should().BeFalse();
+            sql.TestStatus.Should().StartWith("The ODBC data source or driver was not found");
+
+            options.OnApply().Should().BeTrue(options.ValidationMessage);
+            settings.Current.SqlServerType.Should().Be(DatabaseServerType.Odbc);
+            settings.Current.SqlDatabaseName.Should().BeEmpty();
+        }
+        finally
+        {
+            window.Close();
             settings.Apply(before).Should().BeEmpty();
         }
     }

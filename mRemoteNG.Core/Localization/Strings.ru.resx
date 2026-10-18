@@ -1385,6 +1385,21 @@
   <data name="SqlHostHintMsSql" xml:space="preserve">
     <value>хост, хост:порт или хост\экземпляр (порт по умолчанию 1433)</value>
   </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>Источник данных ODBC (SQL Server или MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>Имя DSN или строка подключения ODBC</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>необязательно (база данных источника)</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Источник данных из odbc.ini (например, mremoteng) или строка подключения вида Driver={MariaDB Unicode};Server=db;Port=3306. Нужны unixODBC и ODBC-драйвер базы данных. Указывайте пароль в поле «Пароль», а не в строке.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Источник данных из «Администратора источников данных ODBC» (например, mremoteng) или строка подключения вида Driver={ODBC Driver 18 for SQL Server};Server=db. Указывайте пароль в поле «Пароль», а не в строке.</value>
+  </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>Отладка (все)</value>
   </data>

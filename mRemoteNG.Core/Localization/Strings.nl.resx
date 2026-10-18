@@ -1385,6 +1385,21 @@ Open er een connectie in vanuit de connectieboom.</value>
   <data name="SqlHostHintMsSql" xml:space="preserve">
     <value>host, host:poort of host\instance (standaardpoort 1433)</value>
   </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC-gegevensbron (SQL Server of MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN-naam of ODBC-verbindingsreeks</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>optioneel (de database van de gegevensbron)</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Een gegevensbron uit odbc.ini (bijv. mremoteng) of een verbindingsreeks zoals Driver={MariaDB Unicode};Server=db;Port=3306. Vereist unixODBC en het ODBC-stuurprogramma van de database. Vul het wachtwoord in het veld Wachtwoord in, niet in de reeks.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Een gegevensbron uit ODBC-gegevensbronbeheer (bijv. mremoteng) of een verbindingsreeks zoals Driver={ODBC Driver 18 for SQL Server};Server=db. Vul het wachtwoord in het veld Wachtwoord in, niet in de reeks.</value>
+  </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>Debug (alles)</value>
   </data>

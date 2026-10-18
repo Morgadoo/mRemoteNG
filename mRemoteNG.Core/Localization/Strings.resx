@@ -1853,6 +1853,26 @@ Open a connection in it from the connection tree.</value>
     <value>host, host:port or host\instance (default port 1433)</value>
     <comment>Options &gt; SQL Server</comment>
   </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC data source (SQL Server or MySQL / MariaDB)</value>
+    <comment>Options &gt; SQL Server: server type</comment>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN name or ODBC connection string</value>
+    <comment>Options &gt; SQL Server: host watermark for ODBC</comment>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>optional (the data source's database)</value>
+    <comment>Options &gt; SQL Server: database watermark for ODBC</comment>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>A data source from odbc.ini (e.g. mremoteng) or a connection string such as Driver={MariaDB Unicode};Server=db;Port=3306. Needs unixODBC and the database's ODBC driver. Put the password in the Password field, not in the string.</value>
+    <comment>Options &gt; SQL Server: host description for ODBC (Linux, macOS)</comment>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>A data source from the ODBC Data Source Administrator (e.g. mremoteng) or a connection string such as Driver={ODBC Driver 18 for SQL Server};Server=db. Put the password in the Password field, not in the string.</value>
+    <comment>Options &gt; SQL Server: host description for ODBC (Windows)</comment>
+  </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>Debug (everything)</value>
     <comment>Options &gt; Logging</comment>
