@@ -16,6 +16,8 @@ public sealed class RfbClientOptions
         RfbEncoding.Zrle,
         RfbEncoding.Hextile,
         RfbEncoding.Zlib,
+        RfbEncoding.ZlibHex,
+        RfbEncoding.Ultra,
         RfbEncoding.CoRre,
         RfbEncoding.Rre,
         RfbEncoding.Raw,
@@ -284,6 +286,8 @@ public sealed class RfbClient : IDisposable
         _decoders[RfbEncoding.Zlib] = new ZlibDecoder(_converter);
         _decoders[RfbEncoding.Tight] = new TightDecoder(_converter);
         _decoders[RfbEncoding.Zrle] = new ZrleDecoder(_converter);
+        _decoders[RfbEncoding.ZlibHex] = new ZlibHexDecoder(_converter);
+        _decoders[RfbEncoding.Ultra] = new UltraDecoder(_converter);
 
         var setPixelFormat = new byte[4 + Rfb.PixelFormat.Size];
         setPixelFormat[0] = RfbClientMessage.SetPixelFormat;

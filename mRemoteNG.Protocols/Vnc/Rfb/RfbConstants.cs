@@ -10,6 +10,13 @@ public static class RfbEncoding
     public const int Hextile = 5;
     public const int Zlib = 6;
     public const int Tight = 7;
+
+    /// <summary>UltraVNC: Hextile with zlib-compressed tiles.</summary>
+    public const int ZlibHex = 8;
+
+    /// <summary>UltraVNC: Raw pixels compressed with LZO1X.</summary>
+    public const int Ultra = 9;
+
     public const int Zrle = 16;
 
     // Pseudo-encodings

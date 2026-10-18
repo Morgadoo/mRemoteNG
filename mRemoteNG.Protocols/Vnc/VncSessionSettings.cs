@@ -103,7 +103,7 @@ public sealed record VncSessionSettings
         };
     }
 
-    /// <summary>Accepts an encoding name (raw, rre, corre, hextile, zlib, tight, zrle) or number.</summary>
+    /// <summary>Accepts an encoding name (raw, rre, corre, hextile, zlib, zlibhex, ultra, tight, zrle) or number.</summary>
     public static int? ParseEncoding(string? value) => value?.ToLowerInvariant() switch
     {
         null => null,
@@ -111,8 +111,9 @@ public sealed record VncSessionSettings
         "rre" => RfbEncoding.Rre,
         "corre" => RfbEncoding.CoRre,
         "hextile" => RfbEncoding.Hextile,
-        // ZlibHex (UltraVNC) is not implemented; Zlib is the closest supported encoding.
-        "zlib" or "zlibhex" => RfbEncoding.Zlib,
+        "zlib" => RfbEncoding.Zlib,
+        "zlibhex" => RfbEncoding.ZlibHex,
+        "ultra" => RfbEncoding.Ultra,
         "tight" => RfbEncoding.Tight,
         "zrle" => RfbEncoding.Zrle,
         var text when int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) => number,
