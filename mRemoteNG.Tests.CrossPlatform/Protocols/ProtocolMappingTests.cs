@@ -69,6 +69,25 @@ public class ProtocolMappingTests
         p.Extras[Keys.LocalShellMode].Should().Be(mode);
     }
 
+    [Theory]
+    [InlineData(CoreProtocol.SSH1)]
+    [InlineData(CoreProtocol.SSH2)]
+    public void FromConnectionInfo_SshWithOpenSshBackend_RunsTheSystemSshClient(CoreProtocol core)
+    {
+        var info = new ConnectionInfo
+        {
+            Protocol = core, Hostname = "srv", Username = "bob",
+            TerminalBackend = mRemoteNG.Core.Connection.Protocol.TerminalBackend.WindowsTerminal,
+        };
+
+        var p = ConnectionParametersFactory.FromConnectionInfo(info);
+
+        p.Protocol.Should().Be(ProtocolType.LocalShell);
+        p.Extras[Keys.LocalShellMode].Should().Be("ssh");
+        ConnectionParametersFactory.FromConnectionInfo(new ConnectionInfo { Protocol = core, Hostname = "srv" })
+            .Protocol.Should().Be(ProtocolType.Ssh, "the built-in terminal stays the default");
+    }
+
     // ── Local shell ───────────────────────────────────────────────────────
 
     [Fact]
@@ -76,7 +95,29 @@ public class ProtocolMappingTests
     {
         var p = new ConnectionParameters { Hostname = "srv", Port = 2222, Protocol = ProtocolType.LocalShell, Username = "bob" };
 
-        LocalShellProtocol.BuildTerminalCommand(p).Should().Equal("ssh", "-p", "2222", "bob@srv");
+        LocalShellProtocol.BuildTerminalCommand(p).Should().Equal("ssh", "-p", "2222", "--", "bob@srv");
+    }
+
+    [Theory]
+    [InlineData("-oProxyCommand=touch /tmp/pwned", null)]
+    [InlineData("srv", "-oProxyCommand=x")]
+    [InlineData("srv host", null)]
+    [InlineData("srv", "bob\nalice")]
+    public void LocalShell_Ssh_RejectsHostsAndUsersThatWouldBeParsedAsOptions(string host, string? user)
+    {
+        var p = new ConnectionParameters { Hostname = host, Port = 22, Protocol = ProtocolType.LocalShell, Username = user };
+
+        var act = () => LocalShellProtocol.BuildTerminalCommand(p);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void LocalShell_ForcedSsh_ConnectsEvenToLocalhost()
+    {
+        var p = new ConnectionParameters { Hostname = "localhost", Port = 22, Protocol = ProtocolType.LocalShell };
+
+        LocalShellProtocol.BuildTerminalCommand(p, forceSsh: true).Should().Equal("ssh", "--", "localhost");
     }
 
     [Fact]
