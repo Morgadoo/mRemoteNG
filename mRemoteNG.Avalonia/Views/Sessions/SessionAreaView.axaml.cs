@@ -324,6 +324,8 @@ public partial class SessionAreaView : UserControl
                 SessionPanelView.BuildPanelMenu(panel, TopLevel.GetTopLevel(this) as Window).Open(button);
                 e.Handled = true;
             };
+            AcceptTabDrops(button, (dock, tab) => !ReferenceEquals(tab.Panel, panel),
+                (dock, tab) => dock.MoveSession(tab, panel, panel.Sessions.Count));
             PanelStrip.Children.Add(button);
         }
 
@@ -336,7 +338,33 @@ public partial class SessionAreaView : UserControl
         add.Classes.Add("icon");
         ToolTip.SetTip(add, Localizer.Get("NewPanel", "New panel"));
         add.Click += (_, _) => _dock.NewPanel();
+        AcceptTabDrops(add, (_, _) => true,
+            (dock, tab) => dock.MoveSession(tab, dock.UniquePanelName(SessionsDockable.NewPanelBaseName)));
         PanelStrip.Children.Add(add);
+    }
+
+    /// <summary>Lets session tabs be dropped on a panel strip button (to move them into that panel or a new one).</summary>
+    private void AcceptTabDrops(Control target, Func<SessionsDockable, SessionTabViewModel, bool> accepts,
+        Action<SessionsDockable, SessionTabViewModel> drop)
+    {
+        DragDrop.SetAllowDrop(target, true);
+        target.AddHandler(DragDrop.DragOverEvent, (_, e) =>
+        {
+            var ok = _dock is { } dock && SessionPanelView.DraggedTab(e, dock) is { } tab && accepts(dock, tab);
+            e.DragEffects = ok ? DragDropEffects.Move : DragDropEffects.None;
+            target.Classes.Set("drop-target", ok);
+            e.Handled = true;
+        });
+        target.AddHandler(DragDrop.DragLeaveEvent, (_, _) => target.Classes.Set("drop-target", false));
+        target.AddHandler(DragDrop.DropEvent, (_, e) =>
+        {
+            target.Classes.Set("drop-target", false);
+            if (_dock is { } dock && SessionPanelView.DraggedTab(e, dock) is { } tab && accepts(dock, tab))
+            {
+                drop(dock, tab);
+                e.Handled = true;
+            }
+        });
     }
 
     private void Float(SessionPanelViewModel panel)

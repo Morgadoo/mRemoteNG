@@ -40,6 +40,12 @@
             <Setter Property="Background" Value="{DynamicResource AppBg4Brush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>
+        <Style Selector="ToggleButton.panel-tab.drop-target /template/ Border#PART_Surface">
+            <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        </Style>
+        <Style Selector="Button.icon.drop-target">
+            <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        </Style>
         <Style Selector="ToggleButton.panel-tab:checked">
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
         </Style>

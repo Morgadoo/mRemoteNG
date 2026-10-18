@@ -21,8 +21,15 @@ namespace mRemoteNG.Avalonia.Views.Sessions;
 /// </summary>
 public partial class SessionPanelView : UserControl
 {
+    /// <summary>Drag data format of a session tab (the value is the <see cref="SessionTabViewModel"/>).</summary>
+    public const string TabDragFormat = "application/x-mremoteng-session-tab";
+
+    private const double DragThreshold = 5;
+
     private readonly Dictionary<SessionTabViewModel, SessionContentHost> _hosts = [];
     private SessionPanelViewModel? _panel;
+    private Point? _pressPoint;
+    private SessionTabViewModel? _pressTab;
 
     public SessionPanelView()
     {
@@ -31,6 +38,12 @@ public partial class SessionPanelView : UserControl
 
         TabStrip.AddHandler(DoubleTappedEvent, OnTabDoubleTapped, RoutingStrategies.Bubble, handledEventsToo: true);
         TabStrip.AddHandler(PointerReleasedEvent, OnTabPointerReleased, RoutingStrategies.Tunnel, handledEventsToo: true);
+        TabStrip.AddHandler(PointerPressedEvent, OnTabPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
+        TabStrip.AddHandler(PointerMovedEvent, OnTabPointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
+        DragDrop.SetAllowDrop(this, true);
+        AddHandler(DragDrop.DragOverEvent, OnTabDragOver);
+        AddHandler(DragDrop.DragLeaveEvent, (_, _) => HideDropIndicator());
+        AddHandler(DragDrop.DropEvent, OnTabDrop);
         TabStrip.AddHandler(ContextRequestedEvent, OnTabContextRequested, RoutingStrategies.Bubble);
         TabStrip.AddHandler(PointerWheelChangedEvent, OnTabStripWheel, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, (_, _) => Activate(), RoutingStrategies.Tunnel, handledEventsToo: true);
@@ -288,6 +301,7 @@ public partial class SessionPanelView : UserControl
 
     private void OnTabPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        _pressPoint = null;
         // Middle click closes the tab.
         if (e.InitialPressMouseButton == MouseButton.Middle && TabFromEvent(e) is { } tab)
         {
@@ -295,6 +309,103 @@ public partial class SessionPanelView : UserControl
             e.Handled = true;
         }
     }
+
+    // ── Tab drag and drop (reorder, move to another panel) ────────────────
+
+    private void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(TabStrip);
+        var onButton = e.Source is Visual source && source.FindAncestorOfType<Button>(includeSelf: true) is not null;
+        _pressTab = point.Properties.IsLeftButtonPressed && !onButton ? TabFromEvent(e) : null;
+        _pressPoint = _pressTab is null ? null : point.Position;
+    }
+
+    private async void OnTabPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_pressPoint is not { } start || _pressTab is not { } tab) return;
+        if (!e.GetCurrentPoint(TabStrip).Properties.IsLeftButtonPressed)
+        {
+            _pressPoint = null;
+            return;
+        }
+        var delta = e.GetPosition(TabStrip) - start;
+        if (Math.Abs(delta.X) < DragThreshold && Math.Abs(delta.Y) < DragThreshold) return;
+
+        _pressPoint = null;
+        var data = new DataObject();
+        data.Set(TabDragFormat, tab);
+        try
+        {
+            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        }
+        finally
+        {
+            HideDropIndicator();
+        }
+    }
+
+    /// <summary>The session tab being dragged, when it belongs to <paramref name="dock"/>.</summary>
+    internal static SessionTabViewModel? DraggedTab(DragEventArgs e, SessionsDockable dock) =>
+        e.Data.Get(TabDragFormat) is SessionTabViewModel tab && dock.Sessions.Contains(tab) ? tab : null;
+
+    private void OnTabDragOver(object? sender, DragEventArgs e)
+    {
+        if (_panel is null || DraggedTab(e, _panel.Owner) is null)
+        {
+            e.DragEffects = DragDropEffects.None;
+            HideDropIndicator();
+            return;
+        }
+        e.DragEffects = DragDropEffects.Move;
+        ShowDropIndicator(DropIndex(e));
+        e.Handled = true;
+    }
+
+    private void OnTabDrop(object? sender, DragEventArgs e)
+    {
+        HideDropIndicator();
+        if (_panel is null || DraggedTab(e, _panel.Owner) is not { } tab) return;
+        _panel.Owner.MoveSession(tab, _panel, DropIndex(e));
+        e.Handled = true;
+    }
+
+    /// <summary>Where a drop goes: before the tab under the pointer's left half, else at the end.</summary>
+    private int DropIndex(DragEventArgs e)
+    {
+        var count = _panel?.Sessions.Count ?? 0;
+        var overTabBar = e.GetPosition(TabBar) is var bar && bar.Y >= 0 && bar.Y <= TabBar.Bounds.Height;
+        if (!overTabBar) return count;
+        for (var i = 0; i < count; i++)
+        {
+            if (TabStrip.ContainerFromIndex(i) is not Control container) continue;
+            if (e.GetPosition(container).X < container.Bounds.Width / 2)
+                return i;
+        }
+        return count;
+    }
+
+    private void ShowDropIndicator(int index)
+    {
+        TabBar.Classes.Set("drop-target", true);
+        var count = _panel?.Sessions.Count ?? 0;
+        var container = count == 0 ? null : TabStrip.ContainerFromIndex(Math.Min(index, count - 1)) as Control;
+        if (container?.TranslatePoint(new Point(index < count ? 0 : container.Bounds.Width, 0), TabScroller) is not { } at)
+        {
+            DropIndicator.IsVisible = false;
+            return;
+        }
+        DropIndicator.Margin = new Thickness(Math.Clamp(at.X - 1, 0, Math.Max(0, TabScroller.Bounds.Width - 2)), 6, 0, 7);
+        DropIndicator.IsVisible = true;
+    }
+
+    private void HideDropIndicator()
+    {
+        TabBar.Classes.Set("drop-target", false);
+        DropIndicator.IsVisible = false;
+    }
+
+    /// <summary>The drop indicator's position in the tab strip, or null when hidden (for tests).</summary>
+    public double? DropIndicatorX => DropIndicator.IsVisible ? DropIndicator.Margin.Left : null;
 
     private void OnTabContextRequested(object? sender, ContextRequestedEventArgs e)
     {
