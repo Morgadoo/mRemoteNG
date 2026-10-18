@@ -1295,6 +1295,18 @@ Open a connection in it from the connection tree.</value>
     <value>Highest available</value>
     <comment>RDP version choice</comment>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>The Remote Desktop control version used by the Windows version of mRemoteNG. FreeRDP always negotiates the newest RDP version the server supports, so this app keeps the setting for that app and does not use it.</value>
+    <comment>Connection editor: RDP version description</comment>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Do not show a mouse cursor shadow. Used by the Windows version of mRemoteNG; FreeRDP has no such option.</value>
+    <comment>Connection editor: Disable cursor shadow description</comment>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Do not let the text cursor blink. Used by the Windows version of mRemoteNG; FreeRDP has no such option.</value>
+    <comment>Connection editor: Disable cursor blinking description</comment>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>As configured</value>
     <comment>Connect with options: console session choice</comment>

@@ -230,6 +230,19 @@ public class LocalizerTests
         });
     }
 
+    [Theory]
+    [InlineData(nameof(ConnectionInfo.RdpVersion), "FreeRDP always negotiates", "FreeRDP handelt immer")]
+    [InlineData(nameof(ConnectionInfo.DisableCursorShadow), "FreeRDP has no such option", "FreeRDP hat diese Option nicht")]
+    [InlineData(nameof(ConnectionInfo.DisableCursorBlinking), "FreeRDP has no such option", "FreeRDP hat diese Option nicht")]
+    public void RdpSettingsFreeRdpIgnores_SayWhy_InEveryLanguage(string property, string english, string german)
+    {
+        var descriptor = ConnectionPropertyCatalog.Get(property);
+
+        WithUiCulture(CultureInfo.InvariantCulture, () => descriptor.Description.Should().Contain(english));
+        WithUiCulture(German, () => descriptor.Description.Should().Contain(german));
+        Localizer.Get(descriptor.DescriptionKey!, CultureInfo.InvariantCulture).Should().Be(descriptor.EnglishDescription);
+    }
+
     /// <summary>In-memory resources: culture name ("" for neutral) → key → text.</summary>
     private sealed class DictionaryResourceManager(Dictionary<string, Dictionary<string, string>> cultures) : ResourceManager
     {

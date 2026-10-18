@@ -312,7 +312,7 @@ namespace mRemoteNG.Core.Connection
             [nameof(ConnectionInfo.PuttySession)] = ("PuttySession", "PropertyDescriptionPuttySession"),
             [nameof(ConnectionInfo.SSHOptions)] = ("SshOptions", "PropertyDescriptionSshOptions"),
             [nameof(ConnectionInfo.OpeningCommand)] = ("OpeningCommand", null),
-            [nameof(ConnectionInfo.RdpVersion)] = ("RdpVersion", "PropertyDescriptionRdpVersion"),
+            [nameof(ConnectionInfo.RdpVersion)] = ("RdpVersion", "RdpVersionFreeRdpDescription"),
             [nameof(ConnectionInfo.UseCredSsp)] = ("UseCredSsp", "PropertyDescriptionUseCredSsp"),
             [nameof(ConnectionInfo.LoadBalanceInfo)] = ("LoadBalanceInfo", "PropertyDescriptionLoadBalanceInfo"),
             [nameof(ConnectionInfo.UseVmId)] = ("UseVmId", "PropertyDescriptionUseVmId"),
@@ -349,8 +349,8 @@ namespace mRemoteNG.Core.Connection
             [nameof(ConnectionInfo.EnableDesktopComposition)] = ("EnableDesktopComposition", "PropertyDescriptionEnableDesktopComposition"),
             [nameof(ConnectionInfo.DisableFullWindowDrag)] = ("DisableFullWindowDrag", "PropertyDescriptionDisableFullWindowDrag"),
             [nameof(ConnectionInfo.DisableMenuAnimations)] = ("DisableMenuAnimations", "PropertyDescriptionDisableMenuAnimations"),
-            [nameof(ConnectionInfo.DisableCursorShadow)] = ("DisableCursorShadow", "PropertyDescriptionDisableCursorShadow"),
-            [nameof(ConnectionInfo.DisableCursorBlinking)] = ("DisableCursorBlinking", "PropertyDescriptionDisableCursorBlinking"),
+            [nameof(ConnectionInfo.DisableCursorShadow)] = ("DisableCursorShadow", "CursorShadowFreeRdpDescription"),
+            [nameof(ConnectionInfo.DisableCursorBlinking)] = ("DisableCursorBlinking", "CursorBlinkingFreeRdpDescription"),
             [nameof(ConnectionInfo.RedirectKeys)] = ("RedirectKeys", "PropertyDescriptionRedirectKeys"),
             [nameof(ConnectionInfo.RedirectDiskDrives)] = ("DiskDrives", "PropertyDescriptionRedirectDrives"),
             [nameof(ConnectionInfo.RedirectDiskDrivesCustom)] = ("RedirectDiskDrivesCustom", "PropertyDescriptionRedirectDiskDrivesCustom"),
@@ -515,7 +515,9 @@ namespace mRemoteNG.Core.Connection
                 ConnectionPropertyEditor.Choice, Ssh);
 
             Add(nameof(ConnectionInfo.RdpVersion), connection, "Remote Desktop", "RDP version",
-                "Sets the version of RDP to use when opening connections.", ConnectionPropertyEditor.Choice, Rdp);
+                "The Remote Desktop control version used by the Windows version of mRemoteNG. FreeRDP always negotiates the " +
+                "newest RDP version the server supports, so this app keeps the setting for that app and does not use it.",
+                ConnectionPropertyEditor.Choice, Rdp);
             Add(nameof(ConnectionInfo.UseCredSsp), connection, "Remote Desktop", "Use CredSSP (NLA)",
                 "Use the Credential Security Support Provider (CredSSP) for authentication if it is available.",
                 ConnectionPropertyEditor.Boolean, Rdp);
@@ -623,9 +625,11 @@ namespace mRemoteNG.Core.Connection
             Add(nameof(ConnectionInfo.DisableMenuAnimations), protocol, rdpDisplay, "Disable menu animations",
                 "Do not animate menus and windows in the remote session.", ConnectionPropertyEditor.Boolean, Rdp);
             Add(nameof(ConnectionInfo.DisableCursorShadow), protocol, rdpDisplay, "Disable cursor shadow",
-                "Do not show a mouse cursor shadow.", ConnectionPropertyEditor.Boolean, Rdp);
+                "Do not show a mouse cursor shadow. Used by the Windows version of mRemoteNG; FreeRDP has no such option.",
+                ConnectionPropertyEditor.Boolean, Rdp);
             Add(nameof(ConnectionInfo.DisableCursorBlinking), protocol, rdpDisplay, "Disable cursor blinking",
-                "Do not let the text cursor blink.", ConnectionPropertyEditor.Boolean, Rdp);
+                "Do not let the text cursor blink. Used by the Windows version of mRemoteNG; FreeRDP has no such option.",
+                ConnectionPropertyEditor.Boolean, Rdp);
 
             const string redirect = "Remote Desktop: redirection";
             Add(nameof(ConnectionInfo.RedirectKeys), protocol, redirect, "Key combinations",

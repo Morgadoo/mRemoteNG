@@ -968,6 +968,15 @@ Open er een connectie in vanuit de connectieboom.</value>
   <data name="RdpVersionHighest" xml:space="preserve">
     <value>Hoogst beschikbare</value>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>De versie van het Extern bureaublad-besturingselement die de Windows-versie van mRemoteNG gebruikt. FreeRDP onderhandelt altijd over de nieuwste RDP-versie die de server ondersteunt, dus deze app bewaart de instelling voor die app en gebruikt hem niet.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Geen schaduw onder de muisaanwijzer tonen. Wordt gebruikt door de Windows-versie van mRemoteNG; FreeRDP heeft deze optie niet.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>De tekstcursor niet laten knipperen. Wordt gebruikt door de Windows-versie van mRemoteNG; FreeRDP heeft deze optie niet.</value>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>Zoals geconfigureerd</value>
   </data>

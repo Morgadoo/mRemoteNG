@@ -968,6 +968,15 @@ Otwórz w nim połączenie z drzewa połączeń.</value>
   <data name="RdpVersionHighest" xml:space="preserve">
     <value>Najwyższa dostępna</value>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>Wersja kontrolki Pulpitu zdalnego używana przez wersję mRemoteNG dla systemu Windows. FreeRDP zawsze negocjuje najnowszą wersję RDP obsługiwaną przez serwer, więc ta aplikacja przechowuje to ustawienie dla tamtej aplikacji i go nie używa.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Nie pokazuj cienia wskaźnika myszy. Używane przez wersję mRemoteNG dla systemu Windows; FreeRDP nie ma takiej opcji.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Nie pozwalaj kursorowi tekstowemu migać. Używane przez wersję mRemoteNG dla systemu Windows; FreeRDP nie ma takiej opcji.</value>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>Zgodnie z konfiguracją</value>
   </data>

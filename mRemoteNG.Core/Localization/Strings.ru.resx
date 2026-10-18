@@ -968,6 +968,15 @@
   <data name="RdpVersionHighest" xml:space="preserve">
     <value>Наивысшая доступная</value>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>Версия элемента управления «Удалённый рабочий стол», которую использует версия mRemoteNG для Windows. FreeRDP всегда согласует самую новую версию RDP, поддерживаемую сервером, поэтому это приложение сохраняет параметр для той версии и не использует его.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Не показывать тень указателя мыши. Используется версией mRemoteNG для Windows; в FreeRDP такого параметра нет.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Не давать текстовому курсору мигать. Используется версией mRemoteNG для Windows; в FreeRDP такого параметра нет.</value>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>Как настроено</value>
   </data>

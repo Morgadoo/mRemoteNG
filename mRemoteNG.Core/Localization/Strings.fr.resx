@@ -968,6 +968,15 @@ Ouvrez-y une connexion depuis l'arborescence des connexions.</value>
   <data name="RdpVersionHighest" xml:space="preserve">
     <value>Plus récente disponible</value>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>La version du contrôle Bureau à distance utilisée par la version Windows de mRemoteNG. FreeRDP négocie toujours la version RDP la plus récente prise en charge par le serveur ; cette application conserve donc le paramètre pour cette version et ne l'utilise pas.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Ne pas afficher l'ombre du pointeur de la souris. Utilisé par la version Windows de mRemoteNG ; FreeRDP n'a pas cette option.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Ne pas faire clignoter le curseur de texte. Utilisé par la version Windows de mRemoteNG ; FreeRDP n'a pas cette option.</value>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>Selon la configuration</value>
   </data>

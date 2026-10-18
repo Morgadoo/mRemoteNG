@@ -968,6 +968,15 @@
   <data name="RdpVersionHighest" xml:space="preserve">
     <value>Höchste verfügbare</value>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>Die Version des Remotedesktop-Steuerelements, die die Windows-Version von mRemoteNG verwendet. FreeRDP handelt immer die neueste RDP-Version aus, die der Server unterstützt; diese App speichert die Einstellung daher nur für jene App und verwendet sie nicht.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Keinen Schatten unter dem Mauszeiger anzeigen. Wird von der Windows-Version von mRemoteNG verwendet; FreeRDP hat diese Option nicht.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Den Textcursor nicht blinken lassen. Wird von der Windows-Version von mRemoteNG verwendet; FreeRDP hat diese Option nicht.</value>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>Wie konfiguriert</value>
   </data>

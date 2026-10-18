@@ -968,6 +968,15 @@
   <data name="RdpVersionHighest" xml:space="preserve">
     <value>可用的最高版本</value>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>Windows 版 mRemoteNG 使用的远程桌面控件版本。FreeRDP 总是协商服务器支持的最新 RDP 版本，因此本应用只为该应用保留此设置，不会使用它。</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>不显示鼠标指针阴影。由 Windows 版 mRemoteNG 使用；FreeRDP 没有此选项。</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>不让文本光标闪烁。由 Windows 版 mRemoteNG 使用；FreeRDP 没有此选项。</value>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>按配置</value>
   </data>
