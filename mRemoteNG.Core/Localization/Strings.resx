@@ -2661,4 +2661,44 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
     <value>System OpenSSH client (ssh)</value>
     <comment>Terminal backend choice for SSH connections: run the ssh command in the tab</comment>
   </data>
+  <data name="TransferFileUltraVnc" xml:space="preserve">
+    <value>Transfer Files (UltraVNC)</value>
+    <comment>Session tab menu: browse files over the VNC session's own connection</comment>
+  </data>
+  <data name="UltraVncFileTransferTitle" xml:space="preserve">
+    <value>UltraVNC File Transfer</value>
+    <comment>Title of the file browser opened from a VNC session</comment>
+  </data>
+  <data name="UltraVncFileTransferDescriptionFormat" xml:space="preserve">
+    <value>Files are transferred over the VNC session "{0}". Press Connect to ask the server for file access. The server must allow file transfer: UltraVNC does when it is enabled, x11vnc needs -ultrafilexfer, and other LibVNCServer servers close the VNC session when asked.</value>
+    <comment>UltraVNC file browser, shown instead of the connection fields; {0} = session name</comment>
+  </data>
+  <data name="TextChatTitleFormat" xml:space="preserve">
+    <value>Chat with {0}</value>
+    <comment>Title of a session's chat window; {0} = connection name</comment>
+  </data>
+  <data name="TextChatYou" xml:space="preserve">
+    <value>You</value>
+    <comment>Chat window: sender name of your own messages</comment>
+  </data>
+  <data name="TextChatNotSent" xml:space="preserve">
+    <value>Not connected: the message was not sent.</value>
+    <comment>Chat window notice when sending fails</comment>
+  </data>
+  <data name="TextChatOpenedFormat" xml:space="preserve">
+    <value>{0} opened the chat.</value>
+    <comment>Chat window notice; {0} = connection name</comment>
+  </data>
+  <data name="TextChatClosedFormat" xml:space="preserve">
+    <value>{0} closed the chat.</value>
+    <comment>Chat window notice; {0} = connection name</comment>
+  </data>
+  <data name="TextChatWatermark" xml:space="preserve">
+    <value>Type a message and press Enter</value>
+    <comment>Chat window: watermark of the message box</comment>
+  </data>
+  <data name="TextChatSend" xml:space="preserve">
+    <value>Send</value>
+    <comment>Chat window: send button</comment>
+  </data>
 </root>

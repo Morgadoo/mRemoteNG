@@ -1,0 +1,75 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="using:mRemoteNG.Avalonia.Localization"
+        xmlns:vm="using:mRemoteNG.Avalonia.ViewModels"
+        xmlns:ctl="using:mRemoteNG.Avalonia.Controls"
+        xmlns:mi="using:Material.Icons.Avalonia"
+        x:Class="mRemoteNG.Avalonia.Views.Sessions.TextChatWindow"
+        x:DataType="vm:TextChatViewModel"
+        Classes="dialog"
+        Title="{Binding Title}"
+        Width="460"
+        Height="520"
+        MinWidth="320"
+        MinHeight="300"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="Border.bubble">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="MaxWidth" Value="340"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Background" Value="{DynamicResource AppBg3Brush}"/>
+        </Style>
+        <Style Selector="Border.bubble.local">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <ctl:DialogHeader Icon="MessageTextOutline" Title="{Binding Title}"/>
+
+        <ScrollViewer Grid.Row="1" x:Name="LinesScroller" Margin="16,12,16,8" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="LinesList" ItemsSource="{Binding Lines}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TextChatLine">
+                        <Panel>
+                            <TextBlock IsVisible="{Binding IsNotice}" Classes="caption secondary" HorizontalAlignment="Center"
+                                       Margin="0,6" TextWrapping="Wrap">
+                                <Run Text="{Binding Time}"/>
+                                <Run Text=" · "/>
+                                <Run Text="{Binding Text}"/>
+                            </TextBlock>
+                            <Border IsVisible="{Binding !IsNotice}" Classes="bubble" Classes.local="{Binding IsLocal}">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="caption secondary">
+                                        <Run Text="{Binding Sender}"/>
+                                        <Run Text=" · "/>
+                                        <Run Text="{Binding Time}"/>
+                                    </TextBlock>
+                                    <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </Panel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Classes="dialog-footer">
+            <Grid ColumnDefinitions="*,8,Auto">
+                <TextBox x:Name="DraftBox" Text="{Binding Draft}" Watermark="{l:Tr TextChatWatermark}"
+                         AcceptsReturn="False" TextWrapping="Wrap" MaxLength="4096"/>
+                <Button Grid.Column="2" x:Name="SendButton" Classes="accent" Command="{Binding SendCommand}" IsDefault="True">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <mi:MaterialIcon Kind="Send"/>
+                        <TextBlock Text="{l:Tr TextChatSend}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

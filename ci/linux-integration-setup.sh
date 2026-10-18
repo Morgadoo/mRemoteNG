@@ -48,7 +48,8 @@ APT_PACKAGES=(
     tigervnc-standalone-server      # Xvnc (XvncIntegrationTests, TigerVNC encoding/proxy tests)
     tigervnc-tools                  # vncpasswd
     xvfb                            # Xvfb (x11vnc fixtures, display for the RDP client)
-    x11vnc                          # LibVNCServer encodings, reverse connections (VncListenerTests)
+    x11vnc                          # LibVNCServer encodings, reverse connections (VncListenerTests), UltraVNC file transfer
+    gcc libvncserver-dev            # LibVncChatIntegrationTests compiles a LibVNCServer chat echo server
     x11-xserver-utils               # xsetroot (test patterns)
     imagemagick                     # convert + display (photo-like test pattern for Tight/JPEG)
     xdotool                         # lets the Xvnc test confirm the pointer really moved

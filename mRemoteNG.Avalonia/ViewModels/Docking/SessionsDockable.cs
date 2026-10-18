@@ -201,6 +201,15 @@ public sealed class SessionsDockable : Document
             OnPropertyChanged(nameof(ActiveSession));
     }
 
+    /// <summary>Raised when the remote side of a session starts a text chat; the session area shows the chat window.</summary>
+    public event EventHandler<SessionTabViewModel>? TextChatRequested;
+
+    private void OnTextChatRequested(object? sender, EventArgs e)
+    {
+        if (sender is SessionTabViewModel session)
+            TextChatRequested?.Invoke(this, session);
+    }
+
     // ── Opening sessions ──────────────────────────────────────────────────
 
     /// <summary>Adds a session to a panel (the active panel, else "General") and selects it.</summary>
@@ -210,6 +219,7 @@ public sealed class SessionsDockable : Document
         session.ApplyTitleSettings(Settings);
         session.CloseRequested += OnCloseRequested;
         session.ProtocolStateChanged += OnSessionStateChanged;
+        session.TextChatRequested += OnTextChatRequested;
         session.Panel = panel;
         Sessions.Add(session);
         panel.Sessions.Add(session);
@@ -379,6 +389,7 @@ public sealed class SessionsDockable : Document
     {
         session.CloseRequested -= OnCloseRequested;
         session.ProtocolStateChanged -= OnSessionStateChanged;
+        session.TextChatRequested -= OnTextChatRequested;
         CancelAutoReconnect(session);
         if (!Sessions.Remove(session)) return;
         if (session.Panel is { } panel)

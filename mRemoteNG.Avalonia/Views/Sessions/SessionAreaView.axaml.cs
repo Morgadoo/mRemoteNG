@@ -58,6 +58,7 @@ public partial class SessionAreaView : UserControl
         {
             _dock.Panels.CollectionChanged -= OnPanelsChanged;
             _dock.PropertyChanged -= OnDockPropertyChanged;
+            _dock.TextChatRequested -= OnTextChatRequested;
             foreach (var panel in _watchedPanels.ToList())
                 Unwatch(panel);
         }
@@ -68,6 +69,7 @@ public partial class SessionAreaView : UserControl
         if (_dock is null) return;
         _dock.Panels.CollectionChanged += OnPanelsChanged;
         _dock.PropertyChanged += OnDockPropertyChanged;
+        _dock.TextChatRequested += OnTextChatRequested;
         foreach (var panel in _dock.Panels)
             Watch(panel);
         try
@@ -82,6 +84,9 @@ public partial class SessionAreaView : UserControl
             _settings.Changed += OnSettingsChanged;
         Rebuild();
     }
+
+    private void OnTextChatRequested(object? sender, SessionTabViewModel session) =>
+        TextChatWindow.ShowFor(session, TopLevel.GetTopLevel(this) as Window);
 
     private void Watch(SessionPanelViewModel panel)
     {

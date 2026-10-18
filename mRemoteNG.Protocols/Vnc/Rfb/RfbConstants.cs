@@ -122,8 +122,8 @@ public static class RfbTextChat
     public const uint Close = 0xFFFFFFFE;
     public const uint Finished = 0xFFFFFFFD;
 
-    /// <summary>Longest message servers accept.</summary>
-    public const int MaxLength = 4096;
+    /// <summary>Longest message servers accept (LibVNCServer closes the connection at 4096 bytes).</summary>
+    public const int MaxLength = 4095;
 }
 
 /// <summary>What a received UltraVNC text chat message means.</summary>

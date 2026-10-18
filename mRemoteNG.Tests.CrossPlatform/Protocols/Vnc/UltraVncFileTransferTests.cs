@@ -393,13 +393,18 @@ public sealed class UltraVncFileTransferTests : IAsyncLifetime
         _client.SendTextChatControl(RfbTextChat.Open);
         _client.SendTextChat("héllo");
         _client.SendTextChat(new string('x', RfbTextChat.MaxLength + 10));
+        _client.SendTextChat(new string('é', 3000));
+        _client.SendTextChat("");
         _client.SendTextChatControl(RfbTextChat.Close);
 
         (await ReadTextChatAsync()).Should().Be((RfbTextChat.Open, ""));
         (await ReadTextChatAsync()).Should().Be((5u + 1, "héllo"));
         var (length, text) = await ReadTextChatAsync();
-        length.Should().Be((uint)RfbTextChat.MaxLength);
+        length.Should().Be(4095u, "LibVNCServer drops clients that send 4096 bytes or more");
         text.Length.Should().Be(RfbTextChat.MaxLength);
+        // Two-byte characters are not split at the limit.
+        (await ReadTextChatAsync()).Should().Be((4094u, new string('é', 2047)));
+        // Empty text is not sent (LibVNCServer drops clients for that too).
         (await ReadTextChatAsync()).Should().Be((RfbTextChat.Close, ""));
 
         var invalid = () => _client.SendTextChatControl(5);

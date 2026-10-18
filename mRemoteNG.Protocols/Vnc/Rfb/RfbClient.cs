@@ -284,13 +284,22 @@ public sealed class RfbClient : IDisposable
         Enqueue(msg);
     }
 
-    /// <summary>UltraVNC text chat: text (cut to <see cref="RfbTextChat.MaxLength"/> bytes of UTF-8).</summary>
+    /// <summary>
+    /// UltraVNC text chat: text, cut to <see cref="RfbTextChat.MaxLength"/> bytes of UTF-8 (between characters).
+    /// Empty text is not sent, as its length would be read as no message.
+    /// </summary>
     public void SendTextChat(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
         var bytes = Encoding.UTF8.GetBytes(text);
         if (bytes.Length > RfbTextChat.MaxLength)
-            bytes = bytes[..RfbTextChat.MaxLength];
+        {
+            var cut = RfbTextChat.MaxLength;
+            while (cut > 0 && (bytes[cut] & 0xC0) == 0x80)
+                cut--;
+            bytes = bytes[..cut];
+        }
+        if (bytes.Length == 0) return;
         Enqueue(TextChatMessage((uint)bytes.Length, bytes));
     }
 
