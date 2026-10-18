@@ -37,10 +37,40 @@ public class LocalizerTests
     [Fact]
     public void Get_FallsBackToEnglish_WhenTheCultureHasNoTranslation()
     {
-        // fi-FI translates only a handful of strings; the app's own strings exist in English only.
-        Localizer.IsTranslated("NewConnection", CultureInfo.GetCultureInfo("fi-FI")).Should().BeFalse();
-        Localizer.Get("NewConnection", CultureInfo.GetCultureInfo("fi-FI")).Should().Be("New Connection");
-        Localizer.Get("LanguageSystemDefault", German).Should().Be("System default");
+        // fi-FI translates only a handful of the legacy strings and none of the app's own.
+        var finnish = CultureInfo.GetCultureInfo("fi-FI");
+        Localizer.IsTranslated("NewConnection", finnish).Should().BeFalse();
+        Localizer.Get("NewConnection", finnish).Should().Be("New Connection");
+        Localizer.IsTranslated("LanguageSystemDefault", finnish).Should().BeFalse();
+        Localizer.Get("LanguageSystemDefault", finnish).Should().Be("System default");
+    }
+
+    [Theory]
+    [InlineData("de", "Systemstandard")]
+    [InlineData("de-AT", "Systemstandard")]
+    [InlineData("pt", "Predefinição do sistema")]
+    [InlineData("pt-BR", "Padrão do sistema")]
+    [InlineData("zh-CN", "系统默认")]
+    public void Get_ReturnsTheAppsOwnTranslation(string culture, string expected)
+    {
+        var info = CultureInfo.GetCultureInfo(culture);
+        Localizer.IsTranslated("LanguageSystemDefault", info).Should().BeTrue();
+        Localizer.Get("LanguageSystemDefault", info).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Format_UsesTheAppsTranslatedFormatString()
+    {
+        var previous = CultureInfo.CurrentUICulture;
+        CultureInfo.CurrentUICulture = German;
+        try
+        {
+            Localizer.Format("PluginsLoadedSummaryFormat", 2, 3).Should().Be("2 von 3 geladen.");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = previous;
+        }
     }
 
     [Fact]

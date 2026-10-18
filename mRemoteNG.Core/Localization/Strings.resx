@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Strings of the cross-platform (Avalonia) app that have no counterpart in the WinForms app's
-  mRemoteNG/Language/Language.resx. English only for now; other languages fall back to this text.
+  mRemoteNG/Language/Language.resx. Translations are in Strings.<culture>.resx next to this file;
+  languages without one (or keys missing from one) fall back to this text.
   Lookup (see Localizer.cs): for each culture the strings here are tried before the legacy ones, so a
   key here must not reuse a legacy key's name. "&" marks an access key ("&&" is a literal ampersand);
   an "&" followed by a space is literal too.
-  To translate, add Strings.<culture>.resx next to this file with the same keys.
+  To translate, add Strings.<culture>.resx with the same keys, placeholders and access keys
+  (LocalizationKeysTests checks them).
 -->
 <root>
   <resheader name="resmimetype">

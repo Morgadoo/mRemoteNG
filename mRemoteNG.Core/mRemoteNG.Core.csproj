@@ -27,7 +27,7 @@
   <!-- UI strings (see Localization/Localizer.cs). The WinForms app's Language*.resx (English plus 24
        translations) are linked, not copied, so both apps share one set of translations; a satellite
        assembly is produced for every culture. Localization/Strings.resx holds the cross-platform app's
-       own strings (English only). -->
+       own strings, translated in Localization/Strings.<culture>.resx. -->
   <ItemGroup>
     <InternalsVisibleTo Include="mRemoteNG.Tests.CrossPlatform" />
     <EmbeddedResource Include="..\mRemoteNG\Language\Language*.resx"
