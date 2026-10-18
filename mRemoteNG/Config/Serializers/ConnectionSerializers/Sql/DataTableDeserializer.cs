@@ -252,7 +252,50 @@ namespace mRemoteNG.Config.Serializers.ConnectionSerializers.Sql
             connectionInfo.Inheritance.VNCProxyUsername = MiscTools.GetBooleanValue(dataRow["InheritVNCProxyUsername"]);
             connectionInfo.Inheritance.VNCSmartSizeMode = MiscTools.GetBooleanValue(dataRow["InheritVNCSmartSizeMode"]);
             connectionInfo.Inheritance.VNCViewOnly = MiscTools.GetBooleanValue(dataRow["InheritVNCViewOnly"]);
+            DeserializeSharedColumns(dataRow, connectionInfo);
             LegacyPluginDataMigrator.Migrate(connectionInfo);
+        }
+
+        /// <summary>
+        /// Nullable columns the cross-platform app adds to tblCons for properties the 3.2 schema has no column for.
+        /// NULL (or a missing column) keeps the value the connection already has.
+        /// </summary>
+        private void DeserializeSharedColumns(DataRow dataRow, ConnectionInfo connectionInfo)
+        {
+            if (TryGetColumnValue(dataRow, "TabColor", out object tabColor))
+                connectionInfo.TabColor = Convert.ToString(tabColor) ?? string.Empty;
+            if (TryGetColumnValue(dataRow, "ConnectionFrameColor", out object frameColor) &&
+                Enum.TryParse(Convert.ToString(frameColor), true, out ConnectionFrameColor parsedFrameColor))
+                connectionInfo.ConnectionFrameColor = parsedFrameColor;
+            if (TryGetColumnValue(dataRow, "VaultOpenbaoMount", out object vaultMount))
+                connectionInfo.VaultOpenbaoMount = Convert.ToString(vaultMount) ?? string.Empty;
+            if (TryGetColumnValue(dataRow, "VaultOpenbaoRole", out object vaultRole))
+                connectionInfo.VaultOpenbaoRole = Convert.ToString(vaultRole) ?? string.Empty;
+            if (TryGetColumnValue(dataRow, "VaultOpenbaoSecretEngine", out object vaultEngine) &&
+                Enum.TryParse(Convert.ToString(vaultEngine), true, out VaultOpenbaoSecretEngine parsedVaultEngine))
+                connectionInfo.VaultOpenbaoSecretEngine = parsedVaultEngine;
+            if (TryGetColumnValue(dataRow, "RDGatewayAccessToken", out object accessToken))
+                connectionInfo.RDGatewayAccessToken = DecryptValue(Convert.ToString(accessToken) ?? string.Empty);
+            if (TryGetColumnValue(dataRow, "UseRedirectionServerName", out object useRedirectionServerName))
+                connectionInfo.UseRedirectionServerName = MiscTools.GetBooleanValue(useRedirectionServerName);
+
+            if (TryGetColumnValue(dataRow, "InheritTabColor", out object inheritTabColor))
+                connectionInfo.Inheritance.TabColor = MiscTools.GetBooleanValue(inheritTabColor);
+            if (TryGetColumnValue(dataRow, "InheritConnectionFrameColor", out object inheritFrameColor))
+                connectionInfo.Inheritance.ConnectionFrameColor = MiscTools.GetBooleanValue(inheritFrameColor);
+            if (TryGetColumnValue(dataRow, "InheritRDGatewayAccessToken", out object inheritAccessToken))
+                connectionInfo.Inheritance.RDGatewayAccessToken = MiscTools.GetBooleanValue(inheritAccessToken);
+            if (TryGetColumnValue(dataRow, "InheritUseRedirectionServerName", out object inheritRedirection))
+                connectionInfo.Inheritance.UseRedirectionServerName = MiscTools.GetBooleanValue(inheritRedirection);
+        }
+
+        private static bool TryGetColumnValue(DataRow dataRow, string column, out object value)
+        {
+            value = null;
+            if (!dataRow.Table.Columns.Contains(column) || dataRow[column] is DBNull)
+                return false;
+            value = dataRow[column];
+            return true;
         }
 
         private string DecryptValue(string cipherText)

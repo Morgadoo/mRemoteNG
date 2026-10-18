@@ -14,12 +14,12 @@ using mRemoteNG.Core.Tree.Root;
 namespace mRemoteNG.Core.Config.Serializers.Xml
 {
     /// <summary>
-    /// Deserializes mRemoteNG XML connection files (versions up to 2.8) into a ConnectionTreeModel.
+    /// Deserializes mRemoteNG XML connection files (versions up to 2.9) into a ConnectionTreeModel.
     /// Mirrors the legacy WinForms loader so existing files, passwords and master passwords keep working.
     /// </summary>
     public class XmlConnectionsDeserializer : IDeserializer<string, ConnectionTreeModel>
     {
-        public const double MaxSupportedConfVersion = 2.8;
+        public const double MaxSupportedConfVersion = 2.9;
         private const string NotProtectedMarker = "ThisIsNotProtected";
         private const string ProtectedMarker = "ThisIsProtected";
 
@@ -292,6 +292,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             node.RDPAlertIdleTimeout = GetBool(e, "RDPAlertIdleTimeout", false);
             node.LoadBalanceInfo = GetAttr(e, "LoadBalanceInfo", "");
             node.RenderingEngine = GetEnum(e, "RenderingEngine", RenderingEngine.EdgeChromium);
+            node.TerminalBackend = GetEnum(e, "TerminalBackend", TerminalBackend.PuttyNg);
 
             // RDP Start Program
             node.RDPStartProgram = GetAttr(e, "StartProgram", "");
@@ -332,6 +333,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             // "Connected" marks sessions the legacy app reopens at startup; kept so a round trip
             // through this app doesn't change that behaviour.
             node.PleaseConnect = GetBool(e, "Connected", false);
+            node.ReplacePluginProperties(PluginPropertySerializer.Deserialize(e["PluginData"]?.InnerText));
 
             // Inheritance
             DeserializeInheritance(e, node.Inheritance);
@@ -389,6 +391,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             inh.UseRCG = GetBool(e, "InheritUseRCG", false);
             inh.UseRedirectionServerName = GetBool(e, "InheritUseRedirectionServerName", false);
             inh.RenderingEngine = GetBool(e, "InheritRenderingEngine", false);
+            inh.TerminalBackend = GetBool(e, "InheritTerminalBackend", false);
             inh.RDPAuthenticationLevel = GetBool(e, "InheritRDPAuthenticationLevel", false);
             inh.RDPMinutesToIdleTimeout = GetBool(e, "InheritRDPMinutesToIdleTimeout", false);
             inh.RDPAlertIdleTimeout = GetBool(e, "InheritRDPAlertIdleTimeout", false);

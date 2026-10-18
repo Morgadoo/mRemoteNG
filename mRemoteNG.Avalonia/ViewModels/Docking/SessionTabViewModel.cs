@@ -35,6 +35,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
     private bool _isDetached;
     private bool _isMultiSshTarget = true;
     private SessionPanelViewModel? _panel;
+    private TextChatViewModel? _textChat;
     private bool _disposed;
 
     public SessionTabViewModel(IProtocol protocol, ConnectionParameters parameters)
@@ -50,6 +51,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         _state = protocol.State;
         if (protocol is IVisualProtocol visual)
             _contentView = visual.CreateView();
+        AttachTextChat();
 
         CloseCommand = ReactiveCommand.Create(() => CloseRequested?.Invoke(this, EventArgs.Empty));
         UpdateTitle();
@@ -302,6 +304,26 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
 
     public bool IsTerminal => _protocol is ITerminalProtocol;
 
+    /// <summary>The session's text chat (UltraVNC chat); null when the protocol has none.</summary>
+    public TextChatViewModel? TextChat => _textChat;
+
+    /// <summary>Raised on the UI thread when the remote side starts a chat and no chat window is open.</summary>
+    public event EventHandler? TextChatRequested;
+
+    private void AttachTextChat()
+    {
+        if (_protocol is ITextChatProtocol chat && _textChat is null)
+        {
+            _textChat = new TextChatViewModel(() => _connection?.Name ?? _parameters.DisplayName, chat);
+            _textChat.OpenRequested += (_, _) => TextChatRequested?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            _textChat?.Attach(_protocol as ITextChatProtocol);
+        }
+        this.RaisePropertyChanged(nameof(TextChat));
+    }
+
     // ── Appearance ────────────────────────────────────────────────────────
 
     /// <summary>The connection's TabColor as a brush; null when none is set.</summary>
@@ -410,6 +432,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         this.RaisePropertyChanged(nameof(ProtocolName));
         this.RaisePropertyChanged(nameof(IconBrush));
         this.RaisePropertyChanged(nameof(IsTerminal));
+        AttachTextChat();
         ContentView = protocol is IVisualProtocol visual ? visual.CreateView() : null;
         StatusText = string.Empty;
         State = protocol.State;
@@ -486,6 +509,7 @@ public sealed class SessionTabViewModel : ReactiveObject, IDisposable
         _protocol.StatusMessage -= OnStatusMessage;
         if (_connection is not null)
             _connection.PropertyChanged -= OnConnectionPropertyChanged;
+        _textChat?.Dispose();
         _protocol.Dispose();
     }
 }

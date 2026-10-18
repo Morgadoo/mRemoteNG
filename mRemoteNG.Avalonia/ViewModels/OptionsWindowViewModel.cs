@@ -605,6 +605,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     private readonly ICryptoProvider? _crypto;
     private readonly Func<int> _credentialCount;
     private readonly mRemoteNG.ExternalProviders.ExternalProviderFactory? _externalProviders;
+    private readonly mRemoteNG.ExternalProviders.Plugins.PluginHost? _plugins;
     private readonly AppSettings _working;
     private SettingsCategoryViewModel? _selectedCategory;
     private object? _currentPage;
@@ -618,8 +619,9 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         UpdateCheckService updates,
         mRemoteNG.Core.Credential.FileCredentialRepository credentials,
         ICryptoProvider? crypto = null,
-        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders = null)
-        : this(settings, updates, () => credentials.CredentialRecords.Count, crypto, externalProviders)
+        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders = null,
+        mRemoteNG.ExternalProviders.Plugins.PluginHost? plugins = null)
+        : this(settings, updates, () => credentials.CredentialRecords.Count, crypto, externalProviders, plugins)
     {
     }
 
@@ -628,13 +630,15 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         UpdateCheckService updates,
         Func<int> credentialCount,
         ICryptoProvider? crypto,
-        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders)
+        mRemoteNG.ExternalProviders.ExternalProviderFactory? externalProviders,
+        mRemoteNG.ExternalProviders.Plugins.PluginHost? plugins)
     {
         _settings = settings;
         _updates = updates;
         _crypto = crypto;
         _credentialCount = credentialCount;
         _externalProviders = externalProviders;
+        _plugins = plugins;
         _working = settings.CreateEditableCopy();
         CreatePages();
 
@@ -658,6 +662,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
     public SavingSettingsViewModel Saving { get; private set; } = null!;
     public SqlServerSettingsViewModel SqlServer { get; private set; } = null!;
     public LoggingSettingsViewModel Logging { get; private set; } = null!;
+    public PluginsSettingsViewModel Plugins { get; private set; } = null!;
 
     public List<SettingsCategoryViewModel> Categories { get; } =
     [
@@ -671,6 +676,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         new(Localizer.Get("ExternalProviders"), "externalProviders", MaterialIconKind.ShieldKeyOutline),
         new(Localizer.Get("Notifications"), "notifications", MaterialIconKind.BellOutline),
         new(Localizer.Get("Logging"), "logging", MaterialIconKind.TextBoxOutline),
+        new(Localizer.Get("Plugins"), "plugins", MaterialIconKind.PuzzleOutline),
         new(Localizer.Get("Updates"), "updates", MaterialIconKind.Update),
     ];
 
@@ -805,6 +811,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         Saving = new SavingSettingsViewModel(_working);
         SqlServer = new SqlServerSettingsViewModel(_working, _crypto);
         Logging = new LoggingSettingsViewModel(_working);
+        Plugins = new PluginsSettingsViewModel(_working, _plugins);
     }
 
     private object? ResolvePageViewModel(string? key) => key switch
@@ -820,6 +827,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         "saving" => Saving,
         "sql" => SqlServer,
         "logging" => Logging,
+        "plugins" => Plugins,
         _ => null,
     };
 
@@ -854,6 +862,7 @@ public sealed class OptionsWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(Saving));
         this.RaisePropertyChanged(nameof(SqlServer));
         this.RaisePropertyChanged(nameof(Logging));
+        this.RaisePropertyChanged(nameof(Plugins));
         CurrentPage = ResolvePageViewModel(SelectedCategory?.Key);
     }
 }

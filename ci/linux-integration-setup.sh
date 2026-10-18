@@ -4,7 +4,7 @@
 #
 # What it does:
 #   * installs the apt packages the tests look for (sshd, TigerVNC, x11vnc/Xvfb, ImageMagick, xdotool,
-#     socat, inetutils telnetd, FreeRDP 3, xrdp, MariaDB, OpenLDAP slapd, ...);
+#     socat, inetutils telnetd, FreeRDP 3, xrdp, MariaDB + its ODBC driver, OpenLDAP slapd, ...);
 #   * downloads a pinned OpenBao release (SHA-256 checked) for the Vault/OpenBao tests;
 #   * makes sure pwsh is available (Microsoft's apt repository when it is missing);
 #   * starts the two servers the tests do not start themselves:
@@ -48,7 +48,8 @@ APT_PACKAGES=(
     tigervnc-standalone-server      # Xvnc (XvncIntegrationTests, TigerVNC encoding/proxy tests)
     tigervnc-tools                  # vncpasswd
     xvfb                            # Xvfb (x11vnc fixtures, display for the RDP client)
-    x11vnc                          # LibVNCServer encodings, reverse connections (VncListenerTests)
+    x11vnc                          # LibVNCServer encodings, reverse connections (VncListenerTests), UltraVNC file transfer
+    gcc libvncserver-dev            # LibVncChatIntegrationTests compiles a LibVNCServer chat echo server
     x11-xserver-utils               # xsetroot (test patterns)
     imagemagick                     # convert + display (photo-like test pattern for Tight/JPEG)
     xdotool                         # lets the Xvnc test confirm the pointer really moved
@@ -59,6 +60,7 @@ APT_PACKAGES=(
     xrdp xorgxrdp xauth ssl-cert    # the RDP server
     openbox                         # window manager that keeps the RDP session alive
     slapd ldap-utils                # OpenLDAP (Active Directory import, Vault LDAP engine)
+    unixodbc odbc-mariadb           # ODBC driver manager + MariaDB Connector/ODBC (OdbcConnectionsStoreTests)
     curl ca-certificates            # OpenBao download
 )
 
@@ -307,6 +309,8 @@ EOF
     else
         # What the systemd units do: runtime directories, then sesman as root and xrdp as its own user.
         as_root /bin/sh /usr/share/xrdp/socksetup
+        # xrdp writes its pid files to /var/run/xrdp; some containers have a real /var/run, not a link to /run.
+        [[ /var/run -ef /run ]] || as_root ln -sfn /run/xrdp /var/run/xrdp
         local pidfile
         for pidfile in /run/xrdp/xrdp-sesman.pid /run/xrdp/xrdp.pid; do # left behind by a reboot
             if as_root test -f "$pidfile" && ! as_root kill -0 "$(as_root cat "$pidfile")" 2>/dev/null; then

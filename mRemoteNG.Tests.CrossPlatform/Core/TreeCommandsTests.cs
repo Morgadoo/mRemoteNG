@@ -24,6 +24,34 @@ public class TreeCommandsTests
     }
 
     [Fact]
+    public void RootGroups_AreFoundAtAnyDepth_InTreeOrder()
+    {
+        var (root, folder) = BuildTree();
+        var nested = new ContainerInfo { Name = "nested", IsRootGroup = true };
+        var inner = new ContainerInfo { Name = "inner", IsRootGroup = true };
+        nested.AddChild(inner);
+        folder.AddChild(nested);
+        root.AddChild(new ContainerInfo { Name = "top", IsRootGroup = true });
+
+        ConnectionTreeOperations.RootGroups(root).Select(g => g.Name).Should().Equal("nested", "inner", "top");
+    }
+
+    [Fact]
+    public void MoveInto_AnOrdinaryFolder_ClearsTheRootGroupFlag_ButMovingWithinTheRootKeepsIt()
+    {
+        var (root, folder) = BuildTree();
+        var group = new ContainerInfo { Name = "group", IsRootGroup = true };
+        root.AddChild(group);
+
+        ConnectionTreeOperations.MoveInto(group, root, 0);
+        group.IsRootGroup.Should().BeTrue();
+
+        ConnectionTreeOperations.MoveInto(group, folder);
+        group.IsRootGroup.Should().BeFalse();
+        group.Parent.Should().BeSameAs(folder);
+    }
+
+    [Fact]
     public void SortRecursive_Ascending_IsCaseInsensitiveAndNatural()
     {
         var (root, folder) = BuildTree();

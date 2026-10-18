@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using mRemoteNG.Avalonia.ViewModels;
 using mRemoteNG.Avalonia.ViewModels.Docking;
 using mRemoteNG.Avalonia.Views.Dialogs;
 using mRemoteNG.Core.Localization;
@@ -28,6 +29,8 @@ public static class SessionTabMenu
     public static string FullScreen => Localizer.Get("Fullscreen", "Full Screen");
     public static string RefreshScreen => Localizer.Get("RefreshScreen", "Refresh Screen");
     public static string TransferFile => Localizer.Get("TransferFile", "Transfer File (SFTP)") + "...";
+    public static string TransferFileUltraVnc => Localizer.Get("TransferFileUltraVnc") + "...";
+    public static string StartChat => Localizer.Get("StartChat") + "...";
     public static string CopyHostname => Localizer.Get("CopyHostname");
     public static string MultiSshTarget => Localizer.Get("IncludeInMultiSsh");
     public static string MoveToPanel => Localizer.Get("MoveToPanel");
@@ -70,6 +73,10 @@ public static class SessionTabMenu
             new Separator(),
             Item(TransferFile, IsSsh(session) && owner is not null,
                 () => SshFileTransferDialog.ShowFor(owner!, session.Parameters)),
+            Item(TransferFileUltraVnc, protocol is IFileTransferProtocol && connected && owner is not null,
+                () => ShowUltraVncFileTransfer(session, owner!)),
+            Item(StartChat, protocol is ITextChatProtocol && session.TextChat is not null && connected,
+                () => TextChatWindow.ShowFor(session, owner)),
             Item(CopyHostname, !string.IsNullOrEmpty(session.DisplayHostname), () => CopyHostnameAsync(session, owner)),
             Check(MultiSshTarget, session.IsTerminal, session.IsTerminal && session.IsMultiSshTarget,
                 () => session.IsMultiSshTarget = !session.IsMultiSshTarget),
@@ -83,6 +90,32 @@ public static class SessionTabMenu
         };
 
         return new ContextMenu { ItemsSource = items };
+    }
+
+    private static readonly Dictionary<SessionTabViewModel, SshFileTransferDialog> FileTransferWindows = [];
+
+    /// <summary>
+    /// Opens the file browser over the session's own connection (UltraVNC file transfer). One window per session, as
+    /// the replies of the server cannot be told apart.
+    /// </summary>
+    public static SshFileTransferDialog ShowUltraVncFileTransfer(SessionTabViewModel session, Window owner)
+    {
+        if (FileTransferWindows.TryGetValue(session, out var open))
+        {
+            open.Activate();
+            return open;
+        }
+        var viewModel = new SshFileTransferViewModel(
+            Localizer.Get("UltraVncFileTransferTitle"),
+            session.DisplayHostname,
+            Localizer.Format("UltraVncFileTransferDescriptionFormat", session.DisplayTitle),
+            ct => session.Protocol is IFileTransferProtocol files
+                ? files.OpenFileTransferAsync(ct)
+                : throw new InvalidOperationException(Localizer.Get("NotConnected")));
+        var dialog = SshFileTransferDialog.ShowFor(owner, viewModel);
+        FileTransferWindows[session] = dialog;
+        dialog.Closed += (_, _) => FileTransferWindows.Remove(session);
+        return dialog;
     }
 
     public static bool IsSsh(SessionTabViewModel session) =>

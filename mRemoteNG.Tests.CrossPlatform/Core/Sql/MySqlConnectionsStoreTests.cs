@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using FluentAssertions;
 using mRemoteNG.Core.Config.Connections;
 using mRemoteNG.Core.Config.Connections.Multiuser;
@@ -11,6 +12,7 @@ using mRemoteNG.Core.Container;
 using mRemoteNG.Core.Security.Factories;
 using mRemoteNG.Core.Security.SymmetricEncryption;
 using mRemoteNG.Core.Tree;
+using mRemoteNG.Core.Tree.Root;
 using mRemoteNG.Tests.CrossPlatform.Core.Export;
 using Xunit;
 
@@ -108,7 +110,7 @@ public sealed class MySqlConnectionsStoreTests
         new LegacyRijndaelCryptographyProvider().Decrypt(cipher, "mR3m").Should().Be("dbpass");
         MariaDbTestServer.Scalar($"SELECT Colors FROM tblCons WHERE ConstantID = '{tree.Db1.ConstantID}'", db.Name).Should().Be("Colors16Bit");
         MariaDbTestServer.Scalar($"SELECT ParentID FROM tblCons WHERE ConstantID = '{tree.Prod.ConstantID}'", db.Name).Should().Be("0");
-        MariaDbTestServer.Scalar("SELECT ConfVersion FROM tblRoot", db.Name).Should().Be("3.0");
+        MariaDbTestServer.Scalar("SELECT ConfVersion FROM tblRoot", db.Name).Should().Be("3.2");
         var marker = (string)MariaDbTestServer.Scalar("SELECT Protected FROM tblRoot", db.Name)!;
         new LegacyRijndaelCryptographyProvider().Decrypt(marker, "mR3m").Should().Be("ThisIsNotProtected");
     }
@@ -154,9 +156,10 @@ public sealed class MySqlConnectionsStoreTests
         MariaDbTestServer.Execute(script, db.Name);
 
         // A row as the legacy DataTableSerializer writes it: every column of its script, no NULLs.
+        string[] addedAfter30 = ["PluginData", "TerminalBackend", "InheritTerminalBackend"];
         var crypto = new LegacyRijndaelCryptographyProvider();
         var values = SqlSchema.ConnectionColumns
-            .Where(c => !c.IsExtension && c.Kind != SqlColumnKind.Identity)
+            .Where(c => !c.IsExtension && c.Kind != SqlColumnKind.Identity && !addedAfter30.Contains(c.Name))
             .ToDictionary(c => c.Name, c => c.Kind == SqlColumnKind.String ? "''" : c.Kind == SqlColumnKind.DateTime ? "NOW()" : "0");
         void Set(string column, string value) => values[column] = "'" + value + "'";
         Set("ConstantID", "legacy-1");
@@ -202,8 +205,9 @@ public sealed class MySqlConnectionsStoreTests
 
         // The columns the legacy serializer writes but its script does not create were added.
         var columns = Convert.ToInt32(MariaDbTestServer.Scalar(
-            "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tblCons' AND column_name IN ('EnvironmentTags', 'RDGatewayUserViaAPI')", db.Name));
-        columns.Should().Be(2);
+            "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tblCons' AND column_name IN ('EnvironmentTags', 'RDGatewayUserViaAPI', 'PluginData', 'TerminalBackend', 'InheritTerminalBackend', 'TabColor')", db.Name));
+        columns.Should().Be(6, "the 3.1/3.2 columns and the shared extension columns are added too");
+        MariaDbTestServer.Scalar("SELECT ConfVersion FROM tblRoot", db.Name).Should().Be("3.2");
 
         rdp.Name = "renamed";
         store.Save(model);
@@ -227,7 +231,7 @@ public sealed class MySqlConnectionsStoreTests
 
         result.SchemaVersion.Should().Be(new Version(2, 8));
         result.Model.GetRecursiveChildList().Should().HaveCount(5);
-        MariaDbTestServer.Scalar("SELECT ConfVersion FROM tblRoot", db.Name).Should().Be("3.0");
+        MariaDbTestServer.Scalar("SELECT ConfVersion FROM tblRoot", db.Name).Should().Be("3.2");
         Convert.ToInt32(MariaDbTestServer.Scalar(
             "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tblCons' AND column_name IN ('UseRCG', 'EC2Region', 'UserViaAPI', 'RedirectDiskDrivesCustom')", db.Name))
             .Should().Be(4);
@@ -240,7 +244,7 @@ public sealed class MySqlConnectionsStoreTests
         using var db = MariaDbTestServer.CreateDatabase();
         var store = new SqlConnectionsStore(db.Settings());
         store.Save(SampleTree());
-        MariaDbTestServer.Execute("UPDATE tblRoot SET ConfVersion = '3.1'", db.Name);
+        MariaDbTestServer.Execute("UPDATE tblRoot SET ConfVersion = '3.3'", db.Name);
 
         store.Invoking(s => s.Load()).Should().Throw<ConnectionFileVersionException>();
     }
@@ -325,6 +329,95 @@ public sealed class MySqlConnectionsStoreTests
     }
 
     [SkippableFact]
+    public void WinForms32Database_IsAccepted_AndItsNewColumnsRoundTrip()
+    {
+        RequireServer();
+        using var db = MariaDbTestServer.CreateDatabase();
+        var store = new SqlConnectionsStore(db.Settings());
+        var root = new RootNodeInfo(RootNodeType.Connection);
+        var ssh = new ConnectionInfo
+        {
+            Name = "ssh", Hostname = "h", Protocol = mRemoteNG.Core.Connection.Protocol.ProtocolType.SSH2,
+            TerminalBackend = mRemoteNG.Core.Connection.Protocol.TerminalBackend.WindowsTerminal,
+        };
+        ssh.Inheritance.TerminalBackend = true;
+        ssh.SetPluginProperty("mRp.AWS.Enabled", "True");
+        root.AddChild(ssh);
+        store.Save(new ConnectionTreeModel(root));
+        MariaDbTestServer.Execute("UPDATE tblRoot SET ConfVersion = '3.2'", db.Name);
+
+        var loaded = store.Load().Model.GetRecursiveChildList().Single();
+
+        MariaDbTestServer.Scalar("SELECT TerminalBackend FROM tblCons", db.Name).Should().Be("WindowsTerminal");
+        loaded.Inheritance.TerminalBackend.Should().BeTrue();
+        loaded.Inheritance.DisableInheritance();
+        loaded.TerminalBackend.Should().Be(mRemoteNG.Core.Connection.Protocol.TerminalBackend.WindowsTerminal);
+        loaded.GetPluginProperty("mRp.AWS.Enabled").Should().Be("True");
+    }
+
+    [SkippableFact]
+    public void SharedColumns_ReachOtherClients_AndTheAccessTokenIsEncrypted()
+    {
+        RequireServer();
+        using var db = MariaDbTestServer.CreateDatabase();
+        var store = new SqlConnectionsStore(db.Settings());
+        var tree = new ExportTestTree();
+        tree.Web.TabColor = "#c0392b";
+        tree.Web.ConnectionFrameColor = ConnectionFrameColor.Red;
+        tree.Web.VaultOpenbaoMount = "secret";
+        tree.Web.VaultOpenbaoSecretEngine = VaultOpenbaoSecretEngine.SSHOTP;
+        tree.Web.RDGatewayAccessToken = "tok&en<1>";
+        tree.Web.UseRedirectionServerName = true;
+        tree.Web.Inheritance.UseRedirectionServerName = true;
+        store.Save(new ConnectionTreeModel(tree.Root));
+
+        var cipher = (string)MariaDbTestServer.Scalar($"SELECT RDGatewayAccessToken FROM tblCons WHERE ConstantID = '{tree.Web.ConstantID}'", db.Name)!;
+        new LegacyRijndaelCryptographyProvider().Decrypt(cipher, "mR3m").Should().Be("tok&en<1>");
+
+        var web = new SqlConnectionsStore(db.Settings()).Load().Model.GetRecursiveChildList().Single(c => c.Name == "web");
+        web.Inheritance.UseRedirectionServerName.Should().BeTrue();
+        web.Inheritance.DisableInheritance();
+        web.TabColor.Should().Be("#c0392b");
+        web.ConnectionFrameColor.Should().Be(ConnectionFrameColor.Red);
+        web.VaultOpenbaoMount.Should().Be("secret");
+        web.VaultOpenbaoSecretEngine.Should().Be(VaultOpenbaoSecretEngine.SSHOTP);
+        web.RDGatewayAccessToken.Should().Be("tok&en<1>");
+        web.UseRedirectionServerName.Should().BeTrue();
+    }
+
+    [SkippableFact]
+    public void LocalFallback_FillsRowsWrittenByAClientWithoutTheSharedColumns()
+    {
+        RequireServer();
+        using var db = MariaDbTestServer.CreateDatabase();
+        var directory = Path.Combine(Path.GetTempPath(), "mrng-sql-fallback-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var state = new SqlLocalConnectionState(directory);
+            var tree = new ExportTestTree();
+            tree.Web.TabColor = "#c0392b";
+            state.Save(new ConnectionTreeModel(tree.Root));
+            new SqlConnectionsStore(db.Settings()).Save(new ConnectionTreeModel(tree.Root));
+            // An older client inserted the row: the column it does not know is NULL.
+            MariaDbTestServer.Execute($"UPDATE tblCons SET TabColor = NULL WHERE ConstantID = '{tree.Web.ConstantID}'", db.Name);
+
+            var service = new ConnectionsService(new CryptoProviderFactory()) { SqlLocalState = state };
+            service.LoadFromDatabase(new SqlConnectionsStore(db.Settings()));
+            service.ConnectionTreeModel!.GetRecursiveChildList().Single(c => c.Name == "web").TabColor.Should().Be("#c0392b");
+
+            service.SaveToDatabase();
+            MariaDbTestServer.Scalar($"SELECT TabColor FROM tblCons WHERE ConstantID = '{tree.Web.ConstantID}'", db.Name)
+                .Should().Be("#c0392b", "the next save moves the local value into the shared column");
+            XDocument.Load(state.SchemaGapPath).Descendants("Node").Should().BeEmpty("the database now stores every fallback property");
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [SkippableFact]
     public void LocalState_SurvivesTheDatabase_AndIsNotSharedWithIt()
     {
         RequireServer();
@@ -340,8 +433,8 @@ public sealed class MySqlConnectionsStoreTests
             tree.Prod.IsExpanded = false;
             store.Save(new ConnectionTreeModel(tree.Root));
 
-            // The database has no columns for these. They are set on the loaded tree, then saved:
-            // the shared tables stay without them and the per-user files keep them.
+            // Open sessions, expanded folders and favourites are per user: the shared tables stay without them
+            // and the per-user file keeps them. The other properties are shared through the database.
             service.LoadFromDatabase(store);
             var loadedProd = service.ConnectionTreeModel!.RootNode.Children.OfType<ContainerInfo>().Single(c => c.Name == "Prod");
             loadedProd.IsExpanded = false;
@@ -358,11 +451,11 @@ public sealed class MySqlConnectionsStoreTests
 
             var bare = new SqlConnectionsStore(db.Settings()).Load().Model.GetRecursiveChildList().Single(c => c.Name == "web");
             bare.PleaseConnect.Should().BeFalse();
-            bare.TabColor.Should().BeEmpty();
-            bare.ConnectionFrameColor.Should().Be(ConnectionFrameColor.None);
-            bare.VaultOpenbaoMount.Should().BeEmpty();
-            bare.VaultOpenbaoSecretEngine.Should().Be(VaultOpenbaoSecretEngine.Kv);
-            bare.RDGatewayAccessToken.Should().BeEmpty();
+            bare.TabColor.Should().Be("#c0392b");
+            bare.ConnectionFrameColor.Should().Be(ConnectionFrameColor.Red);
+            bare.VaultOpenbaoMount.Should().Be("secret");
+            bare.VaultOpenbaoSecretEngine.Should().Be(VaultOpenbaoSecretEngine.SSHOTP);
+            bare.RDGatewayAccessToken.Should().Be("tok&en<1>");
 
             // Another client expands the folder in the shared database. This client's file still says collapsed.
             var other = new SqlConnectionsStore(db.Settings()).Load().Model;

@@ -95,6 +95,7 @@ Maintainer: mRemoteNG Team <info@mremoteng.org>
 Installed-Size: $INSTALLED_SIZE
 Depends: libx11-6, libxrandr2, libfontconfig1, libdbus-1-3
 Recommends: xfreerdp3, xclip | wl-clipboard, libnotify-bin
+Suggests: libodbc2
 Section: net
 Priority: optional
 Homepage: https://mremoteng.org

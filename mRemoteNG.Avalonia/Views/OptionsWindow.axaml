@@ -89,6 +89,9 @@
                             <DataTemplate DataType="{x:Type vm:LoggingSettingsViewModel}">
                                 <pages:LoggingSettingsPage/>
                             </DataTemplate>
+                            <DataTemplate DataType="{x:Type vm:PluginsSettingsViewModel}">
+                                <pages:PluginsSettingsPage/>
+                            </DataTemplate>
                         </ContentControl.DataTemplates>
                     </ContentControl>
                 </ScrollViewer>

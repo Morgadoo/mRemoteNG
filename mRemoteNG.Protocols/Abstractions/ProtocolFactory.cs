@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using mRemoteNG.Protocols.Ssh;
 using mRemoteNG.Protocols.Telnet;
@@ -70,6 +71,7 @@ public sealed class ProtocolFactory : IProtocolFactory
         services.AddTransient<TelnetProtocol>();
         services.AddTransient<RloginProtocol>();
         services.AddTransient<RdpProtocol>();
+        services.TryAddSingleton<IVncCertificateVerifier>(_ => VncCertificateStore.CreateDefault());
         services.AddTransient<VncProtocol>();
         services.AddTransient<ExternalBrowserProtocol>();
         services.AddTransient<PowerShellProtocol>();

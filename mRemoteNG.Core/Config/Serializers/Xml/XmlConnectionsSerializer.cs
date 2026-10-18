@@ -195,6 +195,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("RDPAlertIdleTimeout", node.RDPAlertIdleTimeout.ToString().ToLowerInvariant());
             element.SetAttribute("LoadBalanceInfo", node.LoadBalanceInfo);
             element.SetAttribute("RenderingEngine", node.RenderingEngine.ToString());
+            element.SetAttribute("TerminalBackend", node.TerminalBackend.ToString());
 
             // RDP Start Program
             element.SetAttribute("StartProgram", node.RDPStartProgram);
@@ -249,6 +250,14 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             if (_saveFilter.SaveInheritance)
                 SerializeInheritance(element, node.Inheritance);
 
+            var pluginData = PluginPropertySerializer.Serialize(node.PluginProperties);
+            if (pluginData.Length > 0)
+            {
+                var pluginElement = doc.CreateElement("PluginData");
+                pluginElement.InnerText = pluginData;
+                element.AppendChild(pluginElement);
+            }
+
             return element;
         }
 
@@ -293,6 +302,7 @@ namespace mRemoteNG.Core.Config.Serializers.Xml
             element.SetAttribute("InheritUseRCG", inh.UseRCG.ToString().ToLowerInvariant());
             element.SetAttribute("InheritUseRedirectionServerName", inh.UseRedirectionServerName.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRenderingEngine", inh.RenderingEngine.ToString().ToLowerInvariant());
+            element.SetAttribute("InheritTerminalBackend", inh.TerminalBackend.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDPAuthenticationLevel", inh.RDPAuthenticationLevel.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDPMinutesToIdleTimeout", inh.RDPMinutesToIdleTimeout.ToString().ToLowerInvariant());
             element.SetAttribute("InheritRDPAlertIdleTimeout", inh.RDPAlertIdleTimeout.ToString().ToLowerInvariant());

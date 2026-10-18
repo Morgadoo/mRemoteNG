@@ -15,8 +15,13 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
 
         public static SqlDialect MsSql { get; } = new MsSqlDialect();
 
-        public static SqlDialect For(DatabaseServerType serverType) =>
-            serverType == DatabaseServerType.MySql ? MySql : MsSql;
+        /// <summary>The dialect of SQL Server or MySQL; ODBC data sources detect theirs when connected.</summary>
+        public static SqlDialect For(DatabaseServerType serverType) => serverType switch
+        {
+            DatabaseServerType.MySql => MySql,
+            DatabaseServerType.MsSql => MsSql,
+            _ => throw new ArgumentOutOfRangeException(nameof(serverType), serverType, "ODBC data sources detect their SQL flavour when connected."),
+        };
 
         public abstract DatabaseServerType ServerType { get; }
 
@@ -90,7 +95,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
             {
                 defaultValue = column.Kind switch
                 {
-                    SqlColumnKind.String => "''",
+                    SqlColumnKind.String or SqlColumnKind.Text => "''",
                     SqlColumnKind.DateTime => "CURRENT_TIMESTAMP",
                     _ => "0",
                 };
@@ -132,6 +137,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
                 SqlColumnKind.Bool or SqlColumnKind.TinyInt => "tinyint",
                 SqlColumnKind.Int => "int",
                 SqlColumnKind.String => StringType(column.Size),
+                SqlColumnKind.Text => "longtext",
                 SqlColumnKind.DateTime => "datetime",
                 _ => throw new ArgumentOutOfRangeException(nameof(column)),
             };
@@ -169,6 +175,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
                 SqlColumnKind.TinyInt => "tinyint",
                 SqlColumnKind.Int => "int",
                 SqlColumnKind.String => StringType(column.Size),
+                SqlColumnKind.Text => "nvarchar(max)",
                 SqlColumnKind.DateTime => "datetime",
                 _ => throw new ArgumentOutOfRangeException(nameof(column)),
             };

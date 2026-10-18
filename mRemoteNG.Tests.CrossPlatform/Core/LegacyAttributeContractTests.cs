@@ -35,17 +35,23 @@ public class LegacyAttributeContractTests : IDisposable
         return dir?.FullName ?? throw new InvalidOperationException("Repository root not found");
     }
 
-    [Fact]
-    public void NewSerializer_WritesEveryAttributeTheLegacyV28SerializerWrites()
+    [Theory]
+    [InlineData("XmlConnectionNodeSerializer28.cs")]
+    [InlineData("XmlConnectionNodeSerializer29.cs")]
+    public void NewSerializer_WritesEveryAttributeTheLegacySerializerWrites(string legacySerializer)
     {
-        var legacySource = File.ReadAllText(Path.Combine(RepoRoot(),
-            "mRemoteNG", "Config", "Serializers", "ConnectionSerializers", "Xml", "XmlConnectionNodeSerializer28.cs"));
-        // Inheritance names moved to AddInheritanceAttribute(..., "InheritX"); the attribute is still written.
-        var legacyAttributes = Regex.Matches(legacySource,
-                @"XAttribute\(""(\w+)""|AddInheritanceAttribute\([^""]*""(\w+)""\)")
+        var xmlDirectory = Path.Combine(RepoRoot(), "mRemoteNG", "Config", "Serializers", "ConnectionSerializers", "Xml");
+        // 2.9 derives from 2.8 and only adds attributes.
+        var legacyAttributes = new[] { "XmlConnectionNodeSerializer28.cs", legacySerializer }
+            .Distinct()
+            .Select(file => File.ReadAllText(Path.Combine(xmlDirectory, file)))
+            // Inheritance names moved to AddInheritanceAttribute(..., "InheritX"); the attribute is still written.
+            .SelectMany(source => Regex.Matches(source, @"XAttribute\(""(\w+)""|AddInheritanceAttribute\([^""]*""(\w+)""\)"))
             .Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value)
             .ToHashSet();
         legacyAttributes.Should().HaveCountGreaterThan(100, "the legacy source was parsed");
+        if (legacySerializer.EndsWith("29.cs", StringComparison.Ordinal))
+            legacyAttributes.Should().Contain(["TerminalBackend", "InheritTerminalBackend"]);
 
         var root = new RootNodeInfo(RootNodeType.Connection);
         // A folder: it gets every connection attribute plus "Expanded".
@@ -156,5 +162,68 @@ public class LegacyAttributeContractTests : IDisposable
         var node = new ConnectionsService(new CryptoProviderFactory()).LoadFromFile(path).GetConnections().Single();
 
         node.RedirectDiskDrives.Should().Be(expected);
+    }
+
+    [Fact]
+    public void Version29File_FromTheWinFormsApp_LoadsTerminalBackendAndPluginData()
+    {
+        var path = Path.Combine(_tempDir, "v29.xml");
+        var marker = new CryptoProviderFactory().Build().Encrypt("ThisIsNotProtected", "mR3m");
+        File.WriteAllText(path, $$"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <Connections Name="Connections" EncryptionEngine="AES" BlockCipherMode="GCM" KdfIterations="1000" FullFileEncryption="false" Protected="{{marker}}" ConfVersion="2.9">
+              <Node Name="ssh" Type="Connection" Protocol="SSH2" Hostname="h" TerminalBackend="WindowsTerminal" InheritTerminalBackend="true" Id="55555555-5555-5555-5555-555555555555">
+                <PluginData>{"mRp.AWS.Enabled":"True","mRp.MultiAddress.Hosts":"a,b"}</PluginData>
+              </Node>
+            </Connections>
+            """);
+
+        var service = new ConnectionsService(new CryptoProviderFactory());
+        var node = service.LoadFromFile(path).GetConnections().Single();
+
+        node.Inheritance.TerminalBackend.Should().BeTrue();
+        node.Inheritance.DisableInheritance();
+        node.TerminalBackend.Should().Be(mRemoteNG.Core.Connection.Protocol.TerminalBackend.WindowsTerminal);
+        node.Inheritance.EnableInheritance();
+        node.GetPluginProperty("mRp.AWS.Enabled").Should().Be("True");
+        node.GetPluginProperty("MRP.MULTIADDRESS.HOSTS").Should().Be("a,b", "keys are case-insensitive like the legacy app");
+
+        service.SaveToFile(path);
+        var element = (XmlElement)new XmlDocument().Also(d => d.Load(path)).DocumentElement!.FirstChild!;
+        element.GetAttribute("TerminalBackend").Should().Be("WindowsTerminal");
+        element.GetAttribute("InheritTerminalBackend").Should().Be("true");
+        element["PluginData"]!.InnerText.Should().Contain("\"mRp.MultiAddress.Hosts\":\"a,b\"");
+
+        var reloaded = new ConnectionsService(new CryptoProviderFactory()).LoadFromFile(path).GetConnections().Single();
+        reloaded.PluginProperties.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void Version30File_IsStillRefused()
+    {
+        var path = Path.Combine(_tempDir, "v30.xml");
+        File.WriteAllText(path, """<?xml version="1.0" encoding="utf-8"?><Connections Name="Connections" ConfVersion="3.0" />""");
+
+        var act = () => new ConnectionsService(new CryptoProviderFactory()).LoadFromFile(path);
+
+        act.Should().Throw<ConnectionFileVersionException>();
+    }
+
+    [Fact]
+    public void PluginData_SurvivesFullFileEncryption_AndClone()
+    {
+        var path = Path.Combine(_tempDir, "encrypted-plugins.xml");
+        var service = new ConnectionsService(new CryptoProviderFactory());
+        var root = service.CreateNew().RootNode;
+        var node = new ConnectionInfo { Name = "n", Hostname = "h" };
+        node.SetPluginProperty("Plugin.Key", "va;lue <&>");
+        root.AddChild(node);
+        node.Clone().GetPluginProperty("plugin.key").Should().Be("va;lue <&>");
+        service.Encryption = service.Encryption with { FullFileEncryption = true };
+        service.SaveToFile(path);
+
+        File.ReadAllText(path).Should().NotContain("Plugin.Key");
+        new ConnectionsService(new CryptoProviderFactory()).LoadFromFile(path).GetConnections().Single()
+            .GetPluginProperty("Plugin.Key").Should().Be("va;lue <&>");
     }
 }

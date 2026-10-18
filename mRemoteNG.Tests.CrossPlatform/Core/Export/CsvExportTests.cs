@@ -27,6 +27,27 @@ public class CsvExportTests : IDisposable
     }
 
     [Fact]
+    public void Export_ThenImport_RoundTripsTerminalBackendAndPluginData()
+    {
+        _tree.Web.TerminalBackend = TerminalBackend.WindowsTerminal;
+        _tree.Lab.Inheritance.TerminalBackend = true;
+        _tree.Web.SetPluginProperty("mRp.AWS.Enabled", "True");
+        var file = Path.Combine(_tempDir, "plugins.csv");
+        _exporter.ExportToFile(file, _tree.Root, new ExportOptions { Format = ExportFormat.Csv });
+
+        var header = File.ReadLines(file).First().Split(';');
+        header.Should().Contain(["TerminalBackend", "InheritTerminalBackend", "PluginData"]);
+
+        var target = new RootNodeInfo(RootNodeType.Connection);
+        new ConnectionImportService(new CryptoProviderFactory()).Import(ImportSourceType.MRemoteNGCsv, file, target)
+            .Warnings.Should().BeEmpty();
+        var web = target.GetRecursiveChildList().Single(c => c.Name == "web");
+        web.TerminalBackend.Should().Be(TerminalBackend.WindowsTerminal);
+        target.GetRecursiveChildList().Single(c => c.Name == "lab").Inheritance.TerminalBackend.Should().BeTrue();
+        web.GetPluginProperty("mRp.AWS.Enabled").Should().Be("True");
+    }
+
+    [Fact]
     public void Export_ThenImport_RoundTripsTreeValuesAndInheritance()
     {
         var file = Path.Combine(_tempDir, "export.csv");

@@ -28,19 +28,19 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
         internal const string LeadingHeader = "Name;Id;Parent;NodeType;Description;Icon;Panel;TabColor;ConnectionFrameColor;";
 
         internal const string MainHeader =
-            "Hostname;Port;VmId;Protocol;SSHTunnelConnectionName;OpeningCommand;SSHOptions;PuttySession;ConnectToConsole;UseCredSsp;UseRestrictedAdmin;UseRCG;UseRedirectionServerName;UseVmId;UseEnhancedMode;RenderingEngine;RDPAuthenticationLevel;" +
+            "Hostname;Port;VmId;Protocol;SSHTunnelConnectionName;OpeningCommand;SSHOptions;PuttySession;ConnectToConsole;UseCredSsp;UseRestrictedAdmin;UseRCG;UseRedirectionServerName;UseVmId;UseEnhancedMode;RenderingEngine;TerminalBackend;RDPAuthenticationLevel;" +
             "LoadBalanceInfo;Colors;Resolution;AutomaticResize;DisplayWallpaper;DisplayThemes;EnableFontSmoothing;EnableDesktopComposition;DisableFullWindowDrag;DisableMenuAnimations;DisableCursorShadow;DisableCursorBlinking;" +
             "CacheBitmaps;RedirectDiskDrives;RedirectDiskDrivesCustom;RedirectPorts;RedirectPrinters;RedirectClipboard;RedirectSmartCards;RedirectSound;RedirectKeys;" +
             "PreExtApp;PostExtApp;MacAddress;UserField;EnvironmentTags;ExtApp;Favorite;VNCCompression;VNCEncoding;VNCAuthMode;VNCProxyType;VNCProxyIP;" +
             "VNCProxyPort;VNCProxyUsername;VNCProxyPassword;VNCColors;VNCSmartSizeMode;VNCViewOnly;RDGatewayUsageMethod;RDGatewayHostname;" +
-            "RDGatewayUseConnectionCredentials;RDGatewayUsername;RDGatewayPassword;RDGatewayAccessToken;RDGatewayDomain;RDGatewayExternalCredentialProvider;RDGatewayUserViaAPI;RedirectAudioCapture;RdpVersion;RDPStartProgram;RDPStartProgramWorkDir;UserViaAPI;EC2InstanceId;EC2Region;ExternalCredentialProvider;ExternalAddressProvider;";
+            "RDGatewayUseConnectionCredentials;RDGatewayUsername;RDGatewayPassword;RDGatewayAccessToken;RDGatewayDomain;RDGatewayExternalCredentialProvider;RDGatewayUserViaAPI;RedirectAudioCapture;RdpVersion;RDPStartProgram;RDPStartProgramWorkDir;UserViaAPI;EC2InstanceId;EC2Region;ExternalCredentialProvider;ExternalAddressProvider;PluginData;";
 
         internal const string InheritanceHeader =
             "InheritCacheBitmaps;InheritColors;InheritDescription;InheritDisplayThemes;InheritDisplayWallpaper;" +
             "InheritEnableFontSmoothing;InheritEnableDesktopComposition;InheritDisableFullWindowDrag;InheritDisableMenuAnimations;InheritDisableCursorShadow;InheritDisableCursorBlinking;InheritDomain;InheritIcon;InheritPanel;InheritTabColor;InheritConnectionFrameColor;InheritPassword;InheritPort;" +
             "InheritProtocol;InheritSSHTunnelConnectionName;InheritOpeningCommand;InheritSSHOptions;InheritPuttySession;InheritRedirectDiskDrives;InheritRedirectDiskDrivesCustom;InheritRedirectKeys;InheritRedirectPorts;InheritRedirectPrinters;" +
             "InheritRedirectClipboard;InheritRedirectSmartCards;InheritRedirectSound;InheritResolution;InheritAutomaticResize;" +
-            "InheritUseConsoleSession;InheritUseCredSsp;InheritUseRestrictedAdmin;InheritUseRCG;InheritUseRedirectionServerName;InheritUseVmId;InheritUseEnhancedMode;InheritVmId;InheritRenderingEngine;InheritUsername;" +
+            "InheritUseConsoleSession;InheritUseCredSsp;InheritUseRestrictedAdmin;InheritUseRCG;InheritUseRedirectionServerName;InheritUseVmId;InheritUseEnhancedMode;InheritVmId;InheritRenderingEngine;InheritTerminalBackend;InheritUsername;" +
             "InheritRDPAuthenticationLevel;InheritLoadBalanceInfo;InheritPreExtApp;InheritPostExtApp;InheritMacAddress;InheritUserField;" +
             "InheritEnvironmentTags;InheritFavorite;InheritExtApp;InheritVNCCompression;InheritVNCEncoding;InheritVNCAuthMode;InheritVNCProxyType;InheritVNCProxyIP;" +
             "InheritVNCProxyPort;InheritVNCProxyUsername;InheritVNCProxyPassword;InheritVNCColors;InheritVNCSmartSizeMode;InheritVNCViewOnly;" +
@@ -137,6 +137,7 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
             Field(sb, con.UseVmId);
             Field(sb, con.UseEnhancedMode);
             Field(sb, con.RenderingEngine);
+            Field(sb, con.TerminalBackend);
             Field(sb, con.RDPAuthenticationLevel);
             Field(sb, con.LoadBalanceInfo);
             Field(sb, con.Colors);
@@ -195,6 +196,7 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
             Field(sb, con.EC2Region);
             Field(sb, con.ExternalCredentialProvider);
             Field(sb, con.ExternalAddressProvider);
+            Field(sb, PluginPropertySerializer.Serialize(con.PluginProperties));
 
             if (!_saveFilter.SaveInheritance)
                 return;
@@ -242,6 +244,7 @@ namespace mRemoteNG.Core.Config.Serializers.Csv
             Field(sb, inh.UseEnhancedMode);
             Field(sb, inh.VmId);
             Field(sb, inh.RenderingEngine);
+            Field(sb, inh.TerminalBackend);
             Field(sb, inh.Username);
             Field(sb, inh.RDPAuthenticationLevel);
             Field(sb, inh.LoadBalanceInfo);

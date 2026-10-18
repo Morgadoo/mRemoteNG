@@ -1,5 +1,8 @@
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Net.Security;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Channels;
 using mRemoteNG.Protocols.Vnc.Rfb.Decoders;
@@ -16,6 +19,8 @@ public sealed class RfbClientOptions
         RfbEncoding.Zrle,
         RfbEncoding.Hextile,
         RfbEncoding.Zlib,
+        RfbEncoding.ZlibHex,
+        RfbEncoding.Ultra,
         RfbEncoding.CoRre,
         RfbEncoding.Rre,
         RfbEncoding.Raw,
@@ -25,9 +30,13 @@ public sealed class RfbClientOptions
         RfbEncoding.Cursor,
     ];
 
-    /// <summary>Security types this client implements, in the default order of preference.</summary>
+    /// <summary>
+    /// Security types this client implements, in the default order of preference. VeNCrypt comes first so that a
+    /// server offering TLS is used encrypted; its unencrypted sub-types work like the plain types.
+    /// </summary>
     public static IReadOnlyList<byte> DefaultSecurityTypes { get; } =
     [
+        RfbSecurityType.VeNCrypt,
         RfbSecurityType.None,
         RfbSecurityType.VncAuthentication,
         RfbSecurityType.AppleRemoteDesktop,
@@ -76,7 +85,22 @@ public sealed class RfbClientOptions
     /// satisfy is used (Apple Remote Desktop and MS-Logon need a user name).
     /// </summary>
     public IReadOnlyList<byte> SecurityTypes { get; init; } = DefaultSecurityTypes;
+
+    /// <summary>Server name for TLS (VeNCrypt X509 sub-types): sent as SNI and checked against the certificate.</summary>
+    public string? TlsTargetHost { get; init; }
+
+    /// <summary>
+    /// Decides whether the server's TLS certificate is trusted. Without one, only certificates the system trusts
+    /// for <see cref="TlsTargetHost"/> are accepted.
+    /// </summary>
+    public RfbCertificateValidator? ValidateServerCertificate { get; init; }
 }
+
+/// <summary>
+/// Returns true to trust <paramref name="certificate"/>; <paramref name="message"/> explains a rejection (or notes
+/// how a certificate was trusted).
+/// </summary>
+public delegate bool RfbCertificateValidator(X509Certificate2 certificate, SslPolicyErrors errors, out string? message);
 
 /// <summary>Cursor shape sent through the Cursor pseudo-encoding; transparent pixels are 0.</summary>
 public sealed record RfbCursor(int Width, int Height, int HotspotX, int HotspotY, uint[] Bgra);
@@ -92,11 +116,12 @@ public sealed record RfbCursor(int Width, int Height, int HotspotX, int HotspotY
 /// </summary>
 public sealed class RfbClient : IDisposable
 {
-    private readonly Stream _stream;
-    private readonly RfbReader _reader;
+    // Replaced by a TLS stream when VeNCrypt negotiates encryption, before the receive and send loops start.
+    private Stream _stream;
+    private RfbReader _reader;
     private readonly IReadOnlyList<int> _encodings;
-    private readonly Channel<byte[]> _sendQueue =
-        Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly Channel<Outgoing> _sendQueue =
+        Channel.CreateUnbounded<Outgoing>(new UnboundedChannelOptions { SingleReader = true });
     private readonly Dictionary<int, IRectangleDecoder> _decoders = new();
     private PixelConverter _converter = PixelConverter.Bgra32;
     private readonly ConcurrentDictionary<int, long> _rectangleCounts = new();
@@ -116,6 +141,22 @@ public sealed class RfbClient : IDisposable
     /// <summary>Negotiated protocol version, e.g. 3.8.</summary>
     public Version ProtocolVersion { get; private set; } = new(3, 3);
     public byte SecurityType { get; private set; }
+
+    /// <summary>The <see cref="Rfb.VeNCryptSubtype"/>, when <see cref="SecurityType"/> is VeNCrypt.</summary>
+    public uint? SecuritySubtype { get; private set; }
+
+    /// <summary>How the server's TLS certificate was trusted, when the certificate validator said so.</summary>
+    public string? TlsVerdict { get; private set; }
+
+    /// <summary>True when the session runs over TLS.</summary>
+    public bool IsEncrypted => _stream is SslStream;
+
+    /// <summary>The server's TLS certificate, for an encrypted session.</summary>
+    public X509Certificate2? ServerCertificate { get; private set; }
+
+    /// <summary>Set when the credentials were sent unencrypted (the VeNCrypt Plain sub-type).</summary>
+    public bool SentCleartextPassword { get; private set; }
+
     public string DesktopName { get; private set; } = string.Empty;
     public PixelFormat ServerPixelFormat { get; private set; }
 
@@ -138,6 +179,12 @@ public sealed class RfbClient : IDisposable
     public event EventHandler? BellReceived;
     public event EventHandler<string>? ServerCutTextReceived;
     public event EventHandler<RfbCursor>? CursorChanged;
+
+    /// <summary>Raised for UltraVNC text chat messages from the server.</summary>
+    public event EventHandler<RfbTextChatMessage>? TextChatReceived;
+
+    /// <summary>Raised for UltraVNC file transfer messages from the server.</summary>
+    public event EventHandler<RfbFileTransferMessage>? FileTransferReceived;
 
     /// <summary>
     /// Raised once when the receive loop ends: with the error that ended it, or null when the client was disposed.
@@ -237,28 +284,97 @@ public sealed class RfbClient : IDisposable
         Enqueue(msg);
     }
 
+    /// <summary>
+    /// UltraVNC text chat: text, cut to <see cref="RfbTextChat.MaxLength"/> bytes of UTF-8 (between characters).
+    /// Empty text is not sent, as its length would be read as no message.
+    /// </summary>
+    public void SendTextChat(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        var bytes = Encoding.UTF8.GetBytes(text);
+        if (bytes.Length > RfbTextChat.MaxLength)
+        {
+            var cut = RfbTextChat.MaxLength;
+            while (cut > 0 && (bytes[cut] & 0xC0) == 0x80)
+                cut--;
+            bytes = bytes[..cut];
+        }
+        if (bytes.Length == 0) return;
+        Enqueue(TextChatMessage((uint)bytes.Length, bytes));
+    }
+
+    /// <summary>UltraVNC text chat control message: <see cref="RfbTextChat.Open"/>, <see cref="RfbTextChat.Close"/> or <see cref="RfbTextChat.Finished"/>.</summary>
+    public void SendTextChatControl(uint control)
+    {
+        if (control is not (RfbTextChat.Open or RfbTextChat.Close or RfbTextChat.Finished))
+            throw new ArgumentOutOfRangeException(nameof(control), control, "Not a text chat control value.");
+        Enqueue(TextChatMessage(control, []));
+    }
+
+    private static byte[] TextChatMessage(uint length, byte[] text)
+    {
+        var msg = new byte[8 + text.Length];
+        msg[0] = RfbClientMessage.TextChat;
+        BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(4), length);
+        text.CopyTo(msg, 8);
+        return msg;
+    }
+
+    /// <summary>
+    /// Sends an UltraVNC file transfer message; <paramref name="sizeHigh"/> is appended after the data (the high
+    /// 32 bits of a file size, sent with a file offer). Completes when the message has been written, so that file
+    /// data can be paced by the connection.
+    /// </summary>
+    public Task SendFileTransferAsync(byte contentType, byte contentParam, uint size, ReadOnlySpan<byte> data, uint? sizeHigh = null)
+    {
+        var msg = new byte[12 + data.Length + (sizeHigh is null ? 0 : 4)];
+        msg[0] = RfbClientMessage.FileTransfer;
+        msg[1] = contentType;
+        msg[2] = contentParam;
+        BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(4), size);
+        BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(8), (uint)data.Length);
+        data.CopyTo(msg.AsSpan(12));
+        if (sizeHigh is { } high)
+            BinaryPrimitives.WriteUInt32BigEndian(msg.AsSpan(12 + data.Length), high);
+
+        var written = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (_disposed || !_sendQueue.Writer.TryWrite(new Outgoing(msg, written)))
+            written.TrySetException(new IOException("The VNC connection is closed."));
+        return written.Task;
+    }
+
     private void Enqueue(byte[] message)
     {
-        if (!_disposed) _sendQueue.Writer.TryWrite(message);
+        if (!_disposed) _sendQueue.Writer.TryWrite(new Outgoing(message, null));
     }
 
     private async Task SendLoopAsync()
     {
+        Outgoing current = default;
         try
         {
             await foreach (var message in _sendQueue.Reader.ReadAllAsync().ConfigureAwait(false))
-                await _stream.WriteAsync(message).ConfigureAwait(false);
+            {
+                current = message;
+                await _stream.WriteAsync(message.Data).ConfigureAwait(false);
+                message.Written?.TrySetResult();
+                current = default;
+            }
         }
-        catch (Exception) when (_disposed)
+        catch (Exception ex)
         {
-            // Closing the stream interrupts a pending write.
-        }
-        catch (Exception)
-        {
+            current.Written?.TrySetException(new IOException("The VNC connection is closed.", ex));
             // A broken connection also ends the receive loop, which reports it; just unblock the stream.
-            _stream.Dispose();
+            if (!_disposed) _stream.Dispose();
+        }
+        finally
+        {
+            while (_sendQueue.Reader.TryRead(out var pending))
+                pending.Written?.TrySetException(new IOException("The VNC connection is closed."));
         }
     }
+
+    private readonly record struct Outgoing(byte[] Data, TaskCompletionSource? Written);
 
     // ── Handshake ──────────────────────────────────────────────────────────
 
@@ -284,6 +400,8 @@ public sealed class RfbClient : IDisposable
         _decoders[RfbEncoding.Zlib] = new ZlibDecoder(_converter);
         _decoders[RfbEncoding.Tight] = new TightDecoder(_converter);
         _decoders[RfbEncoding.Zrle] = new ZrleDecoder(_converter);
+        _decoders[RfbEncoding.ZlibHex] = new ZlibHexDecoder(_converter);
+        _decoders[RfbEncoding.Ultra] = new UltraDecoder(_converter);
 
         var setPixelFormat = new byte[4 + Rfb.PixelFormat.Size];
         setPixelFormat[0] = RfbClientMessage.SetPixelFormat;
@@ -320,6 +438,7 @@ public sealed class RfbClient : IDisposable
     {
         var minor = ProtocolVersion.Minor;
         byte type;
+        byte[] offeredTypes = [];
         if (minor == 3)
         {
             // RFB 3.3: the server dictates the type.
@@ -336,6 +455,7 @@ public sealed class RfbClient : IDisposable
             if (count == 0)
                 throw new RfbAuthenticationException($"The server refused the connection: {_reader.ReadString()}");
             var offered = _reader.ReadBytes(count);
+            offeredTypes = offered;
             type = ChooseSecurityType(offered, options)
                 ?? throw new RfbProtocolException("The server offers no supported security type (offered: "
                     + string.Join(", ", offered.Select(SecurityTypeName)) + "). Supported: "
@@ -344,9 +464,18 @@ public sealed class RfbClient : IDisposable
         }
         SecurityType = type;
 
-        switch (type)
+        // The authentication that follows: the security type itself, or the VeNCrypt sub-type.
+        uint authentication = type;
+        if (type == RfbSecurityType.VeNCrypt)
         {
-            case RfbSecurityType.VncAuthentication:
+            _stream.Flush();
+            authentication = NegotiateVeNCrypt(options, offeredTypes.Any(t => t != RfbSecurityType.VeNCrypt
+                && options.SecurityTypes.Contains(t) && RfbClientOptions.DefaultSecurityTypes.Contains(t)));
+        }
+
+        switch (authentication)
+        {
+            case RfbSecurityType.VncAuthentication or VeNCryptSubtype.TlsVnc or VeNCryptSubtype.X509Vnc:
             {
                 var challenge = _reader.ReadBytes(VncAuthentication.ChallengeLength);
                 if (options.Password is null)
@@ -374,6 +503,22 @@ public sealed class RfbClient : IDisposable
                 _stream.Write(MsLogon2Authentication.ComputeResponse(generator, modulus, serverPublic, options.Username, options.Password ?? ""));
                 break;
             }
+
+            case VeNCryptSubtype.Plain or VeNCryptSubtype.TlsPlain or VeNCryptSubtype.X509Plain:
+            {
+                if (string.IsNullOrEmpty(options.Username))
+                    throw new RfbAuthenticationException("The server requires a user name and password (VeNCrypt Plain): configure them for this connection.");
+                var user = Encoding.UTF8.GetBytes(options.Username);
+                var password = Encoding.UTF8.GetBytes(options.Password ?? "");
+                var message = new byte[8 + user.Length + password.Length];
+                BinaryPrimitives.WriteUInt32BigEndian(message, (uint)user.Length);
+                BinaryPrimitives.WriteUInt32BigEndian(message.AsSpan(4), (uint)password.Length);
+                user.CopyTo(message, 8);
+                password.CopyTo(message, 8 + user.Length);
+                _stream.Write(message);
+                SentCleartextPassword = !IsEncrypted;
+                break;
+            }
         }
         _stream.Flush();
 
@@ -392,10 +537,119 @@ public sealed class RfbClient : IDisposable
             catch (IOException) { /* some servers just close the connection */ }
         }
         reason ??= result == 2 ? "too many authentication attempts" : "the server rejected the credentials";
-        throw new RfbAuthenticationException(type == RfbSecurityType.None
+        throw new RfbAuthenticationException(authentication is RfbSecurityType.None or VeNCryptSubtype.TlsNone or VeNCryptSubtype.X509None
             ? $"The server rejected the connection: {reason}"
-            : $"{SecurityTypeName(type)} failed: {reason}");
+            : SecuritySubtype is { } subtype
+                ? $"VeNCrypt {VeNCryptSubtype.Name(subtype)} authentication failed: {reason}"
+                : $"{SecurityTypeName(type)} failed: {reason}");
     }
+
+    /// <summary>
+    /// VeNCrypt 0.2: agrees on a sub-type and, for the X509 ones, switches the connection to TLS.
+    /// Returns the sub-type, whose authentication follows (inside TLS when encrypted).
+    /// </summary>
+    private uint NegotiateVeNCrypt(RfbClientOptions options, bool otherTypesOffered)
+    {
+        int major = _reader.ReadByte();
+        int minor = _reader.ReadByte();
+        if (major != 0 || minor < 2)
+            throw new RfbProtocolException($"The server speaks VeNCrypt {major}.{minor}; only 0.2 is supported.");
+        _stream.Write([0, 2]);
+        _stream.Flush();
+        if (_reader.ReadByte() != 0)
+            throw new RfbProtocolException("The server refused VeNCrypt version 0.2.");
+
+        int count = _reader.ReadByte();
+        var offered = new uint[count];
+        for (var i = 0; i < count; i++)
+            offered[i] = _reader.ReadUInt32();
+
+        var subtype = ChooseVeNCryptSubtype(offered, options)
+            ?? throw new RfbVeNCryptUnsupportedException(
+                "The server offers no usable VeNCrypt sub-type (offered: "
+                + (count == 0 ? "none" : string.Join(", ", offered.Select(VeNCryptSubtype.Name)))
+                + "). Anonymous TLS (the TLS* sub-types) is not supported; configure the server to use an X509 certificate.",
+                otherTypesOffered);
+        Span<byte> choice = stackalloc byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(choice, subtype);
+        _stream.Write(choice);
+        _stream.Flush();
+        SecuritySubtype = subtype;
+
+        if (VeNCryptSubtype.UsesX509(subtype))
+        {
+            if (_reader.ReadByte() != 1)
+                throw new RfbProtocolException($"The server refused the VeNCrypt {VeNCryptSubtype.Name(subtype)} sub-type.");
+            StartTls(options);
+        }
+        return subtype;
+    }
+
+    /// <summary>
+    /// The preferred VeNCrypt sub-type: TLS with a certificate first (user name and password, VNC password, then
+    /// none, as the credentials allow), then the unencrypted VNC password and None, and Plain (clear-text password)
+    /// last. Failing that, a sub-type that needs a missing credential, so the error names it; null when nothing fits.
+    /// </summary>
+    internal static uint? ChooseVeNCryptSubtype(IReadOnlyCollection<uint> offered, RfbClientOptions options)
+    {
+        var hasUser = !string.IsNullOrEmpty(options.Username);
+        var hasPassword = options.Password is not null;
+        var preferred = new List<uint>();
+        if (hasUser) preferred.Add(VeNCryptSubtype.X509Plain);
+        if (hasPassword) preferred.Add(VeNCryptSubtype.X509Vnc);
+        preferred.Add(VeNCryptSubtype.X509None);
+        if (hasPassword) preferred.Add(VeNCryptSubtype.VncAuthentication);
+        preferred.Add(VeNCryptSubtype.None);
+        if (hasUser) preferred.Add(VeNCryptSubtype.Plain);
+        preferred.AddRange([VeNCryptSubtype.X509Vnc, VeNCryptSubtype.X509Plain, VeNCryptSubtype.VncAuthentication, VeNCryptSubtype.Plain]);
+        foreach (var subtype in preferred)
+        {
+            if (offered.Contains(subtype)) return subtype;
+        }
+        return null;
+    }
+
+    private void StartTls(RfbClientOptions options)
+    {
+        if (_reader.BufferedCount != 0)
+            throw new RfbProtocolException("The server sent unexpected data before the TLS handshake.");
+
+        string? verdict = null;
+        var tls = new SslStream(_stream, leaveInnerStreamOpen: false);
+        var authentication = new SslClientAuthenticationOptions
+        {
+            TargetHost = options.TlsTargetHost ?? string.Empty,
+            RemoteCertificateValidationCallback = (_, certificate, _, errors) =>
+            {
+                if (certificate is null)
+                {
+                    verdict = "The server did not present a TLS certificate.";
+                    return false;
+                }
+                var server = certificate as X509Certificate2 ?? X509CertificateLoader.LoadCertificate(certificate.GetRawCertData());
+                if (options.ValidateServerCertificate is { } validate)
+                    return validate(server, errors, out verdict);
+                if (errors == SslPolicyErrors.None) return true;
+                verdict = $"The server's TLS certificate is not trusted ({errors}).";
+                return false;
+            },
+        };
+        try
+        {
+            tls.AuthenticateAsClientAsync(authentication).GetAwaiter().GetResult();
+        }
+        catch (AuthenticationException ex)
+        {
+            tls.Dispose();
+            throw new RfbAuthenticationException(verdict ?? $"The TLS handshake with the server failed: {ex.Message}");
+        }
+
+        ServerCertificate = tls.RemoteCertificate as X509Certificate2;
+        TlsVerdict = verdict;
+        _stream = tls;
+        _reader = new RfbReader(tls);
+    }
+
 
     /// <summary>
     /// The first preferred type the server offers that the credentials can satisfy; failing that, the first
@@ -434,7 +688,7 @@ public sealed class RfbClient : IDisposable
         5 or 6 => $"RA2 ({type})",
         16 => "Tight (16)",
         18 => "TLS (18)",
-        19 => "VeNCrypt (19)",
+        RfbSecurityType.VeNCrypt => "VeNCrypt (19)",
         RfbSecurityType.AppleRemoteDesktop => "Apple Remote Desktop authentication",
         RfbSecurityType.MsLogon2 => "MS-Logon II authentication",
         _ => type.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -470,6 +724,12 @@ public sealed class RfbClient : IDisposable
                     case RfbServerMessage.ServerCutText:
                         _reader.Skip(3);
                         ServerCutTextReceived?.Invoke(this, _reader.ReadString());
+                        break;
+                    case RfbServerMessage.TextChat:
+                        TextChatReceived?.Invoke(this, ReadTextChat());
+                        break;
+                    case RfbServerMessage.FileTransfer:
+                        FileTransferReceived?.Invoke(this, ReadFileTransfer());
                         break;
                     default:
                         throw new RfbProtocolException($"Unknown server message type {type}.");
@@ -541,6 +801,55 @@ public sealed class RfbClient : IDisposable
         // After a resize, ask for the whole (new) desktop rather than changes.
         RequestUpdate(incremental: !resized);
     }
+
+    private RfbTextChatMessage ReadTextChat()
+    {
+        _reader.Skip(3);
+        var length = _reader.ReadUInt32();
+        switch (length)
+        {
+            case RfbTextChat.Open: return new RfbTextChatMessage(RfbTextChatKind.Opened);
+            case RfbTextChat.Close: return new RfbTextChatMessage(RfbTextChatKind.Closed);
+            case RfbTextChat.Finished: return new RfbTextChatMessage(RfbTextChatKind.Finished);
+        }
+        if (length > MaxTextChatLength)
+            throw new RfbProtocolException($"Text chat message of {length} bytes exceeds the {MaxTextChatLength} byte limit.");
+        return new RfbTextChatMessage(RfbTextChatKind.Text, DecodeText(_reader.ReadBytes((int)length)));
+    }
+
+    private const int MaxTextChatLength = 64 * 1024;
+    private const int MaxFileTransferLength = 16 * 1024 * 1024;
+
+    private RfbFileTransferMessage ReadFileTransfer()
+    {
+        var contentType = _reader.ReadByte();
+        var contentParam = _reader.ReadByte();
+        _reader.Skip(1);
+        var size = _reader.ReadUInt32();
+        var length = _reader.ReadUInt32();
+        if (length > MaxFileTransferLength)
+            throw new RfbProtocolException($"File transfer message of {length} bytes exceeds the {MaxFileTransferLength} byte limit.");
+        var data = _reader.ReadBytes((int)length);
+        // A successful FileHeader (the answer to a download request) is followed by the high 32 bits of the size.
+        var sizeHigh = contentType == RfbFileTransfer.FileHeader && size != RfbFileTransfer.Error ? _reader.ReadUInt32() : 0;
+        return new RfbFileTransferMessage(contentType, contentParam, size, data, sizeHigh);
+    }
+
+    /// <summary>UTF-8 when the bytes are valid UTF-8, otherwise Latin-1 (older UltraVNC versions send ANSI text).</summary>
+    internal static string DecodeText(ReadOnlySpan<byte> bytes)
+    {
+        var text = bytes.IndexOf((byte)0) is var nul and >= 0 ? bytes[..nul] : bytes;
+        try
+        {
+            return StrictUtf8.GetString(text);
+        }
+        catch (DecoderFallbackException)
+        {
+            return Encoding.Latin1.GetString(text);
+        }
+    }
+
+    private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, throwOnInvalidBytes: true);
 
     private RfbCursor ReadCursor(RfbRect rect)
     {

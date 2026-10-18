@@ -35,6 +35,8 @@
     <ProjectReference Include="..\mRemoteNG.ExternalProviders\mRemoteNG.ExternalProviders.csproj" />
     <ProjectReference Include="..\mRemoteNG.Platform.Linux\mRemoteNG.Platform.Linux.csproj" />
     <ProjectReference Include="..\mRemoteNG.Platform.Mac\mRemoteNG.Platform.Mac.csproj" />
+    <!-- A real plugin for the plugin host tests (copied into a temporary plugin folder, never used directly). -->
+    <ProjectReference Include="..\mRemoteNG.Plugins.MultiAddress\mRemoteNG.Plugins.MultiAddress.csproj" SetTargetFramework="TargetFramework=net10.0" />
   </ItemGroup>
 
   <!-- Legacy sample connection files shared with the WinForms test suite -->

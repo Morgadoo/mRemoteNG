@@ -15,7 +15,7 @@ public sealed record LanguageOption(string Name, string DisplayName)
 /// Looks up user-facing strings for the current UI culture.
 /// <para>
 /// Two resource sets are searched: the cross-platform app's own <c>Localization/Strings.resx</c> (strings that
-/// are new in this app, English only for now) and the WinForms app's <c>mRemoteNG/Language/Language*.resx</c>
+/// are new in this app, translated in <c>Strings.&lt;culture&gt;.resx</c> for some languages) and the WinForms app's <c>mRemoteNG/Language/Language*.resx</c>
 /// (English plus 24 translations), which are linked into this assembly so both apps share one set of
 /// translations. For each culture of the chain (e.g. de-AT, de) the app's set is tried first and then the
 /// legacy one; when no culture has the key, the English (neutral) text is used. A key nobody defines

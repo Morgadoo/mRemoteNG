@@ -125,6 +125,46 @@ public sealed class SqlLocalConnectionStateTests : IDisposable
     }
 
     [Fact]
+    public void SchemaGap_IsNotWrittenForPropertiesTheDatabaseHasColumnsFor()
+    {
+        var model = Tree();
+        var connection = model.GetRecursiveChildList().Single(n => n.Name == "host");
+        connection.TabColor = "#c0392b";
+        connection.RDGatewayAccessToken = "secret-token";
+        connection.UseRedirectionServerName = true;
+
+        var state = new SqlLocalConnectionState(_directory);
+        state.Save(model, new HashSet<string>(["Name", "TabColor", "RDGatewayAccessToken"], StringComparer.OrdinalIgnoreCase));
+
+        var node = XDocument.Load(state.SchemaGapPath).Descendants("Node").Single();
+        node.Attribute("TabColor").Should().BeNull();
+        node.Attribute("RDGatewayAccessToken").Should().BeNull("the encrypted database column holds the token");
+        node.Attribute("UseRedirectionServerName")!.Value.Should().Be("true");
+    }
+
+    [Fact]
+    public void SchemaGap_OnlyFillsColumnsTheDatabaseLeftNull()
+    {
+        var model = Tree();
+        var connection = model.GetRecursiveChildList().Single(n => n.Name == "host");
+        connection.TabColor = "#c0392b";
+        connection.VaultOpenbaoMount = "local-mount";
+        var state = new SqlLocalConnectionState(_directory);
+        state.Save(model);
+
+        var loaded = Tree();
+        var host = loaded.GetRecursiveChildList().Single(n => n.Name == "host");
+        host.TabColor = "#00ff00";
+        state.Apply(loaded, new Dictionary<string, IReadOnlySet<string>>
+        {
+            [host.ConstantID] = new HashSet<string>(["TabColor"], StringComparer.OrdinalIgnoreCase),
+        });
+
+        host.TabColor.Should().Be("#00ff00", "the shared database value wins");
+        host.VaultOpenbaoMount.Should().Be("local-mount", "the column was NULL, so the local value is used");
+    }
+
+    [Fact]
     public void Apply_IgnoresACorruptFile()
     {
         Directory.CreateDirectory(_directory);

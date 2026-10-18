@@ -145,7 +145,7 @@ public sealed class TigerVncEncodingTests
     }
 }
 
-/// <summary>LibVNCServer (x11vnc) encodings, including Zlib and CoRRE, against Raw.</summary>
+/// <summary>LibVNCServer (x11vnc) encodings, including Zlib, CoRRE and Ultra, against Raw.</summary>
 [Trait("Category", "Integration")]
 [Collection(X11VncCollection.Name)]
 public sealed class X11VncEncodingTests
@@ -169,6 +169,9 @@ public sealed class X11VncEncodingTests
         { "Zlib", RfbEncoding.Zlib, 16 },
         { "Tight", RfbEncoding.Tight, 16 },
         { "CoRRE", RfbEncoding.CoRre, 8 },
+        { "Ultra", RfbEncoding.Ultra, 32 },
+        { "Ultra", RfbEncoding.Ultra, 16 },
+        { "Ultra", RfbEncoding.Ultra, 8 },
     };
 
     [SkippableTheory]

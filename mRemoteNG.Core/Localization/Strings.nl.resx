@@ -1,0 +1,2110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- nl translation of Strings.resx: same keys, same placeholders and access keys. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Systeemstandaard</value>
+  </data>
+  <data name="ExternalTools" xml:space="preserve">
+    <value>Externe applicaties</value>
+  </data>
+  <data name="WakeOnLAN" xml:space="preserve">
+    <value>Wake-on-LAN</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Knippen</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Plakken</value>
+  </data>
+  <data name="ExpandAll" xml:space="preserve">
+    <value>Alles uitvouwen</value>
+  </data>
+  <data name="CollapseAll" xml:space="preserve">
+    <value>Alles samenvouwen</value>
+  </data>
+  <data name="DefaultConnectionProperties" xml:space="preserve">
+    <value>Standaard connectie-eigenschappen</value>
+  </data>
+  <data name="RefreshPuTTYSessions" xml:space="preserve">
+    <value>PuTTY-sessies vernieuwen</value>
+  </data>
+  <data name="ConnectionFileProperties" xml:space="preserve">
+    <value>&amp;Eigenschappen van connectiebestand</value>
+  </data>
+  <data name="NoExternalToolsOnTheToolbar" xml:space="preserve">
+    <value>Geen externe applicaties op de werkbalk</value>
+  </data>
+  <data name="AddANewTool" xml:space="preserve">
+    <value>Nieuwe applicatie toevoegen</value>
+  </data>
+  <data name="ProgramNameOrPathEGPing" xml:space="preserve">
+    <value>Programmanaam of pad, bijv. ping, /usr/bin/xterm, C:\Tools\tool.exe</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Optioneel</value>
+  </data>
+  <data name="OptionalImageFilePNGICO" xml:space="preserve">
+    <value>Optioneel afbeeldingsbestand (PNG, ICO…)</value>
+  </data>
+  <data name="OperatingSystem" xml:space="preserve">
+    <value>Besturingssysteem</value>
+  </data>
+  <data name="ToolsForAnotherOperatingSystemStayIn" xml:space="preserve">
+    <value>Applicaties voor een ander besturingssysteem blijven in de lijst, maar worden niet aangeboden om uit te voeren</value>
+  </data>
+  <data name="WaitUntilTheProgramExitsEG" xml:space="preserve">
+    <value>Wachten tot het programma is afgesloten (bijv. vóór het verbinden, bij gebruik als 'Externe applicatie vooraf')</value>
+  </data>
+  <data name="ShowTheProgramSWindowInsideA" xml:space="preserve">
+    <value>Het programmavenster binnen een sessietabblad tonen (Linux/X11 en Windows)</value>
+  </data>
+  <data name="WindowsUACPromptLinuxPkexecMacOSAdministrator" xml:space="preserve">
+    <value>Windows: UAC-prompt. Linux: pkexec. macOS: vraag om beheerderswachtwoord.</value>
+  </data>
+  <data name="Command" xml:space="preserve">
+    <value>Opdracht</value>
+  </data>
+  <data name="RunTheSelectedToolAsEditedFor" xml:space="preserve">
+    <value>De geselecteerde applicatie (zoals bewerkt) uitvoeren voor de hierboven getoonde connectie</value>
+  </data>
+  <data name="OpenFromSQLDatabase" xml:space="preserve">
+    <value>Openen vanuit SQL-&amp;database</value>
+  </data>
+  <data name="ReloadFromSQLDatabase" xml:space="preserve">
+    <value>Opnieuw &amp;laden vanuit SQL-database</value>
+  </data>
+  <data name="EditSelected" xml:space="preserve">
+    <value>Selectie &amp;bewerken</value>
+  </data>
+  <data name="DuplicateSelected" xml:space="preserve">
+    <value>Selectie &amp;dupliceren</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Selectie &amp;verwijderen</value>
+  </data>
+  <data name="ImportConnections" xml:space="preserve">
+    <value>Connecties &amp;importeren</value>
+  </data>
+  <data name="ExportConnections" xml:space="preserve">
+    <value>Connecties &amp;exporteren</value>
+  </data>
+  <data name="ConnectionTree" xml:space="preserve">
+    <value>Connectieboom</value>
+  </data>
+  <data name="LogPanel" xml:space="preserve">
+    <value>Logpaneel</value>
+  </data>
+  <data name="ArrangePanels" xml:space="preserve">
+    <value>Panelen schikken</value>
+  </data>
+  <data name="TabbedOnePanelAtATime" xml:space="preserve">
+    <value>Tabbladen (één paneel tegelijk)</value>
+  </data>
+  <data name="SideBySide" xml:space="preserve">
+    <value>Naast elkaar</value>
+  </data>
+  <data name="Stacked" xml:space="preserve">
+    <value>Gestapeld</value>
+  </data>
+  <data name="DisconnectAll" xml:space="preserve">
+    <value>Alle verbindingen verbreken</value>
+  </data>
+  <data name="CloseAllSessions" xml:space="preserve">
+    <value>Alle sessies sluiten</value>
+  </data>
+  <data name="ConnectSelectedToPanel" xml:space="preserve">
+    <value>Selectie verbinden in paneel</value>
+  </data>
+  <data name="NoFavorites" xml:space="preserve">
+    <value>(Geen favorieten)</value>
+  </data>
+  <data name="UltraVNCSingleClickListener" xml:space="preserve">
+    <value>UltraVNC SingleClick-listener</value>
+  </data>
+  <data name="AboutMRemoteNG" xml:space="preserve">
+    <value>&amp;Over mRemoteNG</value>
+  </data>
+  <data name="OpensTheMRemoteNGReleasesPage" xml:space="preserve">
+    <value>Opent de releasepagina van mRemoteNG</value>
+  </data>
+  <data name="GitHubRepository" xml:space="preserve">
+    <value>GitHub-repository</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Documentatie</value>
+  </data>
+  <data name="OpenLogFile" xml:space="preserve">
+    <value>Logbestand openen</value>
+  </data>
+  <data name="NewConnectionCtrlN" xml:space="preserve">
+    <value>Nieuwe connectie (Ctrl+N)</value>
+  </data>
+  <data name="OpenConnectionFileCtrlO" xml:space="preserve">
+    <value>Connectiebestand openen (Ctrl+O)</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Openen</value>
+  </data>
+  <data name="SaveCtrlS" xml:space="preserve">
+    <value>Opslaan (Ctrl+S)</value>
+  </data>
+  <data name="EditTheSelectedConnectionOrFolderCtrl" xml:space="preserve">
+    <value>De geselecteerde connectie of map bewerken (Ctrl+E)</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Bewerken</value>
+  </data>
+  <data name="ConnectEnter" xml:space="preserve">
+    <value>Verbinden (Enter)</value>
+  </data>
+  <data name="TypeACommandEnterSendsItTo" xml:space="preserve">
+    <value>Typ een opdracht; Enter stuurt deze naar elke open terminalsessie</value>
+  </data>
+  <data name="EnterSendsTheLineUpDownBrowse" xml:space="preserve">
+    <value>Enter verstuurt de regel, Omhoog/Omlaag bladert door de geschiedenis, Ctrl+letter verstuurt een control-toets (Ctrl+C)</value>
+  </data>
+  <data name="UnsavedChangesIndicator" xml:space="preserve">
+    <value>● Niet-opgeslagen wijzigingen</value>
+  </data>
+  <data name="TheConnectionFileHasChangesThatAre" xml:space="preserve">
+    <value>Het connectiebestand bevat wijzigingen die niet zijn opgeslagen (Ctrl+S)</value>
+  </data>
+  <data name="SearchConnectionsWatermark" xml:space="preserve">
+    <value>Zoek op naam, host, beschrijving... (Ctrl+F)</value>
+  </data>
+  <data name="ClearSearchEsc" xml:space="preserve">
+    <value>Zoekopdracht wissen (Esc)</value>
+  </data>
+  <data name="NoActiveSessions" xml:space="preserve">
+    <value>Geen actieve sessies</value>
+  </data>
+  <data name="DoubleClickAConnectionToStartA" xml:space="preserve">
+    <value>Dubbelklik op een connectie om een sessie te starten</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Wissen</value>
+  </data>
+  <data name="DebugConsole" xml:space="preserve">
+    <value>Debugconsole</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>Standaardwaarden herstellen</value>
+  </data>
+  <data name="CrossPlatformNotice" xml:space="preserve">
+    <value>Platformonafhankelijk: Windows · Linux · macOS</value>
+  </data>
+  <data name="CopyrightNotice" xml:space="preserve">
+    <value>© 2026 mRemoteNG Dev Team · Gelicentieerd onder GPL-2.0</value>
+  </data>
+  <data name="Server" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="Dc1CorpExampleEmptyThisComputerS" xml:space="preserve">
+    <value>dc1.corp.example (leeg: het domein van deze computer onder Windows)</value>
+  </data>
+  <data name="N0389Or636WithLDAPS" xml:space="preserve">
+    <value>0 = 389, of 636 met LDAPS</value>
+  </data>
+  <data name="Bind" xml:space="preserve">
+    <value>Binden</value>
+  </data>
+  <data name="UserCNUserDomainOrDOMAINUser" xml:space="preserve">
+    <value>gebruiker (CN=…, user@domain of DOMAIN\user)</value>
+  </data>
+  <data name="OrganizationalUnits" xml:space="preserve">
+    <value>Organisatie-eenheden</value>
+  </data>
+  <data name="Computers" xml:space="preserve">
+    <value>Computers</value>
+  </data>
+  <data name="HostName" xml:space="preserve">
+    <value>Hostnaam</value>
+  </data>
+  <data name="CreateFoldersForSubOUs" xml:space="preserve">
+    <value>Mappen aanmaken voor sub-OU's</value>
+  </data>
+  <data name="ComputersAreImportedAsRDPConnections" xml:space="preserve">
+    <value>Computers worden geïmporteerd als RDP-connecties.</value>
+  </data>
+  <data name="TheConnectionSPanel" xml:space="preserve">
+    <value>(het paneel van de connectie)</value>
+  </data>
+  <data name="Inherit" xml:space="preserve">
+    <value>Erven</value>
+  </data>
+  <data name="DefaultInParentheses" xml:space="preserve">
+    <value>(standaard)</value>
+  </data>
+  <data name="CheckHostStatus" xml:space="preserve">
+    <value>Hoststatus controleren</value>
+  </data>
+  <data name="PingTheHostAndTryToConnect" xml:space="preserve">
+    <value>De host pingen en proberen verbinding te maken met de poort</value>
+  </data>
+  <data name="ConnectionsInThisFolderCanInheritThese" xml:space="preserve">
+    <value>Connecties in deze map kunnen deze aanmeldgegevens erven.</value>
+  </data>
+  <data name="CheckedPropertiesTakeTheirValueFromThe" xml:space="preserve">
+    <value>Aangevinkte eigenschappen nemen hun waarde over van de bovenliggende map (alle protocollen worden getoond).</value>
+  </data>
+  <data name="InheritEverything" xml:space="preserve">
+    <value>Alles erven</value>
+  </data>
+  <data name="CredentialManager" xml:space="preserve">
+    <value>Aanmeldgegevensbeheer</value>
+  </data>
+  <data name="CredentialDetails" xml:space="preserve">
+    <value>Details aanmeldgegevens</value>
+  </data>
+  <data name="CredentialLabel" xml:space="preserve">
+    <value>Label aanmeldgegevens</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Wachtwoord tonen</value>
+  </data>
+  <data name="WindowsDomainOptional" xml:space="preserve">
+    <value>Windows-domein (optioneel)</value>
+  </data>
+  <data name="TheStoredPasswordCouldNotBeDecrypted" xml:space="preserve">
+    <value>Het opgeslagen wachtwoord kon op deze computer niet worden ontsleuteld (het is op een ander systeem opgeslagen). Voer het opnieuw in om het te vervangen; leeg laten behoudt de opgeslagen waarde.</value>
+  </data>
+  <data name="SelectACredentialOrAddANew" xml:space="preserve">
+    <value>Selecteer aanmeldgegevens of voeg nieuwe toe.</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="ExportFormat" xml:space="preserve">
+    <value>Exportformaat</value>
+  </data>
+  <data name="MRemoteNGXMLXmlRecommended" xml:space="preserve">
+    <value>mRemoteNG XML (.xml) — aanbevolen</value>
+  </data>
+  <data name="MRemoteNGCSVCsvForSpreadsheetApps" xml:space="preserve">
+    <value>mRemoteNG CSV (.csv) — voor spreadsheetprogramma's</value>
+  </data>
+  <data name="ExportScope" xml:space="preserve">
+    <value>Exportbereik</value>
+  </data>
+  <data name="AllConnections" xml:space="preserve">
+    <value>Alle connecties</value>
+  </data>
+  <data name="SelectedFolderAndItsChildren" xml:space="preserve">
+    <value>Geselecteerde map en onderliggende items</value>
+  </data>
+  <data name="Include" xml:space="preserve">
+    <value>Opnemen</value>
+  </data>
+  <data name="CSVFilesStorePasswordsInClearText" xml:space="preserve">
+    <value>CSV-bestanden slaan wachtwoorden op als leesbare tekst.</value>
+  </data>
+  <data name="FilePasswordOptional" xml:space="preserve">
+    <value>Bestandswachtwoord (optioneel)</value>
+  </data>
+  <data name="ProtectsTheExportedFileWithAMaster" xml:space="preserve">
+    <value>Beveiligt het geëxporteerde bestand met een hoofdwachtwoord. Leeg laten voor een onbeveiligd bestand.</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Wachtwoord bevestigen</value>
+  </data>
+  <data name="OutputFilePath" xml:space="preserve">
+    <value>Pad van uitvoerbestand</value>
+  </data>
+  <data name="RootName" xml:space="preserve">
+    <value>Naam van hoofdmap</value>
+  </data>
+  <data name="MasterPassword" xml:space="preserve">
+    <value>Hoofdwachtwoord</value>
+  </data>
+  <data name="ProtectThisFileWithAMasterPassword" xml:space="preserve">
+    <value>Dit bestand beveiligen met een hoofdwachtwoord</value>
+  </data>
+  <data name="ChangeTheMasterPassword" xml:space="preserve">
+    <value>Het hoofdwachtwoord wijzigen</value>
+  </data>
+  <data name="CurrentPassword" xml:space="preserve">
+    <value>Huidig wachtwoord</value>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>Nieuw wachtwoord</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Versleuteling</value>
+  </data>
+  <data name="CipherEngine" xml:space="preserve">
+    <value>Versleutelingsengine</value>
+  </data>
+  <data name="EncryptTheCompleteFile" xml:space="preserve">
+    <value>Het volledige bestand versleutelen</value>
+  </data>
+  <data name="ChangesAreWrittenTheNextTimeThe" xml:space="preserve">
+    <value>Wijzigingen worden weggeschreven wanneer het bestand de volgende keer wordt opgeslagen. Bestanden blijven werken in mRemoteNG voor Windows (WinForms).</value>
+  </data>
+  <data name="SSHHostKey" xml:space="preserve">
+    <value>SSH-hostsleutel</value>
+  </data>
+  <data name="HostKeyChangedWarning" xml:space="preserve">
+    <value>WAARSCHUWING: IDENTIFICATIE VAN EXTERNE HOST IS GEWIJZIGD!</value>
+  </data>
+  <data name="SomeoneCouldBeEavesdroppingOnYouRight" xml:space="preserve">
+    <value>Iemand kan u op dit moment afluisteren (man-in-the-middle-aanval). Het is ook mogelijk dat de hostsleutel zojuist door een beheerder is gewijzigd. Ga niet verder tenzij u de nieuwe vingerafdruk hebt gecontroleerd bij de beheerder van de server.</value>
+  </data>
+  <data name="KeyType" xml:space="preserve">
+    <value>Sleuteltype</value>
+  </data>
+  <data name="Fingerprint" xml:space="preserve">
+    <value>Vingerafdruk</value>
+  </data>
+  <data name="IHaveVerifiedTheNewFingerprintAnd" xml:space="preserve">
+    <value>Ik heb de nieuwe vingerafdruk gecontroleerd en wil de opgeslagen sleutel vervangen</value>
+  </data>
+  <data name="ConnectOnce" xml:space="preserve">
+    <value>Eenmalig verbinden</value>
+  </data>
+  <data name="AcceptAndSave" xml:space="preserve">
+    <value>Accepteren en opslaan</value>
+  </data>
+  <data name="ReplaceKeyAndConnect" xml:space="preserve">
+    <value>Sleutel vervangen en verbinden</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Bron</value>
+  </data>
+  <data name="SelectAFileToImport" xml:space="preserve">
+    <value>Selecteer een bestand om te importeren</value>
+  </data>
+  <data name="ImportInto" xml:space="preserve">
+    <value>Importeren in</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Wachtwoord vereist</value>
+  </data>
+  <data name="Hosts" xml:space="preserve">
+    <value>Hosts</value>
+  </data>
+  <data name="DefaultPorts" xml:space="preserve">
+    <value>Standaardpoorten</value>
+  </data>
+  <data name="TimeoutMs" xml:space="preserve">
+    <value>Time-out (ms)</value>
+  </data>
+  <data name="Parallel" xml:space="preserve">
+    <value>Parallel</value>
+  </data>
+  <data name="IdentifyServicesBanners" xml:space="preserve">
+    <value>Services identificeren (banners)</value>
+  </data>
+  <data name="ResolveHostNames" xml:space="preserve">
+    <value>Hostnamen omzetten</value>
+  </data>
+  <data name="StartScan" xml:space="preserve">
+    <value>Scan starten</value>
+  </data>
+  <data name="HostsWithOpenPorts" xml:space="preserve">
+    <value>Hosts met open poorten</value>
+  </data>
+  <data name="AddressColumn" xml:space="preserve">
+    <value>Adres</value>
+  </data>
+  <data name="ImportCheckedHostsAs" xml:space="preserve">
+    <value>Aangevinkte hosts importeren als</value>
+  </data>
+  <data name="ImportIntoTree" xml:space="preserve">
+    <value>Importeren in boom</value>
+  </data>
+  <data name="HostnameLabel" xml:space="preserve">
+    <value>Hostnaam</value>
+  </data>
+  <data name="HostOrIPPort" xml:space="preserve">
+    <value>host of IP[:poort]</value>
+  </data>
+  <data name="OptionalInParentheses" xml:space="preserve">
+    <value>(optioneel)</value>
+  </data>
+  <data name="PrivateKeyOptional" xml:space="preserve">
+    <value>Privésleutel (optioneel)</value>
+  </data>
+  <data name="ParentFolder" xml:space="preserve">
+    <value>Bovenliggende map</value>
+  </data>
+  <data name="RemotePathPressEnterToOpen" xml:space="preserve">
+    <value>Extern pad (druk op Enter om te openen)</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Vernieuwen</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Uploaden</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Grootte</value>
+  </data>
+  <data name="Modified" xml:space="preserve">
+    <value>Gewijzigd</value>
+  </data>
+  <data name="InputRequired" xml:space="preserve">
+    <value>Invoer vereist</value>
+  </data>
+  <data name="ThemeEditor" xml:space="preserve">
+    <value>Thema-editor</value>
+  </data>
+  <data name="StartFrom" xml:space="preserve">
+    <value>Beginnen vanaf</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Opslaan als</value>
+  </data>
+  <data name="NameOfYourTheme" xml:space="preserve">
+    <value>Naam van uw thema</value>
+  </data>
+  <data name="ColoursChangeEverywhereAsYouTypeRrggbb" xml:space="preserve">
+    <value>Kleuren veranderen overal terwijl u typt (#rrggbb).</value>
+  </data>
+  <data name="DeleteTheme" xml:space="preserve">
+    <value>Thema verwijderen</value>
+  </data>
+  <data name="SaveAndApply" xml:space="preserve">
+    <value>Opslaan en toepassen</value>
+  </data>
+  <data name="RemoteUsersRunningUltraVNCSingleClickOrAny" xml:space="preserve">
+    <value>Externe gebruikers met UltraVNC SingleClick (of de functie "verbinden met viewer" van een willekeurige VNC-server) kunnen u op deze poort bereiken. Elke inkomende verbinding opent als een VNC-sessietabblad.</value>
+  </data>
+  <data name="StartListening" xml:space="preserve">
+    <value>Luisteren starten</value>
+  </data>
+  <data name="IncomingConnections" xml:space="preserve">
+    <value>Inkomende verbindingen</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Tijd</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Van</value>
+  </data>
+  <data name="ColorTheme" xml:space="preserve">
+    <value>Kleurthema</value>
+  </data>
+  <data name="CopyAThemeChangeItsColoursAnd" xml:space="preserve">
+    <value>Kopieer een thema, wijzig de kleuren en sla het op als uw eigen thema.</value>
+  </data>
+  <data name="ThemeEditorButton" xml:space="preserve">
+    <value>Thema-editor</value>
+  </data>
+  <data name="Font" xml:space="preserve">
+    <value>Lettertype</value>
+  </data>
+  <data name="FontFamily" xml:space="preserve">
+    <value>Lettertypefamilie</value>
+  </data>
+  <data name="ThemeDefault" xml:space="preserve">
+    <value>(themastandaard)</value>
+  </data>
+  <data name="FontSize" xml:space="preserve">
+    <value>Tekengrootte</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>Indeling</value>
+  </data>
+  <data name="ShowToolbar" xml:space="preserve">
+    <value>Werkbalk tonen</value>
+  </data>
+  <data name="ShowStatusBar" xml:space="preserve">
+    <value>Statusbalk tonen</value>
+  </data>
+  <data name="Defaults" xml:space="preserve">
+    <value>Standaardwaarden</value>
+  </data>
+  <data name="DefaultProtocol" xml:space="preserve">
+    <value>Standaardprotocol</value>
+  </data>
+  <data name="ConnectTimeoutSeconds" xml:space="preserve">
+    <value>Time-out voor verbinden (seconden)</value>
+  </data>
+  <data name="DefaultUsername" xml:space="preserve">
+    <value>Standaard gebruikersnaam</value>
+  </data>
+  <data name="NoneInParentheses" xml:space="preserve">
+    <value>(geen)</value>
+  </data>
+  <data name="DefaultPortsSection" xml:space="preserve">
+    <value>Standaardpoorten</value>
+  </data>
+  <data name="SendKeepAlivePackets" xml:space="preserve">
+    <value>Keep-alive-pakketten verzenden</value>
+  </data>
+  <data name="KeepAliveIntervalSeconds" xml:space="preserve">
+    <value>Keep-alive-interval (seconden)</value>
+  </data>
+  <data name="DefaultPrivateKeyFileOptional" xml:space="preserve">
+    <value>Standaard privésleutelbestand (optioneel)</value>
+  </data>
+  <data name="SavedCredentials" xml:space="preserve">
+    <value>Opgeslagen aanmeldgegevens</value>
+  </data>
+  <data name="CredentialsAreStoredInYourSettingsFolder" xml:space="preserve">
+    <value>Aanmeldgegevens worden opgeslagen in uw instellingenmap. Wachtwoorden worden versleuteld met uw besturingssysteemaccount (DPAPI onder Windows, een privésleutelbestand onder Linux en macOS).</value>
+  </data>
+  <data name="ManageCredentials" xml:space="preserve">
+    <value>Aanmeldgegevens beheren</value>
+  </data>
+  <data name="ExternalProviders" xml:space="preserve">
+    <value>Externe providers</value>
+  </data>
+  <data name="ConnectionsFetchTheirCredentialsFromASecret" xml:space="preserve">
+    <value>Connecties halen hun aanmeldgegevens op uit een geheimenkluis wanneer hun Externe aanmeldgegevensprovider is ingesteld (de geheim-ID of itemverwijzing komt in Gebruiker via API), en hun adres uit AWS wanneer Externe adresprovider AWS is. Geheimen die u hier invoert, worden versleuteld opgeslagen voor uw gebruikersaccount; laat ze leeg om er eenmaal per sessie om te worden gevraagd.</value>
+  </data>
+  <data name="DefaultCredentialProvider" xml:space="preserve">
+    <value>Standaard aanmeldgegevensprovider</value>
+  </data>
+  <data name="UsedForConnectionsWithoutAUsernameAn" xml:space="preserve">
+    <value>Gebruikt voor connecties zonder gebruikersnaam, externe provider of standaard gebruikersnaam.</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Provider</value>
+  </data>
+  <data name="SecretIDReference" xml:space="preserve">
+    <value>Geheim-ID / verwijzing</value>
+  </data>
+  <data name="ServerURL" xml:space="preserve">
+    <value>Server-URL</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationSSO" xml:space="preserve">
+    <value>Geïntegreerde Windows-verificatie (SSO)</value>
+  </data>
+  <data name="DomainOptional" xml:space="preserve">
+    <value>Domein (optioneel)</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>Vergeten</value>
+  </data>
+  <data name="AskForOtpAtLogin" xml:space="preserve">
+    <value>Bij aanmelden om een eenmalig wachtwoord (OTP) vragen</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>Testen</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationWinapi" xml:space="preserve">
+    <value>Geïntegreerde Windows-verificatie (winapi)</value>
+  </data>
+  <data name="APIKey" xml:space="preserve">
+    <value>API-sleutel</value>
+  </data>
+  <data name="AskForOtpPerRequest" xml:space="preserve">
+    <value>Per verzoek om een eenmalig wachtwoord (OTP) vragen</value>
+  </data>
+  <data name="ReferencesOpVaultItemAccountOpVault" xml:space="preserve">
+    <value>Verwijzingen: op://Vault/Item?account=…, op://Vault/Item/field of een itemnaam. Aanmelden wordt afgehandeld door de 1Password CLI (integratie met de desktop-app of OP_SERVICE_ACCOUNT_TOKEN).</value>
+  </data>
+  <data name="CLIPath" xml:space="preserve">
+    <value>CLI-pad</value>
+  </data>
+  <data name="OpFromPATH" xml:space="preserve">
+    <value>op (uit PATH)</value>
+  </data>
+  <data name="DefaultAccount" xml:space="preserve">
+    <value>Standaardaccount</value>
+  </data>
+  <data name="TheMountRoleSecretPathAndSecret" xml:space="preserve">
+    <value>De mount, het rol-/geheimpad en de secret engine (KV, LDAP dynamisch, LDAP statisch, SSH OTP) worden per connectie ingesteld.</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+  </data>
+  <data name="LogInWith" xml:space="preserve">
+    <value>Aanmelden met</value>
+  </data>
+  <data name="AuthMountPath" xml:space="preserve">
+    <value>Auth-mountpad</value>
+  </data>
+  <data name="CACertificatePEM" xml:space="preserve">
+    <value>CA-certificaat (PEM)</value>
+  </data>
+  <data name="SystemTrustStore" xml:space="preserve">
+    <value>(vertrouwensarchief van systeem)</value>
+  </data>
+  <data name="AmazonWebServicesEC2AddressLookup" xml:space="preserve">
+    <value>Amazon Web Services (EC2-adres opzoeken)</value>
+  </data>
+  <data name="ConnectionsSetTheInstanceIDAndRegion" xml:space="preserve">
+    <value>Connecties stellen de instance-ID en regio in. De standaard credential chain leest omgevingsvariabelen, ~/.aws-profielen, SSO en instance-rollen.</value>
+  </data>
+  <data name="ProfileName" xml:space="preserve">
+    <value>Profielnaam</value>
+  </data>
+  <data name="EGDefault" xml:space="preserve">
+    <value>bijv. default</value>
+  </data>
+  <data name="AccessKeyID" xml:space="preserve">
+    <value>Toegangssleutel-ID</value>
+  </data>
+  <data name="SecretAccessKey" xml:space="preserve">
+    <value>Geheime toegangssleutel</value>
+  </data>
+  <data name="DefaultRegion" xml:space="preserve">
+    <value>Standaardregio</value>
+  </data>
+  <data name="ConnectTo" xml:space="preserve">
+    <value>Verbinden met</value>
+  </data>
+  <data name="EC2EndpointURL" xml:space="preserve">
+    <value>EC2-eindpunt-URL</value>
+  </data>
+  <data name="RegionalAWSEndpoint" xml:space="preserve">
+    <value>(regionaal AWS-eindpunt)</value>
+  </data>
+  <data name="Startup" xml:space="preserve">
+    <value>Opstarten</value>
+  </data>
+  <data name="WhenMRemoteNGStarts" xml:space="preserve">
+    <value>Wanneer mRemoteNG start</value>
+  </data>
+  <data name="ConnectionFileToOpenAtStartup" xml:space="preserve">
+    <value>Connectiebestand om bij opstarten te openen</value>
+  </data>
+  <data name="AllowOnlyASingleInstanceOfMRemoteNG" xml:space="preserve">
+    <value>Slechts één exemplaar van mRemoteNG toestaan</value>
+  </data>
+  <data name="StartMinimisedToTheSystemTrayWhen" xml:space="preserve">
+    <value>Geminimaliseerd starten (naar het systeemvak bij minimaliseren naar het systeemvak)</value>
+  </data>
+  <data name="SaveTheOpenConnectionFileWhenExiting" xml:space="preserve">
+    <value>Het geopende connectiebestand opslaan bij afsluiten</value>
+  </data>
+  <data name="ConfirmClosingConnections" xml:space="preserve">
+    <value>Sluiten van connecties bevestigen</value>
+  </data>
+  <data name="SystemTray" xml:space="preserve">
+    <value>Systeemvak</value>
+  </data>
+  <data name="ShowAnIconInTheSystemTray" xml:space="preserve">
+    <value>Een pictogram in het systeemvak tonen</value>
+  </data>
+  <data name="MinimiseToTheSystemTray" xml:space="preserve">
+    <value>Minimaliseren naar het systeemvak</value>
+  </data>
+  <data name="RequiresADesktopEnvironmentWithASystem" xml:space="preserve">
+    <value>Vereist een desktopomgeving met een systeemvak (StatusNotifierItem onder Linux).</value>
+  </data>
+  <data name="LogFile" xml:space="preserve">
+    <value>Logbestand</value>
+  </data>
+  <data name="WriteALogFile" xml:space="preserve">
+    <value>Een logbestand schrijven</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Niveau</value>
+  </data>
+  <data name="TheFileRollsOverAt10MB" xml:space="preserve">
+    <value>Het bestand wordt bij 10 MB vervangen; de vijf vorige bestanden worden bewaard (.1 … .5). Berichten in het Logpaneel worden er ook naar geschreven.</value>
+  </data>
+  <data name="OpenLogFileButton" xml:space="preserve">
+    <value>Logbestand openen</value>
+  </data>
+  <data name="OpenFolder" xml:space="preserve">
+    <value>Map openen</value>
+  </data>
+  <data name="DataFolder" xml:space="preserve">
+    <value>Gegevensmap</value>
+  </data>
+  <data name="PortableModePutAnEmptyFileNamed" xml:space="preserve">
+    <value>Portable modus: plaats een leeg bestand met de naam mRemoteNG.portable naast het programma, of start het met --portable.</value>
+  </data>
+  <data name="DesktopNotifications" xml:space="preserve">
+    <value>Bureaubladmeldingen</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionOpens" xml:space="preserve">
+    <value>Een melding tonen wanneer een connectie wordt geopend</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionCloses" xml:space="preserve">
+    <value>Een melding tonen wanneer een connectie wordt gesloten</value>
+  </data>
+  <data name="ShowANotificationForErrorsWrittenTo" xml:space="preserve">
+    <value>Een melding tonen voor fouten die naar het log worden geschreven</value>
+  </data>
+  <data name="SavingBackups" xml:space="preserve">
+    <value>Opslaan en back-ups</value>
+  </data>
+  <data name="AutomaticSaving" xml:space="preserve">
+    <value>Automatisch opslaan</value>
+  </data>
+  <data name="SaveEveryMinutes0Off" xml:space="preserve">
+    <value>Opslaan elke (minuten, 0 = uit)</value>
+  </data>
+  <data name="AutomaticSavesOnlyHappenWhenThereAre" xml:space="preserve">
+    <value>Automatisch opslaan gebeurt alleen als er niet-opgeslagen wijzigingen zijn en de connecties een bestand (of een beschrijfbare SQL-database) hebben.</value>
+  </data>
+  <data name="BackUpTheConnectionFile" xml:space="preserve">
+    <value>Een back-up van het connectiebestand maken</value>
+  </data>
+  <data name="NumberOfBackupsToKeep" xml:space="preserve">
+    <value>Aantal te bewaren back-ups</value>
+  </data>
+  <data name="BackupFolderEmptyNextToTheConnection" xml:space="preserve">
+    <value>Back-upmap (leeg: naast het connectiebestand)</value>
+  </data>
+  <data name="DefaultChoice" xml:space="preserve">
+    <value>Standaard</value>
+  </data>
+  <data name="ConnectionDatabase" xml:space="preserve">
+    <value>Connectiedatabase</value>
+  </data>
+  <data name="LoadAndSaveTheConnectionsInA" xml:space="preserve">
+    <value>De connecties laden en opslaan in een SQL-database</value>
+  </data>
+  <data name="UsesTheSameTablesAsTheWindows" xml:space="preserve">
+    <value>Gebruikt dezelfde tabellen als de Windows-versie van mRemoteNG (tblCons, tblRoot, tblUpdate), zodat beide een database kunnen delen. Ontbrekende tabellen worden bij het eerste gebruik aangemaakt.</value>
+  </data>
+  <data name="ServerType" xml:space="preserve">
+    <value>Servertype</value>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>Database</value>
+  </data>
+  <data name="SQLServerEmptyForWindowsAuthentication" xml:space="preserve">
+    <value>(SQL Server: leeg voor Windows-verificatie)</value>
+  </data>
+  <data name="MultiUser" xml:space="preserve">
+    <value>Meerdere gebruikers</value>
+  </data>
+  <data name="ReadOnlyNeverWriteToTheDatabase" xml:space="preserve">
+    <value>Alleen-lezen (nooit naar de database schrijven)</value>
+  </data>
+  <data name="CheckForChangesByOtherUsersEvery" xml:space="preserve">
+    <value>Controleren op wijzigingen door andere gebruikers elke (seconden)</value>
+  </data>
+  <data name="ReloadAutomaticallyWhenAnotherUserSavedAnd" xml:space="preserve">
+    <value>Automatisch opnieuw laden wanneer een andere gebruiker heeft opgeslagen en er hier geen niet-opgeslagen wijzigingen zijn</value>
+  </data>
+  <data name="SessionTabs" xml:space="preserve">
+    <value>Sessietabbladen</value>
+  </data>
+  <data name="Panels" xml:space="preserve">
+    <value>Panelen</value>
+  </data>
+  <data name="AutomaticallyTryToReconnectWhenDisconnectedFrom" xml:space="preserve">
+    <value>Automatisch opnieuw proberen te verbinden wanneer de verbinding met de server is verbroken</value>
+  </data>
+  <data name="Attempts" xml:space="preserve">
+    <value>Pogingen</value>
+  </data>
+  <data name="Waits124UpTo30" xml:space="preserve">
+    <value>(wacht 1, 2, 4 … tot 30 seconden tussen pogingen)</value>
+  </data>
+  <data name="UpdateCheckSection" xml:space="preserve">
+    <value>Controle op updates</value>
+  </data>
+  <data name="CheckForUpdatesAtStartupAtMost" xml:space="preserve">
+    <value>Bij opstarten controleren op updates (maximaal eenmaal per dag)</value>
+  </data>
+  <data name="ReleasesToLookFor" xml:space="preserve">
+    <value>Releases om naar te zoeken</value>
+  </data>
+  <data name="InstalledVersion" xml:space="preserve">
+    <value>Geïnstalleerde versie: </value>
+  </data>
+  <data name="DownloadsThePackageForThisSystemAnd" xml:space="preserve">
+    <value>Downloadt het pakket voor dit systeem en controleert de grootte en SHA-256</value>
+  </data>
+  <data name="ShowInFolder" xml:space="preserve">
+    <value>Tonen in map</value>
+  </data>
+  <data name="UseAProxyForUpdateChecksAnd" xml:space="preserve">
+    <value>Een proxy gebruiken voor updatecontroles en downloads (anders de systeemproxy)</value>
+  </data>
+  <data name="TheProxyRequiresAUserNameAnd" xml:space="preserve">
+    <value>De proxy vereist een gebruikersnaam en wachtwoord</value>
+  </data>
+  <data name="SelectThePanelToOpenTheConnection" xml:space="preserve">
+    <value>Selecteer het paneel waarin de connectie moet worden geopend</value>
+  </data>
+  <data name="OrOpenItInANewPanel" xml:space="preserve">
+    <value>Of open deze in een nieuw paneel</value>
+  </data>
+  <data name="NewPanelName" xml:space="preserve">
+    <value>Naam van nieuw paneel</value>
+  </data>
+  <data name="FloatingPanelTitle" xml:space="preserve">
+    <value>Paneel — mRemoteNG</value>
+  </data>
+  <data name="ExitFullScreen" xml:space="preserve">
+    <value>Volledig scherm afsluiten</value>
+  </data>
+  <data name="FloatThisPanelInItsOwnWindow" xml:space="preserve">
+    <value>Dit paneel zwevend in een eigen venster tonen</value>
+  </data>
+  <data name="PanelOptions" xml:space="preserve">
+    <value>Paneelopties</value>
+  </data>
+  <data name="CloseThisPanelAndItsSessions" xml:space="preserve">
+    <value>Dit paneel en de sessies ervan sluiten</value>
+  </data>
+  <data name="NoSessionsInPanel" xml:space="preserve">
+    <value>Geen sessies in dit paneel.
+Open er een connectie in vanuit de connectieboom.</value>
+  </data>
+  <data name="ActiveConnectionsFormat" xml:space="preserve">
+    <value>Actieve verbindingen: {0}</value>
+  </data>
+  <data name="ConnectionFilePropertiesTitleFormat" xml:space="preserve">
+    <value>Eigenschappen van connectiebestand — {0}</value>
+  </data>
+  <data name="ConnectWithOptionsHeadingFormat" xml:space="preserve">
+    <value>Verbinden met "{0}" met:</value>
+  </data>
+  <data name="SectionSshPutty" xml:space="preserve">
+    <value>SSH / PuTTY</value>
+  </data>
+  <data name="SectionRemoteDesktop" xml:space="preserve">
+    <value>Extern bureaublad</value>
+  </data>
+  <data name="SectionExternalAddress" xml:space="preserve">
+    <value>Extern adres</value>
+  </data>
+  <data name="SectionWakeOnLan" xml:space="preserve">
+    <value>Wake-on-LAN</value>
+  </data>
+  <data name="SectionRemoteDesktopDisplay" xml:space="preserve">
+    <value>Extern bureaublad: weergave</value>
+  </data>
+  <data name="SectionRemoteDesktopRedirection" xml:space="preserve">
+    <value>Extern bureaublad: omleiding</value>
+  </data>
+  <data name="SectionVncProxy" xml:space="preserve">
+    <value>VNC-proxy</value>
+  </data>
+  <data name="SectionWeb" xml:space="preserve">
+    <value>Web</value>
+  </data>
+  <data name="SectionExternalApplication" xml:space="preserve">
+    <value>Externe toepassing</value>
+  </data>
+  <data name="SectionExternalTools" xml:space="preserve">
+    <value>Externe applicaties</value>
+  </data>
+  <data name="SendSpecialKeysMenu" xml:space="preserve">
+    <value>Speciale toetsen verzenden</value>
+  </data>
+  <data name="IncludeInMultiSsh" xml:space="preserve">
+    <value>Opnemen in Multi-SSH</value>
+  </data>
+  <data name="MoveToPanel" xml:space="preserve">
+    <value>Verplaatsen naar paneel</value>
+  </data>
+  <data name="CloseOtherTabs" xml:space="preserve">
+    <value>Andere tabbladen sluiten</value>
+  </data>
+  <data name="CloseTabsToTheRight" xml:space="preserve">
+    <value>Tabbladen rechts sluiten</value>
+  </data>
+  <data name="NewTabNamePrompt" xml:space="preserve">
+    <value>Nieuwe tabbladnaam (leeg laten voor de standaardnaam):</value>
+  </data>
+  <data name="InheritHintDefaultConnection" xml:space="preserve">
+    <value>Deze waarden en Erven-vakjes worden aan elke nieuwe connectie en map meegegeven.</value>
+  </data>
+  <data name="InheritHintFolderFormat" xml:space="preserve">
+    <value>Aangevinkte "Erven"-vakjes nemen de waarde over van de map "{0}".</value>
+  </data>
+  <data name="InheritHintRoot" xml:space="preserve">
+    <value>Items direct onder de hoofdmap hebben niets om van te erven.</value>
+  </data>
+  <data name="EditFolderTitleFormat" xml:space="preserve">
+    <value>Map bewerken — {0}</value>
+  </data>
+  <data name="EditConnectionTitleFormat" xml:space="preserve">
+    <value>Connectie bewerken — {0}</value>
+  </data>
+  <data name="ProtocolNoteHttp" xml:space="preserve">
+    <value>Webpagina's worden geopend in uw standaardbrowser; de rendering-engine geldt voor de Windows-app.</value>
+  </data>
+  <data name="ProtocolNoteArd" xml:space="preserve">
+    <value>Apple Remote Desktop verbindt met de ingebouwde VNC-client.</value>
+  </data>
+  <data name="ProtocolNoteAnyDesk" xml:space="preserve">
+    <value>Start de geïnstalleerde AnyDesk-toepassing; vul de AnyDesk-ID in bij Hostnaam.</value>
+  </data>
+  <data name="ProtocolNoteTerminal" xml:space="preserve">
+    <value>Opent een lokale shell; met een hostnaam wordt ssh naar die host uitgevoerd.</value>
+  </data>
+  <data name="ProtocolNoteWsl" xml:space="preserve">
+    <value>Opent een WSL-shell (alleen Windows); Hostnaam selecteert de distributie.</value>
+  </data>
+  <data name="ProtocolNoteRaw" xml:space="preserve">
+    <value>Gewone TCP-socket met lokale regelbewerking.</value>
+  </data>
+  <data name="ProtocolNoteSsh1" xml:space="preserve">
+    <value>SSH1 is verouderd; de connectie gebruikt SSH2.</value>
+  </data>
+  <data name="ProtocolNotSupportedFormat" xml:space="preserve">
+    <value>{0} wordt nog niet ondersteund op dit platform.</value>
+  </data>
+  <data name="NameIsRequired" xml:space="preserve">
+    <value>Naam is verplicht.</value>
+  </data>
+  <data name="InvalidMacAddress" xml:space="preserve">
+    <value>Geen geldig MAC-adres (bijv. 00:11:22:33:44:55).</value>
+  </data>
+  <data name="CheckingHostAndPortFormat" xml:space="preserve">
+    <value>{0} controleren (ping en poort {1})...</value>
+  </data>
+  <data name="PingingHostFormat" xml:space="preserve">
+    <value>{0} pingen...</value>
+  </data>
+  <data name="RdpVersionHighest" xml:space="preserve">
+    <value>Hoogst beschikbare</value>
+  </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>De versie van het Extern bureaublad-besturingselement die de Windows-versie van mRemoteNG gebruikt. FreeRDP onderhandelt altijd over de nieuwste RDP-versie die de server ondersteunt, dus deze app bewaart de instelling voor die app en gebruikt hem niet.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Geen schaduw onder de muisaanwijzer tonen. Wordt gebruikt door de Windows-versie van mRemoteNG; FreeRDP heeft deze optie niet.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>De tekstcursor niet laten knipperen. Wordt gebruikt door de Windows-versie van mRemoteNG; FreeRDP heeft deze optie niet.</value>
+  </data>
+  <data name="ConsoleSessionAsConfigured" xml:space="preserve">
+    <value>Zoals geconfigureerd</value>
+  </data>
+  <data name="ValueNotSet" xml:space="preserve">
+    <value>(niet ingesteld)</value>
+  </data>
+  <data name="CompressionLevelFormat" xml:space="preserve">
+    <value>Niveau {0}</value>
+  </data>
+  <data name="InheritTipDefaultConnection" xml:space="preserve">
+    <value>Nieuwe connecties erven deze eigenschap van hun map.</value>
+  </data>
+  <data name="InheritTipFolderFormat" xml:space="preserve">
+    <value>De waarde van de map "{0}" gebruiken.</value>
+  </data>
+  <data name="InheritTipRoot" xml:space="preserve">
+    <value>Knooppunten direct onder de hoofdmap hebben niets om van te erven.</value>
+  </data>
+  <data name="QuickConnectSubtitle" xml:space="preserve">
+    <value>Verbinden met een host zonder deze aan de connectieboom toe te voegen.</value>
+  </data>
+  <data name="ConnectWithOptionsSubtitleFormat" xml:space="preserve">
+    <value>Deze opties gelden alleen voor deze verbinding met "{0}"; de opgeslagen connectie wordt niet gewijzigd.</value>
+  </data>
+  <data name="ConnectNoCredentialsDescription" xml:space="preserve">
+    <value>De opgeslagen gebruikersnaam, het wachtwoord en het domein weglaten.</value>
+  </data>
+  <data name="SearchSettingsWatermark" xml:space="preserve">
+    <value>Instellingen zoeken</value>
+  </data>
+  <data name="NoSettingsMatch" xml:space="preserve">
+    <value>Geen instellingen gevonden die overeenkomen met de zoekopdracht.</value>
+  </data>
+  <data name="ResetToDefaultsTip" xml:space="preserve">
+    <value>Zet elke optie in dit venster terug. Er verandert niets totdat u op OK of Toepassen drukt.</value>
+  </data>
+  <data name="AppearancePageDescription" xml:space="preserve">
+    <value>Kleuren, taal en lettertypen, en welke delen van het hoofdvenster worden getoond.</value>
+  </data>
+  <data name="FontFamilyDescription" xml:space="preserve">
+    <value>Een lettertype dat op deze computer is geïnstalleerd, bijv. Inter of Segoe UI. Leeg laten voor het lettertype van het thema.</value>
+  </data>
+  <data name="ConnectionsPageDescription" xml:space="preserve">
+    <value>Standaardwaarden voor nieuwe connecties en de standaardpoort van elk protocol.</value>
+  </data>
+  <data name="CredentialsPageManageDescription" xml:space="preserve">
+    <value>De opgeslagen gebruikersnamen en wachtwoorden die connecties kunnen gebruiken toevoegen, bewerken of verwijderen.</value>
+  </data>
+  <data name="NotificationsPageDescription" xml:space="preserve">
+    <value>Meldingen die het bureaublad toont wanneer connecties openen, sluiten of mislukken.</value>
+  </data>
+  <data name="TabsPanelsPageDescription" xml:space="preserve">
+    <value>Hoe sessietabbladen en panelen eruitzien en zich gedragen.</value>
+  </data>
+  <data name="BackupFileName" xml:space="preserve">
+    <value>Bestandsnaam van back-up</value>
+  </data>
+  <data name="BackupNameFormatTip" xml:space="preserve">
+    <value>{0} = het connectiebestand, {1} = het tijdstip van de back-up (.NET-datumnotatie)</value>
+  </data>
+  <data name="LogFileLocation" xml:space="preserve">
+    <value>Locatie van logbestand</value>
+  </data>
+  <data name="CurrentLogFile" xml:space="preserve">
+    <value>Huidig logbestand</value>
+  </data>
+  <data name="CheckForUpdatesNow" xml:space="preserve">
+    <value>Nu controleren op updates</value>
+  </data>
+  <data name="ProxyAddressAndPort" xml:space="preserve">
+    <value>Adres en poort</value>
+  </data>
+  <data name="FolderNodeLabel" xml:space="preserve">
+    <value>Map</value>
+  </data>
+  <data name="SearchPropertiesWatermark" xml:space="preserve">
+    <value>Eigenschappen zoeken</value>
+  </data>
+  <data name="NoPropertiesMatch" xml:space="preserve">
+    <value>Geen eigenschappen gevonden die overeenkomen met de zoekopdracht.</value>
+  </data>
+  <data name="InheritHintLinkFormat" xml:space="preserve">
+    <value>Velden met de koppeling ingeschakeld gebruiken de waarde van de map "{0}".</value>
+  </data>
+  <data name="InheritFromFolderFormat" xml:space="preserve">
+    <value>Erven van map "{0}"</value>
+  </data>
+  <data name="NoHostNameYet" xml:space="preserve">
+    <value>Nog geen hostnaam</value>
+  </data>
+  <data name="InFolderFormat" xml:space="preserve">
+    <value>in {0}</value>
+  </data>
+  <data name="OneFieldNeedsAttention" xml:space="preserve">
+    <value>1 veld vereist aandacht</value>
+  </data>
+  <data name="FieldsNeedAttentionFormat" xml:space="preserve">
+    <value>{0} velden vereisen aandacht</value>
+  </data>
+  <data name="InsertVariable" xml:space="preserve">
+    <value>Invoegen in de argumenten</value>
+  </data>
+  <data name="ImportDialogSubtitle" xml:space="preserve">
+    <value>Kies waar de connecties vandaan komen en waar ze in de boom terechtkomen.</value>
+  </data>
+  <data name="FileToImport" xml:space="preserve">
+    <value>Te importeren bestand</value>
+  </data>
+  <data name="FolderToImport" xml:space="preserve">
+    <value>Te importeren map</value>
+  </data>
+  <data name="DirectoryToImport" xml:space="preserve">
+    <value>Te importeren directory</value>
+  </data>
+  <data name="ExportDialogSubtitle" xml:space="preserve">
+    <value>De connecties, of een map ervan, opslaan in een bestand.</value>
+  </data>
+  <data name="PortScannerSubtitle" xml:space="preserve">
+    <value>Hosts met open poorten voor externe toegang zoeken en aan de boom toevoegen.</value>
+  </data>
+  <data name="CredentialManagerSubtitle" xml:space="preserve">
+    <value>Opgeslagen gebruikersnamen en wachtwoorden die connecties kunnen gebruiken.</value>
+  </data>
+  <data name="ConnectionFilePropertiesHeading" xml:space="preserve">
+    <value>Eigenschappen van connectiebestand</value>
+  </data>
+  <data name="PasswordProtected" xml:space="preserve">
+    <value>Beveiligd</value>
+  </data>
+  <data name="NotPasswordProtected" xml:space="preserve">
+    <value>Niet beveiligd</value>
+  </data>
+  <data name="UltraVncListenerPortDescription" xml:space="preserve">
+    <value>De poort waarmee externe gebruikers verbinding maken (standaard 5500).</value>
+  </data>
+  <data name="PuttyRootToolTip" xml:space="preserve">
+    <value>Opgeslagen PuTTY-sessies (alleen-lezen). Maak verbinding, of dupliceer een sessie om deze naar de connectieboom te kopiëren.</value>
+  </data>
+  <data name="NoHostnameInParentheses" xml:space="preserve">
+    <value>(geen hostnaam)</value>
+  </data>
+  <data name="ToolTipUserFormat" xml:space="preserve">
+    <value>Gebruiker: {0}</value>
+  </data>
+  <data name="PuttySavedSession" xml:space="preserve">
+    <value>Opgeslagen PuTTY-sessie</value>
+  </data>
+  <data name="ReadOnlyNameFormat" xml:space="preserve">
+    <value>{0} (alleen-lezen)</value>
+  </data>
+  <data name="ConfirmCloseSessionsOfFormat" xml:space="preserve">
+    <value>De {0} sessies van "{1}" sluiten?</value>
+  </data>
+  <data name="ConfirmDeleteFolderOneItemFormat" xml:space="preserve">
+    <value>De map "{0}" en het {1} item dat deze bevat verwijderen?</value>
+  </data>
+  <data name="ConfirmDeleteFolderItemsFormat" xml:space="preserve">
+    <value>De map "{0}" en de {1} items die deze bevat verwijderen?</value>
+  </data>
+  <data name="SqlDatabaseStatusFormat" xml:space="preserve">
+    <value>SQL-database: {0}</value>
+  </data>
+  <data name="NewConnectionFileNotSaved" xml:space="preserve">
+    <value>Nieuw connectiebestand (nog niet opgeslagen)</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Naamloos</value>
+  </data>
+  <data name="TitleOneActiveConnection" xml:space="preserve">
+    <value>(1 actieve verbinding)</value>
+  </data>
+  <data name="TitleActiveConnectionsFormat" xml:space="preserve">
+    <value>({0} actieve verbindingen)</value>
+  </data>
+  <data name="IncorrectPasswordTryAgain" xml:space="preserve">
+    <value>Onjuist wachtwoord. Probeer het opnieuw.</value>
+  </data>
+  <data name="FileIsPasswordProtectedFormat" xml:space="preserve">
+    <value>"{0}" is beveiligd met een wachtwoord.</value>
+  </data>
+  <data name="UpdateAvailableTitle" xml:space="preserve">
+    <value>Update beschikbaar</value>
+  </data>
+  <data name="OpenReleasePageQuestion" xml:space="preserve">
+    <value>De releasepagina openen?</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="SaveChangesToFormat" xml:space="preserve">
+    <value>Wilt u de wijzigingen in {0} opslaan?</value>
+  </data>
+  <data name="SaveChangesToNewFile" xml:space="preserve">
+    <value>Wilt u de wijzigingen in het nieuwe connectiebestand opslaan?</value>
+  </data>
+  <data name="UnsavedChangesTitle" xml:space="preserve">
+    <value>Niet-opgeslagen wijzigingen</value>
+  </data>
+  <data name="DontSave" xml:space="preserve">
+    <value>Niet opslaan</value>
+  </data>
+  <data name="StartupReopenLastFile" xml:space="preserve">
+    <value>Het laatste connectiebestand opnieuw openen</value>
+  </data>
+  <data name="StartupOpenSpecificFile" xml:space="preserve">
+    <value>Een specifiek connectiebestand openen</value>
+  </data>
+  <data name="StartupEmptyTree" xml:space="preserve">
+    <value>Starten met een lege connectieboom</value>
+  </data>
+  <data name="ConfirmCloseOnExit" xml:space="preserve">
+    <value>Bij afsluiten met open connecties</value>
+  </data>
+  <data name="ConfirmCloseOnExitAndClose" xml:space="preserve">
+    <value>Bij afsluiten en bij het sluiten van een connectie</value>
+  </data>
+  <data name="PortableDataFolderFormat" xml:space="preserve">
+    <value>Portable modus: alle gegevens worden bewaard in {0}</value>
+  </data>
+  <data name="DataFolderFormat" xml:space="preserve">
+    <value>Gegevensmap: {0}</value>
+  </data>
+  <data name="ThemeDarkChoice" xml:space="preserve">
+    <value>Donker (VS2015 Dark)</value>
+  </data>
+  <data name="ThemeLightChoice" xml:space="preserve">
+    <value>Licht (VS2015 Light)</value>
+  </data>
+  <data name="ThemeFollowSystem" xml:space="preserve">
+    <value>Systeeminstelling volgen</value>
+  </data>
+  <data name="UserThemeFormat" xml:space="preserve">
+    <value>{0} (eigen thema)</value>
+  </data>
+  <data name="OneSavedCredential" xml:space="preserve">
+    <value>1 opgeslagen aanmeldgegeven.</value>
+  </data>
+  <data name="SavedCredentialsFormat" xml:space="preserve">
+    <value>{0} opgeslagen aanmeldgegevens.</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>Controle op updates mislukt: {0}</value>
+  </data>
+  <data name="DownloadFailedFormat" xml:space="preserve">
+    <value>Downloaden mislukt: {0}</value>
+  </data>
+  <data name="DownloadingFormat" xml:space="preserve">
+    <value>{0} downloaden…</value>
+  </data>
+  <data name="UpdateChannelStable" xml:space="preserve">
+    <value>Stabiele releases</value>
+  </data>
+  <data name="UpdateChannelPreRelease" xml:space="preserve">
+    <value>Stabiele releases en pre-releases</value>
+  </data>
+  <data name="CheckingEllipsis" xml:space="preserve">
+    <value>Controleren…</value>
+  </data>
+  <data name="CouldNotSaveSettingsFormat" xml:space="preserve">
+    <value>Kan instellingen niet opslaan: {0}</value>
+  </data>
+  <data name="SecretSavedEncrypted" xml:space="preserve">
+    <value>Opgeslagen (versleuteld)</value>
+  </data>
+  <data name="SecretNotSaved" xml:space="preserve">
+    <value>Niet opgeslagen: wordt gevraagd wanneer nodig</value>
+  </data>
+  <data name="TestingEllipsis" xml:space="preserve">
+    <value>Testen…</value>
+  </data>
+  <data name="UnexpectedErrorFormat" xml:space="preserve">
+    <value>Onverwachte fout: {0}</value>
+  </data>
+  <data name="VaultAuthUserPass" xml:space="preserve">
+    <value>Gebruikersnaam en wachtwoord (userpass)</value>
+  </data>
+  <data name="RoleId" xml:space="preserve">
+    <value>Rol-ID</value>
+  </data>
+  <data name="Token" xml:space="preserve">
+    <value>Token</value>
+  </data>
+  <data name="SecretId" xml:space="preserve">
+    <value>Geheim-ID</value>
+  </data>
+  <data name="AwsDefaultCredentialChain" xml:space="preserve">
+    <value>Standaard AWS credential chain</value>
+  </data>
+  <data name="AwsNamedProfile" xml:space="preserve">
+    <value>Benoemd profiel</value>
+  </data>
+  <data name="AwsSavedAccessKey" xml:space="preserve">
+    <value>Toegangssleutel opgeslagen in mRemoteNG</value>
+  </data>
+  <data name="AwsPublicIp" xml:space="preserve">
+    <value>Openbaar IP-adres</value>
+  </data>
+  <data name="AwsPrivateIp" xml:space="preserve">
+    <value>Privé-IP-adres</value>
+  </data>
+  <data name="AwsPublicDnsName" xml:space="preserve">
+    <value>Openbare DNS-naam</value>
+  </data>
+  <data name="AwsPrivateDnsName" xml:space="preserve">
+    <value>Privé-DNS-naam</value>
+  </data>
+  <data name="DockThisPanelBack" xml:space="preserve">
+    <value>Dit paneel terugzetten in het hoofdvenster</value>
+  </data>
+  <data name="ClosePanel" xml:space="preserve">
+    <value>Paneel sluiten</value>
+  </data>
+  <data name="ConfirmClosePanelFormat" xml:space="preserve">
+    <value>Het paneel "{0}" en de {1} sessie(s) ervan sluiten?</value>
+  </data>
+  <data name="RenamePanel" xml:space="preserve">
+    <value>Paneel hernoemen</value>
+  </data>
+  <data name="PanelNameExistsFormat" xml:space="preserve">
+    <value>Er bestaat al een paneel met de naam "{0}".</value>
+  </data>
+  <data name="DockPanel" xml:space="preserve">
+    <value>Paneel vastzetten</value>
+  </data>
+  <data name="FloatPanel" xml:space="preserve">
+    <value>Paneel zwevend maken</value>
+  </data>
+  <data name="ReconnectingInFormat" xml:space="preserve">
+    <value>Verbinding verbroken. Opnieuw verbinden over {0:0} s (poging {1} van {2})</value>
+  </data>
+  <data name="ReconnectingAttemptFormat" xml:space="preserve">
+    <value>Opnieuw verbinden (poging {0} van {1})…</value>
+  </data>
+  <data name="CouldNotReconnectOneAttempt" xml:space="preserve">
+    <value>Kan niet opnieuw verbinden na {0} poging.</value>
+  </data>
+  <data name="CouldNotReconnectFormat" xml:space="preserve">
+    <value>Kan niet opnieuw verbinden na {0} pogingen.</value>
+  </data>
+  <data name="LoadingEllipsis" xml:space="preserve">
+    <value>Laden…</value>
+  </data>
+  <data name="AdHintWindows" xml:space="preserve">
+    <value>Laat de server leeg om het domein van deze computer te gebruiken en maak dan verbinding.</value>
+  </data>
+  <data name="AdHintOther" xml:space="preserve">
+    <value>Voer een domeincontroller en aanmeldgegevens in en maak dan verbinding.</value>
+  </data>
+  <data name="ConnectingEllipsis" xml:space="preserve">
+    <value>Verbinden…</value>
+  </data>
+  <data name="AdConnectedToDomain" xml:space="preserve">
+    <value>Verbonden met het domein. Kies een OU.</value>
+  </data>
+  <data name="AdConnectedToServerFormat" xml:space="preserve">
+    <value>Verbonden met {0}. Kies een OU.</value>
+  </data>
+  <data name="AdReadingComputersFormat" xml:space="preserve">
+    <value>Computers in {0} lezen…</value>
+  </data>
+  <data name="AdConnectFirst" xml:space="preserve">
+    <value>Maak eerst verbinding en kies een OU.</value>
+  </data>
+  <data name="AdSelectComputer" xml:space="preserve">
+    <value>Selecteer ten minste één computer om te importeren.</value>
+  </data>
+  <data name="AdInvalidCredentials" xml:space="preserve">
+    <value>De server heeft de gebruikersnaam of het wachtwoord geweigerd.</value>
+  </data>
+  <data name="AdServerUnavailable" xml:space="preserve">
+    <value>De directoryserver is niet beschikbaar (controleer de servernaam, poort en LDAPS-instelling).</value>
+  </data>
+  <data name="AdLdapErrorFormat" xml:space="preserve">
+    <value>LDAP-fout {0}: {1}</value>
+  </data>
+  <data name="AdLdapLibraryMissing" xml:space="preserve">
+    <value>De LDAP-bibliotheek (libldap) is niet geïnstalleerd op dit systeem.</value>
+  </data>
+  <data name="AdNoComputersFormat" xml:space="preserve">
+    <value>Geen computers in {0}.</value>
+  </data>
+  <data name="AdNoComputersSubtreeFormat" xml:space="preserve">
+    <value>Geen computers in {0} of de sub-OU's ervan.</value>
+  </data>
+  <data name="AdComputersFormat" xml:space="preserve">
+    <value>{0} computer(s) in {1}.</value>
+  </data>
+  <data name="AdComputersSubtreeFormat" xml:space="preserve">
+    <value>{0} computer(s) in {1} en de sub-OU's ervan.</value>
+  </data>
+  <data name="BackupOnSave" xml:space="preserve">
+    <value>Telkens wanneer de connecties worden opgeslagen</value>
+  </data>
+  <data name="BackupOnExit" xml:space="preserve">
+    <value>Wanneer mRemoteNG wordt afgesloten</value>
+  </data>
+  <data name="BackupsAreOff" xml:space="preserve">
+    <value>Back-ups zijn uitgeschakeld.</value>
+  </data>
+  <data name="BackupNameFormatInvalid" xml:space="preserve">
+    <value>De naamnotatie moet {0} (bestand) en {1} (tijd) bevatten.</value>
+  </data>
+  <data name="BackupExampleNextToFileFormat" xml:space="preserve">
+    <value>Voorbeeld: {0} naast het connectiebestand; de nieuwste {1} worden bewaard.</value>
+  </data>
+  <data name="BackupExampleInFolderFormat" xml:space="preserve">
+    <value>Voorbeeld: {0} in de back-upmap; de nieuwste {1} worden bewaard.</value>
+  </data>
+  <data name="TestFailedFormat" xml:space="preserve">
+    <value>Test mislukt: {0}</value>
+  </data>
+  <data name="SqlHostHintMySql" xml:space="preserve">
+    <value>host of host:poort (standaardpoort 3306)</value>
+  </data>
+  <data name="SqlHostHintMsSql" xml:space="preserve">
+    <value>host, host:poort of host\instance (standaardpoort 1433)</value>
+  </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC-gegevensbron (SQL Server of MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN-naam of ODBC-verbindingsreeks</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>optioneel</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Een gegevensbron uit odbc.ini (bijv. mremoteng) of een verbindingsreeks zoals Driver={MariaDB Unicode};Server=db;Port=3306. Vereist unixODBC en het ODBC-stuurprogramma van de database. Vul het wachtwoord in het veld Wachtwoord in, niet in de reeks.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Een gegevensbron uit ODBC-gegevensbronbeheer (bijv. mremoteng) of een verbindingsreeks zoals Driver={ODBC Driver 18 for SQL Server};Server=db. Vul het wachtwoord in het veld Wachtwoord in, niet in de reeks.</value>
+  </data>
+  <data name="LogLevelDebugEverything" xml:space="preserve">
+    <value>Debug (alles)</value>
+  </data>
+  <data name="LogLevelInformation" xml:space="preserve">
+    <value>Informatie</value>
+  </data>
+  <data name="LogLevelWarnings" xml:space="preserve">
+    <value>Waarschuwingen en fouten</value>
+  </data>
+  <data name="LogLevelErrors" xml:space="preserve">
+    <value>Alleen fouten</value>
+  </data>
+  <data name="PortableDataKeptInFormat" xml:space="preserve">
+    <value>Portable modus: instellingen, aanmeldgegevens, known_hosts, thema's en logs worden bewaard in {0}.</value>
+  </data>
+  <data name="DataKeptInFormat" xml:space="preserve">
+    <value>Instellingen, aanmeldgegevens, known_hosts, thema's en logs worden bewaard in {0}.</value>
+  </data>
+  <data name="NotListening" xml:space="preserve">
+    <value>Luistert niet.</value>
+  </data>
+  <data name="ListeningStoppedFormat" xml:space="preserve">
+    <value>Luisteren gestopt: {0}</value>
+  </data>
+  <data name="CannotListenOnPortFormat" xml:space="preserve">
+    <value>Kan niet luisteren op poort {0}: {1}</value>
+  </data>
+  <data name="ListeningForVncFormat" xml:space="preserve">
+    <value>Luisteren naar inkomende VNC-verbindingen op poort {0}…</value>
+  </data>
+  <data name="FailedFormat" xml:space="preserve">
+    <value>Mislukt: {0}</value>
+  </data>
+  <data name="NoVncProtocolRegistered" xml:space="preserve">
+    <value>er is geen VNC-protocol geregistreerd.</value>
+  </data>
+  <data name="ConnectedToDesktopFormat" xml:space="preserve">
+    <value>Verbonden: "{0}"</value>
+  </data>
+  <data name="ConnectedStatus" xml:space="preserve">
+    <value>Verbonden</value>
+  </data>
+  <data name="ExternalToolsNoConnection" xml:space="preserve">
+    <value>Geen connectie geselecteerd: variabelen zoals %HOSTNAME% zijn leeg.</value>
+  </data>
+  <data name="ExternalToolsTargetFormat" xml:space="preserve">
+    <value>Starten en voorbeeld gebruiken "{0}".</value>
+  </data>
+  <data name="ExternalToolsVariablesHelpFormat" xml:space="preserve">
+    <value>Variabelen: {0}. %-NAME% escapet alleen shell-metatekens, %!NAME% voegt de waarde ongewijzigd in; andere namen zijn omgevingsvariabelen (\%NAME\% altijd, ^%NAME^% behoudt de tekst).</value>
+  </data>
+  <data name="ExternalToolsSaveBeforeIntegrate" xml:space="preserve">
+    <value>Sla uw wijzigingen op voordat u een applicatie start die in een tabblad opent ("Proberen te integreren").</value>
+  </data>
+  <data name="ExternalToolStartedFormat" xml:space="preserve">
+    <value>"{0}" gestart.</value>
+  </data>
+  <data name="ExternalToolNotStartedFormat" xml:space="preserve">
+    <value>"{0}" kon niet worden gestart; zie het log.</value>
+  </data>
+  <data name="ExternalToolNeedsName" xml:space="preserve">
+    <value>Elke applicatie heeft een weergavenaam nodig.</value>
+  </data>
+  <data name="ExternalToolNoFileNameFormat" xml:space="preserve">
+    <value>"{0}" heeft geen bestandsnaam.</value>
+  </data>
+  <data name="ExternalToolDuplicateNameFormat" xml:space="preserve">
+    <value>Er heten meerdere applicaties "{0}"; connecties verwijzen op naam naar applicaties.</value>
+  </data>
+  <data name="CouldNotSaveSeeLogFormat" xml:space="preserve">
+    <value>Kan {0} niet opslaan; zie het log.</value>
+  </data>
+  <data name="ConfirmDeleteExternalToolDetailFormat" xml:space="preserve">
+    <value>De externe applicatie "{0}" verwijderen?
+Connecties die deze gebruiken als externe toepassing, of als applicatie die vóór of na het verbinden wordt uitgevoerd, kunnen deze niet meer vinden.</value>
+  </data>
+  <data name="SelectTheProgram" xml:space="preserve">
+    <value>Selecteer het programma</value>
+  </data>
+  <data name="SelectTheWorkingDirectory" xml:space="preserve">
+    <value>Selecteer de werkmap</value>
+  </data>
+  <data name="SelectAnIcon" xml:space="preserve">
+    <value>Selecteer een pictogram</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Niet verbonden.</value>
+  </data>
+  <data name="SftpConfirmDeleteFolderFormat" xml:space="preserve">
+    <value>De map '{0}' en alles daarin definitief verwijderen?</value>
+  </data>
+  <data name="SftpConfirmDeleteFileFormat" xml:space="preserve">
+    <value>'{0}' definitief verwijderen?</value>
+  </data>
+  <data name="ConnectingToFormat" xml:space="preserve">
+    <value>Verbinden met {0}…</value>
+  </data>
+  <data name="SftpConnectedFormat" xml:space="preserve">
+    <value>Verbonden met {0}. {1} items in {2}.</value>
+  </data>
+  <data name="DisconnectedStatus" xml:space="preserve">
+    <value>Verbinding verbroken.</value>
+  </data>
+  <data name="LoadingFormat" xml:space="preserve">
+    <value>{0} laden…</value>
+  </data>
+  <data name="SftpItemsInFormat" xml:space="preserve">
+    <value>{0} items in {1}.</value>
+  </data>
+  <data name="UploadingEllipsis" xml:space="preserve">
+    <value>Uploaden…</value>
+  </data>
+  <data name="UploadingFileFormat" xml:space="preserve">
+    <value>{0} uploaden…</value>
+  </data>
+  <data name="Uploading" xml:space="preserve">
+    <value>Uploaden</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>Downloaden</value>
+  </data>
+  <data name="UploadedFileFormat" xml:space="preserve">
+    <value>{0} geüpload naar {1}.</value>
+  </data>
+  <data name="UploadedFilesFormat" xml:space="preserve">
+    <value>{0} bestanden geüpload naar {1}.</value>
+  </data>
+  <data name="DownloadedFileFormat" xml:space="preserve">
+    <value>{0} gedownload naar {1}.</value>
+  </data>
+  <data name="CreatingFormat" xml:space="preserve">
+    <value>{0} aanmaken…</value>
+  </data>
+  <data name="CreatedFormat" xml:space="preserve">
+    <value>{0} aangemaakt.</value>
+  </data>
+  <data name="DeletingFormat" xml:space="preserve">
+    <value>{0} verwijderen…</value>
+  </data>
+  <data name="DeletedFormat" xml:space="preserve">
+    <value>{0} verwijderd.</value>
+  </data>
+  <data name="CancelledStatus" xml:space="preserve">
+    <value>Geannuleerd.</value>
+  </data>
+  <data name="PortScanHint" xml:space="preserve">
+    <value>Voer hosts (bijv. 192.168.1.0/24, 10.0.0.1-50 of namen) en poorten in en start dan de scan.</value>
+  </data>
+  <data name="PortScanNeedHostAndPort" xml:space="preserve">
+    <value>Voer ten minste één host en één poort in.</value>
+  </data>
+  <data name="PortScanScanningFormat" xml:space="preserve">
+    <value>{0} host(s) scannen op {1} poort(en)…</value>
+  </data>
+  <data name="PortScanProgressFormat" xml:space="preserve">
+    <value>Scannen… {0}/{1} hosts, {2}/{3} poorten gecontroleerd</value>
+  </data>
+  <data name="PortScanDoneFormat" xml:space="preserve">
+    <value>Klaar: {0} host(s) gescand, {1} met open poorten.</value>
+  </data>
+  <data name="PortScanStoppedFormat" xml:space="preserve">
+    <value>Gestopt. Tot nu toe {0} host(s) met open poorten gevonden.</value>
+  </data>
+  <data name="PortScanSelectHosts" xml:space="preserve">
+    <value>Selecteer de hosts om te importeren.</value>
+  </data>
+  <data name="ImportFailedFormat" xml:space="preserve">
+    <value>Importeren mislukt: {0}</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>(nog niet opgeslagen)</value>
+  </data>
+  <data name="FileProtectedByMasterPassword" xml:space="preserve">
+    <value>Dit bestand is beveiligd met een hoofdwachtwoord.</value>
+  </data>
+  <data name="FileNotProtectedByMasterPassword" xml:space="preserve">
+    <value>Dit bestand is niet beveiligd met een hoofdwachtwoord (wachtwoorden worden versleuteld met de standaardsleutel).</value>
+  </data>
+  <data name="TheNameIsRequired" xml:space="preserve">
+    <value>De naam is verplicht.</value>
+  </data>
+  <data name="ConnectionError" xml:space="preserve">
+    <value>Verbindingsfout</value>
+  </data>
+  <data name="ReconnectingEllipsis" xml:space="preserve">
+    <value>Opnieuw verbinden…</value>
+  </data>
+  <data name="ToolTipPanelFormat" xml:space="preserve">
+    <value>Paneel: {0}</value>
+  </data>
+  <data name="SqlDatabaseIsPasswordProtectedFormat" xml:space="preserve">
+    <value>De SQL-connectiedatabase {0} is beveiligd met een wachtwoord.</value>
+  </data>
+  <data name="NoOpenSessions" xml:space="preserve">
+    <value>(Geen open sessies)</value>
+  </data>
+  <data name="MultiSshAllSessions" xml:space="preserve">
+    <value>Alle sessies</value>
+  </data>
+  <data name="MultiSshActivePanel" xml:space="preserve">
+    <value>Actief paneel</value>
+  </data>
+  <data name="OneSession" xml:space="preserve">
+    <value>1 sessie</value>
+  </data>
+  <data name="SessionsCountFormat" xml:space="preserve">
+    <value>{0} sessies</value>
+  </data>
+  <data name="NewCredential" xml:space="preserve">
+    <value>Nieuwe aanmeldgegevens</value>
+  </data>
+  <data name="CredentialNeedsName" xml:space="preserve">
+    <value>Alle aanmeldgegevens hebben een naam nodig.</value>
+  </data>
+  <data name="CouldNotSaveCredentialsFormat" xml:space="preserve">
+    <value>Kan aanmeldgegevens niet opslaan: {0}</value>
+  </data>
+  <data name="ConnectWithOptionsTitleFormat" xml:space="preserve">
+    <value>Verbinden met opties — {0}</value>
+  </data>
+  <data name="SessionShownFullScreen" xml:space="preserve">
+    <value>Deze sessie wordt op volledig scherm getoond.
+Gebruik “Volledig scherm afsluiten” bovenaan dat venster om deze terug te halen.</value>
+  </data>
+  <data name="SessionRunsInOwnWindow" xml:space="preserve">
+    <value>Deze sessie draait in een eigen venster.</value>
+  </data>
+  <data name="ShowMRemoteNG" xml:space="preserve">
+    <value>mRemoteNG tonen</value>
+  </data>
+  <data name="ExitMRemoteNG" xml:space="preserve">
+    <value>mRemoteNG afsluiten</value>
+  </data>
+  <data name="ConfirmExitOneConnection" xml:space="preserve">
+    <value>Er is nog 1 connectie open. mRemoteNG afsluiten en deze sluiten?</value>
+  </data>
+  <data name="ConfirmExitConnectionsFormat" xml:space="preserve">
+    <value>Er zijn nog {0} connecties open. mRemoteNG afsluiten en deze sluiten?</value>
+  </data>
+  <data name="CloseConnectionTitle" xml:space="preserve">
+    <value>Connectie sluiten</value>
+  </data>
+  <data name="ConfirmCloseConnectionFormat" xml:space="preserve">
+    <value>De connectie "{0}" sluiten?</value>
+  </data>
+  <data name="RightClickForPanelOptions" xml:space="preserve">
+    <value>Klik met de rechtermuisknop voor paneelopties</value>
+  </data>
+  <data name="DefaultSshPrivateKey" xml:space="preserve">
+    <value>Standaard SSH-privésleutel</value>
+  </data>
+  <data name="MRemoteNGConnectionFiles" xml:space="preserve">
+    <value>mRemoteNG-connectiebestanden</value>
+  </data>
+  <data name="LogFileTitle" xml:space="preserve">
+    <value>Logbestand</value>
+  </data>
+  <data name="BackupFolderTitle" xml:space="preserve">
+    <value>Back-upmap</value>
+  </data>
+  <data name="NoExternalTools" xml:space="preserve">
+    <value>(geen externe applicaties)</value>
+  </data>
+  <data name="CustomThemeNameFormat" xml:space="preserve">
+    <value>{0} (aangepast)</value>
+  </data>
+  <data name="ThemeSavedFormat" xml:space="preserve">
+    <value>"{0}" opgeslagen in {1} en toegepast.</value>
+  </data>
+  <data name="CouldNotSaveThemeFormat" xml:space="preserve">
+    <value>Kan het thema niet opslaan: {0}</value>
+  </data>
+  <data name="ThemeDeletedFormat" xml:space="preserve">
+    <value>"{0}" verwijderd.</value>
+  </data>
+  <data name="ExternalToolTipIntegratedFormat" xml:space="preserve">
+    <value>{0} (opent in een tabblad) — wordt uitgevoerd voor de geselecteerde connectie</value>
+  </data>
+  <data name="ExternalToolTipFormat" xml:space="preserve">
+    <value>{0} — wordt uitgevoerd voor de geselecteerde connectie</value>
+  </data>
+  <data name="ExportSelectedFolderFormat" xml:space="preserve">
+    <value>Geselecteerde map "{0}" en onderliggende items</value>
+  </data>
+  <data name="ExportConnectionsToFile" xml:space="preserve">
+    <value>Connecties exporteren naar bestand</value>
+  </data>
+  <data name="ExportChooseFile" xml:space="preserve">
+    <value>Kies het bestand om naar te exporteren.</value>
+  </data>
+  <data name="ExportFolderMissing" xml:space="preserve">
+    <value>De map voor het exportbestand bestaat niet.</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>De wachtwoorden komen niet overeen.</value>
+  </data>
+  <data name="UploadToFormat" xml:space="preserve">
+    <value>Uploaden naar {0}</value>
+  </data>
+  <data name="DownloadAs" xml:space="preserve">
+    <value>Downloaden als</value>
+  </data>
+  <data name="CreateFolderInFormat" xml:space="preserve">
+    <value>Een map aanmaken in {0}:</value>
+  </data>
+  <data name="FolderName" xml:space="preserve">
+    <value>Mapnaam</value>
+  </data>
+  <data name="FloatingPanelTitleFormat" xml:space="preserve">
+    <value>{0} ({1}) — mRemoteNG</value>
+  </data>
+  <data name="MRemoteNGError" xml:space="preserve">
+    <value>mRemoteNG-fout</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>Verbinding verbroken</value>
+  </data>
+  <data name="HostKeyUnknownTitle" xml:space="preserve">
+    <value>Onbekende SSH-hostsleutel</value>
+  </data>
+  <data name="HostKeyUnknownHeadingFormat" xml:space="preserve">
+    <value>De authenticiteit van host '{0}' kan niet worden vastgesteld.</value>
+  </data>
+  <data name="HostKeyUnknownExplanationFormat" xml:space="preserve">
+    <value>Vergelijk de onderstaande vingerafdruk met die van de beheerder van de server. "Accepteren en opslaan" slaat de sleutel op in {0}, zodat toekomstige verbindingen automatisch worden gecontroleerd.</value>
+  </data>
+  <data name="HostKeyOtherTypeKnown" xml:space="preserve">
+    <value>Deze host is al bekend met een ander sleuteltype:</value>
+  </data>
+  <data name="HostKeyChangedTitle" xml:space="preserve">
+    <value>SSH-hostsleutel gewijzigd</value>
+  </data>
+  <data name="HostKeyMismatchHeadingFormat" xml:space="preserve">
+    <value>De {0}-sleutel die '{1}' aanbiedt, komt niet overeen met de opgeslagen sleutel.</value>
+  </data>
+  <data name="HostKeyMismatchExplanationFormat" xml:space="preserve">
+    <value>De verbinding is geblokkeerd. Vervangen van de sleutel werkt {0} bij; ~/.ssh/known_hosts wordt nooit gewijzigd.</value>
+  </data>
+  <data name="HostKeyStoredKey" xml:space="preserve">
+    <value>Opgeslagen sleutel:</value>
+  </data>
+  <data name="ImportTargetRoot" xml:space="preserve">
+    <value>Hoofdmap (bovenste niveau)</value>
+  </data>
+  <data name="ImportTargetSelectedFolderFormat" xml:space="preserve">
+    <value>Geselecteerde map: {0}</value>
+  </data>
+  <data name="BrowseDirectory" xml:space="preserve">
+    <value>Directory doorbladeren</value>
+  </data>
+  <data name="PuttySessionsFolderOptional" xml:space="preserve">
+    <value>Map met PuTTY-sessies (optioneel)</value>
+  </data>
+  <data name="ImportHintPuttyRegistry" xml:space="preserve">
+    <value>Leeg laten om de sessies te lezen die PuTTY in het Windows-register heeft opgeslagen.</value>
+  </data>
+  <data name="PuttySessionsFolder" xml:space="preserve">
+    <value>Map met PuTTY-sessies</value>
+  </data>
+  <data name="ImportHintPuttyFolder" xml:space="preserve">
+    <value>PuTTY slaat sessies op in ~/.putty/sessions (één bestand per sessie).</value>
+  </data>
+  <data name="OpenSshConfigFile" xml:space="preserve">
+    <value>OpenSSH-configuratiebestand</value>
+  </data>
+  <data name="ImportHintOpenSsh" xml:space="preserve">
+    <value>Host-vermeldingen worden SSH-connecties; jokertekenpatronen worden overgeslagen.</value>
+  </data>
+  <data name="ImportHintXml" xml:space="preserve">
+    <value>Er wordt om het wachtwoord gevraagd als het bestand beveiligd is.</value>
+  </data>
+  <data name="ImportHintRdcMan" xml:space="preserve">
+    <value>Wachtwoorden die door RDCMan (Windows DPAPI) zijn versleuteld, kunnen niet worden geïmporteerd.</value>
+  </data>
+  <data name="ImportBrowseDirectoryWatermark" xml:space="preserve">
+    <value>Doorblader de directory om een OU te kiezen...</value>
+  </data>
+  <data name="ImportHintActiveDirectory" xml:space="preserve">
+    <value>Maak verbinding met een domeincontroller, kies een OU en de computers ervan; ze worden geïmporteerd als RDP-connecties.</value>
+  </data>
+  <data name="ImportHintCsv" xml:space="preserve">
+    <value>Wachtwoorden in CSV-bestanden worden als leesbare tekst opgeslagen.</value>
+  </data>
+  <data name="SelectPuttySessionsFolder" xml:space="preserve">
+    <value>Selecteer de map met PuTTY-sessies</value>
+  </data>
+  <data name="ImportFromFormat" xml:space="preserve">
+    <value>Importeren uit {0}</value>
+  </data>
+  <data name="ImportNoPuttyFolder" xml:space="preserve">
+    <value>Er is geen map met PuTTY-sessies gevonden. Selecteer de map met de sessiebestanden.</value>
+  </data>
+  <data name="PathDoesNotExistFormat" xml:space="preserve">
+    <value>"{0}" bestaat niet.</value>
+  </data>
+  <data name="PortScanImportedFormat" xml:space="preserve">
+    <value>{0} {1}-connectie(s) geïmporteerd in "{2}".</value>
+  </data>
+  <data name="PortScanSkippedFormat" xml:space="preserve">
+    <value>{0} host(s) overgeslagen: geen {1}-service gevonden.</value>
+  </data>
+  <data name="UserInterfaceLanguage" xml:space="preserve">
+    <value>Taal van de gebruikersinterface</value>
+  </data>
+  <data name="AlreadyRunning" xml:space="preserve">
+    <value>mRemoteNG is al actief.</value>
+  </data>
+  <data name="HostStatusPingFormat" xml:space="preserve">
+    <value>ping {0} ms</value>
+  </data>
+  <data name="HostStatusNoPingFormat" xml:space="preserve">
+    <value>geen ping-antwoord ({0})</value>
+  </data>
+  <data name="HostStatusPortOpenFormat" xml:space="preserve">
+    <value>poort {0} open</value>
+  </data>
+  <data name="HostStatusPortClosedFormat" xml:space="preserve">
+    <value>poort {0} gesloten ({1})</value>
+  </data>
+  <data name="HostStatusOnlineFormat" xml:space="preserve">
+    <value>Online — {0}</value>
+  </data>
+  <data name="HostStatusOfflineFormat" xml:space="preserve">
+    <value>Offline — {0}</value>
+  </data>
+  <data name="ShellToastErrorTitle" xml:space="preserve">
+    <value>Fout</value>
+  </data>
+  <data name="ShellShowLog" xml:space="preserve">
+    <value>Log tonen</value>
+  </data>
+  <data name="ShellDismiss" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="ShellSavedFormat" xml:space="preserve">
+    <value>{0} opgeslagen</value>
+  </data>
+  <data name="ShellCommandPalette" xml:space="preserve">
+    <value>Opdrachtenpalet</value>
+  </data>
+  <data name="ShellCommandPaletteTip" xml:space="preserve">
+    <value>Connecties en opdrachten zoeken (Ctrl+K)</value>
+  </data>
+  <data name="ShellPaletteWatermark" xml:space="preserve">
+    <value>Connecties en opdrachten zoeken…</value>
+  </data>
+  <data name="ShellPaletteHintNavigate" xml:space="preserve">
+    <value>navigeren</value>
+  </data>
+  <data name="ShellPaletteHintOpen" xml:space="preserve">
+    <value>verbinden / uitvoeren</value>
+  </data>
+  <data name="ShellPaletteHintOptions" xml:space="preserve">
+    <value>verbinden met opties</value>
+  </data>
+  <data name="ShellPaletteNoMatches" xml:space="preserve">
+    <value>Geen overeenkomende connecties of opdrachten</value>
+  </data>
+  <data name="ShellRecent" xml:space="preserve">
+    <value>Recent geopend</value>
+  </data>
+  <data name="ShellFindConnection" xml:space="preserve">
+    <value>Connectie zoeken</value>
+  </data>
+  <data name="ShellExpandBottomPanel" xml:space="preserve">
+    <value>Onderste paneel uitvouwen</value>
+  </data>
+  <data name="ShellToggleTheme" xml:space="preserve">
+    <value>Wisselen tussen donker / licht thema</value>
+  </data>
+  <data name="ShellSwitchToLightTheme" xml:space="preserve">
+    <value>Overschakelen naar het lichte thema</value>
+  </data>
+  <data name="ShellSwitchToDarkTheme" xml:space="preserve">
+    <value>Overschakelen naar het donkere thema</value>
+  </data>
+  <data name="ShellThemeDark" xml:space="preserve">
+    <value>Donker</value>
+  </data>
+  <data name="ShellThemeLight" xml:space="preserve">
+    <value>Licht</value>
+  </data>
+  <data name="ShellThemeSystemFormat" xml:space="preserve">
+    <value>Systeem ({0})</value>
+  </data>
+  <data name="ShellMoreNewItems" xml:space="preserve">
+    <value>Nieuwe map, nieuw connectiebestand…</value>
+  </data>
+  <data name="ShellQuickConnectWatermark" xml:space="preserve">
+    <value>Snel verbinden: host[:poort]</value>
+  </data>
+  <data name="ShellQuickConnectTip" xml:space="preserve">
+    <value>Host of host:poort, optioneel gebruiker@host of ssh://, rdp://, vnc://… — Enter verbindt</value>
+  </data>
+  <data name="ShellProtocol" xml:space="preserve">
+    <value>Protocol</value>
+  </data>
+  <data name="ShellOptionsTip" xml:space="preserve">
+    <value>Opties (Ctrl+,)</value>
+  </data>
+  <data name="ShellMoreExternalTools" xml:space="preserve">
+    <value>Meer externe applicaties</value>
+  </data>
+  <data name="ShellLogIndicatorTip" xml:space="preserve">
+    <value>Waarschuwingen en fouten sinds het log voor het laatst is bekeken — klik om het log te tonen</value>
+  </data>
+  <data name="ShellOneSession" xml:space="preserve">
+    <value>1 sessie</value>
+  </data>
+  <data name="ShellSessionsFormat" xml:space="preserve">
+    <value>{0} sessies</value>
+  </data>
+  <data name="ShellToggleBottomPanelTip" xml:space="preserve">
+    <value>Het paneel samenvouwen / uitvouwen (Ctrl+J)</value>
+  </data>
+  <data name="ShellCopyLogTip" xml:space="preserve">
+    <value>Alles kopiëren</value>
+  </data>
+  <data name="ShellClearLogTip" xml:space="preserve">
+    <value>Wissen</value>
+  </data>
+  <data name="ShellHideBottomPanelTip" xml:space="preserve">
+    <value>Het paneel verbergen (Ctrl+Shift+L)</value>
+  </data>
+  <data name="ShellNoOpenSessions" xml:space="preserve">
+    <value>Geen open sessies</value>
+  </data>
+  <data name="ShellEmptyStateCaption" xml:space="preserve">
+    <value>Open een opgeslagen connectie vanuit de boom, of typ een host om direct te verbinden.</value>
+  </data>
+  <data name="ShellNewConnection" xml:space="preserve">
+    <value>Nieuwe connectie</value>
+  </data>
+  <data name="ShellHintSearch" xml:space="preserve">
+    <value>Zoeken en opdrachten</value>
+  </data>
+  <data name="ShellRecentAndFavorites" xml:space="preserve">
+    <value>Recent en favorieten</value>
+  </data>
+  <data name="TreeMoreActions" xml:space="preserve">
+    <value>Meer acties</value>
+  </data>
+  <data name="TreeSearchWatermark" xml:space="preserve">
+    <value>Connecties zoeken (Ctrl+F)</value>
+  </data>
+  <data name="TreeEmptyTitle" xml:space="preserve">
+    <value>Nog geen connecties</value>
+  </data>
+  <data name="TreeEmptyText" xml:space="preserve">
+    <value>Maak uw eerste connectie aan, of importeer bestaande connecties uit een bestand.</value>
+  </data>
+  <data name="TreeNoMatchesTitle" xml:space="preserve">
+    <value>Geen resultaten</value>
+  </data>
+  <data name="TreeNoMatchesText" xml:space="preserve">
+    <value>Niets in de namen, hostnamen of beschrijvingen komt overeen met uw zoekopdracht.</value>
+  </data>
+  <data name="TreeClearSearch" xml:space="preserve">
+    <value>Zoekopdracht wissen</value>
+  </data>
+  <data name="ConnectRowTip" xml:space="preserve">
+    <value>Verbinden (Enter)</value>
+  </data>
+  <data name="SessionDotConnected" xml:space="preserve">
+    <value>Open sessie: verbonden</value>
+  </data>
+  <data name="SessionDotBusy" xml:space="preserve">
+    <value>Open sessie: verbinden</value>
+  </data>
+  <data name="SessionDotFailed" xml:space="preserve">
+    <value>Open sessie: verbinding mislukt</value>
+  </data>
+  <data name="SessionDotIdle" xml:space="preserve">
+    <value>Open sessie: verbinding verbroken</value>
+  </data>
+  <data name="SessionShowAllTabs" xml:space="preserve">
+    <value>Alle tabbladen tonen</value>
+  </data>
+  <data name="CloseTabTip" xml:space="preserve">
+    <value>Sluiten (middelklik)</value>
+  </data>
+  <data name="PanelEmptyTitle" xml:space="preserve">
+    <value>Geen sessies in dit paneel</value>
+  </data>
+  <data name="PanelEmptyText" xml:space="preserve">
+    <value>Connecties waarvan Paneel op dit paneel is ingesteld, openen hier. Gebruik "Verplaatsen naar paneel" op een tabblad om een sessie hierheen te halen.</value>
+  </data>
+  <data name="SessionBannerErrorTitle" xml:space="preserve">
+    <value>Verbinding mislukt</value>
+  </data>
+  <data name="SessionBannerDisconnectedTitle" xml:space="preserve">
+    <value>Verbinding verbroken</value>
+  </data>
+  <data name="SessionBannerReconnectingTitle" xml:space="preserve">
+    <value>Opnieuw verbinden</value>
+  </data>
+  <data name="ConfirmDeleteThemeTitle" xml:space="preserve">
+    <value>Thema verwijderen</value>
+  </data>
+  <data name="ConfirmDeleteThemeFormat" xml:space="preserve">
+    <value>Het thema "{0}" verwijderen? Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="TerminalBackendBuiltInTerminal" xml:space="preserve">
+    <value>Ingebouwde terminal</value>
+  </data>
+  <data name="TerminalBackendOpenSshClient" xml:space="preserve">
+    <value>OpenSSH-client van het systeem (ssh)</value>
+  </data>
+  <data name="TransferFileUltraVnc" xml:space="preserve">
+    <value>Bestanden overdragen (UltraVNC)</value>
+  </data>
+  <data name="UltraVncFileTransferTitle" xml:space="preserve">
+    <value>UltraVNC-bestandsoverdracht</value>
+  </data>
+  <data name="UltraVncFileTransferDescriptionFormat" xml:space="preserve">
+    <value>Bestanden worden overgedragen via de VNC-sessie "{0}". Druk op Verbinden om de server om bestandstoegang te vragen. De server moet bestandsoverdracht toestaan: UltraVNC doet dat als het is ingeschakeld, x11vnc heeft -ultrafilexfer nodig, en andere LibVNCServer-servers sluiten de VNC-sessie wanneer erom wordt gevraagd.</value>
+  </data>
+  <data name="TextChatTitleFormat" xml:space="preserve">
+    <value>Chatten met {0}</value>
+  </data>
+  <data name="TextChatYou" xml:space="preserve">
+    <value>U</value>
+  </data>
+  <data name="TextChatNotSent" xml:space="preserve">
+    <value>Niet verbonden: het bericht is niet verzonden.</value>
+  </data>
+  <data name="TextChatOpenedFormat" xml:space="preserve">
+    <value>{0} heeft de chat geopend.</value>
+  </data>
+  <data name="TextChatClosedFormat" xml:space="preserve">
+    <value>{0} heeft de chat gesloten.</value>
+  </data>
+  <data name="TextChatWatermark" xml:space="preserve">
+    <value>Typ een bericht en druk op Enter</value>
+  </data>
+  <data name="TextChatSend" xml:space="preserve">
+    <value>Verzenden</value>
+  </data>
+  <data name="PluginLoadedFormat" xml:space="preserve">
+    <value>Plug-in {0} {1} geladen.</value>
+  </data>
+  <data name="PluginNotLoadedFormat" xml:space="preserve">
+    <value>Plug-in {0} is niet geladen: {1}</value>
+  </data>
+  <data name="PluginImportNoFileFormat" xml:space="preserve">
+    <value>{0} connectie(s) van een plug-in zijn niet geïmporteerd: er is geen connectiebestand geopend.</value>
+  </data>
+  <data name="PluginImportedFormat" xml:space="preserve">
+    <value>{0} connectie(s) van een plug-in geïmporteerd in "{1}".</value>
+  </data>
+  <data name="PluginsLoadedSummaryFormat" xml:space="preserve">
+    <value>{0} van {1} geladen.</value>
+  </data>
+  <data name="PluginStateLoaded" xml:space="preserve">
+    <value>Geladen</value>
+  </data>
+  <data name="PluginStateDisabled" xml:space="preserve">
+    <value>Uitgeschakeld</value>
+  </data>
+  <data name="PluginStateIncompatible" xml:space="preserve">
+    <value>Vereist een nieuwere versie</value>
+  </data>
+  <data name="PluginStateDuplicate" xml:space="preserve">
+    <value>Duplicaat</value>
+  </data>
+  <data name="PluginStateUnsupported" xml:space="preserve">
+    <value>Alleen Windows-app</value>
+  </data>
+  <data name="PluginStateFailed" xml:space="preserve">
+    <value>Laden mislukt</value>
+  </data>
+  <data name="InstalledPlugins" xml:space="preserve">
+    <value>Geïnstalleerde plug-ins</value>
+  </data>
+  <data name="NoPluginsFound" xml:space="preserve">
+    <value>Geen plug-ins gevonden</value>
+  </data>
+  <data name="NoPluginsFoundDescription" xml:space="preserve">
+    <value>Kopieer de DLL van een plug-in naar een van de onderstaande plug-inmappen en start mRemoteNG opnieuw.</value>
+  </data>
+  <data name="PluginChangesAfterRestart" xml:space="preserve">
+    <value>Het in- of uitschakelen of toevoegen van plug-ins wordt van kracht wanneer mRemoteNG de volgende keer start. Plug-ins met een applicatievenster gebruiken Windows Forms en werken alleen in de Windows-app.</value>
+  </data>
+  <data name="PluginFolders" xml:space="preserve">
+    <value>Plug-inmappen</value>
+  </data>
+  <data name="PluginFoldersAlwaysSearched" xml:space="preserve">
+    <value>Altijd doorzocht</value>
+  </data>
+  <data name="OpenPluginFolder" xml:space="preserve">
+    <value>Plug-inmap openen</value>
+  </data>
+  <data name="AdditionalPluginFolders" xml:space="preserve">
+    <value>Extra mappen</value>
+  </data>
+  <data name="AdditionalPluginFoldersDescription" xml:space="preserve">
+    <value>Meer mappen om plug-ins uit te laden, gescheiden door puntkomma's (;).</value>
+  </data>
+</root>

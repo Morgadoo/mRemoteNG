@@ -2,6 +2,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using mRemoteNG.Core.Config.DataProviders;
+using mRemoteNG.Core.Config.Serializers.Sql;
 using mRemoteNG.Core.Connection;
 using mRemoteNG.Core.Container;
 using mRemoteNG.Core.Tree;
@@ -20,11 +21,12 @@ namespace mRemoteNG.Core.Config.Connections.Sql;
 ///     state, and a file written by either app can be read by the other.
 ///   </item>
 ///   <item>
-///     <c>SqlConnectionProperties.xml</c> holds the connection properties the legacy
-///     <c>tblCons</c> schema has no columns for (tab colour, frame colour, Vault/OpenBao, the RD
-///     Gateway access token and the RDP redirection-server flag). The WinForms app never reads or
-///     writes this file, so a WinForms save cannot wipe them. They stay on this machine; they are
-///     not shared through the database.
+///     <c>SqlConnectionProperties.xml</c> is the fallback for the connection properties the legacy
+///     <c>tblCons</c> schema had no columns for (tab colour, frame colour, Vault/OpenBao, the RD
+///     Gateway access token and the RDP redirection-server flag). Those now have shared columns
+///     (<see cref="SqlSchema.SharedLocalFallbackColumns"/>); the file only keeps the values a database
+///     without the columns (read-only, not upgraded) cannot store, and only fills in rows whose column
+///     is NULL (written by a client that does not know it).
 ///   </item>
 /// </list>
 /// </summary>
@@ -56,7 +58,11 @@ public sealed class SqlLocalConnectionState
     /// Overlays the saved per-user state and the properties the database cannot store onto
     /// <paramref name="model"/>. Missing or unreadable files leave the tree as it was loaded.
     /// </summary>
-    public void Apply(ConnectionTreeModel model)
+    /// <param name="storedInDatabase">
+    /// Per connection id, the shared columns the database held a value for; those values win over the file.
+    /// Null applies every value in the file.
+    /// </param>
+    public void Apply(ConnectionTreeModel model, IReadOnlyDictionary<string, IReadOnlySet<string>>? storedInDatabase = null)
     {
         ArgumentNullException.ThrowIfNull(model);
         var local = ReadLocal();
@@ -75,17 +81,28 @@ public sealed class SqlLocalConnectionState
             }
 
             if (gap.TryGetValue(node.ConstantID, out var extra))
-                ApplySchemaGap(node, extra);
+            {
+                IReadOnlySet<string>? stored = null;
+                storedInDatabase?.TryGetValue(node.ConstantID, out stored);
+                ApplySchemaGap(node, extra, column => stored?.Contains(column) != true);
+            }
         }
     }
 
     /// <summary>Writes both files from <paramref name="model"/>, replacing whatever was there.</summary>
-    public void Save(ConnectionTreeModel model)
+    /// <param name="databaseColumns">
+    /// The columns of the database's <c>tblCons</c>; properties with a column there are not written to the
+    /// fallback file. Null (or empty, before the first load) writes them all.
+    /// </param>
+    public void Save(ConnectionTreeModel model, IReadOnlySet<string>? databaseColumns = null)
     {
         ArgumentNullException.ThrowIfNull(model);
         var nodes = model.GetRecursiveChildList().ToList();
         _localFile.Save(WriteLocal(nodes));
-        _schemaGapFile.Save(WriteSchemaGap(nodes));
+        Func<string, bool> keepLocally = databaseColumns is { Count: > 0 }
+            ? column => !databaseColumns.Contains(column)
+            : _ => true;
+        _schemaGapFile.Save(WriteSchemaGap(nodes, keepLocally));
     }
 
     // ── LocalConnectionProperties.xml (WinForms compatible) ───────────────
@@ -146,12 +163,12 @@ public sealed class SqlLocalConnectionState
         return result;
     }
 
-    private static string WriteSchemaGap(IReadOnlyList<ConnectionInfo> nodes)
+    private static string WriteSchemaGap(IReadOnlyList<ConnectionInfo> nodes, Func<string, bool> include)
     {
         var root = new XElement("SqlConnectionProperties", new XAttribute("Version", "1"));
         foreach (var node in nodes)
         {
-            var element = SchemaGapState.Capture(node).ToElement(node.ConstantID);
+            var element = SchemaGapState.Capture(node, include).ToElement(node.ConstantID);
             if (element is not null)
                 root.Add(element);
         }
@@ -159,27 +176,27 @@ public sealed class SqlLocalConnectionState
         return ToXml(root);
     }
 
-    private static void ApplySchemaGap(ConnectionInfo node, SchemaGapState extra)
+    private static void ApplySchemaGap(ConnectionInfo node, SchemaGapState extra, Func<string, bool> fromFile)
     {
-        if (extra.TabColor is not null)
+        if (extra.TabColor is not null && fromFile("TabColor"))
             node.TabColor = extra.TabColor;
-        if (extra.ConnectionFrameColor is not null)
+        if (extra.ConnectionFrameColor is not null && fromFile("ConnectionFrameColor"))
             node.ConnectionFrameColor = extra.ConnectionFrameColor.Value;
-        if (extra.InheritTabColor)
+        if (extra.InheritTabColor && fromFile("InheritTabColor"))
             node.Inheritance.TabColor = true;
-        if (extra.InheritConnectionFrameColor)
+        if (extra.InheritConnectionFrameColor && fromFile("InheritConnectionFrameColor"))
             node.Inheritance.ConnectionFrameColor = true;
-        if (extra.VaultOpenbaoMount is not null)
+        if (extra.VaultOpenbaoMount is not null && fromFile("VaultOpenbaoMount"))
             node.VaultOpenbaoMount = extra.VaultOpenbaoMount;
-        if (extra.VaultOpenbaoRole is not null)
+        if (extra.VaultOpenbaoRole is not null && fromFile("VaultOpenbaoRole"))
             node.VaultOpenbaoRole = extra.VaultOpenbaoRole;
-        if (extra.VaultOpenbaoSecretEngine is not null)
+        if (extra.VaultOpenbaoSecretEngine is not null && fromFile("VaultOpenbaoSecretEngine"))
             node.VaultOpenbaoSecretEngine = extra.VaultOpenbaoSecretEngine.Value;
-        if (extra.RDGatewayAccessToken is not null)
+        if (extra.RDGatewayAccessToken is not null && fromFile("RDGatewayAccessToken"))
             node.RDGatewayAccessToken = extra.RDGatewayAccessToken;
-        if (extra.UseRedirectionServerName)
+        if (extra.UseRedirectionServerName && fromFile("UseRedirectionServerName"))
             node.UseRedirectionServerName = true;
-        if (extra.InheritUseRedirectionServerName)
+        if (extra.InheritUseRedirectionServerName && fromFile("InheritUseRedirectionServerName"))
             node.Inheritance.UseRedirectionServerName = true;
     }
 
@@ -237,25 +254,25 @@ public sealed class SqlLocalConnectionState
         bool UseRedirectionServerName,
         bool InheritUseRedirectionServerName)
     {
-        public static SchemaGapState Capture(ConnectionInfo node)
+        public static SchemaGapState Capture(ConnectionInfo node, Func<string, bool> include)
         {
             var inheritance = node.Inheritance;
-            var inheritTab = inheritance.TabColor;
-            var inheritFrame = inheritance.ConnectionFrameColor;
-            var inheritRedirection = inheritance.UseRedirectionServerName;
+            var inheritTab = inheritance.TabColor && include("InheritTabColor");
+            var inheritFrame = inheritance.ConnectionFrameColor && include("InheritConnectionFrameColor");
+            var inheritRedirection = inheritance.UseRedirectionServerName && include("InheritUseRedirectionServerName");
             inheritance.DisableInheritance();
             try
             {
                 return new SchemaGapState(
-                    NullIfEmpty(node.TabColor),
-                    node.ConnectionFrameColor == FrameColor.None ? null : node.ConnectionFrameColor,
+                    include("TabColor") ? NullIfEmpty(node.TabColor) : null,
+                    node.ConnectionFrameColor == FrameColor.None || !include("ConnectionFrameColor") ? null : node.ConnectionFrameColor,
                     inheritTab,
                     inheritFrame,
-                    NullIfEmpty(node.VaultOpenbaoMount),
-                    NullIfEmpty(node.VaultOpenbaoRole),
-                    node.VaultOpenbaoSecretEngine == VaultEngine.Kv ? null : node.VaultOpenbaoSecretEngine,
-                    NullIfEmpty(node.RDGatewayAccessToken),
-                    node.UseRedirectionServerName,
+                    include("VaultOpenbaoMount") ? NullIfEmpty(node.VaultOpenbaoMount) : null,
+                    include("VaultOpenbaoRole") ? NullIfEmpty(node.VaultOpenbaoRole) : null,
+                    node.VaultOpenbaoSecretEngine == VaultEngine.Kv || !include("VaultOpenbaoSecretEngine") ? null : node.VaultOpenbaoSecretEngine,
+                    include("RDGatewayAccessToken") ? NullIfEmpty(node.RDGatewayAccessToken) : null,
+                    node.UseRedirectionServerName && include("UseRedirectionServerName"),
                     inheritRedirection);
             }
             finally

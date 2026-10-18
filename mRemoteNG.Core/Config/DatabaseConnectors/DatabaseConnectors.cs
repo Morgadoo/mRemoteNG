@@ -17,7 +17,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
 
         public abstract DatabaseServerType ServerType { get; }
 
-        public SqlDialect Dialect => SqlDialect.For(ServerType);
+        public virtual SqlDialect Dialect => SqlDialect.For(ServerType);
 
         public DbConnection Connection { get; }
 
@@ -37,7 +37,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
 
         public void Disconnect() => Connection.Close();
 
-        public DbCommand CreateCommand(string sql, DbTransaction? transaction = null)
+        public virtual DbCommand CreateCommand(string sql, DbTransaction? transaction = null)
         {
             var command = Connection.CreateCommand();
             command.CommandText = sql;
@@ -147,6 +147,7 @@ namespace mRemoteNG.Core.Config.DatabaseConnectors
         {
             DatabaseServerType.MySql => new MySqlDatabaseConnector(settings),
             DatabaseServerType.MsSql => new MsSqlDatabaseConnector(settings),
+            DatabaseServerType.Odbc => new OdbcDatabaseConnector(settings),
             _ => throw new NotSupportedException($"Unsupported database type {settings.ServerType}."),
         };
     }

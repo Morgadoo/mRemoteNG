@@ -195,10 +195,44 @@ public sealed class SessionsDockable : Document
         ActivePanel = to;
     }
 
+    /// <summary>
+    /// Tab drag and drop: puts a session at <paramref name="index"/> (a position among the target panel's tabs
+    /// before the move) of <paramref name="to"/>, which reorders it within its own panel.
+    /// </summary>
+    public void MoveSession(SessionTabViewModel session, SessionPanelViewModel to, int index)
+    {
+        if (session.Panel is not { } from || !Sessions.Contains(session) || !Panels.Contains(to)) return;
+        if (ReferenceEquals(from, to))
+        {
+            var old = from.Sessions.IndexOf(session);
+            var target = Math.Clamp(index > old ? index - 1 : index, 0, from.Sessions.Count - 1);
+            if (target != old)
+                from.Sessions.Move(old, target);
+        }
+        else
+        {
+            RemoveFromPanel(session, from);
+            session.Panel = to;
+            to.Sessions.Insert(Math.Clamp(index, 0, to.Sessions.Count), session);
+            to.RaiseSessionCountChanged();
+        }
+        to.ActiveSession = session;
+        ActivePanel = to;
+    }
+
     private void OnPanelActiveSessionChanged(object? sender, EventArgs e)
     {
         if (ReferenceEquals(sender, _activePanel))
             OnPropertyChanged(nameof(ActiveSession));
+    }
+
+    /// <summary>Raised when the remote side of a session starts a text chat; the session area shows the chat window.</summary>
+    public event EventHandler<SessionTabViewModel>? TextChatRequested;
+
+    private void OnTextChatRequested(object? sender, EventArgs e)
+    {
+        if (sender is SessionTabViewModel session)
+            TextChatRequested?.Invoke(this, session);
     }
 
     // ── Opening sessions ──────────────────────────────────────────────────
@@ -210,6 +244,7 @@ public sealed class SessionsDockable : Document
         session.ApplyTitleSettings(Settings);
         session.CloseRequested += OnCloseRequested;
         session.ProtocolStateChanged += OnSessionStateChanged;
+        session.TextChatRequested += OnTextChatRequested;
         session.Panel = panel;
         Sessions.Add(session);
         panel.Sessions.Add(session);
@@ -379,6 +414,7 @@ public sealed class SessionsDockable : Document
     {
         session.CloseRequested -= OnCloseRequested;
         session.ProtocolStateChanged -= OnSessionStateChanged;
+        session.TextChatRequested -= OnTextChatRequested;
         CancelAutoReconnect(session);
         if (!Sessions.Remove(session)) return;
         if (session.Panel is { } panel)

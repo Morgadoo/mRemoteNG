@@ -1,0 +1,2110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ru translation of Strings.resx: same keys, same placeholders and access keys. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Как в системе</value>
+  </data>
+  <data name="ExternalTools" xml:space="preserve">
+    <value>Внешние инструменты</value>
+  </data>
+  <data name="WakeOnLAN" xml:space="preserve">
+    <value>Wake on LAN</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Вырезать</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Вставить</value>
+  </data>
+  <data name="ExpandAll" xml:space="preserve">
+    <value>Развернуть все</value>
+  </data>
+  <data name="CollapseAll" xml:space="preserve">
+    <value>Свернуть все</value>
+  </data>
+  <data name="DefaultConnectionProperties" xml:space="preserve">
+    <value>Свойства подключения по умолчанию</value>
+  </data>
+  <data name="RefreshPuTTYSessions" xml:space="preserve">
+    <value>Обновить сеансы PuTTY</value>
+  </data>
+  <data name="ConnectionFileProperties" xml:space="preserve">
+    <value>&amp;Свойства файла подключений</value>
+  </data>
+  <data name="NoExternalToolsOnTheToolbar" xml:space="preserve">
+    <value>На панели нет внешних инструментов</value>
+  </data>
+  <data name="AddANewTool" xml:space="preserve">
+    <value>Добавить инструмент</value>
+  </data>
+  <data name="ProgramNameOrPathEGPing" xml:space="preserve">
+    <value>Имя программы или путь, напр. ping, /usr/bin/xterm, C:\Tools\tool.exe</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Необязательно</value>
+  </data>
+  <data name="OptionalImageFilePNGICO" xml:space="preserve">
+    <value>Файл изображения, необязательно (PNG, ICO…)</value>
+  </data>
+  <data name="OperatingSystem" xml:space="preserve">
+    <value>Операционная система</value>
+  </data>
+  <data name="ToolsForAnotherOperatingSystemStayIn" xml:space="preserve">
+    <value>Инструменты для другой операционной системы остаются в списке, но не предлагаются к запуску</value>
+  </data>
+  <data name="WaitUntilTheProgramExitsEG" xml:space="preserve">
+    <value>Ждать завершения программы (напр. перед подключением, если она используется как «Внешний инструмент до»)</value>
+  </data>
+  <data name="ShowTheProgramSWindowInsideA" xml:space="preserve">
+    <value>Показывать окно программы во вкладке сеанса (Linux/X11 и Windows)</value>
+  </data>
+  <data name="WindowsUACPromptLinuxPkexecMacOSAdministrator" xml:space="preserve">
+    <value>Windows: запрос UAC. Linux: pkexec. macOS: запрос пароля администратора.</value>
+  </data>
+  <data name="Command" xml:space="preserve">
+    <value>Команда</value>
+  </data>
+  <data name="RunTheSelectedToolAsEditedFor" xml:space="preserve">
+    <value>Запустить выбранный инструмент (с изменениями) для указанного выше подключения</value>
+  </data>
+  <data name="OpenFromSQLDatabase" xml:space="preserve">
+    <value>Открыть из &amp;базы данных SQL</value>
+  </data>
+  <data name="ReloadFromSQLDatabase" xml:space="preserve">
+    <value>&amp;Перезагрузить из базы данных SQL</value>
+  </data>
+  <data name="EditSelected" xml:space="preserve">
+    <value>&amp;Изменить выбранное</value>
+  </data>
+  <data name="DuplicateSelected" xml:space="preserve">
+    <value>&amp;Дублировать выбранное</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>&amp;Удалить выбранное</value>
+  </data>
+  <data name="ImportConnections" xml:space="preserve">
+    <value>И&amp;мпорт подключений</value>
+  </data>
+  <data name="ExportConnections" xml:space="preserve">
+    <value>&amp;Экспорт подключений</value>
+  </data>
+  <data name="ConnectionTree" xml:space="preserve">
+    <value>Дерево подключений</value>
+  </data>
+  <data name="LogPanel" xml:space="preserve">
+    <value>Панель журнала</value>
+  </data>
+  <data name="ArrangePanels" xml:space="preserve">
+    <value>Расположение панелей</value>
+  </data>
+  <data name="TabbedOnePanelAtATime" xml:space="preserve">
+    <value>Вкладками (по одной панели)</value>
+  </data>
+  <data name="SideBySide" xml:space="preserve">
+    <value>Рядом</value>
+  </data>
+  <data name="Stacked" xml:space="preserve">
+    <value>Друг под другом</value>
+  </data>
+  <data name="DisconnectAll" xml:space="preserve">
+    <value>Отключить все</value>
+  </data>
+  <data name="CloseAllSessions" xml:space="preserve">
+    <value>Закрыть все сеансы</value>
+  </data>
+  <data name="ConnectSelectedToPanel" xml:space="preserve">
+    <value>Подключить выбранное к панели</value>
+  </data>
+  <data name="NoFavorites" xml:space="preserve">
+    <value>(Нет избранного)</value>
+  </data>
+  <data name="UltraVNCSingleClickListener" xml:space="preserve">
+    <value>Прослушиватель UltraVNC SingleClick</value>
+  </data>
+  <data name="AboutMRemoteNG" xml:space="preserve">
+    <value>&amp;О программе mRemoteNG</value>
+  </data>
+  <data name="OpensTheMRemoteNGReleasesPage" xml:space="preserve">
+    <value>Открывает страницу выпусков mRemoteNG</value>
+  </data>
+  <data name="GitHubRepository" xml:space="preserve">
+    <value>Репозиторий GitHub</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Документация</value>
+  </data>
+  <data name="OpenLogFile" xml:space="preserve">
+    <value>Открыть файл журнала</value>
+  </data>
+  <data name="NewConnectionCtrlN" xml:space="preserve">
+    <value>Новое подключение (Ctrl+N)</value>
+  </data>
+  <data name="OpenConnectionFileCtrlO" xml:space="preserve">
+    <value>Открыть файл подключений (Ctrl+O)</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="SaveCtrlS" xml:space="preserve">
+    <value>Сохранить (Ctrl+S)</value>
+  </data>
+  <data name="EditTheSelectedConnectionOrFolderCtrl" xml:space="preserve">
+    <value>Изменить выбранное подключение или папку (Ctrl+E)</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="ConnectEnter" xml:space="preserve">
+    <value>Подключиться (Enter)</value>
+  </data>
+  <data name="TypeACommandEnterSendsItTo" xml:space="preserve">
+    <value>Введите команду; Enter отправляет ее во все открытые терминальные сеансы</value>
+  </data>
+  <data name="EnterSendsTheLineUpDownBrowse" xml:space="preserve">
+    <value>Enter отправляет строку, Вверх/Вниз — история, Ctrl+буква отправляет управляющую клавишу (Ctrl+C)</value>
+  </data>
+  <data name="UnsavedChangesIndicator" xml:space="preserve">
+    <value>● Несохраненные изменения</value>
+  </data>
+  <data name="TheConnectionFileHasChangesThatAre" xml:space="preserve">
+    <value>В файле подключений есть несохраненные изменения (Ctrl+S)</value>
+  </data>
+  <data name="SearchConnectionsWatermark" xml:space="preserve">
+    <value>Поиск по имени, хосту, описанию... (Ctrl+F)</value>
+  </data>
+  <data name="ClearSearchEsc" xml:space="preserve">
+    <value>Очистить поиск (Esc)</value>
+  </data>
+  <data name="NoActiveSessions" xml:space="preserve">
+    <value>Нет активных сеансов</value>
+  </data>
+  <data name="DoubleClickAConnectionToStartA" xml:space="preserve">
+    <value>Дважды щелкните подключение, чтобы начать сеанс</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Журнал</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="DebugConsole" xml:space="preserve">
+    <value>Консоль отладки</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>Сбросить по умолчанию</value>
+  </data>
+  <data name="CrossPlatformNotice" xml:space="preserve">
+    <value>Кроссплатформенно: Windows · Linux · macOS</value>
+  </data>
+  <data name="CopyrightNotice" xml:space="preserve">
+    <value>© 2026 mRemoteNG Dev Team · Лицензия GPL-2.0</value>
+  </data>
+  <data name="Server" xml:space="preserve">
+    <value>Сервер</value>
+  </data>
+  <data name="Dc1CorpExampleEmptyThisComputerS" xml:space="preserve">
+    <value>dc1.corp.example (пусто: домен этого компьютера в Windows)</value>
+  </data>
+  <data name="N0389Or636WithLDAPS" xml:space="preserve">
+    <value>0 = 389 или 636 с LDAPS</value>
+  </data>
+  <data name="Bind" xml:space="preserve">
+    <value>Привязка</value>
+  </data>
+  <data name="UserCNUserDomainOrDOMAINUser" xml:space="preserve">
+    <value>пользователь (CN=…, user@domain или DOMAIN\user)</value>
+  </data>
+  <data name="OrganizationalUnits" xml:space="preserve">
+    <value>Подразделения</value>
+  </data>
+  <data name="Computers" xml:space="preserve">
+    <value>Компьютеры</value>
+  </data>
+  <data name="HostName" xml:space="preserve">
+    <value>Имя хоста</value>
+  </data>
+  <data name="CreateFoldersForSubOUs" xml:space="preserve">
+    <value>Создавать папки для вложенных подразделений</value>
+  </data>
+  <data name="ComputersAreImportedAsRDPConnections" xml:space="preserve">
+    <value>Компьютеры импортируются как подключения RDP.</value>
+  </data>
+  <data name="TheConnectionSPanel" xml:space="preserve">
+    <value>(панель подключения)</value>
+  </data>
+  <data name="Inherit" xml:space="preserve">
+    <value>Наследовать</value>
+  </data>
+  <data name="DefaultInParentheses" xml:space="preserve">
+    <value>(по умолчанию)</value>
+  </data>
+  <data name="CheckHostStatus" xml:space="preserve">
+    <value>Проверить состояние хоста</value>
+  </data>
+  <data name="PingTheHostAndTryToConnect" xml:space="preserve">
+    <value>Проверить хост с помощью ping и попытаться подключиться к его порту</value>
+  </data>
+  <data name="ConnectionsInThisFolderCanInheritThese" xml:space="preserve">
+    <value>Подключения в этой папке могут наследовать эти учетные данные.</value>
+  </data>
+  <data name="CheckedPropertiesTakeTheirValueFromThe" xml:space="preserve">
+    <value>Отмеченные свойства берут значение из родительской папки (показаны все протоколы).</value>
+  </data>
+  <data name="InheritEverything" xml:space="preserve">
+    <value>Наследовать все</value>
+  </data>
+  <data name="CredentialManager" xml:space="preserve">
+    <value>Диспетчер учетных данных</value>
+  </data>
+  <data name="CredentialDetails" xml:space="preserve">
+    <value>Сведения об учетных данных</value>
+  </data>
+  <data name="CredentialLabel" xml:space="preserve">
+    <value>Метка учетных данных</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Показать пароль</value>
+  </data>
+  <data name="WindowsDomainOptional" xml:space="preserve">
+    <value>Домен Windows (необязательно)</value>
+  </data>
+  <data name="TheStoredPasswordCouldNotBeDecrypted" xml:space="preserve">
+    <value>Сохраненный пароль не удалось расшифровать на этом компьютере (он был сохранен в другой системе). Введите его снова, чтобы заменить; если оставить поле пустым, сохраненное значение не изменится.</value>
+  </data>
+  <data name="SelectACredentialOrAddANew" xml:space="preserve">
+    <value>Выберите учетные данные или добавьте новые.</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="ExportFormat" xml:space="preserve">
+    <value>Формат экспорта</value>
+  </data>
+  <data name="MRemoteNGXMLXmlRecommended" xml:space="preserve">
+    <value>mRemoteNG XML (.xml) — рекомендуется</value>
+  </data>
+  <data name="MRemoteNGCSVCsvForSpreadsheetApps" xml:space="preserve">
+    <value>mRemoteNG CSV (.csv) — для электронных таблиц</value>
+  </data>
+  <data name="ExportScope" xml:space="preserve">
+    <value>Область экспорта</value>
+  </data>
+  <data name="AllConnections" xml:space="preserve">
+    <value>Все подключения</value>
+  </data>
+  <data name="SelectedFolderAndItsChildren" xml:space="preserve">
+    <value>Выбранная папка и ее содержимое</value>
+  </data>
+  <data name="Include" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="CSVFilesStorePasswordsInClearText" xml:space="preserve">
+    <value>Файлы CSV хранят пароли открытым текстом.</value>
+  </data>
+  <data name="FilePasswordOptional" xml:space="preserve">
+    <value>Пароль файла (необязательно)</value>
+  </data>
+  <data name="ProtectsTheExportedFileWithAMaster" xml:space="preserve">
+    <value>Защищает экспортированный файл мастер-паролем. Оставьте пустым для незащищенного файла.</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Подтверждение пароля</value>
+  </data>
+  <data name="OutputFilePath" xml:space="preserve">
+    <value>Путь к выходному файлу</value>
+  </data>
+  <data name="RootName" xml:space="preserve">
+    <value>Имя корня</value>
+  </data>
+  <data name="MasterPassword" xml:space="preserve">
+    <value>Мастер-пароль</value>
+  </data>
+  <data name="ProtectThisFileWithAMasterPassword" xml:space="preserve">
+    <value>Защитить этот файл мастер-паролем</value>
+  </data>
+  <data name="ChangeTheMasterPassword" xml:space="preserve">
+    <value>Изменить мастер-пароль</value>
+  </data>
+  <data name="CurrentPassword" xml:space="preserve">
+    <value>Текущий пароль</value>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Шифрование</value>
+  </data>
+  <data name="CipherEngine" xml:space="preserve">
+    <value>Механизм шифрования</value>
+  </data>
+  <data name="EncryptTheCompleteFile" xml:space="preserve">
+    <value>Шифровать весь файл</value>
+  </data>
+  <data name="ChangesAreWrittenTheNextTimeThe" xml:space="preserve">
+    <value>Изменения записываются при следующем сохранении файла. Файлы остаются совместимыми с mRemoteNG для Windows (WinForms).</value>
+  </data>
+  <data name="SSHHostKey" xml:space="preserve">
+    <value>Ключ хоста SSH</value>
+  </data>
+  <data name="HostKeyChangedWarning" xml:space="preserve">
+    <value>ВНИМАНИЕ: ИДЕНТИФИКАЦИЯ УДАЛЕННОГО ХОСТА ИЗМЕНИЛАСЬ!</value>
+  </data>
+  <data name="SomeoneCouldBeEavesdroppingOnYouRight" xml:space="preserve">
+    <value>Возможно, кто-то прямо сейчас перехватывает ваш трафик (атака «человек посередине»). Также возможно, что ключ хоста только что изменил администратор. Не продолжайте, пока не сверите новый отпечаток с администратором сервера.</value>
+  </data>
+  <data name="KeyType" xml:space="preserve">
+    <value>Тип ключа</value>
+  </data>
+  <data name="Fingerprint" xml:space="preserve">
+    <value>Отпечаток</value>
+  </data>
+  <data name="IHaveVerifiedTheNewFingerprintAnd" xml:space="preserve">
+    <value>Я проверил новый отпечаток и хочу заменить сохраненный ключ</value>
+  </data>
+  <data name="ConnectOnce" xml:space="preserve">
+    <value>Подключиться однократно</value>
+  </data>
+  <data name="AcceptAndSave" xml:space="preserve">
+    <value>Принять и сохранить</value>
+  </data>
+  <data name="ReplaceKeyAndConnect" xml:space="preserve">
+    <value>Заменить ключ и подключиться</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="SelectAFileToImport" xml:space="preserve">
+    <value>Выберите файл для импорта</value>
+  </data>
+  <data name="ImportInto" xml:space="preserve">
+    <value>Импортировать в</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Требуется пароль</value>
+  </data>
+  <data name="Hosts" xml:space="preserve">
+    <value>Хосты</value>
+  </data>
+  <data name="DefaultPorts" xml:space="preserve">
+    <value>Порты по умолчанию</value>
+  </data>
+  <data name="TimeoutMs" xml:space="preserve">
+    <value>Тайм-аут (мс)</value>
+  </data>
+  <data name="Parallel" xml:space="preserve">
+    <value>Параллельно</value>
+  </data>
+  <data name="IdentifyServicesBanners" xml:space="preserve">
+    <value>Определять службы (баннеры)</value>
+  </data>
+  <data name="ResolveHostNames" xml:space="preserve">
+    <value>Разрешать имена хостов</value>
+  </data>
+  <data name="StartScan" xml:space="preserve">
+    <value>Начать сканирование</value>
+  </data>
+  <data name="HostsWithOpenPorts" xml:space="preserve">
+    <value>Хосты с открытыми портами</value>
+  </data>
+  <data name="AddressColumn" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="ImportCheckedHostsAs" xml:space="preserve">
+    <value>Импортировать отмеченные хосты как</value>
+  </data>
+  <data name="ImportIntoTree" xml:space="preserve">
+    <value>Импортировать в дерево</value>
+  </data>
+  <data name="HostnameLabel" xml:space="preserve">
+    <value>Имя хоста</value>
+  </data>
+  <data name="HostOrIPPort" xml:space="preserve">
+    <value>хост или IP[:порт]</value>
+  </data>
+  <data name="OptionalInParentheses" xml:space="preserve">
+    <value>(необязательно)</value>
+  </data>
+  <data name="PrivateKeyOptional" xml:space="preserve">
+    <value>Закрытый ключ (необязательно)</value>
+  </data>
+  <data name="ParentFolder" xml:space="preserve">
+    <value>Родительская папка</value>
+  </data>
+  <data name="RemotePathPressEnterToOpen" xml:space="preserve">
+    <value>Удаленный путь (нажмите Enter, чтобы открыть)</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Размер</value>
+  </data>
+  <data name="Modified" xml:space="preserve">
+    <value>Изменен</value>
+  </data>
+  <data name="InputRequired" xml:space="preserve">
+    <value>Требуется ввод</value>
+  </data>
+  <data name="ThemeEditor" xml:space="preserve">
+    <value>Редактор тем</value>
+  </data>
+  <data name="StartFrom" xml:space="preserve">
+    <value>На основе</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Сохранить как</value>
+  </data>
+  <data name="NameOfYourTheme" xml:space="preserve">
+    <value>Название вашей темы</value>
+  </data>
+  <data name="ColoursChangeEverywhereAsYouTypeRrggbb" xml:space="preserve">
+    <value>Цвета меняются сразу при вводе (#rrggbb).</value>
+  </data>
+  <data name="DeleteTheme" xml:space="preserve">
+    <value>Удалить тему</value>
+  </data>
+  <data name="SaveAndApply" xml:space="preserve">
+    <value>Сохранить и применить</value>
+  </data>
+  <data name="RemoteUsersRunningUltraVNCSingleClickOrAny" xml:space="preserve">
+    <value>Удаленные пользователи с UltraVNC SingleClick (или с функцией «connect to viewer» любого VNC-сервера) могут подключиться к вам через этот порт. Каждое входящее подключение открывается во вкладке сеанса VNC.</value>
+  </data>
+  <data name="StartListening" xml:space="preserve">
+    <value>Начать прослушивание</value>
+  </data>
+  <data name="IncomingConnections" xml:space="preserve">
+    <value>Входящие подключения</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="ColorTheme" xml:space="preserve">
+    <value>Цветовая тема</value>
+  </data>
+  <data name="CopyAThemeChangeItsColoursAnd" xml:space="preserve">
+    <value>Скопируйте тему, измените цвета и сохраните ее как собственную.</value>
+  </data>
+  <data name="ThemeEditorButton" xml:space="preserve">
+    <value>Редактор тем</value>
+  </data>
+  <data name="Font" xml:space="preserve">
+    <value>Шрифт</value>
+  </data>
+  <data name="FontFamily" xml:space="preserve">
+    <value>Гарнитура</value>
+  </data>
+  <data name="ThemeDefault" xml:space="preserve">
+    <value>(как в теме)</value>
+  </data>
+  <data name="FontSize" xml:space="preserve">
+    <value>Размер шрифта</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>Макет</value>
+  </data>
+  <data name="ShowToolbar" xml:space="preserve">
+    <value>Показывать панель инструментов</value>
+  </data>
+  <data name="ShowStatusBar" xml:space="preserve">
+    <value>Показывать строку состояния</value>
+  </data>
+  <data name="Defaults" xml:space="preserve">
+    <value>Значения по умолчанию</value>
+  </data>
+  <data name="DefaultProtocol" xml:space="preserve">
+    <value>Протокол по умолчанию</value>
+  </data>
+  <data name="ConnectTimeoutSeconds" xml:space="preserve">
+    <value>Тайм-аут подключения (секунды)</value>
+  </data>
+  <data name="DefaultUsername" xml:space="preserve">
+    <value>Имя пользователя по умолчанию</value>
+  </data>
+  <data name="NoneInParentheses" xml:space="preserve">
+    <value>(нет)</value>
+  </data>
+  <data name="DefaultPortsSection" xml:space="preserve">
+    <value>Порты по умолчанию</value>
+  </data>
+  <data name="SendKeepAlivePackets" xml:space="preserve">
+    <value>Отправлять пакеты keep-alive</value>
+  </data>
+  <data name="KeepAliveIntervalSeconds" xml:space="preserve">
+    <value>Интервал keep-alive (секунды)</value>
+  </data>
+  <data name="DefaultPrivateKeyFileOptional" xml:space="preserve">
+    <value>Файл закрытого ключа по умолчанию (необязательно)</value>
+  </data>
+  <data name="SavedCredentials" xml:space="preserve">
+    <value>Сохраненные учетные данные</value>
+  </data>
+  <data name="CredentialsAreStoredInYourSettingsFolder" xml:space="preserve">
+    <value>Учетные данные хранятся в папке настроек. Пароли шифруются с привязкой к вашей учетной записи ОС (DPAPI в Windows, файл закрытого ключа в Linux и macOS).</value>
+  </data>
+  <data name="ManageCredentials" xml:space="preserve">
+    <value>Управление учетными данными</value>
+  </data>
+  <data name="ExternalProviders" xml:space="preserve">
+    <value>Внешние поставщики</value>
+  </data>
+  <data name="ConnectionsFetchTheirCredentialsFromASecret" xml:space="preserve">
+    <value>Подключения получают учетные данные из хранилища секретов, если задан их внешний поставщик учетных данных (ID секрета или ссылка на элемент указывается в поле «Пользователь через API»), а адрес — из AWS, если внешний поставщик адреса — AWS. Введенные здесь секреты сохраняются в зашифрованном виде для вашей учетной записи; оставьте их пустыми, чтобы вводить один раз за сеанс.</value>
+  </data>
+  <data name="DefaultCredentialProvider" xml:space="preserve">
+    <value>Поставщик учетных данных по умолчанию</value>
+  </data>
+  <data name="UsedForConnectionsWithoutAUsernameAn" xml:space="preserve">
+    <value>Используется для подключений без имени пользователя, внешнего поставщика или имени пользователя по умолчанию.</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Поставщик</value>
+  </data>
+  <data name="SecretIDReference" xml:space="preserve">
+    <value>ID секрета / ссылка</value>
+  </data>
+  <data name="ServerURL" xml:space="preserve">
+    <value>URL сервера</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationSSO" xml:space="preserve">
+    <value>Встроенная проверка подлинности Windows (SSO)</value>
+  </data>
+  <data name="DomainOptional" xml:space="preserve">
+    <value>Домен (необязательно)</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>Забыть</value>
+  </data>
+  <data name="AskForOtpAtLogin" xml:space="preserve">
+    <value>Запрашивать одноразовый пароль (OTP) при входе</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationWinapi" xml:space="preserve">
+    <value>Встроенная проверка подлинности Windows (winapi)</value>
+  </data>
+  <data name="APIKey" xml:space="preserve">
+    <value>Ключ API</value>
+  </data>
+  <data name="AskForOtpPerRequest" xml:space="preserve">
+    <value>Запрашивать одноразовый пароль (OTP) для каждого запроса</value>
+  </data>
+  <data name="ReferencesOpVaultItemAccountOpVault" xml:space="preserve">
+    <value>Ссылки: op://Vault/Item?account=…, op://Vault/Item/field или имя элемента. Вход выполняет 1Password CLI (интеграция с настольным приложением или OP_SERVICE_ACCOUNT_TOKEN).</value>
+  </data>
+  <data name="CLIPath" xml:space="preserve">
+    <value>Путь к CLI</value>
+  </data>
+  <data name="OpFromPATH" xml:space="preserve">
+    <value>op (из PATH)</value>
+  </data>
+  <data name="DefaultAccount" xml:space="preserve">
+    <value>Учетная запись по умолчанию</value>
+  </data>
+  <data name="TheMountRoleSecretPathAndSecret" xml:space="preserve">
+    <value>Точка монтирования, роль / путь секрета и механизм секретов (KV, LDAP dynamic, LDAP static, SSH OTP) задаются для каждого подключения.</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Пространство имен</value>
+  </data>
+  <data name="LogInWith" xml:space="preserve">
+    <value>Способ входа</value>
+  </data>
+  <data name="AuthMountPath" xml:space="preserve">
+    <value>Путь монтирования проверки подлинности</value>
+  </data>
+  <data name="CACertificatePEM" xml:space="preserve">
+    <value>Сертификат ЦС (PEM)</value>
+  </data>
+  <data name="SystemTrustStore" xml:space="preserve">
+    <value>(системное хранилище доверия)</value>
+  </data>
+  <data name="AmazonWebServicesEC2AddressLookup" xml:space="preserve">
+    <value>Amazon Web Services (поиск адреса EC2)</value>
+  </data>
+  <data name="ConnectionsSetTheInstanceIDAndRegion" xml:space="preserve">
+    <value>ID экземпляра и регион задаются в подключениях. Цепочка учетных данных по умолчанию читает переменные среды, профили ~/.aws, SSO и роли экземпляров.</value>
+  </data>
+  <data name="ProfileName" xml:space="preserve">
+    <value>Имя профиля</value>
+  </data>
+  <data name="EGDefault" xml:space="preserve">
+    <value>напр. default</value>
+  </data>
+  <data name="AccessKeyID" xml:space="preserve">
+    <value>ID ключа доступа</value>
+  </data>
+  <data name="SecretAccessKey" xml:space="preserve">
+    <value>Секретный ключ доступа</value>
+  </data>
+  <data name="DefaultRegion" xml:space="preserve">
+    <value>Регион по умолчанию</value>
+  </data>
+  <data name="ConnectTo" xml:space="preserve">
+    <value>Подключаться к</value>
+  </data>
+  <data name="EC2EndpointURL" xml:space="preserve">
+    <value>URL конечной точки EC2</value>
+  </data>
+  <data name="RegionalAWSEndpoint" xml:space="preserve">
+    <value>(региональная конечная точка AWS)</value>
+  </data>
+  <data name="Startup" xml:space="preserve">
+    <value>Запуск</value>
+  </data>
+  <data name="WhenMRemoteNGStarts" xml:space="preserve">
+    <value>При запуске mRemoteNG</value>
+  </data>
+  <data name="ConnectionFileToOpenAtStartup" xml:space="preserve">
+    <value>Файл подключений, открываемый при запуске</value>
+  </data>
+  <data name="AllowOnlyASingleInstanceOfMRemoteNG" xml:space="preserve">
+    <value>Разрешить только один экземпляр mRemoteNG</value>
+  </data>
+  <data name="StartMinimisedToTheSystemTrayWhen" xml:space="preserve">
+    <value>Запускать свернутым (в область уведомлений, если включено сворачивание в нее)</value>
+  </data>
+  <data name="SaveTheOpenConnectionFileWhenExiting" xml:space="preserve">
+    <value>Сохранять открытый файл подключений при выходе</value>
+  </data>
+  <data name="ConfirmClosingConnections" xml:space="preserve">
+    <value>Подтверждать закрытие подключений</value>
+  </data>
+  <data name="SystemTray" xml:space="preserve">
+    <value>Область уведомлений</value>
+  </data>
+  <data name="ShowAnIconInTheSystemTray" xml:space="preserve">
+    <value>Показывать значок в области уведомлений</value>
+  </data>
+  <data name="MinimiseToTheSystemTray" xml:space="preserve">
+    <value>Сворачивать в область уведомлений</value>
+  </data>
+  <data name="RequiresADesktopEnvironmentWithASystem" xml:space="preserve">
+    <value>Требуется среда рабочего стола с областью уведомлений (StatusNotifierItem в Linux).</value>
+  </data>
+  <data name="LogFile" xml:space="preserve">
+    <value>Файл журнала</value>
+  </data>
+  <data name="WriteALogFile" xml:space="preserve">
+    <value>Вести файл журнала</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="TheFileRollsOverAt10MB" xml:space="preserve">
+    <value>При достижении 10 МБ начинается новый файл; хранятся пять предыдущих (.1 … .5). Сообщения панели журнала также записываются в него.</value>
+  </data>
+  <data name="OpenLogFileButton" xml:space="preserve">
+    <value>Открыть файл журнала</value>
+  </data>
+  <data name="OpenFolder" xml:space="preserve">
+    <value>Открыть папку</value>
+  </data>
+  <data name="DataFolder" xml:space="preserve">
+    <value>Папка данных</value>
+  </data>
+  <data name="PortableModePutAnEmptyFileNamed" xml:space="preserve">
+    <value>Портативный режим: положите пустой файл mRemoteNG.portable рядом с программой или запустите ее с параметром --portable.</value>
+  </data>
+  <data name="DesktopNotifications" xml:space="preserve">
+    <value>Уведомления на рабочем столе</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionOpens" xml:space="preserve">
+    <value>Уведомлять об открытии подключения</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionCloses" xml:space="preserve">
+    <value>Уведомлять о закрытии подключения</value>
+  </data>
+  <data name="ShowANotificationForErrorsWrittenTo" xml:space="preserve">
+    <value>Уведомлять об ошибках, записанных в журнал</value>
+  </data>
+  <data name="SavingBackups" xml:space="preserve">
+    <value>Сохранение и резервные копии</value>
+  </data>
+  <data name="AutomaticSaving" xml:space="preserve">
+    <value>Автосохранение</value>
+  </data>
+  <data name="SaveEveryMinutes0Off" xml:space="preserve">
+    <value>Сохранять каждые (минуты, 0 = выкл.)</value>
+  </data>
+  <data name="AutomaticSavesOnlyHappenWhenThereAre" xml:space="preserve">
+    <value>Автосохранение выполняется, только если есть несохраненные изменения и у подключений есть файл (или база данных SQL, доступная для записи).</value>
+  </data>
+  <data name="BackUpTheConnectionFile" xml:space="preserve">
+    <value>Резервное копирование файла подключений</value>
+  </data>
+  <data name="NumberOfBackupsToKeep" xml:space="preserve">
+    <value>Количество хранимых копий</value>
+  </data>
+  <data name="BackupFolderEmptyNextToTheConnection" xml:space="preserve">
+    <value>Папка резервных копий (пусто: рядом с файлом подключений)</value>
+  </data>
+  <data name="DefaultChoice" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="ConnectionDatabase" xml:space="preserve">
+    <value>База данных подключений</value>
+  </data>
+  <data name="LoadAndSaveTheConnectionsInA" xml:space="preserve">
+    <value>Загружать и сохранять подключения в базе данных SQL</value>
+  </data>
+  <data name="UsesTheSameTablesAsTheWindows" xml:space="preserve">
+    <value>Использует те же таблицы, что и версия mRemoteNG для Windows (tblCons, tblRoot, tblUpdate), поэтому обе могут работать с одной базой. Недостающие таблицы создаются при первом использовании.</value>
+  </data>
+  <data name="ServerType" xml:space="preserve">
+    <value>Тип сервера</value>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>База данных</value>
+  </data>
+  <data name="SQLServerEmptyForWindowsAuthentication" xml:space="preserve">
+    <value>(SQL Server: пусто для проверки подлинности Windows)</value>
+  </data>
+  <data name="MultiUser" xml:space="preserve">
+    <value>Многопользовательский режим</value>
+  </data>
+  <data name="ReadOnlyNeverWriteToTheDatabase" xml:space="preserve">
+    <value>Только чтение (никогда не записывать в базу данных)</value>
+  </data>
+  <data name="CheckForChangesByOtherUsersEvery" xml:space="preserve">
+    <value>Проверять изменения других пользователей каждые (секунды)</value>
+  </data>
+  <data name="ReloadAutomaticallyWhenAnotherUserSavedAnd" xml:space="preserve">
+    <value>Автоматически перезагружать, когда другой пользователь сохранил изменения, а здесь нет несохраненных</value>
+  </data>
+  <data name="SessionTabs" xml:space="preserve">
+    <value>Вкладки сеансов</value>
+  </data>
+  <data name="Panels" xml:space="preserve">
+    <value>Панели</value>
+  </data>
+  <data name="AutomaticallyTryToReconnectWhenDisconnectedFrom" xml:space="preserve">
+    <value>Автоматически переподключаться при отключении от сервера</value>
+  </data>
+  <data name="Attempts" xml:space="preserve">
+    <value>Попыток</value>
+  </data>
+  <data name="Waits124UpTo30" xml:space="preserve">
+    <value>(пауза между попытками 1, 2, 4 … до 30 секунд)</value>
+  </data>
+  <data name="UpdateCheckSection" xml:space="preserve">
+    <value>Проверка обновлений</value>
+  </data>
+  <data name="CheckForUpdatesAtStartupAtMost" xml:space="preserve">
+    <value>Проверять обновления при запуске (не чаще раза в день)</value>
+  </data>
+  <data name="ReleasesToLookFor" xml:space="preserve">
+    <value>Искать выпуски</value>
+  </data>
+  <data name="InstalledVersion" xml:space="preserve">
+    <value>Установленная версия: </value>
+  </data>
+  <data name="DownloadsThePackageForThisSystemAnd" xml:space="preserve">
+    <value>Загружает пакет для этой системы и проверяет его размер и SHA-256</value>
+  </data>
+  <data name="ShowInFolder" xml:space="preserve">
+    <value>Показать в папке</value>
+  </data>
+  <data name="UseAProxyForUpdateChecksAnd" xml:space="preserve">
+    <value>Использовать прокси для проверки и загрузки обновлений (иначе системный прокси)</value>
+  </data>
+  <data name="TheProxyRequiresAUserNameAnd" xml:space="preserve">
+    <value>Прокси требует имя пользователя и пароль</value>
+  </data>
+  <data name="SelectThePanelToOpenTheConnection" xml:space="preserve">
+    <value>Выберите панель, в которой открыть подключение</value>
+  </data>
+  <data name="OrOpenItInANewPanel" xml:space="preserve">
+    <value>Или откройте его в новой панели</value>
+  </data>
+  <data name="NewPanelName" xml:space="preserve">
+    <value>Имя новой панели</value>
+  </data>
+  <data name="FloatingPanelTitle" xml:space="preserve">
+    <value>Панель — mRemoteNG</value>
+  </data>
+  <data name="ExitFullScreen" xml:space="preserve">
+    <value>Выйти из полноэкранного режима</value>
+  </data>
+  <data name="FloatThisPanelInItsOwnWindow" xml:space="preserve">
+    <value>Открепить панель в отдельное окно</value>
+  </data>
+  <data name="PanelOptions" xml:space="preserve">
+    <value>Параметры панели</value>
+  </data>
+  <data name="CloseThisPanelAndItsSessions" xml:space="preserve">
+    <value>Закрыть панель и ее сеансы</value>
+  </data>
+  <data name="NoSessionsInPanel" xml:space="preserve">
+    <value>В этой панели нет сеансов.
+Откройте в ней подключение из дерева подключений.</value>
+  </data>
+  <data name="ActiveConnectionsFormat" xml:space="preserve">
+    <value>Активных подключений: {0}</value>
+  </data>
+  <data name="ConnectionFilePropertiesTitleFormat" xml:space="preserve">
+    <value>Свойства файла подключений — {0}</value>
+  </data>
+  <data name="ConnectWithOptionsHeadingFormat" xml:space="preserve">
+    <value>Подключиться к «{0}» с параметрами:</value>
+  </data>
+  <data name="SectionSshPutty" xml:space="preserve">
+    <value>SSH / PuTTY</value>
+  </data>
+  <data name="SectionRemoteDesktop" xml:space="preserve">
+    <value>Удаленный рабочий стол</value>
+  </data>
+  <data name="SectionExternalAddress" xml:space="preserve">
+    <value>Внешний адрес</value>
+  </data>
+  <data name="SectionWakeOnLan" xml:space="preserve">
+    <value>Wake-on-LAN</value>
+  </data>
+  <data name="SectionRemoteDesktopDisplay" xml:space="preserve">
+    <value>Удаленный рабочий стол: экран</value>
+  </data>
+  <data name="SectionRemoteDesktopRedirection" xml:space="preserve">
+    <value>Удаленный рабочий стол: перенаправление</value>
+  </data>
+  <data name="SectionVncProxy" xml:space="preserve">
+    <value>Прокси VNC</value>
+  </data>
+  <data name="SectionWeb" xml:space="preserve">
+    <value>Веб</value>
+  </data>
+  <data name="SectionExternalApplication" xml:space="preserve">
+    <value>Внешнее приложение</value>
+  </data>
+  <data name="SectionExternalTools" xml:space="preserve">
+    <value>Внешние инструменты</value>
+  </data>
+  <data name="SendSpecialKeysMenu" xml:space="preserve">
+    <value>Отправить специальные клавиши</value>
+  </data>
+  <data name="IncludeInMultiSsh" xml:space="preserve">
+    <value>Включить в Multi-SSH</value>
+  </data>
+  <data name="MoveToPanel" xml:space="preserve">
+    <value>Переместить в панель</value>
+  </data>
+  <data name="CloseOtherTabs" xml:space="preserve">
+    <value>Закрыть другие вкладки</value>
+  </data>
+  <data name="CloseTabsToTheRight" xml:space="preserve">
+    <value>Закрыть вкладки справа</value>
+  </data>
+  <data name="NewTabNamePrompt" xml:space="preserve">
+    <value>Новое имя вкладки (оставьте пустым для имени по умолчанию):</value>
+  </data>
+  <data name="InheritHintDefaultConnection" xml:space="preserve">
+    <value>Эти значения и флажки «Наследовать» назначаются каждому новому подключению и папке.</value>
+  </data>
+  <data name="InheritHintFolderFormat" xml:space="preserve">
+    <value>Отмеченные флажки «Наследовать» берут значение из папки «{0}».</value>
+  </data>
+  <data name="InheritHintRoot" xml:space="preserve">
+    <value>Элементам непосредственно в корне не от чего наследовать.</value>
+  </data>
+  <data name="EditFolderTitleFormat" xml:space="preserve">
+    <value>Изменение папки — {0}</value>
+  </data>
+  <data name="EditConnectionTitleFormat" xml:space="preserve">
+    <value>Изменение подключения — {0}</value>
+  </data>
+  <data name="ProtocolNoteHttp" xml:space="preserve">
+    <value>Веб-страницы открываются в браузере по умолчанию; движок отображения действует в приложении для Windows.</value>
+  </data>
+  <data name="ProtocolNoteArd" xml:space="preserve">
+    <value>Apple Remote Desktop подключается через встроенный клиент VNC.</value>
+  </data>
+  <data name="ProtocolNoteAnyDesk" xml:space="preserve">
+    <value>Запускает установленное приложение AnyDesk; укажите ID AnyDesk в поле «Имя хоста».</value>
+  </data>
+  <data name="ProtocolNoteTerminal" xml:space="preserve">
+    <value>Открывает локальную оболочку; если указано имя хоста, запускает ssh к этому хосту.</value>
+  </data>
+  <data name="ProtocolNoteWsl" xml:space="preserve">
+    <value>Открывает оболочку WSL (только Windows); поле «Имя хоста» выбирает дистрибутив.</value>
+  </data>
+  <data name="ProtocolNoteRaw" xml:space="preserve">
+    <value>Простой TCP-сокет с локальным редактированием строки.</value>
+  </data>
+  <data name="ProtocolNoteSsh1" xml:space="preserve">
+    <value>SSH1 устарел; подключение использует SSH2.</value>
+  </data>
+  <data name="ProtocolNotSupportedFormat" xml:space="preserve">
+    <value>{0} пока не поддерживается на этой платформе.</value>
+  </data>
+  <data name="NameIsRequired" xml:space="preserve">
+    <value>Укажите имя.</value>
+  </data>
+  <data name="InvalidMacAddress" xml:space="preserve">
+    <value>Недопустимый MAC-адрес (напр. 00:11:22:33:44:55).</value>
+  </data>
+  <data name="CheckingHostAndPortFormat" xml:space="preserve">
+    <value>Проверка {0} (ping и порт {1})...</value>
+  </data>
+  <data name="PingingHostFormat" xml:space="preserve">
+    <value>Проверка связи с {0}...</value>
+  </data>
+  <data name="RdpVersionHighest" xml:space="preserve">
+    <value>Наивысшая доступная</value>
+  </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>Версия элемента управления «Удалённый рабочий стол», которую использует версия mRemoteNG для Windows. FreeRDP всегда согласует самую новую версию RDP, поддерживаемую сервером, поэтому это приложение сохраняет параметр для той версии и не использует его.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Не показывать тень указателя мыши. Используется версией mRemoteNG для Windows; в FreeRDP такого параметра нет.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Не давать текстовому курсору мигать. Используется версией mRemoteNG для Windows; в FreeRDP такого параметра нет.</value>
+  </data>
+  <data name="ConsoleSessionAsConfigured" xml:space="preserve">
+    <value>Как настроено</value>
+  </data>
+  <data name="ValueNotSet" xml:space="preserve">
+    <value>(не задано)</value>
+  </data>
+  <data name="CompressionLevelFormat" xml:space="preserve">
+    <value>Уровень {0}</value>
+  </data>
+  <data name="InheritTipDefaultConnection" xml:space="preserve">
+    <value>Новые подключения наследуют это свойство от своей папки.</value>
+  </data>
+  <data name="InheritTipFolderFormat" xml:space="preserve">
+    <value>Использовать значение папки «{0}».</value>
+  </data>
+  <data name="InheritTipRoot" xml:space="preserve">
+    <value>Узлам непосредственно в корне не от чего наследовать.</value>
+  </data>
+  <data name="QuickConnectSubtitle" xml:space="preserve">
+    <value>Подключиться к хосту, не добавляя его в дерево подключений.</value>
+  </data>
+  <data name="ConnectWithOptionsSubtitleFormat" xml:space="preserve">
+    <value>Эти параметры действуют только для этого подключения к «{0}»; сохраненное подключение не изменяется.</value>
+  </data>
+  <data name="ConnectNoCredentialsDescription" xml:space="preserve">
+    <value>Не использовать сохраненные имя пользователя, пароль и домен.</value>
+  </data>
+  <data name="SearchSettingsWatermark" xml:space="preserve">
+    <value>Поиск параметров</value>
+  </data>
+  <data name="NoSettingsMatch" xml:space="preserve">
+    <value>Нет параметров, соответствующих поиску.</value>
+  </data>
+  <data name="ResetToDefaultsTip" xml:space="preserve">
+    <value>Сбрасывает все параметры в этом окне. Ничего не изменится, пока вы не нажмете «ОК» или «Применить».</value>
+  </data>
+  <data name="AppearancePageDescription" xml:space="preserve">
+    <value>Цвета, язык и шрифты, а также видимые части главного окна.</value>
+  </data>
+  <data name="FontFamilyDescription" xml:space="preserve">
+    <value>Шрифт, установленный на этом компьютере, напр. Inter или Segoe UI. Оставьте пустым для шрифта темы.</value>
+  </data>
+  <data name="ConnectionsPageDescription" xml:space="preserve">
+    <value>Значения по умолчанию для новых подключений и стандартный порт каждого протокола.</value>
+  </data>
+  <data name="CredentialsPageManageDescription" xml:space="preserve">
+    <value>Добавление, изменение и удаление сохраненных имен пользователей и паролей, которые могут использовать подключения.</value>
+  </data>
+  <data name="NotificationsPageDescription" xml:space="preserve">
+    <value>Уведомления рабочего стола при открытии, закрытии и сбое подключений.</value>
+  </data>
+  <data name="TabsPanelsPageDescription" xml:space="preserve">
+    <value>Внешний вид и поведение вкладок сеансов и панелей.</value>
+  </data>
+  <data name="BackupFileName" xml:space="preserve">
+    <value>Имя файла резервной копии</value>
+  </data>
+  <data name="BackupNameFormatTip" xml:space="preserve">
+    <value>{0} = файл подключений, {1} = время резервного копирования (формат даты .NET)</value>
+  </data>
+  <data name="LogFileLocation" xml:space="preserve">
+    <value>Расположение файла журнала</value>
+  </data>
+  <data name="CurrentLogFile" xml:space="preserve">
+    <value>Текущий файл журнала</value>
+  </data>
+  <data name="CheckForUpdatesNow" xml:space="preserve">
+    <value>Проверить обновления сейчас</value>
+  </data>
+  <data name="ProxyAddressAndPort" xml:space="preserve">
+    <value>Адрес и порт</value>
+  </data>
+  <data name="FolderNodeLabel" xml:space="preserve">
+    <value>Папка</value>
+  </data>
+  <data name="SearchPropertiesWatermark" xml:space="preserve">
+    <value>Поиск свойств</value>
+  </data>
+  <data name="NoPropertiesMatch" xml:space="preserve">
+    <value>Нет свойств, соответствующих поиску.</value>
+  </data>
+  <data name="InheritHintLinkFormat" xml:space="preserve">
+    <value>Поля с включенной связью используют значение папки «{0}».</value>
+  </data>
+  <data name="InheritFromFolderFormat" xml:space="preserve">
+    <value>Наследовать от папки «{0}»</value>
+  </data>
+  <data name="NoHostNameYet" xml:space="preserve">
+    <value>Имя хоста еще не задано</value>
+  </data>
+  <data name="InFolderFormat" xml:space="preserve">
+    <value>в {0}</value>
+  </data>
+  <data name="OneFieldNeedsAttention" xml:space="preserve">
+    <value>1 поле требует внимания</value>
+  </data>
+  <data name="FieldsNeedAttentionFormat" xml:space="preserve">
+    <value>Полей, требующих внимания: {0}</value>
+  </data>
+  <data name="InsertVariable" xml:space="preserve">
+    <value>Вставить в аргументы</value>
+  </data>
+  <data name="ImportDialogSubtitle" xml:space="preserve">
+    <value>Выберите, откуда берутся подключения и куда они помещаются в дереве.</value>
+  </data>
+  <data name="FileToImport" xml:space="preserve">
+    <value>Файл для импорта</value>
+  </data>
+  <data name="FolderToImport" xml:space="preserve">
+    <value>Папка для импорта</value>
+  </data>
+  <data name="DirectoryToImport" xml:space="preserve">
+    <value>Каталог для импорта</value>
+  </data>
+  <data name="ExportDialogSubtitle" xml:space="preserve">
+    <value>Сохранить подключения или их папку в файл.</value>
+  </data>
+  <data name="PortScannerSubtitle" xml:space="preserve">
+    <value>Найти хосты с открытыми портами удаленного доступа и добавить их в дерево.</value>
+  </data>
+  <data name="CredentialManagerSubtitle" xml:space="preserve">
+    <value>Сохраненные имена пользователей и пароли, которые могут использовать подключения.</value>
+  </data>
+  <data name="ConnectionFilePropertiesHeading" xml:space="preserve">
+    <value>Свойства файла подключений</value>
+  </data>
+  <data name="PasswordProtected" xml:space="preserve">
+    <value>Защищен</value>
+  </data>
+  <data name="NotPasswordProtected" xml:space="preserve">
+    <value>Не защищен</value>
+  </data>
+  <data name="UltraVncListenerPortDescription" xml:space="preserve">
+    <value>Порт, к которому подключаются удаленные пользователи (по умолчанию 5500).</value>
+  </data>
+  <data name="PuttyRootToolTip" xml:space="preserve">
+    <value>Сохраненные сеансы PuTTY (только чтение). Подключитесь или дублируйте сеанс, чтобы скопировать его в дерево подключений.</value>
+  </data>
+  <data name="NoHostnameInParentheses" xml:space="preserve">
+    <value>(нет имени хоста)</value>
+  </data>
+  <data name="ToolTipUserFormat" xml:space="preserve">
+    <value>Пользователь: {0}</value>
+  </data>
+  <data name="PuttySavedSession" xml:space="preserve">
+    <value>Сохраненный сеанс PuTTY</value>
+  </data>
+  <data name="ReadOnlyNameFormat" xml:space="preserve">
+    <value>{0} (только чтение)</value>
+  </data>
+  <data name="ConfirmCloseSessionsOfFormat" xml:space="preserve">
+    <value>Закрыть сеансы «{1}» (количество: {0})?</value>
+  </data>
+  <data name="ConfirmDeleteFolderOneItemFormat" xml:space="preserve">
+    <value>Удалить папку «{0}» и содержащийся в ней элемент ({1})?</value>
+  </data>
+  <data name="ConfirmDeleteFolderItemsFormat" xml:space="preserve">
+    <value>Удалить папку «{0}» и содержащиеся в ней элементы ({1})?</value>
+  </data>
+  <data name="SqlDatabaseStatusFormat" xml:space="preserve">
+    <value>База данных SQL: {0}</value>
+  </data>
+  <data name="NewConnectionFileNotSaved" xml:space="preserve">
+    <value>Новый файл подключений (еще не сохранен)</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Без имени</value>
+  </data>
+  <data name="TitleOneActiveConnection" xml:space="preserve">
+    <value>(1 активное подключение)</value>
+  </data>
+  <data name="TitleActiveConnectionsFormat" xml:space="preserve">
+    <value>(активных подключений: {0})</value>
+  </data>
+  <data name="IncorrectPasswordTryAgain" xml:space="preserve">
+    <value>Неверный пароль. Попробуйте еще раз.</value>
+  </data>
+  <data name="FileIsPasswordProtectedFormat" xml:space="preserve">
+    <value>«{0}» защищен паролем.</value>
+  </data>
+  <data name="UpdateAvailableTitle" xml:space="preserve">
+    <value>Доступно обновление</value>
+  </data>
+  <data name="OpenReleasePageQuestion" xml:space="preserve">
+    <value>Открыть страницу выпуска?</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="SaveChangesToFormat" xml:space="preserve">
+    <value>Сохранить изменения в {0}?</value>
+  </data>
+  <data name="SaveChangesToNewFile" xml:space="preserve">
+    <value>Сохранить изменения в новом файле подключений?</value>
+  </data>
+  <data name="UnsavedChangesTitle" xml:space="preserve">
+    <value>Несохраненные изменения</value>
+  </data>
+  <data name="DontSave" xml:space="preserve">
+    <value>Не сохранять</value>
+  </data>
+  <data name="StartupReopenLastFile" xml:space="preserve">
+    <value>Открыть последний файл подключений</value>
+  </data>
+  <data name="StartupOpenSpecificFile" xml:space="preserve">
+    <value>Открыть указанный файл подключений</value>
+  </data>
+  <data name="StartupEmptyTree" xml:space="preserve">
+    <value>Начать с пустого дерева подключений</value>
+  </data>
+  <data name="ConfirmCloseOnExit" xml:space="preserve">
+    <value>При выходе с открытыми подключениями</value>
+  </data>
+  <data name="ConfirmCloseOnExitAndClose" xml:space="preserve">
+    <value>При выходе и при закрытии подключения</value>
+  </data>
+  <data name="PortableDataFolderFormat" xml:space="preserve">
+    <value>Портативный режим: все данные хранятся в {0}</value>
+  </data>
+  <data name="DataFolderFormat" xml:space="preserve">
+    <value>Папка данных: {0}</value>
+  </data>
+  <data name="ThemeDarkChoice" xml:space="preserve">
+    <value>Темная (VS2015 Dark)</value>
+  </data>
+  <data name="ThemeLightChoice" xml:space="preserve">
+    <value>Светлая (VS2015 Light)</value>
+  </data>
+  <data name="ThemeFollowSystem" xml:space="preserve">
+    <value>Как в системе</value>
+  </data>
+  <data name="UserThemeFormat" xml:space="preserve">
+    <value>{0} (тема пользователя)</value>
+  </data>
+  <data name="OneSavedCredential" xml:space="preserve">
+    <value>Сохранено учетных данных: 1.</value>
+  </data>
+  <data name="SavedCredentialsFormat" xml:space="preserve">
+    <value>Сохранено учетных данных: {0}.</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>Не удалось проверить обновления: {0}</value>
+  </data>
+  <data name="DownloadFailedFormat" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="DownloadingFormat" xml:space="preserve">
+    <value>Загрузка {0}…</value>
+  </data>
+  <data name="UpdateChannelStable" xml:space="preserve">
+    <value>Стабильные выпуски</value>
+  </data>
+  <data name="UpdateChannelPreRelease" xml:space="preserve">
+    <value>Стабильные и предварительные выпуски</value>
+  </data>
+  <data name="CheckingEllipsis" xml:space="preserve">
+    <value>Проверка…</value>
+  </data>
+  <data name="CouldNotSaveSettingsFormat" xml:space="preserve">
+    <value>Не удалось сохранить настройки: {0}</value>
+  </data>
+  <data name="SecretSavedEncrypted" xml:space="preserve">
+    <value>Сохранено (зашифровано)</value>
+  </data>
+  <data name="SecretNotSaved" xml:space="preserve">
+    <value>Не сохранено: запрашивается при необходимости</value>
+  </data>
+  <data name="TestingEllipsis" xml:space="preserve">
+    <value>Проверка…</value>
+  </data>
+  <data name="UnexpectedErrorFormat" xml:space="preserve">
+    <value>Непредвиденная ошибка: {0}</value>
+  </data>
+  <data name="VaultAuthUserPass" xml:space="preserve">
+    <value>Имя пользователя и пароль (userpass)</value>
+  </data>
+  <data name="RoleId" xml:space="preserve">
+    <value>ID роли</value>
+  </data>
+  <data name="Token" xml:space="preserve">
+    <value>Токен</value>
+  </data>
+  <data name="SecretId" xml:space="preserve">
+    <value>ID секрета</value>
+  </data>
+  <data name="AwsDefaultCredentialChain" xml:space="preserve">
+    <value>Цепочка учетных данных AWS по умолчанию</value>
+  </data>
+  <data name="AwsNamedProfile" xml:space="preserve">
+    <value>Именованный профиль</value>
+  </data>
+  <data name="AwsSavedAccessKey" xml:space="preserve">
+    <value>Ключ доступа, сохраненный в mRemoteNG</value>
+  </data>
+  <data name="AwsPublicIp" xml:space="preserve">
+    <value>Публичный IP-адрес</value>
+  </data>
+  <data name="AwsPrivateIp" xml:space="preserve">
+    <value>Частный IP-адрес</value>
+  </data>
+  <data name="AwsPublicDnsName" xml:space="preserve">
+    <value>Публичное DNS-имя</value>
+  </data>
+  <data name="AwsPrivateDnsName" xml:space="preserve">
+    <value>Частное DNS-имя</value>
+  </data>
+  <data name="DockThisPanelBack" xml:space="preserve">
+    <value>Вернуть панель в главное окно</value>
+  </data>
+  <data name="ClosePanel" xml:space="preserve">
+    <value>Закрыть панель</value>
+  </data>
+  <data name="ConfirmClosePanelFormat" xml:space="preserve">
+    <value>Закрыть панель «{0}» и ее сеансы (количество: {1})?</value>
+  </data>
+  <data name="RenamePanel" xml:space="preserve">
+    <value>Переименовать панель</value>
+  </data>
+  <data name="PanelNameExistsFormat" xml:space="preserve">
+    <value>Панель с именем «{0}» уже существует.</value>
+  </data>
+  <data name="DockPanel" xml:space="preserve">
+    <value>Закрепить панель</value>
+  </data>
+  <data name="FloatPanel" xml:space="preserve">
+    <value>Открепить панель</value>
+  </data>
+  <data name="ReconnectingInFormat" xml:space="preserve">
+    <value>Подключение потеряно. Переподключение через {0:0} с (попытка {1} из {2})</value>
+  </data>
+  <data name="ReconnectingAttemptFormat" xml:space="preserve">
+    <value>Переподключение (попытка {0} из {1})…</value>
+  </data>
+  <data name="CouldNotReconnectOneAttempt" xml:space="preserve">
+    <value>Не удалось переподключиться (попыток: {0}).</value>
+  </data>
+  <data name="CouldNotReconnectFormat" xml:space="preserve">
+    <value>Не удалось переподключиться (попыток: {0}).</value>
+  </data>
+  <data name="LoadingEllipsis" xml:space="preserve">
+    <value>Загрузка…</value>
+  </data>
+  <data name="AdHintWindows" xml:space="preserve">
+    <value>Оставьте сервер пустым, чтобы использовать домен этого компьютера, затем подключитесь.</value>
+  </data>
+  <data name="AdHintOther" xml:space="preserve">
+    <value>Укажите контроллер домена и учетные данные, затем подключитесь.</value>
+  </data>
+  <data name="ConnectingEllipsis" xml:space="preserve">
+    <value>Подключение…</value>
+  </data>
+  <data name="AdConnectedToDomain" xml:space="preserve">
+    <value>Подключено к домену. Выберите подразделение.</value>
+  </data>
+  <data name="AdConnectedToServerFormat" xml:space="preserve">
+    <value>Подключено к {0}. Выберите подразделение.</value>
+  </data>
+  <data name="AdReadingComputersFormat" xml:space="preserve">
+    <value>Чтение компьютеров в {0}…</value>
+  </data>
+  <data name="AdConnectFirst" xml:space="preserve">
+    <value>Сначала подключитесь и выберите подразделение.</value>
+  </data>
+  <data name="AdSelectComputer" xml:space="preserve">
+    <value>Выберите хотя бы один компьютер для импорта.</value>
+  </data>
+  <data name="AdInvalidCredentials" xml:space="preserve">
+    <value>Сервер отклонил имя пользователя или пароль.</value>
+  </data>
+  <data name="AdServerUnavailable" xml:space="preserve">
+    <value>Сервер каталогов недоступен (проверьте имя сервера, порт и параметр LDAPS).</value>
+  </data>
+  <data name="AdLdapErrorFormat" xml:space="preserve">
+    <value>Ошибка LDAP {0}: {1}</value>
+  </data>
+  <data name="AdLdapLibraryMissing" xml:space="preserve">
+    <value>Библиотека LDAP (libldap) не установлена в этой системе.</value>
+  </data>
+  <data name="AdNoComputersFormat" xml:space="preserve">
+    <value>В {0} нет компьютеров.</value>
+  </data>
+  <data name="AdNoComputersSubtreeFormat" xml:space="preserve">
+    <value>В {0} и вложенных подразделениях нет компьютеров.</value>
+  </data>
+  <data name="AdComputersFormat" xml:space="preserve">
+    <value>Компьютеров в {1}: {0}.</value>
+  </data>
+  <data name="AdComputersSubtreeFormat" xml:space="preserve">
+    <value>Компьютеров в {1} и вложенных подразделениях: {0}.</value>
+  </data>
+  <data name="BackupOnSave" xml:space="preserve">
+    <value>При каждом сохранении подключений</value>
+  </data>
+  <data name="BackupOnExit" xml:space="preserve">
+    <value>При выходе из mRemoteNG</value>
+  </data>
+  <data name="BackupsAreOff" xml:space="preserve">
+    <value>Резервное копирование отключено.</value>
+  </data>
+  <data name="BackupNameFormatInvalid" xml:space="preserve">
+    <value>Формат имени должен содержать {0} (файл) и {1} (время).</value>
+  </data>
+  <data name="BackupExampleNextToFileFormat" xml:space="preserve">
+    <value>Пример: {0} рядом с файлом подключений; хранятся последние копии ({1}).</value>
+  </data>
+  <data name="BackupExampleInFolderFormat" xml:space="preserve">
+    <value>Пример: {0} в папке резервных копий; хранятся последние копии ({1}).</value>
+  </data>
+  <data name="TestFailedFormat" xml:space="preserve">
+    <value>Проверка не пройдена: {0}</value>
+  </data>
+  <data name="SqlHostHintMySql" xml:space="preserve">
+    <value>хост или хост:порт (порт по умолчанию 3306)</value>
+  </data>
+  <data name="SqlHostHintMsSql" xml:space="preserve">
+    <value>хост, хост:порт или хост\экземпляр (порт по умолчанию 1433)</value>
+  </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>Источник данных ODBC (SQL Server или MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>Имя DSN или строка подключения ODBC</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>необязательно</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Источник данных из odbc.ini (например, mremoteng) или строка подключения вида Driver={MariaDB Unicode};Server=db;Port=3306. Нужны unixODBC и ODBC-драйвер базы данных. Указывайте пароль в поле «Пароль», а не в строке.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Источник данных из «Администратора источников данных ODBC» (например, mremoteng) или строка подключения вида Driver={ODBC Driver 18 for SQL Server};Server=db. Указывайте пароль в поле «Пароль», а не в строке.</value>
+  </data>
+  <data name="LogLevelDebugEverything" xml:space="preserve">
+    <value>Отладка (все)</value>
+  </data>
+  <data name="LogLevelInformation" xml:space="preserve">
+    <value>Информация</value>
+  </data>
+  <data name="LogLevelWarnings" xml:space="preserve">
+    <value>Предупреждения и ошибки</value>
+  </data>
+  <data name="LogLevelErrors" xml:space="preserve">
+    <value>Только ошибки</value>
+  </data>
+  <data name="PortableDataKeptInFormat" xml:space="preserve">
+    <value>Портативный режим: настройки, учетные данные, known_hosts, темы и журналы хранятся в {0}.</value>
+  </data>
+  <data name="DataKeptInFormat" xml:space="preserve">
+    <value>Настройки, учетные данные, known_hosts, темы и журналы хранятся в {0}.</value>
+  </data>
+  <data name="NotListening" xml:space="preserve">
+    <value>Прослушивание не ведется.</value>
+  </data>
+  <data name="ListeningStoppedFormat" xml:space="preserve">
+    <value>Прослушивание остановлено: {0}</value>
+  </data>
+  <data name="CannotListenOnPortFormat" xml:space="preserve">
+    <value>Не удается прослушивать порт {0}: {1}</value>
+  </data>
+  <data name="ListeningForVncFormat" xml:space="preserve">
+    <value>Ожидание входящих подключений VNC на порту {0}…</value>
+  </data>
+  <data name="FailedFormat" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="NoVncProtocolRegistered" xml:space="preserve">
+    <value>протокол VNC не зарегистрирован.</value>
+  </data>
+  <data name="ConnectedToDesktopFormat" xml:space="preserve">
+    <value>Подключено: «{0}»</value>
+  </data>
+  <data name="ConnectedStatus" xml:space="preserve">
+    <value>Подключено</value>
+  </data>
+  <data name="ExternalToolsNoConnection" xml:space="preserve">
+    <value>Подключение не выбрано: переменные, такие как %HOSTNAME%, пусты.</value>
+  </data>
+  <data name="ExternalToolsTargetFormat" xml:space="preserve">
+    <value>Запуск и предпросмотр используют «{0}».</value>
+  </data>
+  <data name="ExternalToolsVariablesHelpFormat" xml:space="preserve">
+    <value>Переменные: {0}. %-NAME% экранирует только метасимволы оболочки, %!NAME% вставляет значение как есть; прочие имена — переменные среды (\%NAME\% всегда, ^%NAME^% оставляет текст).</value>
+  </data>
+  <data name="ExternalToolsSaveBeforeIntegrate" xml:space="preserve">
+    <value>Сохраните изменения перед запуском инструмента, открывающегося во вкладке («Попытаться встроить»).</value>
+  </data>
+  <data name="ExternalToolStartedFormat" xml:space="preserve">
+    <value>Запущен «{0}».</value>
+  </data>
+  <data name="ExternalToolNotStartedFormat" xml:space="preserve">
+    <value>Не удалось запустить «{0}»; см. журнал.</value>
+  </data>
+  <data name="ExternalToolNeedsName" xml:space="preserve">
+    <value>У каждого инструмента должно быть отображаемое имя.</value>
+  </data>
+  <data name="ExternalToolNoFileNameFormat" xml:space="preserve">
+    <value>У «{0}» не указано имя файла.</value>
+  </data>
+  <data name="ExternalToolDuplicateNameFormat" xml:space="preserve">
+    <value>Несколько инструментов называются «{0}»; подключения ссылаются на инструменты по имени.</value>
+  </data>
+  <data name="CouldNotSaveSeeLogFormat" xml:space="preserve">
+    <value>Не удалось сохранить {0}; см. журнал.</value>
+  </data>
+  <data name="ConfirmDeleteExternalToolDetailFormat" xml:space="preserve">
+    <value>Удалить внешний инструмент «{0}»?
+Подключения, которые используют его как внешнее приложение или как инструмент до или после подключения, больше не смогут его найти.</value>
+  </data>
+  <data name="SelectTheProgram" xml:space="preserve">
+    <value>Выберите программу</value>
+  </data>
+  <data name="SelectTheWorkingDirectory" xml:space="preserve">
+    <value>Выберите рабочий каталог</value>
+  </data>
+  <data name="SelectAnIcon" xml:space="preserve">
+    <value>Выберите значок</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Не подключено.</value>
+  </data>
+  <data name="SftpConfirmDeleteFolderFormat" xml:space="preserve">
+    <value>Безвозвратно удалить папку «{0}» и все ее содержимое?</value>
+  </data>
+  <data name="SftpConfirmDeleteFileFormat" xml:space="preserve">
+    <value>Безвозвратно удалить «{0}»?</value>
+  </data>
+  <data name="ConnectingToFormat" xml:space="preserve">
+    <value>Подключение к {0}…</value>
+  </data>
+  <data name="SftpConnectedFormat" xml:space="preserve">
+    <value>Подключено к {0}. Элементов в {2}: {1}.</value>
+  </data>
+  <data name="DisconnectedStatus" xml:space="preserve">
+    <value>Отключено.</value>
+  </data>
+  <data name="LoadingFormat" xml:space="preserve">
+    <value>Загрузка {0}…</value>
+  </data>
+  <data name="SftpItemsInFormat" xml:space="preserve">
+    <value>Элементов в {1}: {0}.</value>
+  </data>
+  <data name="UploadingEllipsis" xml:space="preserve">
+    <value>Отправка…</value>
+  </data>
+  <data name="UploadingFileFormat" xml:space="preserve">
+    <value>Отправка {0}…</value>
+  </data>
+  <data name="Uploading" xml:space="preserve">
+    <value>Отправка</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>Загрузка</value>
+  </data>
+  <data name="UploadedFileFormat" xml:space="preserve">
+    <value>{0} отправлен в {1}.</value>
+  </data>
+  <data name="UploadedFilesFormat" xml:space="preserve">
+    <value>Отправлено файлов в {1}: {0}.</value>
+  </data>
+  <data name="DownloadedFileFormat" xml:space="preserve">
+    <value>{0} загружен в {1}.</value>
+  </data>
+  <data name="CreatingFormat" xml:space="preserve">
+    <value>Создание {0}…</value>
+  </data>
+  <data name="CreatedFormat" xml:space="preserve">
+    <value>Создано: {0}.</value>
+  </data>
+  <data name="DeletingFormat" xml:space="preserve">
+    <value>Удаление {0}…</value>
+  </data>
+  <data name="DeletedFormat" xml:space="preserve">
+    <value>Удалено: {0}.</value>
+  </data>
+  <data name="CancelledStatus" xml:space="preserve">
+    <value>Отменено.</value>
+  </data>
+  <data name="PortScanHint" xml:space="preserve">
+    <value>Укажите хосты (напр. 192.168.1.0/24, 10.0.0.1-50 или имена) и порты, затем начните сканирование.</value>
+  </data>
+  <data name="PortScanNeedHostAndPort" xml:space="preserve">
+    <value>Укажите хотя бы один хост и один порт.</value>
+  </data>
+  <data name="PortScanScanningFormat" xml:space="preserve">
+    <value>Сканирование: хостов — {0}, портов — {1}…</value>
+  </data>
+  <data name="PortScanProgressFormat" xml:space="preserve">
+    <value>Сканирование… хостов {0}/{1}, проверено портов {2}/{3}</value>
+  </data>
+  <data name="PortScanDoneFormat" xml:space="preserve">
+    <value>Готово: просканировано хостов: {0}, с открытыми портами: {1}.</value>
+  </data>
+  <data name="PortScanStoppedFormat" xml:space="preserve">
+    <value>Остановлено. Найдено хостов с открытыми портами: {0}.</value>
+  </data>
+  <data name="PortScanSelectHosts" xml:space="preserve">
+    <value>Выберите хосты для импорта.</value>
+  </data>
+  <data name="ImportFailedFormat" xml:space="preserve">
+    <value>Ошибка импорта: {0}</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>(еще не сохранен)</value>
+  </data>
+  <data name="FileProtectedByMasterPassword" xml:space="preserve">
+    <value>Этот файл защищен мастер-паролем.</value>
+  </data>
+  <data name="FileNotProtectedByMasterPassword" xml:space="preserve">
+    <value>Этот файл не защищен мастер-паролем (пароли шифруются ключом по умолчанию).</value>
+  </data>
+  <data name="TheNameIsRequired" xml:space="preserve">
+    <value>Укажите имя.</value>
+  </data>
+  <data name="ConnectionError" xml:space="preserve">
+    <value>Ошибка подключения</value>
+  </data>
+  <data name="ReconnectingEllipsis" xml:space="preserve">
+    <value>Переподключение…</value>
+  </data>
+  <data name="ToolTipPanelFormat" xml:space="preserve">
+    <value>Панель: {0}</value>
+  </data>
+  <data name="SqlDatabaseIsPasswordProtectedFormat" xml:space="preserve">
+    <value>База данных подключений SQL {0} защищена паролем.</value>
+  </data>
+  <data name="NoOpenSessions" xml:space="preserve">
+    <value>(Нет открытых сеансов)</value>
+  </data>
+  <data name="MultiSshAllSessions" xml:space="preserve">
+    <value>Все сеансы</value>
+  </data>
+  <data name="MultiSshActivePanel" xml:space="preserve">
+    <value>Активная панель</value>
+  </data>
+  <data name="OneSession" xml:space="preserve">
+    <value>1 сеанс</value>
+  </data>
+  <data name="SessionsCountFormat" xml:space="preserve">
+    <value>Сеансов: {0}</value>
+  </data>
+  <data name="NewCredential" xml:space="preserve">
+    <value>Новые учетные данные</value>
+  </data>
+  <data name="CredentialNeedsName" xml:space="preserve">
+    <value>У каждой записи учетных данных должно быть имя.</value>
+  </data>
+  <data name="CouldNotSaveCredentialsFormat" xml:space="preserve">
+    <value>Не удалось сохранить учетные данные: {0}</value>
+  </data>
+  <data name="ConnectWithOptionsTitleFormat" xml:space="preserve">
+    <value>Подключение с параметрами — {0}</value>
+  </data>
+  <data name="SessionShownFullScreen" xml:space="preserve">
+    <value>Этот сеанс отображается в полноэкранном режиме.
+Чтобы вернуть его, нажмите «Выйти из полноэкранного режима» вверху того окна.</value>
+  </data>
+  <data name="SessionRunsInOwnWindow" xml:space="preserve">
+    <value>Этот сеанс работает в отдельном окне.</value>
+  </data>
+  <data name="ShowMRemoteNG" xml:space="preserve">
+    <value>Показать mRemoteNG</value>
+  </data>
+  <data name="ExitMRemoteNG" xml:space="preserve">
+    <value>Выход из mRemoteNG</value>
+  </data>
+  <data name="ConfirmExitOneConnection" xml:space="preserve">
+    <value>1 подключение еще открыто. Выйти из mRemoteNG и закрыть его?</value>
+  </data>
+  <data name="ConfirmExitConnectionsFormat" xml:space="preserve">
+    <value>Открытых подключений: {0}. Выйти из mRemoteNG и закрыть их?</value>
+  </data>
+  <data name="CloseConnectionTitle" xml:space="preserve">
+    <value>Закрытие подключения</value>
+  </data>
+  <data name="ConfirmCloseConnectionFormat" xml:space="preserve">
+    <value>Закрыть подключение «{0}»?</value>
+  </data>
+  <data name="RightClickForPanelOptions" xml:space="preserve">
+    <value>Щелкните правой кнопкой для параметров панели</value>
+  </data>
+  <data name="DefaultSshPrivateKey" xml:space="preserve">
+    <value>Закрытый ключ SSH по умолчанию</value>
+  </data>
+  <data name="MRemoteNGConnectionFiles" xml:space="preserve">
+    <value>Файлы подключений mRemoteNG</value>
+  </data>
+  <data name="LogFileTitle" xml:space="preserve">
+    <value>Файл журнала</value>
+  </data>
+  <data name="BackupFolderTitle" xml:space="preserve">
+    <value>Папка резервных копий</value>
+  </data>
+  <data name="NoExternalTools" xml:space="preserve">
+    <value>(нет внешних инструментов)</value>
+  </data>
+  <data name="CustomThemeNameFormat" xml:space="preserve">
+    <value>{0} (своя)</value>
+  </data>
+  <data name="ThemeSavedFormat" xml:space="preserve">
+    <value>Тема «{0}» сохранена в {1} и применена.</value>
+  </data>
+  <data name="CouldNotSaveThemeFormat" xml:space="preserve">
+    <value>Не удалось сохранить тему: {0}</value>
+  </data>
+  <data name="ThemeDeletedFormat" xml:space="preserve">
+    <value>Тема «{0}» удалена.</value>
+  </data>
+  <data name="ExternalToolTipIntegratedFormat" xml:space="preserve">
+    <value>{0} (открывается во вкладке) — запуск для выбранного подключения</value>
+  </data>
+  <data name="ExternalToolTipFormat" xml:space="preserve">
+    <value>{0} — запуск для выбранного подключения</value>
+  </data>
+  <data name="ExportSelectedFolderFormat" xml:space="preserve">
+    <value>Выбранная папка «{0}» и ее содержимое</value>
+  </data>
+  <data name="ExportConnectionsToFile" xml:space="preserve">
+    <value>Экспорт подключений в файл</value>
+  </data>
+  <data name="ExportChooseFile" xml:space="preserve">
+    <value>Выберите файл для экспорта.</value>
+  </data>
+  <data name="ExportFolderMissing" xml:space="preserve">
+    <value>Папка для файла экспорта не существует.</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Пароли не совпадают.</value>
+  </data>
+  <data name="UploadToFormat" xml:space="preserve">
+    <value>Отправить в {0}</value>
+  </data>
+  <data name="DownloadAs" xml:space="preserve">
+    <value>Загрузить как</value>
+  </data>
+  <data name="CreateFolderInFormat" xml:space="preserve">
+    <value>Создать папку в {0}:</value>
+  </data>
+  <data name="FolderName" xml:space="preserve">
+    <value>Имя папки</value>
+  </data>
+  <data name="FloatingPanelTitleFormat" xml:space="preserve">
+    <value>{0} ({1}) — mRemoteNG</value>
+  </data>
+  <data name="MRemoteNGError" xml:space="preserve">
+    <value>Ошибка mRemoteNG</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>Отключено</value>
+  </data>
+  <data name="HostKeyUnknownTitle" xml:space="preserve">
+    <value>Неизвестный ключ хоста SSH</value>
+  </data>
+  <data name="HostKeyUnknownHeadingFormat" xml:space="preserve">
+    <value>Не удается установить подлинность хоста «{0}».</value>
+  </data>
+  <data name="HostKeyUnknownExplanationFormat" xml:space="preserve">
+    <value>Сравните отпечаток ниже с опубликованным администратором сервера. «Принять и сохранить» сохраняет ключ в {0}, чтобы последующие подключения проверялись автоматически.</value>
+  </data>
+  <data name="HostKeyOtherTypeKnown" xml:space="preserve">
+    <value>Этот хост уже известен с ключом другого типа:</value>
+  </data>
+  <data name="HostKeyChangedTitle" xml:space="preserve">
+    <value>Ключ хоста SSH изменился</value>
+  </data>
+  <data name="HostKeyMismatchHeadingFormat" xml:space="preserve">
+    <value>Ключ {0}, предъявленный «{1}», не совпадает с сохраненным.</value>
+  </data>
+  <data name="HostKeyMismatchExplanationFormat" xml:space="preserve">
+    <value>Подключение заблокировано. Замена ключа обновит {0}; ~/.ssh/known_hosts никогда не изменяется.</value>
+  </data>
+  <data name="HostKeyStoredKey" xml:space="preserve">
+    <value>Сохраненный ключ:</value>
+  </data>
+  <data name="ImportTargetRoot" xml:space="preserve">
+    <value>Корень (верхний уровень)</value>
+  </data>
+  <data name="ImportTargetSelectedFolderFormat" xml:space="preserve">
+    <value>Выбранная папка: {0}</value>
+  </data>
+  <data name="BrowseDirectory" xml:space="preserve">
+    <value>Обзор каталога</value>
+  </data>
+  <data name="PuttySessionsFolderOptional" xml:space="preserve">
+    <value>Папка сеансов PuTTY (необязательно)</value>
+  </data>
+  <data name="ImportHintPuttyRegistry" xml:space="preserve">
+    <value>Оставьте пустым, чтобы прочитать сеансы, сохраненные PuTTY в реестре Windows.</value>
+  </data>
+  <data name="PuttySessionsFolder" xml:space="preserve">
+    <value>Папка сеансов PuTTY</value>
+  </data>
+  <data name="ImportHintPuttyFolder" xml:space="preserve">
+    <value>PuTTY хранит сеансы в ~/.putty/sessions (по файлу на сеанс).</value>
+  </data>
+  <data name="OpenSshConfigFile" xml:space="preserve">
+    <value>Файл конфигурации OpenSSH</value>
+  </data>
+  <data name="ImportHintOpenSsh" xml:space="preserve">
+    <value>Записи Host становятся подключениями SSH; шаблоны с подстановочными знаками пропускаются.</value>
+  </data>
+  <data name="ImportHintXml" xml:space="preserve">
+    <value>Если файл защищен, будет запрошен пароль.</value>
+  </data>
+  <data name="ImportHintRdcMan" xml:space="preserve">
+    <value>Пароли, зашифрованные RDCMan (Windows DPAPI), импортировать нельзя.</value>
+  </data>
+  <data name="ImportBrowseDirectoryWatermark" xml:space="preserve">
+    <value>Просмотрите каталог, чтобы выбрать подразделение...</value>
+  </data>
+  <data name="ImportHintActiveDirectory" xml:space="preserve">
+    <value>Подключитесь к контроллеру домена, выберите подразделение и его компьютеры; они импортируются как подключения RDP.</value>
+  </data>
+  <data name="ImportHintCsv" xml:space="preserve">
+    <value>Пароли в файлах CSV хранятся открытым текстом.</value>
+  </data>
+  <data name="SelectPuttySessionsFolder" xml:space="preserve">
+    <value>Выберите папку сеансов PuTTY</value>
+  </data>
+  <data name="ImportFromFormat" xml:space="preserve">
+    <value>Импорт из {0}</value>
+  </data>
+  <data name="ImportNoPuttyFolder" xml:space="preserve">
+    <value>Папка сеансов PuTTY не найдена. Выберите папку с файлами сеансов.</value>
+  </data>
+  <data name="PathDoesNotExistFormat" xml:space="preserve">
+    <value>«{0}» не существует.</value>
+  </data>
+  <data name="PortScanImportedFormat" xml:space="preserve">
+    <value>Импортировано подключений {1} в «{2}»: {0}.</value>
+  </data>
+  <data name="PortScanSkippedFormat" xml:space="preserve">
+    <value>Пропущено хостов: {0} (служба {1} не найдена).</value>
+  </data>
+  <data name="UserInterfaceLanguage" xml:space="preserve">
+    <value>Язык интерфейса</value>
+  </data>
+  <data name="AlreadyRunning" xml:space="preserve">
+    <value>mRemoteNG уже запущен.</value>
+  </data>
+  <data name="HostStatusPingFormat" xml:space="preserve">
+    <value>ping {0} мс</value>
+  </data>
+  <data name="HostStatusNoPingFormat" xml:space="preserve">
+    <value>нет ответа на ping ({0})</value>
+  </data>
+  <data name="HostStatusPortOpenFormat" xml:space="preserve">
+    <value>порт {0} открыт</value>
+  </data>
+  <data name="HostStatusPortClosedFormat" xml:space="preserve">
+    <value>порт {0} закрыт ({1})</value>
+  </data>
+  <data name="HostStatusOnlineFormat" xml:space="preserve">
+    <value>В сети — {0}</value>
+  </data>
+  <data name="HostStatusOfflineFormat" xml:space="preserve">
+    <value>Не в сети — {0}</value>
+  </data>
+  <data name="ShellToastErrorTitle" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="ShellShowLog" xml:space="preserve">
+    <value>Показать журнал</value>
+  </data>
+  <data name="ShellDismiss" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="ShellSavedFormat" xml:space="preserve">
+    <value>Сохранено: {0}</value>
+  </data>
+  <data name="ShellCommandPalette" xml:space="preserve">
+    <value>Палитра команд</value>
+  </data>
+  <data name="ShellCommandPaletteTip" xml:space="preserve">
+    <value>Поиск подключений и команд (Ctrl+K)</value>
+  </data>
+  <data name="ShellPaletteWatermark" xml:space="preserve">
+    <value>Поиск подключений и команд…</value>
+  </data>
+  <data name="ShellPaletteHintNavigate" xml:space="preserve">
+    <value>навигация</value>
+  </data>
+  <data name="ShellPaletteHintOpen" xml:space="preserve">
+    <value>подключить / выполнить</value>
+  </data>
+  <data name="ShellPaletteHintOptions" xml:space="preserve">
+    <value>подключить с параметрами</value>
+  </data>
+  <data name="ShellPaletteNoMatches" xml:space="preserve">
+    <value>Нет подходящих подключений или команд</value>
+  </data>
+  <data name="ShellRecent" xml:space="preserve">
+    <value>Недавно открытые</value>
+  </data>
+  <data name="ShellFindConnection" xml:space="preserve">
+    <value>Найти подключение</value>
+  </data>
+  <data name="ShellExpandBottomPanel" xml:space="preserve">
+    <value>Развернуть нижнюю панель</value>
+  </data>
+  <data name="ShellToggleTheme" xml:space="preserve">
+    <value>Переключить темную / светлую тему</value>
+  </data>
+  <data name="ShellSwitchToLightTheme" xml:space="preserve">
+    <value>Переключиться на светлую тему</value>
+  </data>
+  <data name="ShellSwitchToDarkTheme" xml:space="preserve">
+    <value>Переключиться на темную тему</value>
+  </data>
+  <data name="ShellThemeDark" xml:space="preserve">
+    <value>Темная</value>
+  </data>
+  <data name="ShellThemeLight" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="ShellThemeSystemFormat" xml:space="preserve">
+    <value>Системная ({0})</value>
+  </data>
+  <data name="ShellMoreNewItems" xml:space="preserve">
+    <value>Новая папка, новый файл подключений…</value>
+  </data>
+  <data name="ShellQuickConnectWatermark" xml:space="preserve">
+    <value>Быстрое подключение: хост[:порт]</value>
+  </data>
+  <data name="ShellQuickConnectTip" xml:space="preserve">
+    <value>Хост или хост:порт, также user@host или ssh://, rdp://, vnc://… — Enter подключает</value>
+  </data>
+  <data name="ShellProtocol" xml:space="preserve">
+    <value>Протокол</value>
+  </data>
+  <data name="ShellOptionsTip" xml:space="preserve">
+    <value>Параметры (Ctrl+,)</value>
+  </data>
+  <data name="ShellMoreExternalTools" xml:space="preserve">
+    <value>Другие внешние инструменты</value>
+  </data>
+  <data name="ShellLogIndicatorTip" xml:space="preserve">
+    <value>Предупреждения и ошибки с последнего просмотра журнала — щелкните, чтобы открыть журнал</value>
+  </data>
+  <data name="ShellOneSession" xml:space="preserve">
+    <value>1 сеанс</value>
+  </data>
+  <data name="ShellSessionsFormat" xml:space="preserve">
+    <value>Сеансов: {0}</value>
+  </data>
+  <data name="ShellToggleBottomPanelTip" xml:space="preserve">
+    <value>Свернуть / развернуть панель (Ctrl+J)</value>
+  </data>
+  <data name="ShellCopyLogTip" xml:space="preserve">
+    <value>Копировать все</value>
+  </data>
+  <data name="ShellClearLogTip" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="ShellHideBottomPanelTip" xml:space="preserve">
+    <value>Скрыть панель (Ctrl+Shift+L)</value>
+  </data>
+  <data name="ShellNoOpenSessions" xml:space="preserve">
+    <value>Нет открытых сеансов</value>
+  </data>
+  <data name="ShellEmptyStateCaption" xml:space="preserve">
+    <value>Откройте сохраненное подключение из дерева или введите хост, чтобы сразу подключиться.</value>
+  </data>
+  <data name="ShellNewConnection" xml:space="preserve">
+    <value>Новое подключение</value>
+  </data>
+  <data name="ShellHintSearch" xml:space="preserve">
+    <value>Поиск и команды</value>
+  </data>
+  <data name="ShellRecentAndFavorites" xml:space="preserve">
+    <value>Недавние и избранное</value>
+  </data>
+  <data name="TreeMoreActions" xml:space="preserve">
+    <value>Другие действия</value>
+  </data>
+  <data name="TreeSearchWatermark" xml:space="preserve">
+    <value>Поиск подключений (Ctrl+F)</value>
+  </data>
+  <data name="TreeEmptyTitle" xml:space="preserve">
+    <value>Подключений пока нет</value>
+  </data>
+  <data name="TreeEmptyText" xml:space="preserve">
+    <value>Создайте первое подключение или импортируйте существующие из файла.</value>
+  </data>
+  <data name="TreeNoMatchesTitle" xml:space="preserve">
+    <value>Ничего не найдено</value>
+  </data>
+  <data name="TreeNoMatchesText" xml:space="preserve">
+    <value>Совпадений в именах, именах хостов и описаниях не найдено.</value>
+  </data>
+  <data name="TreeClearSearch" xml:space="preserve">
+    <value>Очистить поиск</value>
+  </data>
+  <data name="ConnectRowTip" xml:space="preserve">
+    <value>Подключиться (Enter)</value>
+  </data>
+  <data name="SessionDotConnected" xml:space="preserve">
+    <value>Открытый сеанс: подключено</value>
+  </data>
+  <data name="SessionDotBusy" xml:space="preserve">
+    <value>Открытый сеанс: подключение</value>
+  </data>
+  <data name="SessionDotFailed" xml:space="preserve">
+    <value>Открытый сеанс: ошибка подключения</value>
+  </data>
+  <data name="SessionDotIdle" xml:space="preserve">
+    <value>Открытый сеанс: отключено</value>
+  </data>
+  <data name="SessionShowAllTabs" xml:space="preserve">
+    <value>Показать все вкладки</value>
+  </data>
+  <data name="CloseTabTip" xml:space="preserve">
+    <value>Закрыть (средняя кнопка мыши)</value>
+  </data>
+  <data name="PanelEmptyTitle" xml:space="preserve">
+    <value>В этой панели нет сеансов</value>
+  </data>
+  <data name="PanelEmptyText" xml:space="preserve">
+    <value>Здесь открываются подключения, у которых в поле «Панель» указана эта панель. Чтобы перенести сеанс сюда, используйте «Переместить в панель» на вкладке.</value>
+  </data>
+  <data name="SessionBannerErrorTitle" xml:space="preserve">
+    <value>Не удалось подключиться</value>
+  </data>
+  <data name="SessionBannerDisconnectedTitle" xml:space="preserve">
+    <value>Отключено</value>
+  </data>
+  <data name="SessionBannerReconnectingTitle" xml:space="preserve">
+    <value>Переподключение</value>
+  </data>
+  <data name="ConfirmDeleteThemeTitle" xml:space="preserve">
+    <value>Удаление темы</value>
+  </data>
+  <data name="ConfirmDeleteThemeFormat" xml:space="preserve">
+    <value>Удалить тему «{0}»? Это действие нельзя отменить.</value>
+  </data>
+  <data name="TerminalBackendBuiltInTerminal" xml:space="preserve">
+    <value>Встроенный терминал</value>
+  </data>
+  <data name="TerminalBackendOpenSshClient" xml:space="preserve">
+    <value>Системный клиент OpenSSH (ssh)</value>
+  </data>
+  <data name="TransferFileUltraVnc" xml:space="preserve">
+    <value>Передача файлов (UltraVNC)</value>
+  </data>
+  <data name="UltraVncFileTransferTitle" xml:space="preserve">
+    <value>Передача файлов UltraVNC</value>
+  </data>
+  <data name="UltraVncFileTransferDescriptionFormat" xml:space="preserve">
+    <value>Файлы передаются через сеанс VNC «{0}». Нажмите «Подключиться», чтобы запросить у сервера доступ к файлам. Сервер должен разрешать передачу файлов: UltraVNC разрешает, если она включена, x11vnc требует -ultrafilexfer, а другие серверы на базе LibVNCServer при таком запросе закрывают сеанс VNC.</value>
+  </data>
+  <data name="TextChatTitleFormat" xml:space="preserve">
+    <value>Чат с {0}</value>
+  </data>
+  <data name="TextChatYou" xml:space="preserve">
+    <value>Вы</value>
+  </data>
+  <data name="TextChatNotSent" xml:space="preserve">
+    <value>Нет подключения: сообщение не отправлено.</value>
+  </data>
+  <data name="TextChatOpenedFormat" xml:space="preserve">
+    <value>{0} открыл(а) чат.</value>
+  </data>
+  <data name="TextChatClosedFormat" xml:space="preserve">
+    <value>{0} закрыл(а) чат.</value>
+  </data>
+  <data name="TextChatWatermark" xml:space="preserve">
+    <value>Введите сообщение и нажмите Enter</value>
+  </data>
+  <data name="TextChatSend" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="PluginLoadedFormat" xml:space="preserve">
+    <value>Подключаемый модуль {0} {1} загружен.</value>
+  </data>
+  <data name="PluginNotLoadedFormat" xml:space="preserve">
+    <value>Подключаемый модуль {0} не загружен: {1}</value>
+  </data>
+  <data name="PluginImportNoFileFormat" xml:space="preserve">
+    <value>Подключения из подключаемого модуля не импортированы ({0}): нет открытого файла подключений.</value>
+  </data>
+  <data name="PluginImportedFormat" xml:space="preserve">
+    <value>Импортировано подключений из подключаемого модуля в «{1}»: {0}.</value>
+  </data>
+  <data name="PluginsLoadedSummaryFormat" xml:space="preserve">
+    <value>Загружено {0} из {1}.</value>
+  </data>
+  <data name="PluginStateLoaded" xml:space="preserve">
+    <value>Загружен</value>
+  </data>
+  <data name="PluginStateDisabled" xml:space="preserve">
+    <value>Отключен</value>
+  </data>
+  <data name="PluginStateIncompatible" xml:space="preserve">
+    <value>Требуется более новая версия</value>
+  </data>
+  <data name="PluginStateDuplicate" xml:space="preserve">
+    <value>Дубликат</value>
+  </data>
+  <data name="PluginStateUnsupported" xml:space="preserve">
+    <value>Только приложение для Windows</value>
+  </data>
+  <data name="PluginStateFailed" xml:space="preserve">
+    <value>Ошибка загрузки</value>
+  </data>
+  <data name="InstalledPlugins" xml:space="preserve">
+    <value>Установленные подключаемые модули</value>
+  </data>
+  <data name="NoPluginsFound" xml:space="preserve">
+    <value>Подключаемые модули не найдены</value>
+  </data>
+  <data name="NoPluginsFoundDescription" xml:space="preserve">
+    <value>Скопируйте DLL подключаемого модуля в одну из папок ниже и перезапустите mRemoteNG.</value>
+  </data>
+  <data name="PluginChangesAfterRestart" xml:space="preserve">
+    <value>Включение, отключение или добавление подключаемых модулей вступает в силу при следующем запуске mRemoteNG. Модули с окнами инструментов используют Windows Forms и работают только в приложении для Windows.</value>
+  </data>
+  <data name="PluginFolders" xml:space="preserve">
+    <value>Папки подключаемых модулей</value>
+  </data>
+  <data name="PluginFoldersAlwaysSearched" xml:space="preserve">
+    <value>Просматриваются всегда</value>
+  </data>
+  <data name="OpenPluginFolder" xml:space="preserve">
+    <value>Открыть папку модулей</value>
+  </data>
+  <data name="AdditionalPluginFolders" xml:space="preserve">
+    <value>Дополнительные папки</value>
+  </data>
+  <data name="AdditionalPluginFoldersDescription" xml:space="preserve">
+    <value>Дополнительные папки для загрузки подключаемых модулей, через точку с запятой (;).</value>
+  </data>
+</root>

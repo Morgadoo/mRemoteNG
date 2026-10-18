@@ -76,7 +76,8 @@ public partial class SshFileTransferDialog : Window
         Closed += (_, _) => viewModel.Dispose();
         Opened += (_, _) =>
         {
-            if (!string.IsNullOrWhiteSpace(viewModel.Host))
+            // Attached sessions wait for Connect: libvncserver servers without file transfer close the session.
+            if (!viewModel.IsAttached && !string.IsNullOrWhiteSpace(viewModel.Host))
                 viewModel.ConnectCommand.Execute(Unit.Default).Subscribe();
         };
     }
@@ -89,6 +90,14 @@ public partial class SshFileTransferDialog : Window
     public static SshFileTransferDialog ShowFor(Window owner, ConnectionParameters? prefill = null)
     {
         var dialog = new SshFileTransferDialog(CreateViewModel(prefill));
+        dialog.Show(owner);
+        return dialog;
+    }
+
+    /// <summary>Opens the file browser for <paramref name="viewModel"/> as a non-modal window owned by <paramref name="owner"/>.</summary>
+    public static SshFileTransferDialog ShowFor(Window owner, SshFileTransferViewModel viewModel)
+    {
+        var dialog = new SshFileTransferDialog(viewModel);
         dialog.Show(owner);
         return dialog;
     }

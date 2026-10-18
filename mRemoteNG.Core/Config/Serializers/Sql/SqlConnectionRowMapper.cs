@@ -23,7 +23,9 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
     {
         public const string RootParentId = "0";
 
-        private static readonly string[] PasswordColumns = ["Password", "RDGatewayPassword", "VNCProxyPassword"];
+        private static readonly string[] PasswordColumns = ["Password", "RDGatewayPassword", "VNCProxyPassword", "RDGatewayAccessToken"];
+
+        private const string PluginDataColumn = "PluginData";
 
         /// <summary>Columns whose ConnectionInfo property has a different name.</summary>
         private static readonly Dictionary<string, string> PropertyAliases = new(StringComparer.OrdinalIgnoreCase)
@@ -45,7 +47,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
         private static readonly HashSet<string> StructuralColumns = new(StringComparer.OrdinalIgnoreCase)
         {
             "ID", "ConstantID", "PositionID", "ParentID", "LastChange", "Type", "Expanded", "Connected",
-            "ICAEncryptionStrength", "InheritICAEncryptionStrength", "Name",
+            "ICAEncryptionStrength", "InheritICAEncryptionStrength", "Name", PluginDataColumn,
         };
 
         private static readonly Dictionary<string, PropertyInfo> ValueProperties = BuildValueProperties();
@@ -54,6 +56,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
         private readonly ICryptographyProvider _crypto;
         private readonly SaveFilter _saveFilter;
         private readonly Func<DateTime> _clock;
+        private readonly Dictionary<string, IReadOnlySet<string>> _storedSharedColumns = new(StringComparer.Ordinal);
 
         public SqlConnectionRowMapper(ICryptographyProvider crypto, SaveFilter? saveFilter = null, Func<DateTime>? clock = null)
         {
@@ -61,6 +64,12 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
             _saveFilter = saveFilter ?? new SaveFilter();
             _clock = clock ?? (() => DateTime.Now);
         }
+
+        /// <summary>
+        /// For the last <see cref="FromRows"/>: per connection id, the <see cref="SqlSchema.SharedLocalFallbackColumns"/>
+        /// that held a value (not NULL). The others may still be filled in from the local fallback file.
+        /// </summary>
+        public IReadOnlyDictionary<string, IReadOnlySet<string>> StoredSharedColumns => _storedSharedColumns;
 
         /// <summary>The tblCons columns this mapper reads and writes (everything except the identity column).</summary>
         public static IEnumerable<string> MappedColumns =>
@@ -105,6 +114,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
                 ["Connected"] = false,
                 ["ICAEncryptionStrength"] = string.Empty,
                 ["InheritICAEncryptionStrength"] = false,
+                [PluginDataColumn] = PluginPropertySerializer.Serialize(node.PluginProperties),
             };
 
             // Store the node's own values: switch inheritance off while reading them.
@@ -161,6 +171,7 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
         public ConnectionTreeModel FromRows(IEnumerable<IReadOnlyDictionary<string, object?>> rows, string key, string rootName = "Connections")
         {
             ArgumentNullException.ThrowIfNull(rows);
+            _storedSharedColumns.Clear();
             var root = new RootNodeInfo(RootNodeType.Connection) { Name = rootName };
             var model = new ConnectionTreeModel(root);
 
@@ -179,6 +190,11 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
                 if (node is null || byId.ContainsKey(node.ConstantID))
                     continue;
                 byId[node.ConstantID] = node;
+                var stored = SqlSchema.SharedLocalFallbackColumns
+                    .Where(column => row.TryGetValue(column, out var raw) && raw is not null and not DBNull)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                if (stored.Count > 0)
+                    _storedSharedColumns[node.ConstantID] = stored;
                 nodes.Add((node, ReadString(row, "ParentID") ?? RootParentId));
             }
 
@@ -232,6 +248,9 @@ namespace mRemoteNG.Core.Config.Serializers.Sql
                 if (row.TryGetValue(column, out var raw) && TryConvert(raw, typeof(bool), out var flag))
                     property.SetValue(node.Inheritance, flag);
             }
+
+            if (row.TryGetValue(PluginDataColumn, out var pluginData) && pluginData is string pluginText)
+                node.ReplacePluginProperties(PluginPropertySerializer.Deserialize(pluginText));
 
             if (node is ContainerInfo container)
                 container.IsExpanded = ReadBool(row, "Expanded") ?? false;

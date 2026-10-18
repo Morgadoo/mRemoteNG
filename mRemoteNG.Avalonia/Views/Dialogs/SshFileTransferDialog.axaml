@@ -7,7 +7,7 @@
         x:Class="mRemoteNG.Avalonia.Views.Dialogs.SshFileTransferDialog"
         x:DataType="vm:SshFileTransferViewModel"
         Classes="dialog"
-        Title="{l:Tr SshFileTransfer, English='SSH File Transfer (SFTP)'}"
+        Title="{Binding Title}"
         Width="980"
         Height="660"
         MinWidth="760"
@@ -21,7 +21,7 @@
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
-        <ctl:DialogHeader Icon="FolderNetworkOutline" Title="{l:Tr SshFileTransfer, English='SSH File Transfer (SFTP)'}">
+        <ctl:DialogHeader Icon="FolderNetworkOutline" Title="{Binding Title}">
             <Border Classes="badge" IsVisible="{Binding IsConnected}" Background="{DynamicResource SuccessTintBrush}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <Border Classes="dot success"/>
@@ -33,20 +33,26 @@
         <!-- Connection -->
         <Border Grid.Row="1" Classes="card" Margin="24,20,24,12">
             <Grid ColumnDefinitions="2*,8,80,8,*,8,*,8,*,12,Auto" RowDefinitions="Auto,Auto">
-                <TextBlock Grid.Column="0" Classes="field-label" Text="{l:Tr Host}"/>
-                <TextBlock Grid.Column="2" Classes="field-label" Text="{l:Tr Port}"/>
-                <TextBlock Grid.Column="4" Classes="field-label" Text="{l:Tr Username}"/>
-                <TextBlock Grid.Column="6" Classes="field-label" Text="{l:Tr Password}"/>
-                <TextBlock Grid.Column="8" Classes="field-label" Text="{l:Tr PrivateKeyOptional}" TextTrimming="CharacterEllipsis"/>
-                <TextBox Grid.Row="1" Grid.Column="0" Classes="mono" Text="{Binding Host}" Watermark="host.example.com"
-                         IsEnabled="{Binding !IsConnected}"/>
-                <NumericUpDown Grid.Row="1" Grid.Column="2" Value="{Binding Port}" Minimum="1" Maximum="65535"
-                               FormatString="0" ShowButtonSpinner="False" IsEnabled="{Binding !IsConnected}"/>
-                <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding Username}" IsEnabled="{Binding !IsConnected}"/>
-                <TextBox Grid.Row="1" Grid.Column="6" Text="{Binding Password}" PasswordChar="●"
-                         IsEnabled="{Binding !IsConnected}"/>
-                <TextBox Grid.Row="1" Grid.Column="8" Classes="mono" Text="{Binding PrivateKeyPath}" Watermark="~/.ssh/id_ed25519"
-                         IsEnabled="{Binding !IsConnected}"/>
+                <SelectableTextBlock Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="9" x:Name="AttachedDescriptionText"
+                                     Text="{Binding AttachedDescription}" TextWrapping="Wrap" VerticalAlignment="Center"
+                                     IsVisible="{Binding IsAttached}"/>
+                <Grid Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="9" ColumnDefinitions="2*,8,80,8,*,8,*,8,*" RowDefinitions="Auto,Auto"
+                      IsVisible="{Binding !IsAttached}">
+                    <TextBlock Grid.Column="0" Classes="field-label" Text="{l:Tr Host}"/>
+                    <TextBlock Grid.Column="2" Classes="field-label" Text="{l:Tr Port}"/>
+                    <TextBlock Grid.Column="4" Classes="field-label" Text="{l:Tr Username}"/>
+                    <TextBlock Grid.Column="6" Classes="field-label" Text="{l:Tr Password}"/>
+                    <TextBlock Grid.Column="8" Classes="field-label" Text="{l:Tr PrivateKeyOptional}" TextTrimming="CharacterEllipsis"/>
+                    <TextBox Grid.Row="1" Grid.Column="0" Classes="mono" Text="{Binding Host}" Watermark="host.example.com"
+                             IsEnabled="{Binding !IsConnected}"/>
+                    <NumericUpDown Grid.Row="1" Grid.Column="2" Value="{Binding Port}" Minimum="1" Maximum="65535"
+                                   FormatString="0" ShowButtonSpinner="False" IsEnabled="{Binding !IsConnected}"/>
+                    <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding Username}" IsEnabled="{Binding !IsConnected}"/>
+                    <TextBox Grid.Row="1" Grid.Column="6" Text="{Binding Password}" PasswordChar="●"
+                             IsEnabled="{Binding !IsConnected}"/>
+                    <TextBox Grid.Row="1" Grid.Column="8" Classes="mono" Text="{Binding PrivateKeyPath}" Watermark="~/.ssh/id_ed25519"
+                             IsEnabled="{Binding !IsConnected}"/>
+                </Grid>
                 <Panel Grid.Row="1" Grid.Column="10">
                     <Button Classes="accent" MinWidth="104" Command="{Binding ConnectCommand}"
                             IsVisible="{Binding !IsConnected}" IsDefault="True">

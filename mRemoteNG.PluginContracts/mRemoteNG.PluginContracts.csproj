@@ -1,13 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- net10.0-windows: the WinForms app and its tool-window plugins. net10.0: the cross-platform app, which hosts
+       every plugin kind except IToolWindowPlugin. Both builds share the assembly name and the types they have in
+       common, so a plugin built against either loads in both hosts as long as it does not use WinForms. -->
   <PropertyGroup>
-    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetFrameworks>net10.0-windows10.0.26100.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>True</UseWindowsForms>
     <Platforms>x64;arm64</Platforms>
     <Configurations>Debug;Release;Release Self-Contained;Deploy to github</Configurations>
-    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
     <AssemblyName>mRp.Contracts</AssemblyName>
     <RootNamespace>mRemoteNG.PluginContracts</RootNamespace>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.26100.0'">
+    <UseWindowsForms>True</UseWindowsForms>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Compile Remove="IToolWindowPlugin.cs" />
+    <!-- System.Drawing.Image stays in the signatures (icons) so both builds expose the same members. -->
+    <PackageReference Include="System.Drawing.Common" />
+  </ItemGroup>
 </Project>

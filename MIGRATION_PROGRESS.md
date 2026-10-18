@@ -7,7 +7,7 @@
 > - Run `grep -r "\[~\]" MIGRATION_PROGRESS.md` to see active tasks
 > - Each PR should reference the task ID (e.g. "Implements P1-1.1.1")
 
-**Last updated:** 2026-10-17 (terminal wide characters, rlogin window size, SQL local connection state)
+**Last updated:** 2026-10-18 (issue #8: ConfVersion 2.9, VNC Ultra/ZlibHex/VeNCrypt/chat/file transfer, tab drag, plugins, translations, ODBC, Flatpak and Snap builds)
 **Current Phase:** Phase 4 — packaging verification and signing
 **Branch:** `dev`
 
@@ -21,20 +21,20 @@ GitHub Actions on ubuntu/macos/windows-latest. Tests: 1219 cross-platform (unit 
 UI tests.
 
 **Works (verified on Linux against real servers unless noted)**
-- Connection files: legacy confCons.xml 2.5–2.8 incl. master passwords and full-file encryption, byte-compatible
+- Connection files: legacy confCons.xml 2.5–2.9 incl. master passwords and full-file encryption, byte-compatible
   with the WinForms app; every attribute the legacy writer emits round-trips (`LegacyAttributeContractTests`).
   Import (8 formats + Active Directory + port scan) and export (XML/CSV).
 - Storage: SQL backend in the legacy `tblCons/tblRoot/tblUpdate` schema (MySQL/MariaDB verified; SQL Server
   only unit-tested), multi-user change polling with auto-reload, rolling backups, autosave, portable mode.
 - Protocols: SSH (known_hosts, SFTP, PuTTY saved sessions, SSHOptions, local/remote/dynamic forwards,
-  tunnels through other connections), Telnet, Rlogin, RAW, VNC (Raw/CopyRect/RRE/CoRRE/Hextile/Zlib/ZRLE/Tight
-  incl. JPEG, 8/16/32 bpp, HTTP/SOCKS5/repeater proxies, ARD and MS-Logon auth — the last two against fakes
-  only), RDP (FreeRDP embedded; display/performance/redirection/start program/idle timeout/gateway/Hyper-V
+  tunnels through other connections), Telnet, Rlogin, RAW, VNC (Raw/CopyRect/RRE/CoRRE/Hextile/Zlib/ZlibHex/
+  ZRLE/Ultra/Tight incl. JPEG, 8/16/32 bpp, VeNCrypt, UltraVNC chat and file transfer, HTTP/SOCKS5/repeater
+  proxies, ARD and MS-Logon auth — the last two against fakes only), RDP (FreeRDP embedded; display/performance/redirection/start program/idle timeout/gateway/Hyper-V
   options mapped), HTTP/HTTPS (system browser), PowerShell, local shell, serial, IntApp (external tool
   embedded in the tab on X11/Windows), AnyDesk.
 - Sessions: tab menu (reconnect, duplicate, rename, special keys, smart size, view-only, full screen, refresh,
-  SFTP, move to panel, close others/right), auto-reconnect, reopen sessions at startup, named panels (tabbed,
-  side by side, stacked, floating), saved layout, Multi-SSH, Favorites, tab/frame colours, environment tags.
+  SFTP, move to panel, close others/right), tabs dragged between panels, auto-reconnect, reopen sessions at
+  startup, named panels (tabbed, side by side, stacked, floating), saved layout, Multi-SSH, Favorites, tab/frame colours, environment tags.
 - Tools: External Tools (extApps.xml, variables, toolbar, pre/post connection apps), port scanner, Active
   Directory import (slapd with the AD schema), UltraVNC SingleClick listener.
 - External providers: Vault/OpenBao (KV v1/v2, LDAP, SSH OTP; verified against a real server); Delinea Secret
@@ -45,19 +45,30 @@ UI tests.
 **Not verified / known limitations**
 - Windows and macOS: builds and unit/UI tests run in CI, but the app has not been driven interactively there
   (RDP/IntApp embedding on Windows, DPAPI, registry PuTTY sessions, Keychain).
-- RDP against Windows Server (NLA failure path, RD Gateway, Hyper-V, restricted admin) — unit-tested only.
-  FreeRDP has no Remote Credential Guard, cursor shadow/blink or RDP version options.
-- VNC: ZlibHex falls back to Zlib; UltraVNC Ultra encoding, chat, file transfer and VeNCrypt are not done.
-- HTTP/HTTPS is not embedded (no maintained WebView for Avalonia 11). IntApp is not embedded on macOS or
-  native Wayland.
+- RDP against Windows Server (NLA failure path, RD Gateway, Hyper-V, restricted admin) — unit-tested only;
+  there is no Windows Server in the Linux test environment. Remote Credential Guard is used when FreeRDP was
+  built with it (`+remoteGuard`). FreeRDP has no cursor shadow/blink option and always negotiates the newest
+  RDP version, so those settings are kept for the WinForms app and the connection editor says so.
+- VNC: VeNCrypt anonymous TLS (TLSNone/TLSVnc/TLSPlain) is not offered, because .NET's TLS has no anonymous
+  Diffie-Hellman ciphers; the X509 sub-types, Plain and the unencrypted ones are.
+- HTTP/HTTPS is not embedded (no maintained WebView for Avalonia 11 that Linux distributions ship); it opens
+  in the system browser. IntApp is not embedded on macOS (no foreign-window reparenting API) or native
+  Wayland (the protocol has no way to embed another client's window); there it runs in its own window.
 - SQL storage has no legacy columns for TabColor, ConnectionFrameColor, Vault fields or the RD Gateway
   access token. Those are kept in `SqlConnectionProperties.xml` on this machine (not shared through the
   database, and not visible to the WinForms app). `LocalConnectionProperties.xml` is shared with the
-  WinForms app for open sessions, expanded folders and favourites. ODBC is not ported.
-- Session tabs cannot be dragged between panels (use Move to Panel).
-- Translations: ~280 strings that exist only in the new app (`mRemoteNG.Core/Localization/Strings.resx`) show
-  in English in every language; legacy translations are used as they are (some are partial or inaccurate).
-- Packaging: Flatpak, Snap and macOS DMG/Homebrew scripts have not been run; code signing needs certificates.
+  WinForms app for open sessions, expanded folders and favourites.
+- ODBC storage is new in this app (DSN or connection string, SQL Server and MySQL/MariaDB dialects; MariaDB
+  verified through unixODBC + MariaDB Connector/ODBC). The WinForms app has an ODBC connector class, but its connector factory rejects the `odbc` type.
+- Translations: the app's own strings (`Strings.resx`) are translated into pt, pt-BR, de, es, fr, it, nl, pl, ru
+  and zh-CN (machine-assisted, not yet reviewed by native speakers); the other 14 legacy languages show those
+  strings in English. Legacy translations are used as they are (some are partial or inaccurate).
+- Plugins: `mRp.Contracts` plugins load (connection properties, address resolvers, tree actions); WinForms
+  tool windows are not hosted, so the PortScan, SshTransfer and AWS plugins stay Windows-only (the app has its
+  own port scanner, SFTP window and AWS EC2 provider).
+- Packaging: AppImage, .deb, Flatpak and Snap are built and run on Linux. The Snap was built with snapcraft
+  `--destructive-mode` and started from the unpacked snap (no snapd in the test VM), so strict confinement
+  itself is not verified. macOS DMG/Homebrew scripts need a Mac; code signing needs certificates.
 
 ## UI refresh — 2026-10-09
 
@@ -91,10 +102,10 @@ Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done a
 | 5 | SQL storage, multi-user, backups, autosave, portable | Done — SQL Server not run |
 | 6 | PuTTY sessions, SSHOptions, SSH tunnels | Done |
 | 7 | Multi-SSH, AD import, port-scan import, UltraVNC SingleClick | Done |
-| 8 | Panels, layout, tab/frame colours, Favorites, environment tags | Done (no drag between panels) |
+| 8 | Panels, layout, tab/frame colours, Favorites, environment tags | Done (tabs drag between panels) |
 | 9 | Tree: expand/collapse, copy hostname, inheritance, connect with options, live PuTTY root | Done |
 | 10 | Master password / encryption settings of the open file | Done (Connection File Properties) |
-| 11 | Translations, theme editor, log file, start minimised, update download, CLI switches | Done — the 24 legacy translations are used (Options ▸ Appearance ▸ Language, applied at restart); strings new in this app are English only until translated |
+| 11 | Translations, theme editor, log file, start minimised, update download, CLI switches | Done — the 24 legacy translations are used (Options ▸ Appearance ▸ Language, applied at restart); strings new in this app are translated into 10 of them |
 | 12 | Connection editor for every stored property | Done — conditional fields as in the legacy property grid |
 
 ## Summary Dashboard
@@ -104,8 +115,8 @@ Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done a
 | Phase 1 — Foundation | 24 | 24 | 0 | 0 | 100% |
 | Phase 2 — Avalonia UI | 32 | 32 | 0 | 0 | 100% |
 | Phase 3 — Protocols | 17 | 16 | 1 | 0 | 94% |
-| Phase 4 — Packaging | 16 | 10 | 5 | 1 | 62% |
-| **TOTAL** | **89** | **82** | **6** | **1** | **92%** |
+| Phase 4 — Packaging | 16 | 12 | 3 | 1 | 75% |
+| **TOTAL** | **89** | **84** | **4** | **1** | **94%** |
 
 ---
 
@@ -541,15 +552,20 @@ Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done a
   - AppRun entrypoint, .desktop entry, AppStream metainfo XML
   - PR: claude/analyze-cross-platform-portability-FndER
 
-- [~] **P4-4.2.2** — Flatpak manifest — @automated 2026-03-10
-  > 2026-10-09: manifest exists but has not been built with flatpak-builder.
-  - `packaging/linux/mremoteng.flatpak.yml`: org.freedesktop.Platform 23.08
-  - Finish-args: Wayland/X11/network/audio/home/tray
-  - PR: claude/analyze-cross-platform-portability-FndER
+- [x] **P4-4.2.2** — Flatpak manifest — @automated 2026-03-10
+  > 2026-10-18: built with flatpak-builder 1.4, installed for the user and run: the app starts, and an RDP
+  > connection to xrdp renders in the tab through the bundled FreeRDP.
+  - `packaging/linux/mremoteng.flatpak.yml`: org.freedesktop.Platform 25.08 + dotnet10 SDK extension,
+    self-contained publish of the committed HEAD; modules unixODBC 2.3.14, MIT krb5 1.22.2, FreeRDP 3.32.2
+  - `packaging/linux/build-flatpak.sh` (`--bundle` writes a single-file `.flatpak`)
+  - NuGet restores with network during the build; Flathub needs generated offline sources instead
+    (flatpak-dotnet-generator)
 
-- [~] **P4-4.2.3** — Snap packaging
-  > 2026-10-09: not built; there is no snapcraft.yaml validation in CI.
-  - `snapcraft.yaml` — deferred (Flatpak preferred)
+- [x] **P4-4.2.3** — Snap packaging
+  > 2026-10-18: `snapcraft pack --destructive-mode` (snapcraft 9.2, core24, GNOME extension) produced the snap;
+  > the unpacked snap's app and bundled xfreerdp3 run. Not installed with snapd (the VM has no snapd).
+  - `packaging/linux/snap/snapcraft.yaml`: nil plugin + Ubuntu's dotnet-sdk-10.0, stages freerdp3-x11,
+    libodbc2, libicu74; plugs network, home, removable-media, ssh-keys, audio
 
 - [x] **P4-4.2.4** — .deb package — @automated 2026-03-10
   > 2026-10-09: built, installed with dpkg and launched successfully; icon and --arch/--version flags fixed.
@@ -630,8 +646,8 @@ Audit of 2026-10-09 against the legacy `mRemoteNG/` sources, and what was done a
 |----|------|--------|----------------|
 | P4-4.4.3 | Code signing pipeline | Apple Developer account + Windows code-signing certificate (paid) | Purchase certs, add GitHub Secrets |
 
-Open but not blocked (need hardware or a runner, not code): P3-3.3.4 Windows Server/NLA validation; P4-4.2.2/4.2.3
-Flatpak/Snap builds; P4-4.3.x macOS packaging run.
+Open but not blocked (need hardware or a runner, not code): P3-3.3.4 Windows Server/NLA validation; P4-4.3.x
+macOS packaging run; driving the app interactively on Windows and macOS.
 ---
 
 ## Changelog
@@ -654,6 +670,7 @@ Flatpak/Snap builds; P4-4.3.x macOS packaging run.
 | 2026-10-09 | Completed VNC, SSH security/SFTP/terminal, RDP embedding, Telnet/Rlogin input, import/export, settings persistence, tree editing, Light theme, headless UI tests; CI green on all OSes; Linux packages verified | claude |
 | 2026-10-09 | Feature parity pass: RDP options/Hyper-V, External Tools/IntApp, credential & address providers, session tabs/panels/layout/Multi-SSH, SQL storage/backups/portable/logging/themes, VNC encodings/auth/proxies, AD import, port scanner, UltraVNC SingleClick, PuTTY sessions/SSH tunnels | claude |
 | 2026-10-17 | Terminal gives East Asian wide characters two cells; rlogin sends window-size updates; SQL load/save keeps WinForms `LocalConnectionProperties.xml` and the properties the legacy schema cannot store | cursor |
+| 2026-10-18 | Issue #8: ConfVersion 2.9 and TerminalBackend; IsRootGroup roots; shared SQL columns; UseRedirectionServerName and Remote Credential Guard for FreeRDP; VNC ZlibHex, Ultra, VeNCrypt, chat and file transfer; tab drag between panels; mRp.Contracts plugins; app strings in 10 languages; ODBC storage; Flatpak and Snap built | cursor |
 
 ---
 

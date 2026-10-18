@@ -108,6 +108,48 @@ public partial class LocalizationKeysTests
         }
     }
 
+    [GeneratedRegex(@"\{\d+(?:[,:][^{}]*)?\}")]
+    private static partial Regex Placeholder();
+
+    // A single "&" before a character marks an access key; "&&" and "& " are literal.
+    [GeneratedRegex(@"(?<!&)&(?!&)(?=[^\s&])")]
+    private static partial Regex AccessKey();
+
+    [Fact]
+    public void AppTranslations_HaveTheEnglishKeys_Placeholders_AndAccessKeys()
+    {
+        var folder = Path.Combine(RepoRoot(), "mRemoteNG.Core", "Localization");
+        var english = ReadResx(Path.Combine(folder, "Strings.resx"));
+        var translations = Directory.EnumerateFiles(folder, "Strings.*.resx").ToList();
+        translations.Should().NotBeEmpty();
+
+        var problems = new List<string>();
+        foreach (var file in translations)
+        {
+            var culture = Path.GetFileNameWithoutExtension(file)["Strings.".Length..];
+            Localizer.IsSupported(culture).Should().BeTrue($"{culture} must be one of the languages offered in Options");
+            foreach (var (key, value) in ReadResx(file))
+            {
+                if (!english.TryGetValue(key, out var source))
+                {
+                    problems.Add($"{culture} {key}: not in Strings.resx");
+                    continue;
+                }
+                if (string.IsNullOrWhiteSpace(value))
+                    problems.Add($"{culture} {key}: empty");
+                if (!Placeholder().Matches(source).Select(m => m.Value).Order()
+                        .SequenceEqual(Placeholder().Matches(value).Select(m => m.Value).Order()))
+                    problems.Add($"{culture} {key}: placeholders differ from \"{source}\"");
+                if (AccessKey().Count(source) != AccessKey().Count(value))
+                    problems.Add($"{culture} {key}: access keys differ from \"{source}\"");
+                if (Placeholder().IsMatch(source)
+                    && Placeholder().Replace(value, "").Replace("{{", "").Replace("}}", "").IndexOfAny(['{', '}']) >= 0)
+                    problems.Add($"{culture} {key}: stray brace");
+            }
+        }
+        problems.Should().BeEmpty();
+    }
+
     [Fact]
     public void LegacyResources_AreLinked_NotCopied()
     {

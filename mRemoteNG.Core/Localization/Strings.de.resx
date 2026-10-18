@@ -1,0 +1,2110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- de translation of Strings.resx: same keys, same placeholders and access keys. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Systemstandard</value>
+  </data>
+  <data name="ExternalTools" xml:space="preserve">
+    <value>Externe Programme</value>
+  </data>
+  <data name="WakeOnLAN" xml:space="preserve">
+    <value>Wake on LAN</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>Ausschneiden</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Einfügen</value>
+  </data>
+  <data name="ExpandAll" xml:space="preserve">
+    <value>Alle erweitern</value>
+  </data>
+  <data name="CollapseAll" xml:space="preserve">
+    <value>Alle reduzieren</value>
+  </data>
+  <data name="DefaultConnectionProperties" xml:space="preserve">
+    <value>Standard-Verbindungseigenschaften</value>
+  </data>
+  <data name="RefreshPuTTYSessions" xml:space="preserve">
+    <value>PuTTY-Sitzungen aktualisieren</value>
+  </data>
+  <data name="ConnectionFileProperties" xml:space="preserve">
+    <value>&amp;Eigenschaften der Verbindungsdatei</value>
+  </data>
+  <data name="NoExternalToolsOnTheToolbar" xml:space="preserve">
+    <value>Keine externen Programme in der Symbolleiste</value>
+  </data>
+  <data name="AddANewTool" xml:space="preserve">
+    <value>Neues Programm hinzufügen</value>
+  </data>
+  <data name="ProgramNameOrPathEGPing" xml:space="preserve">
+    <value>Programmname oder Pfad, z. B. ping, /usr/bin/xterm, C:\Tools\tool.exe</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="OptionalImageFilePNGICO" xml:space="preserve">
+    <value>Optionale Bilddatei (PNG, ICO…)</value>
+  </data>
+  <data name="OperatingSystem" xml:space="preserve">
+    <value>Betriebssystem</value>
+  </data>
+  <data name="ToolsForAnotherOperatingSystemStayIn" xml:space="preserve">
+    <value>Programme für ein anderes Betriebssystem bleiben in der Liste, werden aber nicht zum Ausführen angeboten</value>
+  </data>
+  <data name="WaitUntilTheProgramExitsEG" xml:space="preserve">
+    <value>Warten, bis das Programm beendet ist (z. B. vor dem Verbinden, wenn es als „Externes Programm vorher“ verwendet wird)</value>
+  </data>
+  <data name="ShowTheProgramSWindowInsideA" xml:space="preserve">
+    <value>Das Programmfenster in einem Sitzungs-Tab anzeigen (Linux/X11 und Windows)</value>
+  </data>
+  <data name="WindowsUACPromptLinuxPkexecMacOSAdministrator" xml:space="preserve">
+    <value>Windows: UAC-Abfrage. Linux: pkexec. macOS: Abfrage des Administratorkennworts.</value>
+  </data>
+  <data name="Command" xml:space="preserve">
+    <value>Befehl</value>
+  </data>
+  <data name="RunTheSelectedToolAsEditedFor" xml:space="preserve">
+    <value>Das ausgewählte Programm (wie bearbeitet) für die oben angezeigte Verbindung ausführen</value>
+  </data>
+  <data name="OpenFromSQLDatabase" xml:space="preserve">
+    <value>Aus SQL-&amp;Datenbank öffnen</value>
+  </data>
+  <data name="ReloadFromSQLDatabase" xml:space="preserve">
+    <value>Aus SQL-Datenbank &amp;neu laden</value>
+  </data>
+  <data name="EditSelected" xml:space="preserve">
+    <value>Auswahl &amp;bearbeiten</value>
+  </data>
+  <data name="DuplicateSelected" xml:space="preserve">
+    <value>Auswahl &amp;duplizieren</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Auswahl &amp;löschen</value>
+  </data>
+  <data name="ImportConnections" xml:space="preserve">
+    <value>Verbindungen &amp;importieren</value>
+  </data>
+  <data name="ExportConnections" xml:space="preserve">
+    <value>Verbindungen &amp;exportieren</value>
+  </data>
+  <data name="ConnectionTree" xml:space="preserve">
+    <value>Verbindungsbaum</value>
+  </data>
+  <data name="LogPanel" xml:space="preserve">
+    <value>Protokoll-Panel</value>
+  </data>
+  <data name="ArrangePanels" xml:space="preserve">
+    <value>Panels anordnen</value>
+  </data>
+  <data name="TabbedOnePanelAtATime" xml:space="preserve">
+    <value>Als Tabs (jeweils ein Panel)</value>
+  </data>
+  <data name="SideBySide" xml:space="preserve">
+    <value>Nebeneinander</value>
+  </data>
+  <data name="Stacked" xml:space="preserve">
+    <value>Übereinander</value>
+  </data>
+  <data name="DisconnectAll" xml:space="preserve">
+    <value>Alle trennen</value>
+  </data>
+  <data name="CloseAllSessions" xml:space="preserve">
+    <value>Alle Sitzungen schließen</value>
+  </data>
+  <data name="ConnectSelectedToPanel" xml:space="preserve">
+    <value>Auswahl in Panel verbinden</value>
+  </data>
+  <data name="NoFavorites" xml:space="preserve">
+    <value>(Keine Favoriten)</value>
+  </data>
+  <data name="UltraVNCSingleClickListener" xml:space="preserve">
+    <value>UltraVNC-SingleClick-Listener</value>
+  </data>
+  <data name="AboutMRemoteNG" xml:space="preserve">
+    <value>&amp;Über mRemoteNG</value>
+  </data>
+  <data name="OpensTheMRemoteNGReleasesPage" xml:space="preserve">
+    <value>Öffnet die Release-Seite von mRemoteNG</value>
+  </data>
+  <data name="GitHubRepository" xml:space="preserve">
+    <value>GitHub-Repository</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Dokumentation</value>
+  </data>
+  <data name="OpenLogFile" xml:space="preserve">
+    <value>Protokolldatei öffnen</value>
+  </data>
+  <data name="NewConnectionCtrlN" xml:space="preserve">
+    <value>Neue Verbindung (Strg+N)</value>
+  </data>
+  <data name="OpenConnectionFileCtrlO" xml:space="preserve">
+    <value>Verbindungsdatei öffnen (Strg+O)</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
+  <data name="SaveCtrlS" xml:space="preserve">
+    <value>Speichern (Strg+S)</value>
+  </data>
+  <data name="EditTheSelectedConnectionOrFolderCtrl" xml:space="preserve">
+    <value>Ausgewählte Verbindung oder ausgewählten Ordner bearbeiten (Strg+E)</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Bearbeiten</value>
+  </data>
+  <data name="ConnectEnter" xml:space="preserve">
+    <value>Verbinden (Eingabe)</value>
+  </data>
+  <data name="TypeACommandEnterSendsItTo" xml:space="preserve">
+    <value>Befehl eingeben; Eingabe sendet ihn an jede offene Terminalsitzung</value>
+  </data>
+  <data name="EnterSendsTheLineUpDownBrowse" xml:space="preserve">
+    <value>Eingabe sendet die Zeile, Auf/Ab blättert im Verlauf, Strg+Buchstabe sendet eine Steuertaste (Strg+C)</value>
+  </data>
+  <data name="UnsavedChangesIndicator" xml:space="preserve">
+    <value>● Ungespeicherte Änderungen</value>
+  </data>
+  <data name="TheConnectionFileHasChangesThatAre" xml:space="preserve">
+    <value>Die Verbindungsdatei enthält nicht gespeicherte Änderungen (Strg+S)</value>
+  </data>
+  <data name="SearchConnectionsWatermark" xml:space="preserve">
+    <value>Name, Host, Beschreibung suchen... (Strg+F)</value>
+  </data>
+  <data name="ClearSearchEsc" xml:space="preserve">
+    <value>Suche löschen (Esc)</value>
+  </data>
+  <data name="NoActiveSessions" xml:space="preserve">
+    <value>Keine aktiven Sitzungen</value>
+  </data>
+  <data name="DoubleClickAConnectionToStartA" xml:space="preserve">
+    <value>Doppelklicken Sie auf eine Verbindung, um eine Sitzung zu starten</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>Protokoll</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Leeren</value>
+  </data>
+  <data name="DebugConsole" xml:space="preserve">
+    <value>Debug-Konsole</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>Auf Standardwerte zurücksetzen</value>
+  </data>
+  <data name="CrossPlatformNotice" xml:space="preserve">
+    <value>Plattformübergreifend: Windows · Linux · macOS</value>
+  </data>
+  <data name="CopyrightNotice" xml:space="preserve">
+    <value>© 2026 mRemoteNG Dev Team · Lizenziert unter GPL-2.0</value>
+  </data>
+  <data name="Server" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="Dc1CorpExampleEmptyThisComputerS" xml:space="preserve">
+    <value>dc1.corp.example (leer: Domäne dieses Computers unter Windows)</value>
+  </data>
+  <data name="N0389Or636WithLDAPS" xml:space="preserve">
+    <value>0 = 389 bzw. 636 mit LDAPS</value>
+  </data>
+  <data name="Bind" xml:space="preserve">
+    <value>Bindung</value>
+  </data>
+  <data name="UserCNUserDomainOrDOMAINUser" xml:space="preserve">
+    <value>Benutzer (CN=…, user@domain oder DOMAIN\user)</value>
+  </data>
+  <data name="OrganizationalUnits" xml:space="preserve">
+    <value>Organisationseinheiten</value>
+  </data>
+  <data name="Computers" xml:space="preserve">
+    <value>Computer</value>
+  </data>
+  <data name="HostName" xml:space="preserve">
+    <value>Hostname</value>
+  </data>
+  <data name="CreateFoldersForSubOUs" xml:space="preserve">
+    <value>Ordner für untergeordnete OUs erstellen</value>
+  </data>
+  <data name="ComputersAreImportedAsRDPConnections" xml:space="preserve">
+    <value>Computer werden als RDP-Verbindungen importiert.</value>
+  </data>
+  <data name="TheConnectionSPanel" xml:space="preserve">
+    <value>(Panel der Verbindung)</value>
+  </data>
+  <data name="Inherit" xml:space="preserve">
+    <value>Erben</value>
+  </data>
+  <data name="DefaultInParentheses" xml:space="preserve">
+    <value>(Standard)</value>
+  </data>
+  <data name="CheckHostStatus" xml:space="preserve">
+    <value>Hoststatus prüfen</value>
+  </data>
+  <data name="PingTheHostAndTryToConnect" xml:space="preserve">
+    <value>Host anpingen und Verbindung zu seinem Port versuchen</value>
+  </data>
+  <data name="ConnectionsInThisFolderCanInheritThese" xml:space="preserve">
+    <value>Verbindungen in diesem Ordner können diese Anmeldedaten erben.</value>
+  </data>
+  <data name="CheckedPropertiesTakeTheirValueFromThe" xml:space="preserve">
+    <value>Markierte Eigenschaften übernehmen ihren Wert vom übergeordneten Ordner (alle Protokolle werden aufgeführt).</value>
+  </data>
+  <data name="InheritEverything" xml:space="preserve">
+    <value>Alles erben</value>
+  </data>
+  <data name="CredentialManager" xml:space="preserve">
+    <value>Anmeldedaten-Verwaltung</value>
+  </data>
+  <data name="CredentialDetails" xml:space="preserve">
+    <value>Details der Anmeldedaten</value>
+  </data>
+  <data name="CredentialLabel" xml:space="preserve">
+    <value>Bezeichnung der Anmeldedaten</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>Passwort anzeigen</value>
+  </data>
+  <data name="WindowsDomainOptional" xml:space="preserve">
+    <value>Windows-Domäne (optional)</value>
+  </data>
+  <data name="TheStoredPasswordCouldNotBeDecrypted" xml:space="preserve">
+    <value>Das gespeicherte Passwort konnte auf diesem Computer nicht entschlüsselt werden (es wurde auf einem anderen System gespeichert). Geben Sie es erneut ein, um es zu ersetzen; bleibt das Feld leer, wird der gespeicherte Wert beibehalten.</value>
+  </data>
+  <data name="SelectACredentialOrAddANew" xml:space="preserve">
+    <value>Wählen Sie Anmeldedaten aus oder fügen Sie neue hinzu.</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="ExportFormat" xml:space="preserve">
+    <value>Exportformat</value>
+  </data>
+  <data name="MRemoteNGXMLXmlRecommended" xml:space="preserve">
+    <value>mRemoteNG XML (.xml) — empfohlen</value>
+  </data>
+  <data name="MRemoteNGCSVCsvForSpreadsheetApps" xml:space="preserve">
+    <value>mRemoteNG CSV (.csv) — für Tabellenkalkulationen</value>
+  </data>
+  <data name="ExportScope" xml:space="preserve">
+    <value>Exportumfang</value>
+  </data>
+  <data name="AllConnections" xml:space="preserve">
+    <value>Alle Verbindungen</value>
+  </data>
+  <data name="SelectedFolderAndItsChildren" xml:space="preserve">
+    <value>Ausgewählter Ordner mit Inhalt</value>
+  </data>
+  <data name="Include" xml:space="preserve">
+    <value>Einschließen</value>
+  </data>
+  <data name="CSVFilesStorePasswordsInClearText" xml:space="preserve">
+    <value>CSV-Dateien speichern Passwörter im Klartext.</value>
+  </data>
+  <data name="FilePasswordOptional" xml:space="preserve">
+    <value>Dateipasswort (optional)</value>
+  </data>
+  <data name="ProtectsTheExportedFileWithAMaster" xml:space="preserve">
+    <value>Schützt die exportierte Datei mit einem Master-Passwort. Leer lassen für eine ungeschützte Datei.</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Passwort bestätigen</value>
+  </data>
+  <data name="OutputFilePath" xml:space="preserve">
+    <value>Pfad der Ausgabedatei</value>
+  </data>
+  <data name="RootName" xml:space="preserve">
+    <value>Name des Stammelements</value>
+  </data>
+  <data name="MasterPassword" xml:space="preserve">
+    <value>Master-Passwort</value>
+  </data>
+  <data name="ProtectThisFileWithAMasterPassword" xml:space="preserve">
+    <value>Diese Datei mit einem Master-Passwort schützen</value>
+  </data>
+  <data name="ChangeTheMasterPassword" xml:space="preserve">
+    <value>Master-Passwort ändern</value>
+  </data>
+  <data name="CurrentPassword" xml:space="preserve">
+    <value>Aktuelles Passwort</value>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>Neues Passwort</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Verschlüsselung</value>
+  </data>
+  <data name="CipherEngine" xml:space="preserve">
+    <value>Verschlüsselungs-Engine</value>
+  </data>
+  <data name="EncryptTheCompleteFile" xml:space="preserve">
+    <value>Gesamte Datei verschlüsseln</value>
+  </data>
+  <data name="ChangesAreWrittenTheNextTimeThe" xml:space="preserve">
+    <value>Änderungen werden beim nächsten Speichern der Datei geschrieben. Die Dateien funktionieren weiterhin im Windows-mRemoteNG (WinForms).</value>
+  </data>
+  <data name="SSHHostKey" xml:space="preserve">
+    <value>SSH-Hostschlüssel</value>
+  </data>
+  <data name="HostKeyChangedWarning" xml:space="preserve">
+    <value>WARNUNG: DIE IDENTIFIKATION DES ENTFERNTEN HOSTS HAT SICH GEÄNDERT!</value>
+  </data>
+  <data name="SomeoneCouldBeEavesdroppingOnYouRight" xml:space="preserve">
+    <value>Möglicherweise werden Sie gerade abgehört (Man-in-the-Middle-Angriff). Es ist auch möglich, dass der Hostschlüssel gerade von einem Administrator geändert wurde. Fahren Sie nur fort, wenn Sie den neuen Fingerabdruck mit dem Administrator des Servers überprüft haben.</value>
+  </data>
+  <data name="KeyType" xml:space="preserve">
+    <value>Schlüsseltyp</value>
+  </data>
+  <data name="Fingerprint" xml:space="preserve">
+    <value>Fingerabdruck</value>
+  </data>
+  <data name="IHaveVerifiedTheNewFingerprintAnd" xml:space="preserve">
+    <value>Ich habe den neuen Fingerabdruck überprüft und möchte den gespeicherten Schlüssel ersetzen</value>
+  </data>
+  <data name="ConnectOnce" xml:space="preserve">
+    <value>Einmal verbinden</value>
+  </data>
+  <data name="AcceptAndSave" xml:space="preserve">
+    <value>Akzeptieren und speichern</value>
+  </data>
+  <data name="ReplaceKeyAndConnect" xml:space="preserve">
+    <value>Schlüssel ersetzen und verbinden</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Quelle</value>
+  </data>
+  <data name="SelectAFileToImport" xml:space="preserve">
+    <value>Zu importierende Datei auswählen</value>
+  </data>
+  <data name="ImportInto" xml:space="preserve">
+    <value>Importieren nach</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Passwort erforderlich</value>
+  </data>
+  <data name="Hosts" xml:space="preserve">
+    <value>Hosts</value>
+  </data>
+  <data name="DefaultPorts" xml:space="preserve">
+    <value>Standardports</value>
+  </data>
+  <data name="TimeoutMs" xml:space="preserve">
+    <value>Timeout (ms)</value>
+  </data>
+  <data name="Parallel" xml:space="preserve">
+    <value>Parallel</value>
+  </data>
+  <data name="IdentifyServicesBanners" xml:space="preserve">
+    <value>Dienste erkennen (Banner)</value>
+  </data>
+  <data name="ResolveHostNames" xml:space="preserve">
+    <value>Hostnamen auflösen</value>
+  </data>
+  <data name="StartScan" xml:space="preserve">
+    <value>Scan starten</value>
+  </data>
+  <data name="HostsWithOpenPorts" xml:space="preserve">
+    <value>Hosts mit offenen Ports</value>
+  </data>
+  <data name="AddressColumn" xml:space="preserve">
+    <value>Adresse</value>
+  </data>
+  <data name="ImportCheckedHostsAs" xml:space="preserve">
+    <value>Markierte Hosts importieren als</value>
+  </data>
+  <data name="ImportIntoTree" xml:space="preserve">
+    <value>In den Baum importieren</value>
+  </data>
+  <data name="HostnameLabel" xml:space="preserve">
+    <value>Hostname</value>
+  </data>
+  <data name="HostOrIPPort" xml:space="preserve">
+    <value>Host oder IP[:Port]</value>
+  </data>
+  <data name="OptionalInParentheses" xml:space="preserve">
+    <value>(optional)</value>
+  </data>
+  <data name="PrivateKeyOptional" xml:space="preserve">
+    <value>Privater Schlüssel (optional)</value>
+  </data>
+  <data name="ParentFolder" xml:space="preserve">
+    <value>Übergeordneter Ordner</value>
+  </data>
+  <data name="RemotePathPressEnterToOpen" xml:space="preserve">
+    <value>Entfernter Pfad (Eingabe zum Öffnen)</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Hochladen</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Größe</value>
+  </data>
+  <data name="Modified" xml:space="preserve">
+    <value>Geändert</value>
+  </data>
+  <data name="InputRequired" xml:space="preserve">
+    <value>Eingabe erforderlich</value>
+  </data>
+  <data name="ThemeEditor" xml:space="preserve">
+    <value>Theme-Editor</value>
+  </data>
+  <data name="StartFrom" xml:space="preserve">
+    <value>Ausgehend von</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Speichern als</value>
+  </data>
+  <data name="NameOfYourTheme" xml:space="preserve">
+    <value>Name Ihres Themes</value>
+  </data>
+  <data name="ColoursChangeEverywhereAsYouTypeRrggbb" xml:space="preserve">
+    <value>Farben ändern sich überall bereits bei der Eingabe (#rrggbb).</value>
+  </data>
+  <data name="DeleteTheme" xml:space="preserve">
+    <value>Theme löschen</value>
+  </data>
+  <data name="SaveAndApply" xml:space="preserve">
+    <value>Speichern und anwenden</value>
+  </data>
+  <data name="RemoteUsersRunningUltraVNCSingleClickOrAny" xml:space="preserve">
+    <value>Entfernte Benutzer mit UltraVNC SingleClick (oder der Funktion „Mit Viewer verbinden“ eines beliebigen VNC-Servers) können Sie über diesen Port erreichen. Jede eingehende Verbindung wird als VNC-Sitzungs-Tab geöffnet.</value>
+  </data>
+  <data name="StartListening" xml:space="preserve">
+    <value>Lauschen starten</value>
+  </data>
+  <data name="IncomingConnections" xml:space="preserve">
+    <value>Eingehende Verbindungen</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Zeit</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="ColorTheme" xml:space="preserve">
+    <value>Farb-Theme</value>
+  </data>
+  <data name="CopyAThemeChangeItsColoursAnd" xml:space="preserve">
+    <value>Kopieren Sie ein Theme, ändern Sie seine Farben und speichern Sie es als eigenes Theme.</value>
+  </data>
+  <data name="ThemeEditorButton" xml:space="preserve">
+    <value>Theme-Editor</value>
+  </data>
+  <data name="Font" xml:space="preserve">
+    <value>Schriftart</value>
+  </data>
+  <data name="FontFamily" xml:space="preserve">
+    <value>Schriftfamilie</value>
+  </data>
+  <data name="ThemeDefault" xml:space="preserve">
+    <value>(Standard des Themes)</value>
+  </data>
+  <data name="FontSize" xml:space="preserve">
+    <value>Schriftgröße</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="ShowToolbar" xml:space="preserve">
+    <value>Symbolleiste anzeigen</value>
+  </data>
+  <data name="ShowStatusBar" xml:space="preserve">
+    <value>Statusleiste anzeigen</value>
+  </data>
+  <data name="Defaults" xml:space="preserve">
+    <value>Standardwerte</value>
+  </data>
+  <data name="DefaultProtocol" xml:space="preserve">
+    <value>Standardprotokoll</value>
+  </data>
+  <data name="ConnectTimeoutSeconds" xml:space="preserve">
+    <value>Verbindungs-Timeout (Sekunden)</value>
+  </data>
+  <data name="DefaultUsername" xml:space="preserve">
+    <value>Standard-Benutzername</value>
+  </data>
+  <data name="NoneInParentheses" xml:space="preserve">
+    <value>(keiner)</value>
+  </data>
+  <data name="DefaultPortsSection" xml:space="preserve">
+    <value>Standardports</value>
+  </data>
+  <data name="SendKeepAlivePackets" xml:space="preserve">
+    <value>Keep-Alive-Pakete senden</value>
+  </data>
+  <data name="KeepAliveIntervalSeconds" xml:space="preserve">
+    <value>Keep-Alive-Intervall (Sekunden)</value>
+  </data>
+  <data name="DefaultPrivateKeyFileOptional" xml:space="preserve">
+    <value>Standard-Datei für privaten Schlüssel (optional)</value>
+  </data>
+  <data name="SavedCredentials" xml:space="preserve">
+    <value>Gespeicherte Anmeldedaten</value>
+  </data>
+  <data name="CredentialsAreStoredInYourSettingsFolder" xml:space="preserve">
+    <value>Anmeldedaten werden in Ihrem Einstellungsordner gespeichert. Passwörter werden mit Ihrem Betriebssystemkonto verschlüsselt (DPAPI unter Windows, eine private Schlüsseldatei unter Linux und macOS).</value>
+  </data>
+  <data name="ManageCredentials" xml:space="preserve">
+    <value>Anmeldedaten verwalten</value>
+  </data>
+  <data name="ExternalProviders" xml:space="preserve">
+    <value>Externe Anbieter</value>
+  </data>
+  <data name="ConnectionsFetchTheirCredentialsFromASecret" xml:space="preserve">
+    <value>Verbindungen beziehen ihre Anmeldedaten aus einem Secret-Speicher, wenn ihr externer Anmeldedaten-Anbieter festgelegt ist (die Secret-ID oder Elementreferenz gehört in „Benutzer über API“), und ihre Adresse von AWS, wenn der externe Adressanbieter AWS ist. Hier eingegebene Secrets werden verschlüsselt für Ihr Benutzerkonto gespeichert; lassen Sie sie leer, um einmal pro Sitzung danach gefragt zu werden.</value>
+  </data>
+  <data name="DefaultCredentialProvider" xml:space="preserve">
+    <value>Standard-Anmeldedatenanbieter</value>
+  </data>
+  <data name="UsedForConnectionsWithoutAUsernameAn" xml:space="preserve">
+    <value>Wird für Verbindungen ohne Benutzernamen, externen Anbieter oder Standard-Benutzernamen verwendet.</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Anbieter</value>
+  </data>
+  <data name="SecretIDReference" xml:space="preserve">
+    <value>Secret-ID / Referenz</value>
+  </data>
+  <data name="ServerURL" xml:space="preserve">
+    <value>Server-URL</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationSSO" xml:space="preserve">
+    <value>Integrierte Windows-Authentifizierung (SSO)</value>
+  </data>
+  <data name="DomainOptional" xml:space="preserve">
+    <value>Domäne (optional)</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>Vergessen</value>
+  </data>
+  <data name="AskForOtpAtLogin" xml:space="preserve">
+    <value>Bei der Anmeldung nach einem Einmalpasswort (OTP) fragen</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>Testen</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationWinapi" xml:space="preserve">
+    <value>Integrierte Windows-Authentifizierung (winapi)</value>
+  </data>
+  <data name="APIKey" xml:space="preserve">
+    <value>API-Schlüssel</value>
+  </data>
+  <data name="AskForOtpPerRequest" xml:space="preserve">
+    <value>Bei jeder Anfrage nach einem Einmalpasswort (OTP) fragen</value>
+  </data>
+  <data name="ReferencesOpVaultItemAccountOpVault" xml:space="preserve">
+    <value>Referenzen: op://Vault/Item?account=…, op://Vault/Item/field oder ein Elementname. Die Anmeldung übernimmt die 1Password CLI (Desktop-App-Integration oder OP_SERVICE_ACCOUNT_TOKEN).</value>
+  </data>
+  <data name="CLIPath" xml:space="preserve">
+    <value>CLI-Pfad</value>
+  </data>
+  <data name="OpFromPATH" xml:space="preserve">
+    <value>op (aus PATH)</value>
+  </data>
+  <data name="DefaultAccount" xml:space="preserve">
+    <value>Standardkonto</value>
+  </data>
+  <data name="TheMountRoleSecretPathAndSecret" xml:space="preserve">
+    <value>Mount, Rolle / Secret-Pfad und Secret-Engine (KV, LDAP dynamisch, LDAP statisch, SSH OTP) werden pro Verbindung festgelegt.</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>Namespace</value>
+  </data>
+  <data name="LogInWith" xml:space="preserve">
+    <value>Anmelden mit</value>
+  </data>
+  <data name="AuthMountPath" xml:space="preserve">
+    <value>Auth-Mount-Pfad</value>
+  </data>
+  <data name="CACertificatePEM" xml:space="preserve">
+    <value>CA-Zertifikat (PEM)</value>
+  </data>
+  <data name="SystemTrustStore" xml:space="preserve">
+    <value>(System-Zertifikatspeicher)</value>
+  </data>
+  <data name="AmazonWebServicesEC2AddressLookup" xml:space="preserve">
+    <value>Amazon Web Services (EC2-Adresssuche)</value>
+  </data>
+  <data name="ConnectionsSetTheInstanceIDAndRegion" xml:space="preserve">
+    <value>Verbindungen legen Instanz-ID und Region fest. Die Standard-Anmeldedatenkette liest Umgebungsvariablen, ~/.aws-Profile, SSO und Instanzrollen.</value>
+  </data>
+  <data name="ProfileName" xml:space="preserve">
+    <value>Profilname</value>
+  </data>
+  <data name="EGDefault" xml:space="preserve">
+    <value>z. B. default</value>
+  </data>
+  <data name="AccessKeyID" xml:space="preserve">
+    <value>Zugriffsschlüssel-ID</value>
+  </data>
+  <data name="SecretAccessKey" xml:space="preserve">
+    <value>Geheimer Zugriffsschlüssel</value>
+  </data>
+  <data name="DefaultRegion" xml:space="preserve">
+    <value>Standardregion</value>
+  </data>
+  <data name="ConnectTo" xml:space="preserve">
+    <value>Verbinden mit</value>
+  </data>
+  <data name="EC2EndpointURL" xml:space="preserve">
+    <value>EC2-Endpunkt-URL</value>
+  </data>
+  <data name="RegionalAWSEndpoint" xml:space="preserve">
+    <value>(regionaler AWS-Endpunkt)</value>
+  </data>
+  <data name="Startup" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="WhenMRemoteNGStarts" xml:space="preserve">
+    <value>Beim Start von mRemoteNG</value>
+  </data>
+  <data name="ConnectionFileToOpenAtStartup" xml:space="preserve">
+    <value>Beim Start zu öffnende Verbindungsdatei</value>
+  </data>
+  <data name="AllowOnlyASingleInstanceOfMRemoteNG" xml:space="preserve">
+    <value>Nur eine Instanz von mRemoteNG zulassen</value>
+  </data>
+  <data name="StartMinimisedToTheSystemTrayWhen" xml:space="preserve">
+    <value>Minimiert starten (im Infobereich, wenn in den Infobereich minimiert wird)</value>
+  </data>
+  <data name="SaveTheOpenConnectionFileWhenExiting" xml:space="preserve">
+    <value>Geöffnete Verbindungsdatei beim Beenden speichern</value>
+  </data>
+  <data name="ConfirmClosingConnections" xml:space="preserve">
+    <value>Schließen von Verbindungen bestätigen</value>
+  </data>
+  <data name="SystemTray" xml:space="preserve">
+    <value>Infobereich</value>
+  </data>
+  <data name="ShowAnIconInTheSystemTray" xml:space="preserve">
+    <value>Symbol im Infobereich anzeigen</value>
+  </data>
+  <data name="MinimiseToTheSystemTray" xml:space="preserve">
+    <value>In den Infobereich minimieren</value>
+  </data>
+  <data name="RequiresADesktopEnvironmentWithASystem" xml:space="preserve">
+    <value>Erfordert eine Desktopumgebung mit Infobereich (StatusNotifierItem unter Linux).</value>
+  </data>
+  <data name="LogFile" xml:space="preserve">
+    <value>Protokolldatei</value>
+  </data>
+  <data name="WriteALogFile" xml:space="preserve">
+    <value>Protokolldatei schreiben</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Stufe</value>
+  </data>
+  <data name="TheFileRollsOverAt10MB" xml:space="preserve">
+    <value>Ab 10 MB wird eine neue Datei begonnen; die fünf vorherigen Dateien werden aufbewahrt (.1 … .5). Im Protokoll-Panel angezeigte Meldungen werden ebenfalls hineingeschrieben.</value>
+  </data>
+  <data name="OpenLogFileButton" xml:space="preserve">
+    <value>Protokolldatei öffnen</value>
+  </data>
+  <data name="OpenFolder" xml:space="preserve">
+    <value>Ordner öffnen</value>
+  </data>
+  <data name="DataFolder" xml:space="preserve">
+    <value>Datenordner</value>
+  </data>
+  <data name="PortableModePutAnEmptyFileNamed" xml:space="preserve">
+    <value>Portabler Modus: Legen Sie eine leere Datei namens mRemoteNG.portable neben das Programm oder starten Sie es mit --portable.</value>
+  </data>
+  <data name="DesktopNotifications" xml:space="preserve">
+    <value>Desktop-Benachrichtigungen</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionOpens" xml:space="preserve">
+    <value>Benachrichtigung anzeigen, wenn eine Verbindung geöffnet wird</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionCloses" xml:space="preserve">
+    <value>Benachrichtigung anzeigen, wenn eine Verbindung geschlossen wird</value>
+  </data>
+  <data name="ShowANotificationForErrorsWrittenTo" xml:space="preserve">
+    <value>Benachrichtigung bei Fehlern im Protokoll anzeigen</value>
+  </data>
+  <data name="SavingBackups" xml:space="preserve">
+    <value>Speichern und Sicherungen</value>
+  </data>
+  <data name="AutomaticSaving" xml:space="preserve">
+    <value>Automatisches Speichern</value>
+  </data>
+  <data name="SaveEveryMinutes0Off" xml:space="preserve">
+    <value>Speichern alle (Minuten, 0 = aus)</value>
+  </data>
+  <data name="AutomaticSavesOnlyHappenWhenThereAre" xml:space="preserve">
+    <value>Automatisch gespeichert wird nur, wenn es ungespeicherte Änderungen gibt und die Verbindungen eine Datei (oder eine beschreibbare SQL-Datenbank) haben.</value>
+  </data>
+  <data name="BackUpTheConnectionFile" xml:space="preserve">
+    <value>Verbindungsdatei sichern</value>
+  </data>
+  <data name="NumberOfBackupsToKeep" xml:space="preserve">
+    <value>Anzahl aufzubewahrender Sicherungen</value>
+  </data>
+  <data name="BackupFolderEmptyNextToTheConnection" xml:space="preserve">
+    <value>Sicherungsordner (leer: neben der Verbindungsdatei)</value>
+  </data>
+  <data name="DefaultChoice" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="ConnectionDatabase" xml:space="preserve">
+    <value>Verbindungsdatenbank</value>
+  </data>
+  <data name="LoadAndSaveTheConnectionsInA" xml:space="preserve">
+    <value>Verbindungen in einer SQL-Datenbank laden und speichern</value>
+  </data>
+  <data name="UsesTheSameTablesAsTheWindows" xml:space="preserve">
+    <value>Verwendet dieselben Tabellen wie die Windows-Version von mRemoteNG (tblCons, tblRoot, tblUpdate), sodass beide eine Datenbank gemeinsam nutzen können. Fehlende Tabellen werden bei der ersten Verwendung erstellt.</value>
+  </data>
+  <data name="ServerType" xml:space="preserve">
+    <value>Servertyp</value>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>Datenbank</value>
+  </data>
+  <data name="SQLServerEmptyForWindowsAuthentication" xml:space="preserve">
+    <value>(SQL Server: leer für Windows-Authentifizierung)</value>
+  </data>
+  <data name="MultiUser" xml:space="preserve">
+    <value>Mehrbenutzer</value>
+  </data>
+  <data name="ReadOnlyNeverWriteToTheDatabase" xml:space="preserve">
+    <value>Schreibgeschützt (nie in die Datenbank schreiben)</value>
+  </data>
+  <data name="CheckForChangesByOtherUsersEvery" xml:space="preserve">
+    <value>Auf Änderungen anderer Benutzer prüfen alle (Sekunden)</value>
+  </data>
+  <data name="ReloadAutomaticallyWhenAnotherUserSavedAnd" xml:space="preserve">
+    <value>Automatisch neu laden, wenn ein anderer Benutzer gespeichert hat und hier keine ungespeicherten Änderungen vorliegen</value>
+  </data>
+  <data name="SessionTabs" xml:space="preserve">
+    <value>Sitzungs-Tabs</value>
+  </data>
+  <data name="Panels" xml:space="preserve">
+    <value>Panels</value>
+  </data>
+  <data name="AutomaticallyTryToReconnectWhenDisconnectedFrom" xml:space="preserve">
+    <value>Bei Verbindungsabbruch zum Server automatisch neu verbinden</value>
+  </data>
+  <data name="Attempts" xml:space="preserve">
+    <value>Versuche</value>
+  </data>
+  <data name="Waits124UpTo30" xml:space="preserve">
+    <value>(wartet 1, 2, 4 … bis zu 30 Sekunden zwischen den Versuchen)</value>
+  </data>
+  <data name="UpdateCheckSection" xml:space="preserve">
+    <value>Update-Prüfung</value>
+  </data>
+  <data name="CheckForUpdatesAtStartupAtMost" xml:space="preserve">
+    <value>Beim Start nach Updates suchen (höchstens einmal täglich)</value>
+  </data>
+  <data name="ReleasesToLookFor" xml:space="preserve">
+    <value>Zu suchende Releases</value>
+  </data>
+  <data name="InstalledVersion" xml:space="preserve">
+    <value>Installierte Version: </value>
+  </data>
+  <data name="DownloadsThePackageForThisSystemAnd" xml:space="preserve">
+    <value>Lädt das Paket für dieses System herunter und prüft Größe und SHA-256</value>
+  </data>
+  <data name="ShowInFolder" xml:space="preserve">
+    <value>Im Ordner anzeigen</value>
+  </data>
+  <data name="UseAProxyForUpdateChecksAnd" xml:space="preserve">
+    <value>Proxy für Update-Prüfungen und Downloads verwenden (sonst den System-Proxy)</value>
+  </data>
+  <data name="TheProxyRequiresAUserNameAnd" xml:space="preserve">
+    <value>Der Proxy erfordert Benutzername und Passwort</value>
+  </data>
+  <data name="SelectThePanelToOpenTheConnection" xml:space="preserve">
+    <value>Panel auswählen, in dem die Verbindung geöffnet wird</value>
+  </data>
+  <data name="OrOpenItInANewPanel" xml:space="preserve">
+    <value>Oder in einem neuen Panel öffnen</value>
+  </data>
+  <data name="NewPanelName" xml:space="preserve">
+    <value>Name des neuen Panels</value>
+  </data>
+  <data name="FloatingPanelTitle" xml:space="preserve">
+    <value>Panel — mRemoteNG</value>
+  </data>
+  <data name="ExitFullScreen" xml:space="preserve">
+    <value>Vollbild beenden</value>
+  </data>
+  <data name="FloatThisPanelInItsOwnWindow" xml:space="preserve">
+    <value>Dieses Panel in einem eigenen Fenster lösen</value>
+  </data>
+  <data name="PanelOptions" xml:space="preserve">
+    <value>Panel-Optionen</value>
+  </data>
+  <data name="CloseThisPanelAndItsSessions" xml:space="preserve">
+    <value>Dieses Panel und seine Sitzungen schließen</value>
+  </data>
+  <data name="NoSessionsInPanel" xml:space="preserve">
+    <value>Keine Sitzungen in diesem Panel.
+Öffnen Sie darin eine Verbindung aus dem Verbindungsbaum.</value>
+  </data>
+  <data name="ActiveConnectionsFormat" xml:space="preserve">
+    <value>Aktive Verbindungen: {0}</value>
+  </data>
+  <data name="ConnectionFilePropertiesTitleFormat" xml:space="preserve">
+    <value>Eigenschaften der Verbindungsdatei — {0}</value>
+  </data>
+  <data name="ConnectWithOptionsHeadingFormat" xml:space="preserve">
+    <value>Mit „{0}“ verbinden mit:</value>
+  </data>
+  <data name="SectionSshPutty" xml:space="preserve">
+    <value>SSH / PuTTY</value>
+  </data>
+  <data name="SectionRemoteDesktop" xml:space="preserve">
+    <value>Remotedesktop</value>
+  </data>
+  <data name="SectionExternalAddress" xml:space="preserve">
+    <value>Externe Adresse</value>
+  </data>
+  <data name="SectionWakeOnLan" xml:space="preserve">
+    <value>Wake-on-LAN</value>
+  </data>
+  <data name="SectionRemoteDesktopDisplay" xml:space="preserve">
+    <value>Remotedesktop: Anzeige</value>
+  </data>
+  <data name="SectionRemoteDesktopRedirection" xml:space="preserve">
+    <value>Remotedesktop: Umleitung</value>
+  </data>
+  <data name="SectionVncProxy" xml:space="preserve">
+    <value>VNC-Proxy</value>
+  </data>
+  <data name="SectionWeb" xml:space="preserve">
+    <value>Web</value>
+  </data>
+  <data name="SectionExternalApplication" xml:space="preserve">
+    <value>Externe Anwendung</value>
+  </data>
+  <data name="SectionExternalTools" xml:space="preserve">
+    <value>Externe Programme</value>
+  </data>
+  <data name="SendSpecialKeysMenu" xml:space="preserve">
+    <value>Tastenkombination senden</value>
+  </data>
+  <data name="IncludeInMultiSsh" xml:space="preserve">
+    <value>In Multi-SSH einbeziehen</value>
+  </data>
+  <data name="MoveToPanel" xml:space="preserve">
+    <value>In Panel verschieben</value>
+  </data>
+  <data name="CloseOtherTabs" xml:space="preserve">
+    <value>Andere Tabs schließen</value>
+  </data>
+  <data name="CloseTabsToTheRight" xml:space="preserve">
+    <value>Tabs rechts schließen</value>
+  </data>
+  <data name="NewTabNamePrompt" xml:space="preserve">
+    <value>Neuer Tab-Name (leer lassen für Standard):</value>
+  </data>
+  <data name="InheritHintDefaultConnection" xml:space="preserve">
+    <value>Diese Werte und Erben-Kästchen erhält jede neue Verbindung und jeder neue Ordner.</value>
+  </data>
+  <data name="InheritHintFolderFormat" xml:space="preserve">
+    <value>Markierte „Erben“-Kästchen übernehmen den Wert vom Ordner „{0}“.</value>
+  </data>
+  <data name="InheritHintRoot" xml:space="preserve">
+    <value>Elemente direkt unter dem Stammelement können von nichts erben.</value>
+  </data>
+  <data name="EditFolderTitleFormat" xml:space="preserve">
+    <value>Ordner bearbeiten — {0}</value>
+  </data>
+  <data name="EditConnectionTitleFormat" xml:space="preserve">
+    <value>Verbindung bearbeiten — {0}</value>
+  </data>
+  <data name="ProtocolNoteHttp" xml:space="preserve">
+    <value>Webseiten werden in Ihrem Standardbrowser geöffnet; die Rendering-Engine gilt für die Windows-App.</value>
+  </data>
+  <data name="ProtocolNoteArd" xml:space="preserve">
+    <value>Apple Remote Desktop verbindet sich mit dem integrierten VNC-Client.</value>
+  </data>
+  <data name="ProtocolNoteAnyDesk" xml:space="preserve">
+    <value>Startet die installierte AnyDesk-Anwendung; tragen Sie die AnyDesk-ID unter Hostname ein.</value>
+  </data>
+  <data name="ProtocolNoteTerminal" xml:space="preserve">
+    <value>Öffnet eine lokale Shell; mit Hostname wird ssh zu diesem Host ausgeführt.</value>
+  </data>
+  <data name="ProtocolNoteWsl" xml:space="preserve">
+    <value>Öffnet eine WSL-Shell (nur Windows); der Hostname wählt die Distribution.</value>
+  </data>
+  <data name="ProtocolNoteRaw" xml:space="preserve">
+    <value>Einfacher TCP-Socket mit lokaler Zeilenbearbeitung.</value>
+  </data>
+  <data name="ProtocolNoteSsh1" xml:space="preserve">
+    <value>SSH1 ist veraltet; die Verbindung verwendet SSH2.</value>
+  </data>
+  <data name="ProtocolNotSupportedFormat" xml:space="preserve">
+    <value>{0} wird auf dieser Plattform noch nicht unterstützt.</value>
+  </data>
+  <data name="NameIsRequired" xml:space="preserve">
+    <value>Name ist erforderlich.</value>
+  </data>
+  <data name="InvalidMacAddress" xml:space="preserve">
+    <value>Keine gültige MAC-Adresse (z. B. 00:11:22:33:44:55).</value>
+  </data>
+  <data name="CheckingHostAndPortFormat" xml:space="preserve">
+    <value>{0} wird geprüft (Ping und Port {1})...</value>
+  </data>
+  <data name="PingingHostFormat" xml:space="preserve">
+    <value>{0} wird angepingt...</value>
+  </data>
+  <data name="RdpVersionHighest" xml:space="preserve">
+    <value>Höchste verfügbare</value>
+  </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>Die Version des Remotedesktop-Steuerelements, die die Windows-Version von mRemoteNG verwendet. FreeRDP handelt immer die neueste RDP-Version aus, die der Server unterstützt; diese App speichert die Einstellung daher nur für jene App und verwendet sie nicht.</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Keinen Schatten unter dem Mauszeiger anzeigen. Wird von der Windows-Version von mRemoteNG verwendet; FreeRDP hat diese Option nicht.</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Den Textcursor nicht blinken lassen. Wird von der Windows-Version von mRemoteNG verwendet; FreeRDP hat diese Option nicht.</value>
+  </data>
+  <data name="ConsoleSessionAsConfigured" xml:space="preserve">
+    <value>Wie konfiguriert</value>
+  </data>
+  <data name="ValueNotSet" xml:space="preserve">
+    <value>(nicht festgelegt)</value>
+  </data>
+  <data name="CompressionLevelFormat" xml:space="preserve">
+    <value>Stufe {0}</value>
+  </data>
+  <data name="InheritTipDefaultConnection" xml:space="preserve">
+    <value>Neue Verbindungen erben diese Eigenschaft von ihrem Ordner.</value>
+  </data>
+  <data name="InheritTipFolderFormat" xml:space="preserve">
+    <value>Den Wert des Ordners „{0}“ verwenden.</value>
+  </data>
+  <data name="InheritTipRoot" xml:space="preserve">
+    <value>Knoten direkt unter dem Stammelement können von nichts erben.</value>
+  </data>
+  <data name="QuickConnectSubtitle" xml:space="preserve">
+    <value>Mit einem Host verbinden, ohne ihn zum Verbindungsbaum hinzuzufügen.</value>
+  </data>
+  <data name="ConnectWithOptionsSubtitleFormat" xml:space="preserve">
+    <value>Diese Optionen gelten nur für diese Verbindung zu „{0}“; die gespeicherte Verbindung wird nicht geändert.</value>
+  </data>
+  <data name="ConnectNoCredentialsDescription" xml:space="preserve">
+    <value>Gespeicherten Benutzernamen, Passwort und Domäne weglassen.</value>
+  </data>
+  <data name="SearchSettingsWatermark" xml:space="preserve">
+    <value>Einstellungen durchsuchen</value>
+  </data>
+  <data name="NoSettingsMatch" xml:space="preserve">
+    <value>Keine Einstellungen entsprechen der Suche.</value>
+  </data>
+  <data name="ResetToDefaultsTip" xml:space="preserve">
+    <value>Setzt alle Optionen in diesem Fenster zurück. Nichts ändert sich, bis Sie OK oder Übernehmen drücken.</value>
+  </data>
+  <data name="AppearancePageDescription" xml:space="preserve">
+    <value>Farben, Sprache und Schriftarten sowie die angezeigten Teile des Hauptfensters.</value>
+  </data>
+  <data name="FontFamilyDescription" xml:space="preserve">
+    <value>Eine auf diesem Computer installierte Schriftart, z. B. Inter oder Segoe UI. Leer lassen für die Schriftart des Themes.</value>
+  </data>
+  <data name="ConnectionsPageDescription" xml:space="preserve">
+    <value>Standardwerte für neue Verbindungen und der Standardport jedes Protokolls.</value>
+  </data>
+  <data name="CredentialsPageManageDescription" xml:space="preserve">
+    <value>Gespeicherte Benutzernamen und Passwörter, die Verbindungen verwenden können, hinzufügen, bearbeiten oder entfernen.</value>
+  </data>
+  <data name="NotificationsPageDescription" xml:space="preserve">
+    <value>Desktop-Benachrichtigungen, wenn Verbindungen geöffnet, geschlossen werden oder fehlschlagen.</value>
+  </data>
+  <data name="TabsPanelsPageDescription" xml:space="preserve">
+    <value>Aussehen und Verhalten von Sitzungs-Tabs und Panels.</value>
+  </data>
+  <data name="BackupFileName" xml:space="preserve">
+    <value>Name der Sicherungsdatei</value>
+  </data>
+  <data name="BackupNameFormatTip" xml:space="preserve">
+    <value>{0} = die Verbindungsdatei, {1} = der Zeitpunkt der Sicherung (.NET-Datumsformat)</value>
+  </data>
+  <data name="LogFileLocation" xml:space="preserve">
+    <value>Speicherort der Protokolldatei</value>
+  </data>
+  <data name="CurrentLogFile" xml:space="preserve">
+    <value>Aktuelle Protokolldatei</value>
+  </data>
+  <data name="CheckForUpdatesNow" xml:space="preserve">
+    <value>Jetzt nach Updates suchen</value>
+  </data>
+  <data name="ProxyAddressAndPort" xml:space="preserve">
+    <value>Adresse und Port</value>
+  </data>
+  <data name="FolderNodeLabel" xml:space="preserve">
+    <value>Ordner</value>
+  </data>
+  <data name="SearchPropertiesWatermark" xml:space="preserve">
+    <value>Eigenschaften durchsuchen</value>
+  </data>
+  <data name="NoPropertiesMatch" xml:space="preserve">
+    <value>Keine Eigenschaften entsprechen der Suche.</value>
+  </data>
+  <data name="InheritHintLinkFormat" xml:space="preserve">
+    <value>Felder mit eingeschalteter Verknüpfung verwenden den Wert des Ordners „{0}“.</value>
+  </data>
+  <data name="InheritFromFolderFormat" xml:space="preserve">
+    <value>Vom Ordner „{0}“ erben</value>
+  </data>
+  <data name="NoHostNameYet" xml:space="preserve">
+    <value>Noch kein Hostname</value>
+  </data>
+  <data name="InFolderFormat" xml:space="preserve">
+    <value>in {0}</value>
+  </data>
+  <data name="OneFieldNeedsAttention" xml:space="preserve">
+    <value>1 Feld erfordert Aufmerksamkeit</value>
+  </data>
+  <data name="FieldsNeedAttentionFormat" xml:space="preserve">
+    <value>{0} Felder erfordern Aufmerksamkeit</value>
+  </data>
+  <data name="InsertVariable" xml:space="preserve">
+    <value>In die Parameter einfügen</value>
+  </data>
+  <data name="ImportDialogSubtitle" xml:space="preserve">
+    <value>Wählen Sie, woher die Verbindungen kommen und wo sie im Baum abgelegt werden.</value>
+  </data>
+  <data name="FileToImport" xml:space="preserve">
+    <value>Zu importierende Datei</value>
+  </data>
+  <data name="FolderToImport" xml:space="preserve">
+    <value>Zu importierender Ordner</value>
+  </data>
+  <data name="DirectoryToImport" xml:space="preserve">
+    <value>Zu importierendes Verzeichnis</value>
+  </data>
+  <data name="ExportDialogSubtitle" xml:space="preserve">
+    <value>Die Verbindungen oder einen Ordner davon in einer Datei speichern.</value>
+  </data>
+  <data name="PortScannerSubtitle" xml:space="preserve">
+    <value>Hosts mit offenen Fernzugriffsports finden und zum Baum hinzufügen.</value>
+  </data>
+  <data name="CredentialManagerSubtitle" xml:space="preserve">
+    <value>Gespeicherte Benutzernamen und Passwörter, die Verbindungen verwenden können.</value>
+  </data>
+  <data name="ConnectionFilePropertiesHeading" xml:space="preserve">
+    <value>Eigenschaften der Verbindungsdatei</value>
+  </data>
+  <data name="PasswordProtected" xml:space="preserve">
+    <value>Geschützt</value>
+  </data>
+  <data name="NotPasswordProtected" xml:space="preserve">
+    <value>Nicht geschützt</value>
+  </data>
+  <data name="UltraVncListenerPortDescription" xml:space="preserve">
+    <value>Der Port, mit dem sich entfernte Benutzer verbinden (standardmäßig 5500).</value>
+  </data>
+  <data name="PuttyRootToolTip" xml:space="preserve">
+    <value>Gespeicherte PuTTY-Sitzungen (schreibgeschützt). Verbinden Sie sich oder duplizieren Sie eine Sitzung, um sie in den Verbindungsbaum zu kopieren.</value>
+  </data>
+  <data name="NoHostnameInParentheses" xml:space="preserve">
+    <value>(kein Hostname)</value>
+  </data>
+  <data name="ToolTipUserFormat" xml:space="preserve">
+    <value>Benutzer: {0}</value>
+  </data>
+  <data name="PuttySavedSession" xml:space="preserve">
+    <value>Gespeicherte PuTTY-Sitzung</value>
+  </data>
+  <data name="ReadOnlyNameFormat" xml:space="preserve">
+    <value>{0} (schreibgeschützt)</value>
+  </data>
+  <data name="ConfirmCloseSessionsOfFormat" xml:space="preserve">
+    <value>Die {0} Sitzungen von „{1}“ schließen?</value>
+  </data>
+  <data name="ConfirmDeleteFolderOneItemFormat" xml:space="preserve">
+    <value>Den Ordner „{0}“ und {1} enthaltenes Element löschen?</value>
+  </data>
+  <data name="ConfirmDeleteFolderItemsFormat" xml:space="preserve">
+    <value>Den Ordner „{0}“ und die {1} enthaltenen Elemente löschen?</value>
+  </data>
+  <data name="SqlDatabaseStatusFormat" xml:space="preserve">
+    <value>SQL-Datenbank: {0}</value>
+  </data>
+  <data name="NewConnectionFileNotSaved" xml:space="preserve">
+    <value>Neue Verbindungsdatei (noch nicht gespeichert)</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>Unbenannt</value>
+  </data>
+  <data name="TitleOneActiveConnection" xml:space="preserve">
+    <value>(1 aktive Verbindung)</value>
+  </data>
+  <data name="TitleActiveConnectionsFormat" xml:space="preserve">
+    <value>({0} aktive Verbindungen)</value>
+  </data>
+  <data name="IncorrectPasswordTryAgain" xml:space="preserve">
+    <value>Falsches Passwort. Bitte versuchen Sie es erneut.</value>
+  </data>
+  <data name="FileIsPasswordProtectedFormat" xml:space="preserve">
+    <value>„{0}“ ist durch ein Passwort geschützt.</value>
+  </data>
+  <data name="UpdateAvailableTitle" xml:space="preserve">
+    <value>Update verfügbar</value>
+  </data>
+  <data name="OpenReleasePageQuestion" xml:space="preserve">
+    <value>Release-Seite öffnen?</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="SaveChangesToFormat" xml:space="preserve">
+    <value>Möchten Sie die Änderungen an {0} speichern?</value>
+  </data>
+  <data name="SaveChangesToNewFile" xml:space="preserve">
+    <value>Möchten Sie die Änderungen an der neuen Verbindungsdatei speichern?</value>
+  </data>
+  <data name="UnsavedChangesTitle" xml:space="preserve">
+    <value>Ungespeicherte Änderungen</value>
+  </data>
+  <data name="DontSave" xml:space="preserve">
+    <value>Nicht speichern</value>
+  </data>
+  <data name="StartupReopenLastFile" xml:space="preserve">
+    <value>Letzte Verbindungsdatei erneut öffnen</value>
+  </data>
+  <data name="StartupOpenSpecificFile" xml:space="preserve">
+    <value>Bestimmte Verbindungsdatei öffnen</value>
+  </data>
+  <data name="StartupEmptyTree" xml:space="preserve">
+    <value>Mit leerem Verbindungsbaum starten</value>
+  </data>
+  <data name="ConfirmCloseOnExit" xml:space="preserve">
+    <value>Beim Beenden mit offenen Verbindungen</value>
+  </data>
+  <data name="ConfirmCloseOnExitAndClose" xml:space="preserve">
+    <value>Beim Beenden und beim Schließen einer Verbindung</value>
+  </data>
+  <data name="PortableDataFolderFormat" xml:space="preserve">
+    <value>Portabler Modus: alle Daten liegen in {0}</value>
+  </data>
+  <data name="DataFolderFormat" xml:space="preserve">
+    <value>Datenordner: {0}</value>
+  </data>
+  <data name="ThemeDarkChoice" xml:space="preserve">
+    <value>Dunkel (VS2015 Dark)</value>
+  </data>
+  <data name="ThemeLightChoice" xml:space="preserve">
+    <value>Hell (VS2015 Light)</value>
+  </data>
+  <data name="ThemeFollowSystem" xml:space="preserve">
+    <value>Systemeinstellung folgen</value>
+  </data>
+  <data name="UserThemeFormat" xml:space="preserve">
+    <value>{0} (Benutzer-Theme)</value>
+  </data>
+  <data name="OneSavedCredential" xml:space="preserve">
+    <value>1 gespeicherter Anmeldedatensatz.</value>
+  </data>
+  <data name="SavedCredentialsFormat" xml:space="preserve">
+    <value>{0} gespeicherte Anmeldedatensätze.</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>Update-Prüfung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="DownloadFailedFormat" xml:space="preserve">
+    <value>Download fehlgeschlagen: {0}</value>
+  </data>
+  <data name="DownloadingFormat" xml:space="preserve">
+    <value>{0} wird heruntergeladen…</value>
+  </data>
+  <data name="UpdateChannelStable" xml:space="preserve">
+    <value>Stabile Releases</value>
+  </data>
+  <data name="UpdateChannelPreRelease" xml:space="preserve">
+    <value>Stabile Releases und Vorabversionen</value>
+  </data>
+  <data name="CheckingEllipsis" xml:space="preserve">
+    <value>Wird geprüft…</value>
+  </data>
+  <data name="CouldNotSaveSettingsFormat" xml:space="preserve">
+    <value>Einstellungen konnten nicht gespeichert werden: {0}</value>
+  </data>
+  <data name="SecretSavedEncrypted" xml:space="preserve">
+    <value>Gespeichert (verschlüsselt)</value>
+  </data>
+  <data name="SecretNotSaved" xml:space="preserve">
+    <value>Nicht gespeichert: Abfrage bei Bedarf</value>
+  </data>
+  <data name="TestingEllipsis" xml:space="preserve">
+    <value>Wird getestet…</value>
+  </data>
+  <data name="UnexpectedErrorFormat" xml:space="preserve">
+    <value>Unerwarteter Fehler: {0}</value>
+  </data>
+  <data name="VaultAuthUserPass" xml:space="preserve">
+    <value>Benutzername und Passwort (userpass)</value>
+  </data>
+  <data name="RoleId" xml:space="preserve">
+    <value>Rollen-ID</value>
+  </data>
+  <data name="Token" xml:space="preserve">
+    <value>Token</value>
+  </data>
+  <data name="SecretId" xml:space="preserve">
+    <value>Secret-ID</value>
+  </data>
+  <data name="AwsDefaultCredentialChain" xml:space="preserve">
+    <value>Standard-AWS-Anmeldedatenkette</value>
+  </data>
+  <data name="AwsNamedProfile" xml:space="preserve">
+    <value>Benanntes Profil</value>
+  </data>
+  <data name="AwsSavedAccessKey" xml:space="preserve">
+    <value>In mRemoteNG gespeicherter Zugriffsschlüssel</value>
+  </data>
+  <data name="AwsPublicIp" xml:space="preserve">
+    <value>Öffentliche IP-Adresse</value>
+  </data>
+  <data name="AwsPrivateIp" xml:space="preserve">
+    <value>Private IP-Adresse</value>
+  </data>
+  <data name="AwsPublicDnsName" xml:space="preserve">
+    <value>Öffentlicher DNS-Name</value>
+  </data>
+  <data name="AwsPrivateDnsName" xml:space="preserve">
+    <value>Privater DNS-Name</value>
+  </data>
+  <data name="DockThisPanelBack" xml:space="preserve">
+    <value>Dieses Panel wieder im Hauptfenster andocken</value>
+  </data>
+  <data name="ClosePanel" xml:space="preserve">
+    <value>Panel schließen</value>
+  </data>
+  <data name="ConfirmClosePanelFormat" xml:space="preserve">
+    <value>Das Panel „{0}“ und seine {1} Sitzung(en) schließen?</value>
+  </data>
+  <data name="RenamePanel" xml:space="preserve">
+    <value>Panel umbenennen</value>
+  </data>
+  <data name="PanelNameExistsFormat" xml:space="preserve">
+    <value>Ein Panel namens „{0}“ ist bereits vorhanden.</value>
+  </data>
+  <data name="DockPanel" xml:space="preserve">
+    <value>Panel andocken</value>
+  </data>
+  <data name="FloatPanel" xml:space="preserve">
+    <value>Panel lösen</value>
+  </data>
+  <data name="ReconnectingInFormat" xml:space="preserve">
+    <value>Verbindung verloren. Neuer Verbindungsversuch in {0:0} s (Versuch {1} von {2})</value>
+  </data>
+  <data name="ReconnectingAttemptFormat" xml:space="preserve">
+    <value>Erneut verbinden (Versuch {0} von {1})…</value>
+  </data>
+  <data name="CouldNotReconnectOneAttempt" xml:space="preserve">
+    <value>Erneutes Verbinden nach {0} Versuch fehlgeschlagen.</value>
+  </data>
+  <data name="CouldNotReconnectFormat" xml:space="preserve">
+    <value>Erneutes Verbinden nach {0} Versuchen fehlgeschlagen.</value>
+  </data>
+  <data name="LoadingEllipsis" xml:space="preserve">
+    <value>Wird geladen…</value>
+  </data>
+  <data name="AdHintWindows" xml:space="preserve">
+    <value>Lassen Sie den Server leer, um die Domäne dieses Computers zu verwenden, und verbinden Sie sich dann.</value>
+  </data>
+  <data name="AdHintOther" xml:space="preserve">
+    <value>Geben Sie einen Domänencontroller und Anmeldedaten ein und verbinden Sie sich dann.</value>
+  </data>
+  <data name="ConnectingEllipsis" xml:space="preserve">
+    <value>Verbindung wird hergestellt…</value>
+  </data>
+  <data name="AdConnectedToDomain" xml:space="preserve">
+    <value>Mit der Domäne verbunden. Wählen Sie eine OU.</value>
+  </data>
+  <data name="AdConnectedToServerFormat" xml:space="preserve">
+    <value>Mit {0} verbunden. Wählen Sie eine OU.</value>
+  </data>
+  <data name="AdReadingComputersFormat" xml:space="preserve">
+    <value>Computer in {0} werden gelesen…</value>
+  </data>
+  <data name="AdConnectFirst" xml:space="preserve">
+    <value>Verbinden Sie sich zuerst und wählen Sie eine OU.</value>
+  </data>
+  <data name="AdSelectComputer" xml:space="preserve">
+    <value>Wählen Sie mindestens einen Computer zum Importieren aus.</value>
+  </data>
+  <data name="AdInvalidCredentials" xml:space="preserve">
+    <value>Der Server hat Benutzername oder Passwort abgelehnt.</value>
+  </data>
+  <data name="AdServerUnavailable" xml:space="preserve">
+    <value>Der Verzeichnisserver ist nicht erreichbar (prüfen Sie Servername, Port und LDAPS-Einstellung).</value>
+  </data>
+  <data name="AdLdapErrorFormat" xml:space="preserve">
+    <value>LDAP-Fehler {0}: {1}</value>
+  </data>
+  <data name="AdLdapLibraryMissing" xml:space="preserve">
+    <value>Die LDAP-Bibliothek (libldap) ist auf diesem System nicht installiert.</value>
+  </data>
+  <data name="AdNoComputersFormat" xml:space="preserve">
+    <value>Keine Computer in {0}.</value>
+  </data>
+  <data name="AdNoComputersSubtreeFormat" xml:space="preserve">
+    <value>Keine Computer in {0} oder seinen untergeordneten OUs.</value>
+  </data>
+  <data name="AdComputersFormat" xml:space="preserve">
+    <value>{0} Computer in {1}.</value>
+  </data>
+  <data name="AdComputersSubtreeFormat" xml:space="preserve">
+    <value>{0} Computer in {1} und seinen untergeordneten OUs.</value>
+  </data>
+  <data name="BackupOnSave" xml:space="preserve">
+    <value>Bei jedem Speichern der Verbindungen</value>
+  </data>
+  <data name="BackupOnExit" xml:space="preserve">
+    <value>Beim Beenden von mRemoteNG</value>
+  </data>
+  <data name="BackupsAreOff" xml:space="preserve">
+    <value>Sicherungen sind ausgeschaltet.</value>
+  </data>
+  <data name="BackupNameFormatInvalid" xml:space="preserve">
+    <value>Das Namensformat muss {0} (Datei) und {1} (Zeit) enthalten.</value>
+  </data>
+  <data name="BackupExampleNextToFileFormat" xml:space="preserve">
+    <value>Beispiel: {0} neben der Verbindungsdatei; die neuesten {1} werden aufbewahrt.</value>
+  </data>
+  <data name="BackupExampleInFolderFormat" xml:space="preserve">
+    <value>Beispiel: {0} im Sicherungsordner; die neuesten {1} werden aufbewahrt.</value>
+  </data>
+  <data name="TestFailedFormat" xml:space="preserve">
+    <value>Test fehlgeschlagen: {0}</value>
+  </data>
+  <data name="SqlHostHintMySql" xml:space="preserve">
+    <value>Host oder Host:Port (Standardport 3306)</value>
+  </data>
+  <data name="SqlHostHintMsSql" xml:space="preserve">
+    <value>Host, Host:Port oder Host\Instanz (Standardport 1433)</value>
+  </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC-Datenquelle (SQL Server oder MySQL / MariaDB)</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN-Name oder ODBC-Verbindungszeichenfolge</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>Eine Datenquelle aus odbc.ini (z. B. mremoteng) oder eine Verbindungszeichenfolge wie Driver={MariaDB Unicode};Server=db;Port=3306. Benötigt unixODBC und den ODBC-Treiber der Datenbank. Geben Sie das Kennwort im Feld „Kennwort“ ein, nicht in der Zeichenfolge.</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>Eine Datenquelle aus dem ODBC-Datenquellen-Administrator (z. B. mremoteng) oder eine Verbindungszeichenfolge wie Driver={ODBC Driver 18 for SQL Server};Server=db. Geben Sie das Kennwort im Feld „Kennwort“ ein, nicht in der Zeichenfolge.</value>
+  </data>
+  <data name="LogLevelDebugEverything" xml:space="preserve">
+    <value>Debug (alles)</value>
+  </data>
+  <data name="LogLevelInformation" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="LogLevelWarnings" xml:space="preserve">
+    <value>Warnungen und Fehler</value>
+  </data>
+  <data name="LogLevelErrors" xml:space="preserve">
+    <value>Nur Fehler</value>
+  </data>
+  <data name="PortableDataKeptInFormat" xml:space="preserve">
+    <value>Portabler Modus: Einstellungen, Anmeldedaten, known_hosts, Themes und Protokolle liegen in {0}.</value>
+  </data>
+  <data name="DataKeptInFormat" xml:space="preserve">
+    <value>Einstellungen, Anmeldedaten, known_hosts, Themes und Protokolle liegen in {0}.</value>
+  </data>
+  <data name="NotListening" xml:space="preserve">
+    <value>Lauscht nicht.</value>
+  </data>
+  <data name="ListeningStoppedFormat" xml:space="preserve">
+    <value>Lauschen beendet: {0}</value>
+  </data>
+  <data name="CannotListenOnPortFormat" xml:space="preserve">
+    <value>Lauschen auf Port {0} nicht möglich: {1}</value>
+  </data>
+  <data name="ListeningForVncFormat" xml:space="preserve">
+    <value>Lauscht auf eingehende VNC-Verbindungen an Port {0}…</value>
+  </data>
+  <data name="FailedFormat" xml:space="preserve">
+    <value>Fehlgeschlagen: {0}</value>
+  </data>
+  <data name="NoVncProtocolRegistered" xml:space="preserve">
+    <value>Kein VNC-Protokoll ist registriert.</value>
+  </data>
+  <data name="ConnectedToDesktopFormat" xml:space="preserve">
+    <value>Verbunden: „{0}“</value>
+  </data>
+  <data name="ConnectedStatus" xml:space="preserve">
+    <value>Verbunden</value>
+  </data>
+  <data name="ExternalToolsNoConnection" xml:space="preserve">
+    <value>Keine Verbindung ausgewählt: Variablen wie %HOSTNAME% sind leer.</value>
+  </data>
+  <data name="ExternalToolsTargetFormat" xml:space="preserve">
+    <value>Start und Vorschau verwenden „{0}“.</value>
+  </data>
+  <data name="ExternalToolsVariablesHelpFormat" xml:space="preserve">
+    <value>Variablen: {0}. %-NAME% maskiert nur Shell-Metazeichen, %!NAME% fügt den Wert unverändert ein; andere Namen sind Umgebungsvariablen (\%NAME\% immer, ^%NAME^% behält den Text).</value>
+  </data>
+  <data name="ExternalToolsSaveBeforeIntegrate" xml:space="preserve">
+    <value>Speichern Sie Ihre Änderungen, bevor Sie ein Programm starten, das in einem Tab geöffnet wird („Integration versuchen“).</value>
+  </data>
+  <data name="ExternalToolStartedFormat" xml:space="preserve">
+    <value>„{0}“ gestartet.</value>
+  </data>
+  <data name="ExternalToolNotStartedFormat" xml:space="preserve">
+    <value>„{0}“ konnte nicht gestartet werden; siehe Protokoll.</value>
+  </data>
+  <data name="ExternalToolNeedsName" xml:space="preserve">
+    <value>Jedes Programm benötigt einen Anzeigenamen.</value>
+  </data>
+  <data name="ExternalToolNoFileNameFormat" xml:space="preserve">
+    <value>„{0}“ hat keinen Dateinamen.</value>
+  </data>
+  <data name="ExternalToolDuplicateNameFormat" xml:space="preserve">
+    <value>Mehrere Programme heißen „{0}“; Verbindungen verweisen über den Namen auf Programme.</value>
+  </data>
+  <data name="CouldNotSaveSeeLogFormat" xml:space="preserve">
+    <value>{0} konnte nicht gespeichert werden; siehe Protokoll.</value>
+  </data>
+  <data name="ConfirmDeleteExternalToolDetailFormat" xml:space="preserve">
+    <value>Das externe Programm „{0}“ löschen?
+Verbindungen, die es als externe Anwendung oder als Programm vor oder nach dem Verbinden verwenden, finden es dann nicht mehr.</value>
+  </data>
+  <data name="SelectTheProgram" xml:space="preserve">
+    <value>Programm auswählen</value>
+  </data>
+  <data name="SelectTheWorkingDirectory" xml:space="preserve">
+    <value>Arbeitsverzeichnis auswählen</value>
+  </data>
+  <data name="SelectAnIcon" xml:space="preserve">
+    <value>Symbol auswählen</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Nicht verbunden.</value>
+  </data>
+  <data name="SftpConfirmDeleteFolderFormat" xml:space="preserve">
+    <value>Den Ordner „{0}“ und seinen gesamten Inhalt endgültig löschen?</value>
+  </data>
+  <data name="SftpConfirmDeleteFileFormat" xml:space="preserve">
+    <value>„{0}“ endgültig löschen?</value>
+  </data>
+  <data name="ConnectingToFormat" xml:space="preserve">
+    <value>Verbindung mit {0} wird hergestellt…</value>
+  </data>
+  <data name="SftpConnectedFormat" xml:space="preserve">
+    <value>Mit {0} verbunden. {1} Elemente in {2}.</value>
+  </data>
+  <data name="DisconnectedStatus" xml:space="preserve">
+    <value>Getrennt.</value>
+  </data>
+  <data name="LoadingFormat" xml:space="preserve">
+    <value>{0} wird geladen…</value>
+  </data>
+  <data name="SftpItemsInFormat" xml:space="preserve">
+    <value>{0} Elemente in {1}.</value>
+  </data>
+  <data name="UploadingEllipsis" xml:space="preserve">
+    <value>Wird hochgeladen…</value>
+  </data>
+  <data name="UploadingFileFormat" xml:space="preserve">
+    <value>{0} wird hochgeladen…</value>
+  </data>
+  <data name="Uploading" xml:space="preserve">
+    <value>Hochladen</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>Herunterladen</value>
+  </data>
+  <data name="UploadedFileFormat" xml:space="preserve">
+    <value>{0} nach {1} hochgeladen.</value>
+  </data>
+  <data name="UploadedFilesFormat" xml:space="preserve">
+    <value>{0} Dateien nach {1} hochgeladen.</value>
+  </data>
+  <data name="DownloadedFileFormat" xml:space="preserve">
+    <value>{0} nach {1} heruntergeladen.</value>
+  </data>
+  <data name="CreatingFormat" xml:space="preserve">
+    <value>{0} wird erstellt…</value>
+  </data>
+  <data name="CreatedFormat" xml:space="preserve">
+    <value>{0} erstellt.</value>
+  </data>
+  <data name="DeletingFormat" xml:space="preserve">
+    <value>{0} wird gelöscht…</value>
+  </data>
+  <data name="DeletedFormat" xml:space="preserve">
+    <value>{0} gelöscht.</value>
+  </data>
+  <data name="CancelledStatus" xml:space="preserve">
+    <value>Abgebrochen.</value>
+  </data>
+  <data name="PortScanHint" xml:space="preserve">
+    <value>Geben Sie Hosts (z. B. 192.168.1.0/24, 10.0.0.1-50 oder Namen) und Ports ein und starten Sie dann den Scan.</value>
+  </data>
+  <data name="PortScanNeedHostAndPort" xml:space="preserve">
+    <value>Geben Sie mindestens einen Host und einen Port ein.</value>
+  </data>
+  <data name="PortScanScanningFormat" xml:space="preserve">
+    <value>{0} Host(s) an {1} Port(s) werden gescannt…</value>
+  </data>
+  <data name="PortScanProgressFormat" xml:space="preserve">
+    <value>Scan läuft… {0}/{1} Hosts, {2}/{3} Ports geprüft</value>
+  </data>
+  <data name="PortScanDoneFormat" xml:space="preserve">
+    <value>Fertig: {0} Host(s) gescannt, {1} mit offenen Ports.</value>
+  </data>
+  <data name="PortScanStoppedFormat" xml:space="preserve">
+    <value>Angehalten. Bisher {0} Host(s) mit offenen Ports gefunden.</value>
+  </data>
+  <data name="PortScanSelectHosts" xml:space="preserve">
+    <value>Wählen Sie die zu importierenden Hosts aus.</value>
+  </data>
+  <data name="ImportFailedFormat" xml:space="preserve">
+    <value>Import fehlgeschlagen: {0}</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>(noch nicht gespeichert)</value>
+  </data>
+  <data name="FileProtectedByMasterPassword" xml:space="preserve">
+    <value>Diese Datei ist durch ein Master-Passwort geschützt.</value>
+  </data>
+  <data name="FileNotProtectedByMasterPassword" xml:space="preserve">
+    <value>Diese Datei ist nicht durch ein Master-Passwort geschützt (Passwörter werden mit dem Standardschlüssel verschlüsselt).</value>
+  </data>
+  <data name="TheNameIsRequired" xml:space="preserve">
+    <value>Der Name ist erforderlich.</value>
+  </data>
+  <data name="ConnectionError" xml:space="preserve">
+    <value>Verbindungsfehler</value>
+  </data>
+  <data name="ReconnectingEllipsis" xml:space="preserve">
+    <value>Erneut verbinden…</value>
+  </data>
+  <data name="ToolTipPanelFormat" xml:space="preserve">
+    <value>Panel: {0}</value>
+  </data>
+  <data name="SqlDatabaseIsPasswordProtectedFormat" xml:space="preserve">
+    <value>Die SQL-Verbindungsdatenbank {0} ist durch ein Passwort geschützt.</value>
+  </data>
+  <data name="NoOpenSessions" xml:space="preserve">
+    <value>(Keine offenen Sitzungen)</value>
+  </data>
+  <data name="MultiSshAllSessions" xml:space="preserve">
+    <value>Alle Sitzungen</value>
+  </data>
+  <data name="MultiSshActivePanel" xml:space="preserve">
+    <value>Aktives Panel</value>
+  </data>
+  <data name="OneSession" xml:space="preserve">
+    <value>1 Sitzung</value>
+  </data>
+  <data name="SessionsCountFormat" xml:space="preserve">
+    <value>{0} Sitzungen</value>
+  </data>
+  <data name="NewCredential" xml:space="preserve">
+    <value>Neue Anmeldedaten</value>
+  </data>
+  <data name="CredentialNeedsName" xml:space="preserve">
+    <value>Alle Anmeldedaten benötigen einen Namen.</value>
+  </data>
+  <data name="CouldNotSaveCredentialsFormat" xml:space="preserve">
+    <value>Anmeldedaten konnten nicht gespeichert werden: {0}</value>
+  </data>
+  <data name="ConnectWithOptionsTitleFormat" xml:space="preserve">
+    <value>Mit Optionen verbinden — {0}</value>
+  </data>
+  <data name="SessionShownFullScreen" xml:space="preserve">
+    <value>Diese Sitzung wird im Vollbild angezeigt.
+Verwenden Sie „Vollbild beenden“ oben in diesem Fenster, um sie zurückzuholen.</value>
+  </data>
+  <data name="SessionRunsInOwnWindow" xml:space="preserve">
+    <value>Diese Sitzung läuft in einem eigenen Fenster.</value>
+  </data>
+  <data name="ShowMRemoteNG" xml:space="preserve">
+    <value>mRemoteNG anzeigen</value>
+  </data>
+  <data name="ExitMRemoteNG" xml:space="preserve">
+    <value>mRemoteNG beenden</value>
+  </data>
+  <data name="ConfirmExitOneConnection" xml:space="preserve">
+    <value>1 Verbindung ist noch geöffnet. mRemoteNG beenden und sie schließen?</value>
+  </data>
+  <data name="ConfirmExitConnectionsFormat" xml:space="preserve">
+    <value>{0} Verbindungen sind noch geöffnet. mRemoteNG beenden und sie schließen?</value>
+  </data>
+  <data name="CloseConnectionTitle" xml:space="preserve">
+    <value>Verbindung schließen</value>
+  </data>
+  <data name="ConfirmCloseConnectionFormat" xml:space="preserve">
+    <value>Die Verbindung „{0}“ schließen?</value>
+  </data>
+  <data name="RightClickForPanelOptions" xml:space="preserve">
+    <value>Rechtsklick für Panel-Optionen</value>
+  </data>
+  <data name="DefaultSshPrivateKey" xml:space="preserve">
+    <value>Standardmäßiger privater SSH-Schlüssel</value>
+  </data>
+  <data name="MRemoteNGConnectionFiles" xml:space="preserve">
+    <value>mRemoteNG-Verbindungsdateien</value>
+  </data>
+  <data name="LogFileTitle" xml:space="preserve">
+    <value>Protokolldatei</value>
+  </data>
+  <data name="BackupFolderTitle" xml:space="preserve">
+    <value>Sicherungsordner</value>
+  </data>
+  <data name="NoExternalTools" xml:space="preserve">
+    <value>(keine externen Programme)</value>
+  </data>
+  <data name="CustomThemeNameFormat" xml:space="preserve">
+    <value>{0} (angepasst)</value>
+  </data>
+  <data name="ThemeSavedFormat" xml:space="preserve">
+    <value>„{0}“ in {1} gespeichert und angewendet.</value>
+  </data>
+  <data name="CouldNotSaveThemeFormat" xml:space="preserve">
+    <value>Das Theme konnte nicht gespeichert werden: {0}</value>
+  </data>
+  <data name="ThemeDeletedFormat" xml:space="preserve">
+    <value>„{0}“ gelöscht.</value>
+  </data>
+  <data name="ExternalToolTipIntegratedFormat" xml:space="preserve">
+    <value>{0} (öffnet in einem Tab) — läuft für die ausgewählte Verbindung</value>
+  </data>
+  <data name="ExternalToolTipFormat" xml:space="preserve">
+    <value>{0} — läuft für die ausgewählte Verbindung</value>
+  </data>
+  <data name="ExportSelectedFolderFormat" xml:space="preserve">
+    <value>Ausgewählter Ordner „{0}“ mit Inhalt</value>
+  </data>
+  <data name="ExportConnectionsToFile" xml:space="preserve">
+    <value>Verbindungen in Datei exportieren</value>
+  </data>
+  <data name="ExportChooseFile" xml:space="preserve">
+    <value>Wählen Sie die Zieldatei für den Export.</value>
+  </data>
+  <data name="ExportFolderMissing" xml:space="preserve">
+    <value>Der Ordner für die Exportdatei existiert nicht.</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Die Passwörter stimmen nicht überein.</value>
+  </data>
+  <data name="UploadToFormat" xml:space="preserve">
+    <value>Hochladen nach {0}</value>
+  </data>
+  <data name="DownloadAs" xml:space="preserve">
+    <value>Herunterladen als</value>
+  </data>
+  <data name="CreateFolderInFormat" xml:space="preserve">
+    <value>Ordner in {0} erstellen:</value>
+  </data>
+  <data name="FolderName" xml:space="preserve">
+    <value>Ordnername</value>
+  </data>
+  <data name="FloatingPanelTitleFormat" xml:space="preserve">
+    <value>{0} ({1}) — mRemoteNG</value>
+  </data>
+  <data name="MRemoteNGError" xml:space="preserve">
+    <value>mRemoteNG-Fehler</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>Getrennt</value>
+  </data>
+  <data name="HostKeyUnknownTitle" xml:space="preserve">
+    <value>Unbekannter SSH-Hostschlüssel</value>
+  </data>
+  <data name="HostKeyUnknownHeadingFormat" xml:space="preserve">
+    <value>Die Echtheit des Hosts „{0}“ kann nicht festgestellt werden.</value>
+  </data>
+  <data name="HostKeyUnknownExplanationFormat" xml:space="preserve">
+    <value>Vergleichen Sie den folgenden Fingerabdruck mit dem vom Administrator des Servers veröffentlichten. „Akzeptieren und speichern“ legt den Schlüssel in {0} ab, damit künftige Verbindungen automatisch überprüft werden.</value>
+  </data>
+  <data name="HostKeyOtherTypeKnown" xml:space="preserve">
+    <value>Dieser Host ist bereits mit einem anderen Schlüsseltyp bekannt:</value>
+  </data>
+  <data name="HostKeyChangedTitle" xml:space="preserve">
+    <value>SSH-Hostschlüssel geändert</value>
+  </data>
+  <data name="HostKeyMismatchHeadingFormat" xml:space="preserve">
+    <value>Der von „{1}“ vorgelegte {0}-Schlüssel stimmt nicht mit dem gespeicherten Schlüssel überein.</value>
+  </data>
+  <data name="HostKeyMismatchExplanationFormat" xml:space="preserve">
+    <value>Die Verbindung wurde blockiert. Beim Ersetzen des Schlüssels wird {0} aktualisiert; ~/.ssh/known_hosts wird nie verändert.</value>
+  </data>
+  <data name="HostKeyStoredKey" xml:space="preserve">
+    <value>Gespeicherter Schlüssel:</value>
+  </data>
+  <data name="ImportTargetRoot" xml:space="preserve">
+    <value>Stammelement (oberste Ebene)</value>
+  </data>
+  <data name="ImportTargetSelectedFolderFormat" xml:space="preserve">
+    <value>Ausgewählter Ordner: {0}</value>
+  </data>
+  <data name="BrowseDirectory" xml:space="preserve">
+    <value>Verzeichnis durchsuchen</value>
+  </data>
+  <data name="PuttySessionsFolderOptional" xml:space="preserve">
+    <value>Ordner der PuTTY-Sitzungen (optional)</value>
+  </data>
+  <data name="ImportHintPuttyRegistry" xml:space="preserve">
+    <value>Leer lassen, um die von PuTTY in der Windows-Registrierung gespeicherten Sitzungen zu lesen.</value>
+  </data>
+  <data name="PuttySessionsFolder" xml:space="preserve">
+    <value>Ordner der PuTTY-Sitzungen</value>
+  </data>
+  <data name="ImportHintPuttyFolder" xml:space="preserve">
+    <value>PuTTY speichert Sitzungen in ~/.putty/sessions (eine Datei pro Sitzung).</value>
+  </data>
+  <data name="OpenSshConfigFile" xml:space="preserve">
+    <value>OpenSSH-Konfigurationsdatei</value>
+  </data>
+  <data name="ImportHintOpenSsh" xml:space="preserve">
+    <value>Host-Einträge werden zu SSH-Verbindungen; Platzhaltermuster werden übersprungen.</value>
+  </data>
+  <data name="ImportHintXml" xml:space="preserve">
+    <value>Ist die Datei geschützt, werden Sie nach dem Passwort gefragt.</value>
+  </data>
+  <data name="ImportHintRdcMan" xml:space="preserve">
+    <value>Von RDCMan verschlüsselte Passwörter (Windows DPAPI) können nicht importiert werden.</value>
+  </data>
+  <data name="ImportBrowseDirectoryWatermark" xml:space="preserve">
+    <value>Verzeichnis durchsuchen, um eine OU zu wählen...</value>
+  </data>
+  <data name="ImportHintActiveDirectory" xml:space="preserve">
+    <value>Verbinden Sie sich mit einem Domänencontroller und wählen Sie eine OU und deren Computer; diese werden als RDP-Verbindungen importiert.</value>
+  </data>
+  <data name="ImportHintCsv" xml:space="preserve">
+    <value>Passwörter werden in CSV-Dateien im Klartext gespeichert.</value>
+  </data>
+  <data name="SelectPuttySessionsFolder" xml:space="preserve">
+    <value>Ordner der PuTTY-Sitzungen auswählen</value>
+  </data>
+  <data name="ImportFromFormat" xml:space="preserve">
+    <value>Importieren aus {0}</value>
+  </data>
+  <data name="ImportNoPuttyFolder" xml:space="preserve">
+    <value>Es wurde kein Ordner mit PuTTY-Sitzungen gefunden. Wählen Sie den Ordner mit den Sitzungsdateien aus.</value>
+  </data>
+  <data name="PathDoesNotExistFormat" xml:space="preserve">
+    <value>„{0}“ existiert nicht.</value>
+  </data>
+  <data name="PortScanImportedFormat" xml:space="preserve">
+    <value>{0} {1}-Verbindung(en) nach „{2}“ importiert.</value>
+  </data>
+  <data name="PortScanSkippedFormat" xml:space="preserve">
+    <value>{0} Host(s) übersprungen: kein {1}-Dienst gefunden.</value>
+  </data>
+  <data name="UserInterfaceLanguage" xml:space="preserve">
+    <value>Sprache der Benutzeroberfläche</value>
+  </data>
+  <data name="AlreadyRunning" xml:space="preserve">
+    <value>mRemoteNG wird bereits ausgeführt.</value>
+  </data>
+  <data name="HostStatusPingFormat" xml:space="preserve">
+    <value>Ping {0} ms</value>
+  </data>
+  <data name="HostStatusNoPingFormat" xml:space="preserve">
+    <value>keine Ping-Antwort ({0})</value>
+  </data>
+  <data name="HostStatusPortOpenFormat" xml:space="preserve">
+    <value>Port {0} offen</value>
+  </data>
+  <data name="HostStatusPortClosedFormat" xml:space="preserve">
+    <value>Port {0} geschlossen ({1})</value>
+  </data>
+  <data name="HostStatusOnlineFormat" xml:space="preserve">
+    <value>Online — {0}</value>
+  </data>
+  <data name="HostStatusOfflineFormat" xml:space="preserve">
+    <value>Offline — {0}</value>
+  </data>
+  <data name="ShellToastErrorTitle" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="ShellShowLog" xml:space="preserve">
+    <value>Protokoll anzeigen</value>
+  </data>
+  <data name="ShellDismiss" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="ShellSavedFormat" xml:space="preserve">
+    <value>{0} gespeichert</value>
+  </data>
+  <data name="ShellCommandPalette" xml:space="preserve">
+    <value>Befehlspalette</value>
+  </data>
+  <data name="ShellCommandPaletteTip" xml:space="preserve">
+    <value>Verbindungen und Befehle suchen (Strg+K)</value>
+  </data>
+  <data name="ShellPaletteWatermark" xml:space="preserve">
+    <value>Verbindungen und Befehle suchen…</value>
+  </data>
+  <data name="ShellPaletteHintNavigate" xml:space="preserve">
+    <value>navigieren</value>
+  </data>
+  <data name="ShellPaletteHintOpen" xml:space="preserve">
+    <value>verbinden / ausführen</value>
+  </data>
+  <data name="ShellPaletteHintOptions" xml:space="preserve">
+    <value>mit Optionen verbinden</value>
+  </data>
+  <data name="ShellPaletteNoMatches" xml:space="preserve">
+    <value>Keine passenden Verbindungen oder Befehle</value>
+  </data>
+  <data name="ShellRecent" xml:space="preserve">
+    <value>Zuletzt geöffnet</value>
+  </data>
+  <data name="ShellFindConnection" xml:space="preserve">
+    <value>Verbindung suchen</value>
+  </data>
+  <data name="ShellExpandBottomPanel" xml:space="preserve">
+    <value>Unteres Panel erweitern</value>
+  </data>
+  <data name="ShellToggleTheme" xml:space="preserve">
+    <value>Dunkles / helles Theme wechseln</value>
+  </data>
+  <data name="ShellSwitchToLightTheme" xml:space="preserve">
+    <value>Zum hellen Theme wechseln</value>
+  </data>
+  <data name="ShellSwitchToDarkTheme" xml:space="preserve">
+    <value>Zum dunklen Theme wechseln</value>
+  </data>
+  <data name="ShellThemeDark" xml:space="preserve">
+    <value>Dunkel</value>
+  </data>
+  <data name="ShellThemeLight" xml:space="preserve">
+    <value>Hell</value>
+  </data>
+  <data name="ShellThemeSystemFormat" xml:space="preserve">
+    <value>System ({0})</value>
+  </data>
+  <data name="ShellMoreNewItems" xml:space="preserve">
+    <value>Neuer Ordner, neue Verbindungsdatei…</value>
+  </data>
+  <data name="ShellQuickConnectWatermark" xml:space="preserve">
+    <value>Schnellverbindung: Host[:Port]</value>
+  </data>
+  <data name="ShellQuickConnectTip" xml:space="preserve">
+    <value>Host oder Host:Port, optional user@host oder ssh://, rdp://, vnc://… — Eingabe verbindet</value>
+  </data>
+  <data name="ShellProtocol" xml:space="preserve">
+    <value>Protokoll</value>
+  </data>
+  <data name="ShellOptionsTip" xml:space="preserve">
+    <value>Optionen (Strg+,)</value>
+  </data>
+  <data name="ShellMoreExternalTools" xml:space="preserve">
+    <value>Weitere externe Programme</value>
+  </data>
+  <data name="ShellLogIndicatorTip" xml:space="preserve">
+    <value>Warnungen und Fehler seit dem letzten Anzeigen des Protokolls — klicken, um das Protokoll anzuzeigen</value>
+  </data>
+  <data name="ShellOneSession" xml:space="preserve">
+    <value>1 Sitzung</value>
+  </data>
+  <data name="ShellSessionsFormat" xml:space="preserve">
+    <value>{0} Sitzungen</value>
+  </data>
+  <data name="ShellToggleBottomPanelTip" xml:space="preserve">
+    <value>Panel reduzieren / erweitern (Strg+J)</value>
+  </data>
+  <data name="ShellCopyLogTip" xml:space="preserve">
+    <value>Alles kopieren</value>
+  </data>
+  <data name="ShellClearLogTip" xml:space="preserve">
+    <value>Leeren</value>
+  </data>
+  <data name="ShellHideBottomPanelTip" xml:space="preserve">
+    <value>Panel ausblenden (Strg+Umschalt+L)</value>
+  </data>
+  <data name="ShellNoOpenSessions" xml:space="preserve">
+    <value>Keine offenen Sitzungen</value>
+  </data>
+  <data name="ShellEmptyStateCaption" xml:space="preserve">
+    <value>Öffnen Sie eine gespeicherte Verbindung aus dem Baum oder geben Sie einen Host ein, um sofort zu verbinden.</value>
+  </data>
+  <data name="ShellNewConnection" xml:space="preserve">
+    <value>Neue Verbindung</value>
+  </data>
+  <data name="ShellHintSearch" xml:space="preserve">
+    <value>Suche und Befehle</value>
+  </data>
+  <data name="ShellRecentAndFavorites" xml:space="preserve">
+    <value>Zuletzt verwendet und Favoriten</value>
+  </data>
+  <data name="TreeMoreActions" xml:space="preserve">
+    <value>Weitere Aktionen</value>
+  </data>
+  <data name="TreeSearchWatermark" xml:space="preserve">
+    <value>Verbindungen suchen (Strg+F)</value>
+  </data>
+  <data name="TreeEmptyTitle" xml:space="preserve">
+    <value>Noch keine Verbindungen</value>
+  </data>
+  <data name="TreeEmptyText" xml:space="preserve">
+    <value>Erstellen Sie Ihre erste Verbindung oder importieren Sie vorhandene aus einer Datei.</value>
+  </data>
+  <data name="TreeNoMatchesTitle" xml:space="preserve">
+    <value>Keine Treffer</value>
+  </data>
+  <data name="TreeNoMatchesText" xml:space="preserve">
+    <value>Ihre Suche ergab keine Treffer in Namen, Hostnamen oder Beschreibungen.</value>
+  </data>
+  <data name="TreeClearSearch" xml:space="preserve">
+    <value>Suche löschen</value>
+  </data>
+  <data name="ConnectRowTip" xml:space="preserve">
+    <value>Verbinden (Eingabe)</value>
+  </data>
+  <data name="SessionDotConnected" xml:space="preserve">
+    <value>Offene Sitzung: verbunden</value>
+  </data>
+  <data name="SessionDotBusy" xml:space="preserve">
+    <value>Offene Sitzung: Verbindung wird hergestellt</value>
+  </data>
+  <data name="SessionDotFailed" xml:space="preserve">
+    <value>Offene Sitzung: Verbindung fehlgeschlagen</value>
+  </data>
+  <data name="SessionDotIdle" xml:space="preserve">
+    <value>Offene Sitzung: getrennt</value>
+  </data>
+  <data name="SessionShowAllTabs" xml:space="preserve">
+    <value>Alle Tabs anzeigen</value>
+  </data>
+  <data name="CloseTabTip" xml:space="preserve">
+    <value>Schließen (Mittelklick)</value>
+  </data>
+  <data name="PanelEmptyTitle" xml:space="preserve">
+    <value>Keine Sitzungen in diesem Panel</value>
+  </data>
+  <data name="PanelEmptyText" xml:space="preserve">
+    <value>Verbindungen, deren Panel auf dieses Panel eingestellt ist, werden hier geöffnet. Mit „In Panel verschieben“ auf einem Tab holen Sie eine Sitzung hierher.</value>
+  </data>
+  <data name="SessionBannerErrorTitle" xml:space="preserve">
+    <value>Verbindung fehlgeschlagen</value>
+  </data>
+  <data name="SessionBannerDisconnectedTitle" xml:space="preserve">
+    <value>Getrennt</value>
+  </data>
+  <data name="SessionBannerReconnectingTitle" xml:space="preserve">
+    <value>Erneut verbinden</value>
+  </data>
+  <data name="ConfirmDeleteThemeTitle" xml:space="preserve">
+    <value>Theme löschen</value>
+  </data>
+  <data name="ConfirmDeleteThemeFormat" xml:space="preserve">
+    <value>Das Theme „{0}“ löschen? Dies kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="TerminalBackendBuiltInTerminal" xml:space="preserve">
+    <value>Integriertes Terminal</value>
+  </data>
+  <data name="TerminalBackendOpenSshClient" xml:space="preserve">
+    <value>System-OpenSSH-Client (ssh)</value>
+  </data>
+  <data name="TransferFileUltraVnc" xml:space="preserve">
+    <value>Dateien übertragen (UltraVNC)</value>
+  </data>
+  <data name="UltraVncFileTransferTitle" xml:space="preserve">
+    <value>UltraVNC-Dateiübertragung</value>
+  </data>
+  <data name="UltraVncFileTransferDescriptionFormat" xml:space="preserve">
+    <value>Dateien werden über die VNC-Sitzung „{0}“ übertragen. Klicken Sie auf „Verbinden“, um beim Server Dateizugriff anzufordern. Der Server muss die Dateiübertragung erlauben: UltraVNC tut dies, wenn sie aktiviert ist, x11vnc benötigt -ultrafilexfer, und andere LibVNCServer-Server schließen bei einer solchen Anfrage die VNC-Sitzung.</value>
+  </data>
+  <data name="TextChatTitleFormat" xml:space="preserve">
+    <value>Chat mit {0}</value>
+  </data>
+  <data name="TextChatYou" xml:space="preserve">
+    <value>Sie</value>
+  </data>
+  <data name="TextChatNotSent" xml:space="preserve">
+    <value>Nicht verbunden: Die Nachricht wurde nicht gesendet.</value>
+  </data>
+  <data name="TextChatOpenedFormat" xml:space="preserve">
+    <value>{0} hat den Chat geöffnet.</value>
+  </data>
+  <data name="TextChatClosedFormat" xml:space="preserve">
+    <value>{0} hat den Chat geschlossen.</value>
+  </data>
+  <data name="TextChatWatermark" xml:space="preserve">
+    <value>Nachricht eingeben und Eingabe drücken</value>
+  </data>
+  <data name="TextChatSend" xml:space="preserve">
+    <value>Senden</value>
+  </data>
+  <data name="PluginLoadedFormat" xml:space="preserve">
+    <value>Plugin {0} {1} geladen.</value>
+  </data>
+  <data name="PluginNotLoadedFormat" xml:space="preserve">
+    <value>Plugin {0} wurde nicht geladen: {1}</value>
+  </data>
+  <data name="PluginImportNoFileFormat" xml:space="preserve">
+    <value>{0} Verbindung(en) aus einem Plugin wurden nicht importiert: Es ist keine Verbindungsdatei geöffnet.</value>
+  </data>
+  <data name="PluginImportedFormat" xml:space="preserve">
+    <value>{0} Verbindung(en) aus einem Plugin nach „{1}“ importiert.</value>
+  </data>
+  <data name="PluginsLoadedSummaryFormat" xml:space="preserve">
+    <value>{0} von {1} geladen.</value>
+  </data>
+  <data name="PluginStateLoaded" xml:space="preserve">
+    <value>Geladen</value>
+  </data>
+  <data name="PluginStateDisabled" xml:space="preserve">
+    <value>Deaktiviert</value>
+  </data>
+  <data name="PluginStateIncompatible" xml:space="preserve">
+    <value>Erfordert eine neuere Version</value>
+  </data>
+  <data name="PluginStateDuplicate" xml:space="preserve">
+    <value>Duplikat</value>
+  </data>
+  <data name="PluginStateUnsupported" xml:space="preserve">
+    <value>Nur Windows-App</value>
+  </data>
+  <data name="PluginStateFailed" xml:space="preserve">
+    <value>Laden fehlgeschlagen</value>
+  </data>
+  <data name="InstalledPlugins" xml:space="preserve">
+    <value>Installierte Plugins</value>
+  </data>
+  <data name="NoPluginsFound" xml:space="preserve">
+    <value>Keine Plugins gefunden</value>
+  </data>
+  <data name="NoPluginsFoundDescription" xml:space="preserve">
+    <value>Kopieren Sie die DLL eines Plugins in einen der folgenden Plugin-Ordner und starten Sie mRemoteNG neu.</value>
+  </data>
+  <data name="PluginChangesAfterRestart" xml:space="preserve">
+    <value>Das Aktivieren, Deaktivieren oder Hinzufügen von Plugins wird beim nächsten Start von mRemoteNG wirksam. Toolfenster-Plugins verwenden Windows Forms und funktionieren nur in der Windows-App.</value>
+  </data>
+  <data name="PluginFolders" xml:space="preserve">
+    <value>Plugin-Ordner</value>
+  </data>
+  <data name="PluginFoldersAlwaysSearched" xml:space="preserve">
+    <value>Werden immer durchsucht</value>
+  </data>
+  <data name="OpenPluginFolder" xml:space="preserve">
+    <value>Plugin-Ordner öffnen</value>
+  </data>
+  <data name="AdditionalPluginFolders" xml:space="preserve">
+    <value>Zusätzliche Ordner</value>
+  </data>
+  <data name="AdditionalPluginFoldersDescription" xml:space="preserve">
+    <value>Weitere Ordner, aus denen Plugins geladen werden, durch Semikolons (;) getrennt.</value>
+  </data>
+</root>

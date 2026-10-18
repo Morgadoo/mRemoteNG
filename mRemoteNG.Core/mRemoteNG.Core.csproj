@@ -20,6 +20,8 @@
     <!-- SQL connection storage (legacy tblCons/tblRoot/tblUpdate schema) -->
     <PackageReference Include="MySqlConnector" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
+    <!-- ODBC data sources (needs unixODBC's libodbc on Linux and macOS at run time) -->
+    <PackageReference Include="System.Data.Odbc" />
     <!-- LDAP for the Active Directory importer (wldap32 on Windows, libldap on Linux and macOS) -->
     <PackageReference Include="System.DirectoryServices.Protocols" />
   </ItemGroup>
@@ -27,7 +29,7 @@
   <!-- UI strings (see Localization/Localizer.cs). The WinForms app's Language*.resx (English plus 24
        translations) are linked, not copied, so both apps share one set of translations; a satellite
        assembly is produced for every culture. Localization/Strings.resx holds the cross-platform app's
-       own strings (English only). -->
+       own strings, translated in Localization/Strings.<culture>.resx. -->
   <ItemGroup>
     <InternalsVisibleTo Include="mRemoteNG.Tests.CrossPlatform" />
     <EmbeddedResource Include="..\mRemoteNG\Language\Language*.resx"

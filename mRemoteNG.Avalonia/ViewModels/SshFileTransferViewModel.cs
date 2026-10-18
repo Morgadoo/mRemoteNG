@@ -27,13 +27,16 @@ public sealed class SftpFileItem
 }
 
 /// <summary>
-/// SFTP browser: connects with host key verification, lists and navigates remote directories,
-/// uploads/downloads with progress, creates folders and deletes entries.
+/// Remote file browser: lists and navigates remote directories, uploads/downloads with progress, creates folders
+/// and deletes entries. Either an SFTP connection of its own (with host key verification), or a file session
+/// borrowed from an open session (UltraVNC file transfer), in which case there are no connection fields.
 /// File pickers and confirmations are provided by the dialog through the interactions.
 /// </summary>
 public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
 {
-    private readonly SftpSession _session;
+    private readonly SftpSession? _sftp;
+    private readonly Func<CancellationToken, Task<IRemoteFileSession>>? _attach;
+    private IRemoteFileSession? _session;
     private string _host = string.Empty;
     private int _port = 22;
     private string _username = string.Empty;
@@ -50,8 +53,10 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
     private CancellationTokenSource? _operationCts;
 
     public SshFileTransferViewModel(IHostKeyVerifier hostKeyVerifier, ISshUserPrompt userPrompt, ConnectionParameters? prefill = null)
+        : this()
     {
-        _session = new SftpSession(hostKeyVerifier, userPrompt);
+        _sftp = new SftpSession(hostKeyVerifier, userPrompt);
+        _session = _sftp;
 
         if (prefill is not null)
         {
@@ -61,7 +66,26 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
             _password = prefill.Password ?? string.Empty;
             _privateKeyPath = prefill.PrivateKeyPath ?? string.Empty;
         }
+    }
 
+    /// <summary>
+    /// Browses files over an open session: <paramref name="attach"/> opens the file session (Connect), and
+    /// <paramref name="host"/> is shown as the connected host.
+    /// </summary>
+    public SshFileTransferViewModel(string title, string host, string description,
+        Func<CancellationToken, Task<IRemoteFileSession>> attach)
+        : this()
+    {
+        ArgumentNullException.ThrowIfNull(attach);
+        _attach = attach;
+        _host = host;
+        Title = title;
+        AttachedDescription = description;
+        _remotePath = string.Empty;
+    }
+
+    private SshFileTransferViewModel()
+    {
         var canConnect = this.WhenAnyValue(x => x.Host, x => x.IsBusy, x => x.IsConnected,
             (host, busy, connected) => !string.IsNullOrWhiteSpace(host) && !busy && !connected);
         var connectedIdle = this.WhenAnyValue(x => x.IsConnected, x => x.IsBusy, (connected, busy) => connected && !busy);
@@ -71,7 +95,7 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
         ConnectCommand = ReactiveCommand.CreateFromTask(ConnectAsync, canConnect);
         DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync, connectedIdle);
         RefreshCommand = ReactiveCommand.CreateFromTask(() => NavigateAsync(RemotePath), connectedIdle);
-        UpCommand = ReactiveCommand.CreateFromTask(() => NavigateAsync(SftpSession.ParentPath(RemotePath)), connectedIdle);
+        UpCommand = ReactiveCommand.CreateFromTask(() => NavigateAsync(_session!.Parent(RemotePath)), connectedIdle);
         CancelCommand = ReactiveCommand.Create(() => _operationCts?.Cancel(),
             this.WhenAnyValue(x => x.IsTransferring));
 
@@ -112,6 +136,15 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
     }
 
     // ── Connection fields ──────────────────────────────────────────────────
+
+    /// <summary>The window title.</summary>
+    public string Title { get; } = Localizer.Get("SshFileTransfer", "SSH File Transfer (SFTP)");
+
+    /// <summary>True when the files are browsed over an open session (no connection fields).</summary>
+    public bool IsAttached => _attach is not null;
+
+    /// <summary>What the attached session is, shown instead of the connection fields.</summary>
+    public string AttachedDescription { get; } = string.Empty;
 
     public string Host { get => _host; set => this.RaiseAndSetIfChanged(ref _host, value); }
     public int Port { get => _port; set => this.RaiseAndSetIfChanged(ref _port, value); }
@@ -158,6 +191,21 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
 
     private async Task ConnectAsync()
     {
+        if (_attach is not null)
+        {
+            await RunAsync(Localizer.Format("ConnectingToFormat", Host), async ct =>
+            {
+                _session?.Dispose();
+                _session = null;
+                _session = await _attach(ct);
+                IsConnected = true;
+                await LoadDirectoryAsync(_session.HomeDirectory, ct);
+                SetStatus(Localizer.Format("SftpConnectedFormat", Host, RemoteFiles.Count, RemotePath));
+            });
+            return;
+        }
+
+        var sftp = _sftp!;
         var parameters = new ConnectionParameters
         {
             Hostname = Host.Trim(),
@@ -170,16 +218,24 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
 
         await RunAsync(Localizer.Format("ConnectingToFormat", parameters.DisplayName), async ct =>
         {
-            await _session.ConnectAsync(parameters, ct);
+            await sftp.ConnectAsync(parameters, ct);
             IsConnected = true;
-            await LoadDirectoryAsync(_session.HomeDirectory, ct);
+            await LoadDirectoryAsync(sftp.HomeDirectory, ct);
             SetStatus(Localizer.Format("SftpConnectedFormat", parameters.DisplayName, RemoteFiles.Count, RemotePath));
         });
     }
 
     private async Task DisconnectAsync()
     {
-        await _session.DisconnectAsync();
+        if (_sftp is not null)
+        {
+            await _sftp.DisconnectAsync();
+        }
+        else
+        {
+            _session?.Dispose();
+            _session = null;
+        }
         IsConnected = false;
         RemoteFiles.Clear();
         SetStatus(Localizer.Get("DisconnectedStatus"));
@@ -205,10 +261,10 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
             {
                 var local = localPaths[i];
                 var name = Path.GetFileName(local);
-                var remote = SftpSession.CombinePath(RemotePath, name);
+                var remote = Session.Combine(RemotePath, name);
                 var counter = localPaths.Count > 1 ? $" ({i + 1}/{localPaths.Count})" : string.Empty;
                 SetStatus(Localizer.Format("UploadingFileFormat", name + counter));
-                await _session.UploadFileAsync(local, remote, CreateProgress(name, Localizer.Get("Uploading")), ct);
+                await Session.UploadFileAsync(local, remote, CreateProgress(name, Localizer.Get("Uploading")), ct);
             }
             await LoadDirectoryAsync(RemotePath, ct);
             SetStatus(localPaths.Count == 1
@@ -220,16 +276,16 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
     public Task DownloadAsync(SftpFileItem item, string localPath) =>
         RunAsync(Localizer.Format("DownloadingFormat", item.Entry.Name), async ct =>
         {
-            await _session.DownloadFileAsync(item.Entry.FullPath, localPath, CreateProgress(item.Entry.Name, Localizer.Get("Downloading")), ct);
+            await Session.DownloadFileAsync(item.Entry.FullPath, localPath, CreateProgress(item.Entry.Name, Localizer.Get("Downloading")), ct);
             SetStatus(Localizer.Format("DownloadedFileFormat", item.Entry.Name, localPath));
         }, transfer: true);
 
     public Task CreateDirectoryAsync(string name) =>
         RunAsync(Localizer.Format("CreatingFormat", name), async ct =>
         {
-            if (string.IsNullOrWhiteSpace(name) || name.Contains('/'))
+            if (!Session.IsValidName(name.Trim()))
                 throw new ArgumentException($"'{name}' is not a valid folder name.");
-            await _session.CreateDirectoryAsync(SftpSession.CombinePath(RemotePath, name.Trim()), ct);
+            await Session.CreateDirectoryAsync(Session.Combine(RemotePath, name.Trim()), ct);
             await LoadDirectoryAsync(RemotePath, ct);
             SetStatus(Localizer.Format("CreatedFormat", name.Trim()));
         });
@@ -237,14 +293,14 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
     public Task DeleteAsync(SftpFileItem item) =>
         RunAsync(Localizer.Format("DeletingFormat", item.Entry.Name), async ct =>
         {
-            await _session.DeleteAsync(item.Entry, ct);
+            await Session.DeleteAsync(item.Entry, ct);
             await LoadDirectoryAsync(RemotePath, ct);
             SetStatus(Localizer.Format("DeletedFormat", item.Entry.Name));
         });
 
     private async Task LoadDirectoryAsync(string path, CancellationToken ct)
     {
-        var entries = await _session.ListDirectoryAsync(path, ct);
+        var entries = await Session.ListDirectoryAsync(path, ct);
         RemoteFiles.Clear();
         foreach (var entry in entries)
             RemoteFiles.Add(new SftpFileItem(entry));
@@ -286,7 +342,7 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
         }
         finally
         {
-            IsConnected = _session.IsConnected;
+            IsConnected = _session?.IsConnected == true;
             IsBusy = false;
             IsTransferring = false;
             TransferProgress = 0;
@@ -294,6 +350,9 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
             _operationCts = null;
         }
     }
+
+    private IRemoteFileSession Session =>
+        _session ?? throw new InvalidOperationException(Localizer.Get("NotConnected"));
 
     private void SetStatus(string text, bool error = false)
     {
@@ -312,6 +371,7 @@ public sealed class SshFileTransferViewModel : ReactiveObject, IDisposable
     public void Dispose()
     {
         _operationCts?.Cancel();
-        _session.Dispose();
+        _session?.Dispose();
+        _session = null;
     }
 }

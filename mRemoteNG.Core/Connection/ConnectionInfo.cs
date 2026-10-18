@@ -54,6 +54,7 @@ namespace mRemoteNG.Core.Connection
         private bool _rdpAlertIdleTimeout;
         private string _loadBalanceInfo = "";
         private RenderingEngine _renderingEngine;
+        private TerminalBackend _terminalBackend;
         private bool _useCredSsp;
         private bool _useRestrictedAdmin;
         private bool _useRCG;
@@ -117,6 +118,7 @@ namespace mRemoteNG.Core.Connection
         private bool _vncViewOnly;
 
         private ConnectionInfoInheritance _inheritance;
+        private readonly Dictionary<string, string> _pluginProperties = new(StringComparer.OrdinalIgnoreCase);
 
         #endregion
 
@@ -335,6 +337,12 @@ namespace mRemoteNG.Core.Connection
         {
             get => GetPropertyValue(nameof(RenderingEngine), _renderingEngine);
             set => SetField(ref _renderingEngine, value);
+        }
+
+        public TerminalBackend TerminalBackend
+        {
+            get => GetPropertyValue(nameof(TerminalBackend), _terminalBackend);
+            set => SetField(ref _terminalBackend, value);
         }
 
         public bool UseCredSsp
@@ -691,6 +699,12 @@ namespace mRemoteNG.Core.Connection
 
         public bool PleaseConnect { get; set; }
 
+        /// <summary>
+        /// Values that legacy plugins store on a connection (<c>&lt;PluginData&gt;</c> in XML, <c>PluginData</c> in
+        /// CSV and SQL). Kept verbatim so a file saved here keeps the plugin settings of the WinForms app.
+        /// </summary>
+        public IReadOnlyDictionary<string, string> PluginProperties => _pluginProperties;
+
         #endregion
 
         #region Constructors
@@ -738,7 +752,48 @@ namespace mRemoteNG.Core.Connection
                 }
             }
 
+            ReplacePluginProperties(source.PluginProperties);
             Inheritance = source.Inheritance.Clone(this);
+        }
+
+        public string GetPluginProperty(string key, string defaultValue = "")
+        {
+            return _pluginProperties.TryGetValue(key, out string? value) ? value : defaultValue;
+        }
+
+        public bool TryGetPluginProperty(string key, out string value)
+        {
+            return _pluginProperties.TryGetValue(key, out value!);
+        }
+
+        public void SetPluginProperty(string key, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("Plugin property key cannot be null or whitespace.", nameof(key));
+
+            if (string.IsNullOrEmpty(value))
+            {
+                if (_pluginProperties.Remove(key))
+                    RaisePropertyChangedEvent(this, new PropertyChangedEventArgs(nameof(PluginProperties)));
+                return;
+            }
+
+            if (_pluginProperties.TryGetValue(key, out string? existing) && string.Equals(existing, value, StringComparison.Ordinal))
+                return;
+
+            _pluginProperties[key] = value;
+            RaisePropertyChangedEvent(this, new PropertyChangedEventArgs(nameof(PluginProperties)));
+        }
+
+        public void ReplacePluginProperties(IEnumerable<KeyValuePair<string, string>> properties)
+        {
+            var snapshot = properties.ToList();
+            _pluginProperties.Clear();
+            foreach (var property in snapshot)
+            {
+                if (!string.IsNullOrWhiteSpace(property.Key))
+                    _pluginProperties[property.Key] = property.Value ?? string.Empty;
+            }
         }
 
         public virtual TreeNodeType GetTreeNodeType()

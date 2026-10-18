@@ -18,6 +18,19 @@
             <Setter Property="Background" Value="{DynamicResource AppBg1Brush}"/>
             <Setter Property="Height" Value="38"/>
         </Style>
+        <!-- A session tab is dragged over this panel -->
+        <Style Selector="Border.session-tabbar.drop-target">
+            <Setter Property="Background" Value="{DynamicResource AccentSubtleBrush}"/>
+        </Style>
+        <Style Selector="Border.tab-drop-indicator">
+            <Setter Property="Width" Value="2"/>
+            <Setter Property="CornerRadius" Value="1"/>
+            <Setter Property="Margin" Value="0,6,0,7"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+        </Style>
 
         <!-- The tab strip is a ListBox: neutralise the list look (selection is drawn by the tab itself) -->
         <Style Selector="ListBox.session-tabs">
@@ -255,6 +268,7 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+                    <Border x:Name="DropIndicator" Classes="tab-drop-indicator"/>
                     <Border x:Name="FadeLeft" Classes="tab-fade" HorizontalAlignment="Left" Margin="0,0,0,1">
                         <Border.OpacityMask>
                             <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">

@@ -13,7 +13,8 @@ namespace mRemoteNG.Protocols.Shell;
 /// <see cref="TerminalView"/>.
 ///
 ///   • Terminal, blank/localhost hostname → the user's interactive shell ($SHELL, bash or sh; cmd.exe on Windows)
-///   • Terminal, other hostname           → <c>ssh [-p port] [user@]host</c> (as the legacy Terminal protocol did)
+///   • Terminal, other hostname           → <c>ssh [-p port] -- [user@]host</c> (as the legacy Terminal protocol did)
+///   • SSH with the "Windows Terminal" backend (mode "ssh") → always the system OpenSSH client, as above
 ///   • WSL                                → <c>wsl.exe [-d distro] [-u user]</c>; the hostname names the distribution.
 ///                                          Only available on Windows — elsewhere the session reports an error.
 ///
@@ -41,15 +42,19 @@ public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol, ITermina
     {
         State = ConnectionState.Connecting;
 
-        var isWsl = parameters.Extras.TryGetValue(ConnectionParametersFactory.Keys.LocalShellMode, out var mode)
-                    && string.Equals(mode, "wsl", StringComparison.OrdinalIgnoreCase);
+        parameters.Extras.TryGetValue(ConnectionParametersFactory.Keys.LocalShellMode, out var mode);
 
         string[] command;
         try
         {
-            command = isWsl ? BuildWslCommand(parameters) : BuildTerminalCommand(parameters);
+            command = mode?.ToLowerInvariant() switch
+            {
+                "wsl" => BuildWslCommand(parameters),
+                "ssh" => BuildTerminalCommand(parameters, forceSsh: true),
+                _ => BuildTerminalCommand(parameters),
+            };
         }
-        catch (PlatformNotSupportedException ex)
+        catch (Exception ex) when (ex is PlatformNotSupportedException or ArgumentException)
         {
             State = ConnectionState.Error;
             RaiseStatus(ex.Message);
@@ -104,14 +109,25 @@ public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol, ITermina
     }
 
     /// <summary>Command line (program + arguments) for the Terminal protocol.</summary>
-    internal static string[] BuildTerminalCommand(ConnectionParameters parameters)
+    /// <param name="forceSsh">Run ssh even for a blank or "localhost" host name (SSH connections).</param>
+    /// <exception cref="ArgumentException">The host or user name would not reach ssh as a single destination.</exception>
+    internal static string[] BuildTerminalCommand(ConnectionParameters parameters, bool forceSsh = false)
     {
         var host = parameters.Hostname?.Trim() ?? "";
-        if (host.Length > 0 && !host.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        if (forceSsh && host.Length == 0)
+            throw new ArgumentException("The connection has no host name.");
+        if (forceSsh || (host.Length > 0 && !host.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
         {
+            if (!IsSafeSshToken(host))
+                throw new ArgumentException($"The host name \"{host}\" cannot be passed to ssh.");
+            if (!string.IsNullOrEmpty(parameters.Username) && !IsSafeSshToken(parameters.Username))
+                throw new ArgumentException($"The user name \"{parameters.Username}\" cannot be passed to ssh.");
+
             var ssh = new List<string> { "ssh" };
             if (parameters.Port > 0 && parameters.Port != 22)
                 ssh.AddRange(["-p", parameters.Port.ToString(System.Globalization.CultureInfo.InvariantCulture)]);
+            // "--" ends option parsing, so a destination such as "-oProxyCommand=…" is never read as an option.
+            ssh.Add("--");
             ssh.Add(string.IsNullOrEmpty(parameters.Username) ? host : $"{parameters.Username}@{host}");
             return [.. ssh];
         }
@@ -124,6 +140,9 @@ public sealed class LocalShellProtocol : ProtocolBase, IVisualProtocol, ITermina
             shell = File.Exists("/bin/bash") ? "/bin/bash" : "/bin/sh";
         return [shell, "-i"];
     }
+
+    private static bool IsSafeSshToken(string value) =>
+        value.Length > 0 && !value.StartsWith('-') && !value.Any(c => char.IsWhiteSpace(c) || char.IsControl(c));
 
     /// <summary>Command line for the WSL protocol.</summary>
     /// <exception cref="PlatformNotSupportedException">Not running on Windows.</exception>

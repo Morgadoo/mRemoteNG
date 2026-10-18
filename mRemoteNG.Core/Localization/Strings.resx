@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   Strings of the cross-platform (Avalonia) app that have no counterpart in the WinForms app's
-  mRemoteNG/Language/Language.resx. English only for now; other languages fall back to this text.
+  mRemoteNG/Language/Language.resx. Translations are in Strings.<culture>.resx next to this file;
+  languages without one (or keys missing from one) fall back to this text.
   Lookup (see Localizer.cs): for each culture the strings here are tried before the legacy ones, so a
   key here must not reuse a legacy key's name. "&" marks an access key ("&&" is a literal ampersand);
   an "&" followed by a space is literal too.
-  To translate, add Strings.<culture>.resx next to this file with the same keys.
+  To translate, add Strings.<culture>.resx with the same keys, placeholders and access keys
+  (LocalizationKeysTests checks them).
 -->
 <root>
   <resheader name="resmimetype">
@@ -1293,6 +1295,18 @@ Open a connection in it from the connection tree.</value>
     <value>Highest available</value>
     <comment>RDP version choice</comment>
   </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>The Remote Desktop control version used by the Windows version of mRemoteNG. FreeRDP always negotiates the newest RDP version the server supports, so this app keeps the setting for that app and does not use it.</value>
+    <comment>Connection editor: RDP version description</comment>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>Do not show a mouse cursor shadow. Used by the Windows version of mRemoteNG; FreeRDP has no such option.</value>
+    <comment>Connection editor: Disable cursor shadow description</comment>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>Do not let the text cursor blink. Used by the Windows version of mRemoteNG; FreeRDP has no such option.</value>
+    <comment>Connection editor: Disable cursor blinking description</comment>
+  </data>
   <data name="ConsoleSessionAsConfigured" xml:space="preserve">
     <value>As configured</value>
     <comment>Connect with options: console session choice</comment>
@@ -1850,6 +1864,26 @@ Open a connection in it from the connection tree.</value>
   <data name="SqlHostHintMsSql" xml:space="preserve">
     <value>host, host:port or host\instance (default port 1433)</value>
     <comment>Options &gt; SQL Server</comment>
+  </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC data source (SQL Server or MySQL / MariaDB)</value>
+    <comment>Options &gt; SQL Server: server type</comment>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN name or ODBC connection string</value>
+    <comment>Options &gt; SQL Server: host watermark for ODBC</comment>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>optional</value>
+    <comment>Options &gt; SQL Server: database watermark for ODBC (empty uses the data source's database); keep it one word, the field is narrow</comment>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>A data source from odbc.ini (e.g. mremoteng) or a connection string such as Driver={MariaDB Unicode};Server=db;Port=3306. Needs unixODBC and the database's ODBC driver. Put the password in the Password field, not in the string.</value>
+    <comment>Options &gt; SQL Server: host description for ODBC (Linux, macOS)</comment>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>A data source from the ODBC Data Source Administrator (e.g. mremoteng) or a connection string such as Driver={ODBC Driver 18 for SQL Server};Server=db. Put the password in the Password field, not in the string.</value>
+    <comment>Options &gt; SQL Server: host description for ODBC (Windows)</comment>
   </data>
   <data name="LogLevelDebugEverything" xml:space="preserve">
     <value>Debug (everything)</value>
@@ -2652,5 +2686,133 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
   <data name="ConfirmDeleteThemeFormat" xml:space="preserve">
     <value>Delete the theme "{0}"? This cannot be undone.</value>
     <comment>Confirmation before a user theme is deleted; {0} = theme name</comment>
+  </data>
+  <data name="TerminalBackendBuiltInTerminal" xml:space="preserve">
+    <value>Built-in terminal</value>
+    <comment>Terminal backend choice for SSH connections: the app's own SSH terminal</comment>
+  </data>
+  <data name="TerminalBackendOpenSshClient" xml:space="preserve">
+    <value>System OpenSSH client (ssh)</value>
+    <comment>Terminal backend choice for SSH connections: run the ssh command in the tab</comment>
+  </data>
+  <data name="TransferFileUltraVnc" xml:space="preserve">
+    <value>Transfer Files (UltraVNC)</value>
+    <comment>Session tab menu: browse files over the VNC session's own connection</comment>
+  </data>
+  <data name="UltraVncFileTransferTitle" xml:space="preserve">
+    <value>UltraVNC File Transfer</value>
+    <comment>Title of the file browser opened from a VNC session</comment>
+  </data>
+  <data name="UltraVncFileTransferDescriptionFormat" xml:space="preserve">
+    <value>Files are transferred over the VNC session "{0}". Press Connect to ask the server for file access. The server must allow file transfer: UltraVNC does when it is enabled, x11vnc needs -ultrafilexfer, and other LibVNCServer servers close the VNC session when asked.</value>
+    <comment>UltraVNC file browser, shown instead of the connection fields; {0} = session name</comment>
+  </data>
+  <data name="TextChatTitleFormat" xml:space="preserve">
+    <value>Chat with {0}</value>
+    <comment>Title of a session's chat window; {0} = connection name</comment>
+  </data>
+  <data name="TextChatYou" xml:space="preserve">
+    <value>You</value>
+    <comment>Chat window: sender name of your own messages</comment>
+  </data>
+  <data name="TextChatNotSent" xml:space="preserve">
+    <value>Not connected: the message was not sent.</value>
+    <comment>Chat window notice when sending fails</comment>
+  </data>
+  <data name="TextChatOpenedFormat" xml:space="preserve">
+    <value>{0} opened the chat.</value>
+    <comment>Chat window notice; {0} = connection name</comment>
+  </data>
+  <data name="TextChatClosedFormat" xml:space="preserve">
+    <value>{0} closed the chat.</value>
+    <comment>Chat window notice; {0} = connection name</comment>
+  </data>
+  <data name="TextChatWatermark" xml:space="preserve">
+    <value>Type a message and press Enter</value>
+    <comment>Chat window: watermark of the message box</comment>
+  </data>
+  <data name="TextChatSend" xml:space="preserve">
+    <value>Send</value>
+    <comment>Chat window: send button</comment>
+  </data>
+  <data name="PluginLoadedFormat" xml:space="preserve">
+    <value>Plugin {0} {1} loaded.</value>
+    <comment>Log; {0} = plugin name, {1} = version</comment>
+  </data>
+  <data name="PluginNotLoadedFormat" xml:space="preserve">
+    <value>Plugin {0} was not loaded: {1}</value>
+    <comment>Log; {0} = plugin name or file, {1} = reason</comment>
+  </data>
+  <data name="PluginImportNoFileFormat" xml:space="preserve">
+    <value>{0} connection(s) from a plugin were not imported: no connection file is open.</value>
+    <comment>Log; {0} = count</comment>
+  </data>
+  <data name="PluginImportedFormat" xml:space="preserve">
+    <value>Imported {0} connection(s) from a plugin into "{1}".</value>
+    <comment>Log; {0} = count, {1} = folder name</comment>
+  </data>
+  <data name="PluginsLoadedSummaryFormat" xml:space="preserve">
+    <value>{0} of {1} loaded.</value>
+    <comment>Options &gt; Plugins; {0} = loaded plugins, {1} = plugins found</comment>
+  </data>
+  <data name="PluginStateLoaded" xml:space="preserve">
+    <value>Loaded</value>
+    <comment>Options &gt; Plugins: plugin state</comment>
+  </data>
+  <data name="PluginStateDisabled" xml:space="preserve">
+    <value>Disabled</value>
+    <comment>Options &gt; Plugins: plugin state</comment>
+  </data>
+  <data name="PluginStateIncompatible" xml:space="preserve">
+    <value>Needs a newer version</value>
+    <comment>Options &gt; Plugins: plugin state (the plugin requires a newer mRemoteNG)</comment>
+  </data>
+  <data name="PluginStateDuplicate" xml:space="preserve">
+    <value>Duplicate</value>
+    <comment>Options &gt; Plugins: plugin state (another plugin has the same id)</comment>
+  </data>
+  <data name="PluginStateUnsupported" xml:space="preserve">
+    <value>Windows app only</value>
+    <comment>Options &gt; Plugins: plugin state (WinForms tool-window plugin)</comment>
+  </data>
+  <data name="PluginStateFailed" xml:space="preserve">
+    <value>Failed to load</value>
+    <comment>Options &gt; Plugins: plugin state</comment>
+  </data>
+  <data name="InstalledPlugins" xml:space="preserve">
+    <value>Installed plugins</value>
+    <comment>Options &gt; Plugins: heading</comment>
+  </data>
+  <data name="NoPluginsFound" xml:space="preserve">
+    <value>No plugins found</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="NoPluginsFoundDescription" xml:space="preserve">
+    <value>Copy a plugin's DLL into one of the plugin folders below and restart mRemoteNG.</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="PluginChangesAfterRestart" xml:space="preserve">
+    <value>Enabling, disabling or adding plugins takes effect the next time mRemoteNG starts. Tool-window plugins use Windows Forms and only work in the Windows app.</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="PluginFolders" xml:space="preserve">
+    <value>Plugin folders</value>
+    <comment>Options &gt; Plugins: heading</comment>
+  </data>
+  <data name="PluginFoldersAlwaysSearched" xml:space="preserve">
+    <value>Always searched</value>
+    <comment>Options &gt; Plugins: the default plugin folders</comment>
+  </data>
+  <data name="OpenPluginFolder" xml:space="preserve">
+    <value>Open plugin folder</value>
+    <comment>Options &gt; Plugins: button (creates and opens the Plugins folder in the data directory)</comment>
+  </data>
+  <data name="AdditionalPluginFolders" xml:space="preserve">
+    <value>Additional folders</value>
+    <comment>Options &gt; Plugins</comment>
+  </data>
+  <data name="AdditionalPluginFoldersDescription" xml:space="preserve">
+    <value>More folders to load plugins from, separated by semicolons (;).</value>
+    <comment>Options &gt; Plugins</comment>
   </data>
 </root>

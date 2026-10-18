@@ -1,0 +1,2110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- zh-CN translation of Strings.resx: same keys, same placeholders and access keys. -->
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>系统默认</value>
+  </data>
+  <data name="ExternalTools" xml:space="preserve">
+    <value>外部工具</value>
+  </data>
+  <data name="WakeOnLAN" xml:space="preserve">
+    <value>网络唤醒</value>
+  </data>
+  <data name="Cut" xml:space="preserve">
+    <value>剪切</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>粘贴</value>
+  </data>
+  <data name="ExpandAll" xml:space="preserve">
+    <value>全部展开</value>
+  </data>
+  <data name="CollapseAll" xml:space="preserve">
+    <value>全部折叠</value>
+  </data>
+  <data name="DefaultConnectionProperties" xml:space="preserve">
+    <value>默认连接属性</value>
+  </data>
+  <data name="RefreshPuTTYSessions" xml:space="preserve">
+    <value>刷新 PuTTY 会话</value>
+  </data>
+  <data name="ConnectionFileProperties" xml:space="preserve">
+    <value>连接文件属性(&amp;P)</value>
+  </data>
+  <data name="NoExternalToolsOnTheToolbar" xml:space="preserve">
+    <value>工具栏上没有外部工具</value>
+  </data>
+  <data name="AddANewTool" xml:space="preserve">
+    <value>添加新工具</value>
+  </data>
+  <data name="ProgramNameOrPathEGPing" xml:space="preserve">
+    <value>程序名称或路径，例如 ping、/usr/bin/xterm、C:\Tools\tool.exe</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>可选</value>
+  </data>
+  <data name="OptionalImageFilePNGICO" xml:space="preserve">
+    <value>可选图像文件（PNG、ICO…）</value>
+  </data>
+  <data name="OperatingSystem" xml:space="preserve">
+    <value>操作系统</value>
+  </data>
+  <data name="ToolsForAnotherOperatingSystemStayIn" xml:space="preserve">
+    <value>适用于其他操作系统的工具会保留在列表中，但不会提供运行</value>
+  </data>
+  <data name="WaitUntilTheProgramExitsEG" xml:space="preserve">
+    <value>等待程序退出（例如用作“连接前启动外部工具”时，在连接之前等待）</value>
+  </data>
+  <data name="ShowTheProgramSWindowInsideA" xml:space="preserve">
+    <value>在会话标签中显示程序窗口（Linux/X11 和 Windows）</value>
+  </data>
+  <data name="WindowsUACPromptLinuxPkexecMacOSAdministrator" xml:space="preserve">
+    <value>Windows：UAC 提示。Linux：pkexec。macOS：管理员密码提示。</value>
+  </data>
+  <data name="Command" xml:space="preserve">
+    <value>命令</value>
+  </data>
+  <data name="RunTheSelectedToolAsEditedFor" xml:space="preserve">
+    <value>针对上方显示的连接运行所选工具（按当前编辑内容）</value>
+  </data>
+  <data name="OpenFromSQLDatabase" xml:space="preserve">
+    <value>从 SQL 数据库打开(&amp;D)</value>
+  </data>
+  <data name="ReloadFromSQLDatabase" xml:space="preserve">
+    <value>从 SQL 数据库重新加载(&amp;R)</value>
+  </data>
+  <data name="EditSelected" xml:space="preserve">
+    <value>编辑所选项(&amp;E)</value>
+  </data>
+  <data name="DuplicateSelected" xml:space="preserve">
+    <value>复制所选项(&amp;D)</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>删除所选项(&amp;L)</value>
+  </data>
+  <data name="ImportConnections" xml:space="preserve">
+    <value>导入连接(&amp;I)</value>
+  </data>
+  <data name="ExportConnections" xml:space="preserve">
+    <value>导出连接(&amp;E)</value>
+  </data>
+  <data name="ConnectionTree" xml:space="preserve">
+    <value>连接树</value>
+  </data>
+  <data name="LogPanel" xml:space="preserve">
+    <value>日志面板</value>
+  </data>
+  <data name="ArrangePanels" xml:space="preserve">
+    <value>排列面板</value>
+  </data>
+  <data name="TabbedOnePanelAtATime" xml:space="preserve">
+    <value>标签式（一次显示一个面板）</value>
+  </data>
+  <data name="SideBySide" xml:space="preserve">
+    <value>并排</value>
+  </data>
+  <data name="Stacked" xml:space="preserve">
+    <value>堆叠</value>
+  </data>
+  <data name="DisconnectAll" xml:space="preserve">
+    <value>全部断开</value>
+  </data>
+  <data name="CloseAllSessions" xml:space="preserve">
+    <value>关闭所有会话</value>
+  </data>
+  <data name="ConnectSelectedToPanel" xml:space="preserve">
+    <value>将所选项连接到面板</value>
+  </data>
+  <data name="NoFavorites" xml:space="preserve">
+    <value>（无收藏）</value>
+  </data>
+  <data name="UltraVNCSingleClickListener" xml:space="preserve">
+    <value>UltraVNC SingleClick 监听器</value>
+  </data>
+  <data name="AboutMRemoteNG" xml:space="preserve">
+    <value>关于 mRemoteNG(&amp;A)</value>
+  </data>
+  <data name="OpensTheMRemoteNGReleasesPage" xml:space="preserve">
+    <value>打开 mRemoteNG 发布页面</value>
+  </data>
+  <data name="GitHubRepository" xml:space="preserve">
+    <value>GitHub 仓库</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>文档</value>
+  </data>
+  <data name="OpenLogFile" xml:space="preserve">
+    <value>打开日志文件</value>
+  </data>
+  <data name="NewConnectionCtrlN" xml:space="preserve">
+    <value>新建连接 (Ctrl+N)</value>
+  </data>
+  <data name="OpenConnectionFileCtrlO" xml:space="preserve">
+    <value>打开连接配置文件 (Ctrl+O)</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>打开</value>
+  </data>
+  <data name="SaveCtrlS" xml:space="preserve">
+    <value>保存 (Ctrl+S)</value>
+  </data>
+  <data name="EditTheSelectedConnectionOrFolderCtrl" xml:space="preserve">
+    <value>编辑所选连接或目录 (Ctrl+E)</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="ConnectEnter" xml:space="preserve">
+    <value>连接 (Enter)</value>
+  </data>
+  <data name="TypeACommandEnterSendsItTo" xml:space="preserve">
+    <value>输入命令；按 Enter 发送到所有已打开的终端会话</value>
+  </data>
+  <data name="EnterSendsTheLineUpDownBrowse" xml:space="preserve">
+    <value>Enter 发送当前行，Up/Down 浏览历史记录，Ctrl+字母发送控制键（Ctrl+C）</value>
+  </data>
+  <data name="UnsavedChangesIndicator" xml:space="preserve">
+    <value>● 未保存的更改</value>
+  </data>
+  <data name="TheConnectionFileHasChangesThatAre" xml:space="preserve">
+    <value>连接文件有未保存的更改 (Ctrl+S)</value>
+  </data>
+  <data name="SearchConnectionsWatermark" xml:space="preserve">
+    <value>搜索名称、主机、描述… (Ctrl+F)</value>
+  </data>
+  <data name="ClearSearchEsc" xml:space="preserve">
+    <value>清除搜索 (Esc)</value>
+  </data>
+  <data name="NoActiveSessions" xml:space="preserve">
+    <value>没有活动会话</value>
+  </data>
+  <data name="DoubleClickAConnectionToStartA" xml:space="preserve">
+    <value>双击连接以启动会话</value>
+  </data>
+  <data name="Log" xml:space="preserve">
+    <value>日志</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="DebugConsole" xml:space="preserve">
+    <value>调试控制台</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>恢复默认值</value>
+  </data>
+  <data name="CrossPlatformNotice" xml:space="preserve">
+    <value>跨平台：Windows · Linux · macOS</value>
+  </data>
+  <data name="CopyrightNotice" xml:space="preserve">
+    <value>© 2026 mRemoteNG 开发团队 · 基于 GPL-2.0 许可</value>
+  </data>
+  <data name="Server" xml:space="preserve">
+    <value>服务器</value>
+  </data>
+  <data name="Dc1CorpExampleEmptyThisComputerS" xml:space="preserve">
+    <value>dc1.corp.example（留空：在 Windows 上使用本机所在域）</value>
+  </data>
+  <data name="N0389Or636WithLDAPS" xml:space="preserve">
+    <value>0 = 389，使用 LDAPS 时为 636</value>
+  </data>
+  <data name="Bind" xml:space="preserve">
+    <value>绑定</value>
+  </data>
+  <data name="UserCNUserDomainOrDOMAINUser" xml:space="preserve">
+    <value>用户（CN=…、user@domain 或 DOMAIN\user）</value>
+  </data>
+  <data name="OrganizationalUnits" xml:space="preserve">
+    <value>组织单位</value>
+  </data>
+  <data name="Computers" xml:space="preserve">
+    <value>计算机</value>
+  </data>
+  <data name="HostName" xml:space="preserve">
+    <value>主机名</value>
+  </data>
+  <data name="CreateFoldersForSubOUs" xml:space="preserve">
+    <value>为子 OU 创建目录</value>
+  </data>
+  <data name="ComputersAreImportedAsRDPConnections" xml:space="preserve">
+    <value>计算机将作为 RDP 连接导入。</value>
+  </data>
+  <data name="TheConnectionSPanel" xml:space="preserve">
+    <value>（连接所在的面板）</value>
+  </data>
+  <data name="Inherit" xml:space="preserve">
+    <value>继承</value>
+  </data>
+  <data name="DefaultInParentheses" xml:space="preserve">
+    <value>（默认）</value>
+  </data>
+  <data name="CheckHostStatus" xml:space="preserve">
+    <value>检查主机状态</value>
+  </data>
+  <data name="PingTheHostAndTryToConnect" xml:space="preserve">
+    <value>Ping 主机并尝试连接其端口</value>
+  </data>
+  <data name="ConnectionsInThisFolderCanInheritThese" xml:space="preserve">
+    <value>此目录中的连接可以继承这些凭据。</value>
+  </data>
+  <data name="CheckedPropertiesTakeTheirValueFromThe" xml:space="preserve">
+    <value>勾选的属性从父目录取值（列出所有协议）。</value>
+  </data>
+  <data name="InheritEverything" xml:space="preserve">
+    <value>全部继承</value>
+  </data>
+  <data name="CredentialManager" xml:space="preserve">
+    <value>凭据管理器</value>
+  </data>
+  <data name="CredentialDetails" xml:space="preserve">
+    <value>凭据详细信息</value>
+  </data>
+  <data name="CredentialLabel" xml:space="preserve">
+    <value>凭据标签</value>
+  </data>
+  <data name="ShowPassword" xml:space="preserve">
+    <value>显示密码</value>
+  </data>
+  <data name="WindowsDomainOptional" xml:space="preserve">
+    <value>Windows 域（可选）</value>
+  </data>
+  <data name="TheStoredPasswordCouldNotBeDecrypted" xml:space="preserve">
+    <value>无法在此计算机上解密已存储的密码（它是在其他系统上保存的）。请重新输入以替换；留空则保留已存储的值。</value>
+  </data>
+  <data name="SelectACredentialOrAddANew" xml:space="preserve">
+    <value>请选择凭据或添加新凭据。</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="ExportFormat" xml:space="preserve">
+    <value>导出格式</value>
+  </data>
+  <data name="MRemoteNGXMLXmlRecommended" xml:space="preserve">
+    <value>mRemoteNG XML (.xml) — 推荐</value>
+  </data>
+  <data name="MRemoteNGCSVCsvForSpreadsheetApps" xml:space="preserve">
+    <value>mRemoteNG CSV (.csv) — 适用于电子表格程序</value>
+  </data>
+  <data name="ExportScope" xml:space="preserve">
+    <value>导出范围</value>
+  </data>
+  <data name="AllConnections" xml:space="preserve">
+    <value>所有连接</value>
+  </data>
+  <data name="SelectedFolderAndItsChildren" xml:space="preserve">
+    <value>所选目录及其子项</value>
+  </data>
+  <data name="Include" xml:space="preserve">
+    <value>包含</value>
+  </data>
+  <data name="CSVFilesStorePasswordsInClearText" xml:space="preserve">
+    <value>CSV 文件以明文存储密码。</value>
+  </data>
+  <data name="FilePasswordOptional" xml:space="preserve">
+    <value>文件密码（可选）</value>
+  </data>
+  <data name="ProtectsTheExportedFileWithAMaster" xml:space="preserve">
+    <value>使用主密码保护导出的文件。留空则文件不受保护。</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>确认密码</value>
+  </data>
+  <data name="OutputFilePath" xml:space="preserve">
+    <value>输出文件路径</value>
+  </data>
+  <data name="RootName" xml:space="preserve">
+    <value>根名称</value>
+  </data>
+  <data name="MasterPassword" xml:space="preserve">
+    <value>主密码</value>
+  </data>
+  <data name="ProtectThisFileWithAMasterPassword" xml:space="preserve">
+    <value>使用主密码保护此文件</value>
+  </data>
+  <data name="ChangeTheMasterPassword" xml:space="preserve">
+    <value>更改主密码</value>
+  </data>
+  <data name="CurrentPassword" xml:space="preserve">
+    <value>当前密码</value>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>新密码</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>加密</value>
+  </data>
+  <data name="CipherEngine" xml:space="preserve">
+    <value>加密引擎</value>
+  </data>
+  <data name="EncryptTheCompleteFile" xml:space="preserve">
+    <value>加密整个文件</value>
+  </data>
+  <data name="ChangesAreWrittenTheNextTimeThe" xml:space="preserve">
+    <value>更改将在下次保存文件时写入。文件仍可在 Windows (WinForms) 版 mRemoteNG 中使用。</value>
+  </data>
+  <data name="SSHHostKey" xml:space="preserve">
+    <value>SSH 主机密钥</value>
+  </data>
+  <data name="HostKeyChangedWarning" xml:space="preserve">
+    <value>警告：远程主机标识已更改！</value>
+  </data>
+  <data name="SomeoneCouldBeEavesdroppingOnYouRight" xml:space="preserve">
+    <value>可能有人正在窃听您的通信（中间人攻击）。也可能是管理员刚刚更改了主机密钥。除非您已向服务器管理员核实新的指纹，否则请勿继续。</value>
+  </data>
+  <data name="KeyType" xml:space="preserve">
+    <value>密钥类型</value>
+  </data>
+  <data name="Fingerprint" xml:space="preserve">
+    <value>指纹</value>
+  </data>
+  <data name="IHaveVerifiedTheNewFingerprintAnd" xml:space="preserve">
+    <value>我已核实新的指纹，并希望替换已存储的密钥</value>
+  </data>
+  <data name="ConnectOnce" xml:space="preserve">
+    <value>仅连接一次</value>
+  </data>
+  <data name="AcceptAndSave" xml:space="preserve">
+    <value>接受并保存</value>
+  </data>
+  <data name="ReplaceKeyAndConnect" xml:space="preserve">
+    <value>替换密钥并连接</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="SelectAFileToImport" xml:space="preserve">
+    <value>选择要导入的文件</value>
+  </data>
+  <data name="ImportInto" xml:space="preserve">
+    <value>导入到</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>需要密码</value>
+  </data>
+  <data name="Hosts" xml:space="preserve">
+    <value>主机</value>
+  </data>
+  <data name="DefaultPorts" xml:space="preserve">
+    <value>默认端口</value>
+  </data>
+  <data name="TimeoutMs" xml:space="preserve">
+    <value>超时（毫秒）</value>
+  </data>
+  <data name="Parallel" xml:space="preserve">
+    <value>并行数</value>
+  </data>
+  <data name="IdentifyServicesBanners" xml:space="preserve">
+    <value>识别服务（标识信息）</value>
+  </data>
+  <data name="ResolveHostNames" xml:space="preserve">
+    <value>解析主机名</value>
+  </data>
+  <data name="StartScan" xml:space="preserve">
+    <value>开始扫描</value>
+  </data>
+  <data name="HostsWithOpenPorts" xml:space="preserve">
+    <value>有开放端口的主机</value>
+  </data>
+  <data name="AddressColumn" xml:space="preserve">
+    <value>地址</value>
+  </data>
+  <data name="ImportCheckedHostsAs" xml:space="preserve">
+    <value>将勾选的主机导入为</value>
+  </data>
+  <data name="ImportIntoTree" xml:space="preserve">
+    <value>导入到连接树</value>
+  </data>
+  <data name="HostnameLabel" xml:space="preserve">
+    <value>主机名</value>
+  </data>
+  <data name="HostOrIPPort" xml:space="preserve">
+    <value>主机或 IP[:端口]</value>
+  </data>
+  <data name="OptionalInParentheses" xml:space="preserve">
+    <value>（可选）</value>
+  </data>
+  <data name="PrivateKeyOptional" xml:space="preserve">
+    <value>私钥（可选）</value>
+  </data>
+  <data name="ParentFolder" xml:space="preserve">
+    <value>上级目录</value>
+  </data>
+  <data name="RemotePathPressEnterToOpen" xml:space="preserve">
+    <value>远程路径（按 Enter 打开）</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>上传</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>大小</value>
+  </data>
+  <data name="Modified" xml:space="preserve">
+    <value>修改时间</value>
+  </data>
+  <data name="InputRequired" xml:space="preserve">
+    <value>需要输入</value>
+  </data>
+  <data name="ThemeEditor" xml:space="preserve">
+    <value>主题编辑器</value>
+  </data>
+  <data name="StartFrom" xml:space="preserve">
+    <value>基于</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>另存为</value>
+  </data>
+  <data name="NameOfYourTheme" xml:space="preserve">
+    <value>主题名称</value>
+  </data>
+  <data name="ColoursChangeEverywhereAsYouTypeRrggbb" xml:space="preserve">
+    <value>输入时颜色会立即在各处更新（#rrggbb）。</value>
+  </data>
+  <data name="DeleteTheme" xml:space="preserve">
+    <value>删除主题</value>
+  </data>
+  <data name="SaveAndApply" xml:space="preserve">
+    <value>保存并应用</value>
+  </data>
+  <data name="RemoteUsersRunningUltraVNCSingleClickOrAny" xml:space="preserve">
+    <value>运行 UltraVNC SingleClick（或任何 VNC 服务器的“连接到查看器”功能）的远程用户可以通过此端口连接到您。每个传入连接都会作为 VNC 会话标签打开。</value>
+  </data>
+  <data name="StartListening" xml:space="preserve">
+    <value>开始监听</value>
+  </data>
+  <data name="IncomingConnections" xml:space="preserve">
+    <value>传入连接</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="ColorTheme" xml:space="preserve">
+    <value>颜色主题</value>
+  </data>
+  <data name="CopyAThemeChangeItsColoursAnd" xml:space="preserve">
+    <value>复制一个主题，修改其颜色并另存为您自己的主题。</value>
+  </data>
+  <data name="ThemeEditorButton" xml:space="preserve">
+    <value>主题编辑器</value>
+  </data>
+  <data name="Font" xml:space="preserve">
+    <value>字体</value>
+  </data>
+  <data name="FontFamily" xml:space="preserve">
+    <value>字体系列</value>
+  </data>
+  <data name="ThemeDefault" xml:space="preserve">
+    <value>（主题默认）</value>
+  </data>
+  <data name="FontSize" xml:space="preserve">
+    <value>字号</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="ShowToolbar" xml:space="preserve">
+    <value>显示工具栏</value>
+  </data>
+  <data name="ShowStatusBar" xml:space="preserve">
+    <value>显示状态栏</value>
+  </data>
+  <data name="Defaults" xml:space="preserve">
+    <value>默认值</value>
+  </data>
+  <data name="DefaultProtocol" xml:space="preserve">
+    <value>默认协议</value>
+  </data>
+  <data name="ConnectTimeoutSeconds" xml:space="preserve">
+    <value>连接超时（秒）</value>
+  </data>
+  <data name="DefaultUsername" xml:space="preserve">
+    <value>默认用户名</value>
+  </data>
+  <data name="NoneInParentheses" xml:space="preserve">
+    <value>（无）</value>
+  </data>
+  <data name="DefaultPortsSection" xml:space="preserve">
+    <value>默认端口</value>
+  </data>
+  <data name="SendKeepAlivePackets" xml:space="preserve">
+    <value>发送保活数据包</value>
+  </data>
+  <data name="KeepAliveIntervalSeconds" xml:space="preserve">
+    <value>保活间隔（秒）</value>
+  </data>
+  <data name="DefaultPrivateKeyFileOptional" xml:space="preserve">
+    <value>默认私钥文件（可选）</value>
+  </data>
+  <data name="SavedCredentials" xml:space="preserve">
+    <value>已保存的凭据</value>
+  </data>
+  <data name="CredentialsAreStoredInYourSettingsFolder" xml:space="preserve">
+    <value>凭据存储在您的设置目录中。密码使用您的操作系统帐户加密（Windows 上使用 DPAPI，Linux 和 macOS 上使用私钥文件）。</value>
+  </data>
+  <data name="ManageCredentials" xml:space="preserve">
+    <value>管理凭据</value>
+  </data>
+  <data name="ExternalProviders" xml:space="preserve">
+    <value>外部提供程序</value>
+  </data>
+  <data name="ConnectionsFetchTheirCredentialsFromASecret" xml:space="preserve">
+    <value>设置了“外部凭据提供程序”的连接会从密钥存储中获取凭据（密钥 ID 或项目引用填写在“通过 API 的用户”中）；“外部地址提供程序”设为 AWS 的连接会从 AWS 获取地址。您在此输入的密钥会针对您的用户帐户加密保存；留空则每个会话询问一次。</value>
+  </data>
+  <data name="DefaultCredentialProvider" xml:space="preserve">
+    <value>默认凭据提供程序</value>
+  </data>
+  <data name="UsedForConnectionsWithoutAUsernameAn" xml:space="preserve">
+    <value>用于没有用户名、外部提供程序或默认用户名的连接。</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>提供程序</value>
+  </data>
+  <data name="SecretIDReference" xml:space="preserve">
+    <value>密钥 ID / 引用</value>
+  </data>
+  <data name="ServerURL" xml:space="preserve">
+    <value>服务器 URL</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationSSO" xml:space="preserve">
+    <value>Windows 集成身份验证（SSO）</value>
+  </data>
+  <data name="DomainOptional" xml:space="preserve">
+    <value>域（可选）</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>忘记</value>
+  </data>
+  <data name="AskForOtpAtLogin" xml:space="preserve">
+    <value>登录时询问一次性密码（OTP）</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>测试</value>
+  </data>
+  <data name="WindowsIntegratedAuthenticationWinapi" xml:space="preserve">
+    <value>Windows 集成身份验证（winapi）</value>
+  </data>
+  <data name="APIKey" xml:space="preserve">
+    <value>API 密钥</value>
+  </data>
+  <data name="AskForOtpPerRequest" xml:space="preserve">
+    <value>每次请求时询问一次性密码（OTP）</value>
+  </data>
+  <data name="ReferencesOpVaultItemAccountOpVault" xml:space="preserve">
+    <value>引用：op://Vault/Item?account=…、op://Vault/Item/field 或项目名称。登录由 1Password CLI 处理（桌面应用集成或 OP_SERVICE_ACCOUNT_TOKEN）。</value>
+  </data>
+  <data name="CLIPath" xml:space="preserve">
+    <value>CLI 路径</value>
+  </data>
+  <data name="OpFromPATH" xml:space="preserve">
+    <value>op（来自 PATH）</value>
+  </data>
+  <data name="DefaultAccount" xml:space="preserve">
+    <value>默认帐户</value>
+  </data>
+  <data name="TheMountRoleSecretPathAndSecret" xml:space="preserve">
+    <value>挂载点、角色/密钥路径和密钥引擎（KV、LDAP 动态、LDAP 静态、SSH OTP）按连接分别设置。</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>命名空间</value>
+  </data>
+  <data name="LogInWith" xml:space="preserve">
+    <value>登录方式</value>
+  </data>
+  <data name="AuthMountPath" xml:space="preserve">
+    <value>认证挂载路径</value>
+  </data>
+  <data name="CACertificatePEM" xml:space="preserve">
+    <value>CA 证书（PEM）</value>
+  </data>
+  <data name="SystemTrustStore" xml:space="preserve">
+    <value>（系统信任存储）</value>
+  </data>
+  <data name="AmazonWebServicesEC2AddressLookup" xml:space="preserve">
+    <value>Amazon Web Services（EC2 地址查找）</value>
+  </data>
+  <data name="ConnectionsSetTheInstanceIDAndRegion" xml:space="preserve">
+    <value>实例 ID 和区域在各连接中设置。默认凭据链会读取环境变量、~/.aws 配置文件、SSO 和实例角色。</value>
+  </data>
+  <data name="ProfileName" xml:space="preserve">
+    <value>配置文件名称</value>
+  </data>
+  <data name="EGDefault" xml:space="preserve">
+    <value>例如 default</value>
+  </data>
+  <data name="AccessKeyID" xml:space="preserve">
+    <value>访问密钥 ID</value>
+  </data>
+  <data name="SecretAccessKey" xml:space="preserve">
+    <value>秘密访问密钥</value>
+  </data>
+  <data name="DefaultRegion" xml:space="preserve">
+    <value>默认区域</value>
+  </data>
+  <data name="ConnectTo" xml:space="preserve">
+    <value>连接到</value>
+  </data>
+  <data name="EC2EndpointURL" xml:space="preserve">
+    <value>EC2 终端节点 URL</value>
+  </data>
+  <data name="RegionalAWSEndpoint" xml:space="preserve">
+    <value>（区域 AWS 终端节点）</value>
+  </data>
+  <data name="Startup" xml:space="preserve">
+    <value>启动</value>
+  </data>
+  <data name="WhenMRemoteNGStarts" xml:space="preserve">
+    <value>mRemoteNG 启动时</value>
+  </data>
+  <data name="ConnectionFileToOpenAtStartup" xml:space="preserve">
+    <value>启动时打开的连接配置文件</value>
+  </data>
+  <data name="AllowOnlyASingleInstanceOfMRemoteNG" xml:space="preserve">
+    <value>只允许运行一个 mRemoteNG 实例</value>
+  </data>
+  <data name="StartMinimisedToTheSystemTrayWhen" xml:space="preserve">
+    <value>启动时最小化（若启用最小化到托盘，则最小化到系统托盘）</value>
+  </data>
+  <data name="SaveTheOpenConnectionFileWhenExiting" xml:space="preserve">
+    <value>退出时保存已打开的连接配置文件</value>
+  </data>
+  <data name="ConfirmClosingConnections" xml:space="preserve">
+    <value>关闭连接时确认</value>
+  </data>
+  <data name="SystemTray" xml:space="preserve">
+    <value>系统托盘</value>
+  </data>
+  <data name="ShowAnIconInTheSystemTray" xml:space="preserve">
+    <value>在系统托盘中显示图标</value>
+  </data>
+  <data name="MinimiseToTheSystemTray" xml:space="preserve">
+    <value>最小化到系统托盘</value>
+  </data>
+  <data name="RequiresADesktopEnvironmentWithASystem" xml:space="preserve">
+    <value>需要带有系统托盘的桌面环境（Linux 上为 StatusNotifierItem）。</value>
+  </data>
+  <data name="LogFile" xml:space="preserve">
+    <value>日志文件</value>
+  </data>
+  <data name="WriteALogFile" xml:space="preserve">
+    <value>写入日志文件</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>级别</value>
+  </data>
+  <data name="TheFileRollsOverAt10MB" xml:space="preserve">
+    <value>文件达到 10 MB 时滚动；保留之前的五个文件（.1 … .5）。日志面板中显示的消息也会写入该文件。</value>
+  </data>
+  <data name="OpenLogFileButton" xml:space="preserve">
+    <value>打开日志文件</value>
+  </data>
+  <data name="OpenFolder" xml:space="preserve">
+    <value>打开目录</value>
+  </data>
+  <data name="DataFolder" xml:space="preserve">
+    <value>数据目录</value>
+  </data>
+  <data name="PortableModePutAnEmptyFileNamed" xml:space="preserve">
+    <value>便携模式：在程序旁放置一个名为 mRemoteNG.portable 的空文件，或使用 --portable 启动程序。</value>
+  </data>
+  <data name="DesktopNotifications" xml:space="preserve">
+    <value>桌面通知</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionOpens" xml:space="preserve">
+    <value>连接打开时显示通知</value>
+  </data>
+  <data name="ShowANotificationWhenAConnectionCloses" xml:space="preserve">
+    <value>连接关闭时显示通知</value>
+  </data>
+  <data name="ShowANotificationForErrorsWrittenTo" xml:space="preserve">
+    <value>写入日志的错误显示通知</value>
+  </data>
+  <data name="SavingBackups" xml:space="preserve">
+    <value>保存和备份</value>
+  </data>
+  <data name="AutomaticSaving" xml:space="preserve">
+    <value>自动保存</value>
+  </data>
+  <data name="SaveEveryMinutes0Off" xml:space="preserve">
+    <value>保存间隔（分钟，0 = 关闭）</value>
+  </data>
+  <data name="AutomaticSavesOnlyHappenWhenThereAre" xml:space="preserve">
+    <value>仅当存在未保存的更改且连接有对应文件（或可写的 SQL 数据库）时才会自动保存。</value>
+  </data>
+  <data name="BackUpTheConnectionFile" xml:space="preserve">
+    <value>备份连接配置文件</value>
+  </data>
+  <data name="NumberOfBackupsToKeep" xml:space="preserve">
+    <value>保留的备份数量</value>
+  </data>
+  <data name="BackupFolderEmptyNextToTheConnection" xml:space="preserve">
+    <value>备份目录（留空：与连接配置文件位于同一位置）</value>
+  </data>
+  <data name="DefaultChoice" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="ConnectionDatabase" xml:space="preserve">
+    <value>连接数据库</value>
+  </data>
+  <data name="LoadAndSaveTheConnectionsInA" xml:space="preserve">
+    <value>在 SQL 数据库中加载和保存连接</value>
+  </data>
+  <data name="UsesTheSameTablesAsTheWindows" xml:space="preserve">
+    <value>使用与 Windows 版 mRemoteNG 相同的表（tblCons、tblRoot、tblUpdate），因此两者可以共享同一个数据库。缺少的表会在首次使用时创建。</value>
+  </data>
+  <data name="ServerType" xml:space="preserve">
+    <value>服务器类型</value>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>数据库</value>
+  </data>
+  <data name="SQLServerEmptyForWindowsAuthentication" xml:space="preserve">
+    <value>（SQL Server：留空则使用 Windows 身份验证）</value>
+  </data>
+  <data name="MultiUser" xml:space="preserve">
+    <value>多用户</value>
+  </data>
+  <data name="ReadOnlyNeverWriteToTheDatabase" xml:space="preserve">
+    <value>只读（从不写入数据库）</value>
+  </data>
+  <data name="CheckForChangesByOtherUsersEvery" xml:space="preserve">
+    <value>检查其他用户更改的间隔（秒）</value>
+  </data>
+  <data name="ReloadAutomaticallyWhenAnotherUserSavedAnd" xml:space="preserve">
+    <value>其他用户保存且此处没有未保存的更改时自动重新加载</value>
+  </data>
+  <data name="SessionTabs" xml:space="preserve">
+    <value>会话标签</value>
+  </data>
+  <data name="Panels" xml:space="preserve">
+    <value>面板</value>
+  </data>
+  <data name="AutomaticallyTryToReconnectWhenDisconnectedFrom" xml:space="preserve">
+    <value>与服务器断开连接时自动尝试重新连接</value>
+  </data>
+  <data name="Attempts" xml:space="preserve">
+    <value>尝试次数</value>
+  </data>
+  <data name="Waits124UpTo30" xml:space="preserve">
+    <value>（两次尝试之间依次等待 1、2、4 … 最多 30 秒）</value>
+  </data>
+  <data name="UpdateCheckSection" xml:space="preserve">
+    <value>更新检查</value>
+  </data>
+  <data name="CheckForUpdatesAtStartupAtMost" xml:space="preserve">
+    <value>启动时检查更新（每天最多一次）</value>
+  </data>
+  <data name="ReleasesToLookFor" xml:space="preserve">
+    <value>要检查的版本类型</value>
+  </data>
+  <data name="InstalledVersion" xml:space="preserve">
+    <value>已安装版本：</value>
+  </data>
+  <data name="DownloadsThePackageForThisSystemAnd" xml:space="preserve">
+    <value>下载适用于此系统的安装包，并检查其大小和 SHA-256</value>
+  </data>
+  <data name="ShowInFolder" xml:space="preserve">
+    <value>在目录中显示</value>
+  </data>
+  <data name="UseAProxyForUpdateChecksAnd" xml:space="preserve">
+    <value>使用代理检查和下载更新（否则使用系统代理）</value>
+  </data>
+  <data name="TheProxyRequiresAUserNameAnd" xml:space="preserve">
+    <value>代理需要用户名和密码</value>
+  </data>
+  <data name="SelectThePanelToOpenTheConnection" xml:space="preserve">
+    <value>选择要在其中打开连接的面板</value>
+  </data>
+  <data name="OrOpenItInANewPanel" xml:space="preserve">
+    <value>或在新面板中打开</value>
+  </data>
+  <data name="NewPanelName" xml:space="preserve">
+    <value>新面板名称</value>
+  </data>
+  <data name="FloatingPanelTitle" xml:space="preserve">
+    <value>面板 — mRemoteNG</value>
+  </data>
+  <data name="ExitFullScreen" xml:space="preserve">
+    <value>退出全屏</value>
+  </data>
+  <data name="FloatThisPanelInItsOwnWindow" xml:space="preserve">
+    <value>将此面板浮动到独立窗口中</value>
+  </data>
+  <data name="PanelOptions" xml:space="preserve">
+    <value>面板选项</value>
+  </data>
+  <data name="CloseThisPanelAndItsSessions" xml:space="preserve">
+    <value>关闭此面板及其会话</value>
+  </data>
+  <data name="NoSessionsInPanel" xml:space="preserve">
+    <value>此面板中没有会话。
+请从连接树中在此面板打开连接。</value>
+  </data>
+  <data name="ActiveConnectionsFormat" xml:space="preserve">
+    <value>活动连接：{0}</value>
+  </data>
+  <data name="ConnectionFilePropertiesTitleFormat" xml:space="preserve">
+    <value>连接文件属性 — {0}</value>
+  </data>
+  <data name="ConnectWithOptionsHeadingFormat" xml:space="preserve">
+    <value>使用以下选项连接到“{0}”：</value>
+  </data>
+  <data name="SectionSshPutty" xml:space="preserve">
+    <value>SSH / PuTTY</value>
+  </data>
+  <data name="SectionRemoteDesktop" xml:space="preserve">
+    <value>远程桌面</value>
+  </data>
+  <data name="SectionExternalAddress" xml:space="preserve">
+    <value>外部地址</value>
+  </data>
+  <data name="SectionWakeOnLan" xml:space="preserve">
+    <value>网络唤醒</value>
+  </data>
+  <data name="SectionRemoteDesktopDisplay" xml:space="preserve">
+    <value>远程桌面：显示</value>
+  </data>
+  <data name="SectionRemoteDesktopRedirection" xml:space="preserve">
+    <value>远程桌面：重定向</value>
+  </data>
+  <data name="SectionVncProxy" xml:space="preserve">
+    <value>VNC 代理</value>
+  </data>
+  <data name="SectionWeb" xml:space="preserve">
+    <value>Web</value>
+  </data>
+  <data name="SectionExternalApplication" xml:space="preserve">
+    <value>外部应用程序</value>
+  </data>
+  <data name="SectionExternalTools" xml:space="preserve">
+    <value>外部工具</value>
+  </data>
+  <data name="SendSpecialKeysMenu" xml:space="preserve">
+    <value>发送特殊键</value>
+  </data>
+  <data name="IncludeInMultiSsh" xml:space="preserve">
+    <value>包含在 Multi-SSH 中</value>
+  </data>
+  <data name="MoveToPanel" xml:space="preserve">
+    <value>移动到面板</value>
+  </data>
+  <data name="CloseOtherTabs" xml:space="preserve">
+    <value>关闭其他标签</value>
+  </data>
+  <data name="CloseTabsToTheRight" xml:space="preserve">
+    <value>关闭右侧标签</value>
+  </data>
+  <data name="NewTabNamePrompt" xml:space="preserve">
+    <value>新标签名称（留空则使用默认名称）：</value>
+  </data>
+  <data name="InheritHintDefaultConnection" xml:space="preserve">
+    <value>这些值和“继承”复选框会应用于每个新建的连接和目录。</value>
+  </data>
+  <data name="InheritHintFolderFormat" xml:space="preserve">
+    <value>勾选的“继承”复选框从目录“{0}”取值。</value>
+  </data>
+  <data name="InheritHintRoot" xml:space="preserve">
+    <value>根节点下的直接项目没有可继承的来源。</value>
+  </data>
+  <data name="EditFolderTitleFormat" xml:space="preserve">
+    <value>编辑目录 — {0}</value>
+  </data>
+  <data name="EditConnectionTitleFormat" xml:space="preserve">
+    <value>编辑连接 — {0}</value>
+  </data>
+  <data name="ProtocolNoteHttp" xml:space="preserve">
+    <value>网页在默认浏览器中打开；渲染引擎仅适用于 Windows 应用。</value>
+  </data>
+  <data name="ProtocolNoteArd" xml:space="preserve">
+    <value>Apple Remote Desktop 使用内置的 VNC 客户端连接。</value>
+  </data>
+  <data name="ProtocolNoteAnyDesk" xml:space="preserve">
+    <value>启动已安装的 AnyDesk 应用程序；请在“主机名”中填写 AnyDesk ID。</value>
+  </data>
+  <data name="ProtocolNoteTerminal" xml:space="preserve">
+    <value>打开本地 shell；如果指定了主机名，则运行 ssh 连接到该主机。</value>
+  </data>
+  <data name="ProtocolNoteWsl" xml:space="preserve">
+    <value>打开 WSL shell（仅限 Windows）；“主机名”用于选择发行版。</value>
+  </data>
+  <data name="ProtocolNoteRaw" xml:space="preserve">
+    <value>带本地行编辑功能的纯 TCP 套接字。</value>
+  </data>
+  <data name="ProtocolNoteSsh1" xml:space="preserve">
+    <value>SSH1 已过时；连接将使用 SSH2。</value>
+  </data>
+  <data name="ProtocolNotSupportedFormat" xml:space="preserve">
+    <value>此平台尚不支持 {0}。</value>
+  </data>
+  <data name="NameIsRequired" xml:space="preserve">
+    <value>名称为必填项。</value>
+  </data>
+  <data name="InvalidMacAddress" xml:space="preserve">
+    <value>MAC 地址无效（例如 00:11:22:33:44:55）。</value>
+  </data>
+  <data name="CheckingHostAndPortFormat" xml:space="preserve">
+    <value>正在检查 {0}（ping 和端口 {1}）…</value>
+  </data>
+  <data name="PingingHostFormat" xml:space="preserve">
+    <value>正在 ping {0}…</value>
+  </data>
+  <data name="RdpVersionHighest" xml:space="preserve">
+    <value>可用的最高版本</value>
+  </data>
+  <data name="RdpVersionFreeRdpDescription" xml:space="preserve">
+    <value>Windows 版 mRemoteNG 使用的远程桌面控件版本。FreeRDP 总是协商服务器支持的最新 RDP 版本，因此本应用只为该应用保留此设置，不会使用它。</value>
+  </data>
+  <data name="CursorShadowFreeRdpDescription" xml:space="preserve">
+    <value>不显示鼠标指针阴影。由 Windows 版 mRemoteNG 使用；FreeRDP 没有此选项。</value>
+  </data>
+  <data name="CursorBlinkingFreeRdpDescription" xml:space="preserve">
+    <value>不让文本光标闪烁。由 Windows 版 mRemoteNG 使用；FreeRDP 没有此选项。</value>
+  </data>
+  <data name="ConsoleSessionAsConfigured" xml:space="preserve">
+    <value>按配置</value>
+  </data>
+  <data name="ValueNotSet" xml:space="preserve">
+    <value>（未设置）</value>
+  </data>
+  <data name="CompressionLevelFormat" xml:space="preserve">
+    <value>级别 {0}</value>
+  </data>
+  <data name="InheritTipDefaultConnection" xml:space="preserve">
+    <value>新连接从其所在目录继承此属性。</value>
+  </data>
+  <data name="InheritTipFolderFormat" xml:space="preserve">
+    <value>使用目录“{0}”的值。</value>
+  </data>
+  <data name="InheritTipRoot" xml:space="preserve">
+    <value>根节点下的直接节点没有可继承的来源。</value>
+  </data>
+  <data name="QuickConnectSubtitle" xml:space="preserve">
+    <value>连接到主机而不将其添加到连接树。</value>
+  </data>
+  <data name="ConnectWithOptionsSubtitleFormat" xml:space="preserve">
+    <value>这些选项仅适用于本次到“{0}”的连接；已保存的连接不会更改。</value>
+  </data>
+  <data name="ConnectNoCredentialsDescription" xml:space="preserve">
+    <value>不使用已保存的用户名、密码和域。</value>
+  </data>
+  <data name="SearchSettingsWatermark" xml:space="preserve">
+    <value>搜索设置</value>
+  </data>
+  <data name="NoSettingsMatch" xml:space="preserve">
+    <value>没有与搜索匹配的设置。</value>
+  </data>
+  <data name="ResetToDefaultsTip" xml:space="preserve">
+    <value>重置此窗口中的所有选项。在您按“确定”或“应用”之前不会有任何更改。</value>
+  </data>
+  <data name="AppearancePageDescription" xml:space="preserve">
+    <value>颜色、语言和字体，以及主窗口中显示哪些部分。</value>
+  </data>
+  <data name="FontFamilyDescription" xml:space="preserve">
+    <value>此计算机上安装的字体，例如 Inter 或 Segoe UI。留空则使用主题字体。</value>
+  </data>
+  <data name="ConnectionsPageDescription" xml:space="preserve">
+    <value>新连接的默认值以及各协议的标准端口。</value>
+  </data>
+  <data name="CredentialsPageManageDescription" xml:space="preserve">
+    <value>添加、编辑或移除连接可使用的已保存用户名和密码。</value>
+  </data>
+  <data name="NotificationsPageDescription" xml:space="preserve">
+    <value>连接打开、关闭或失败时由桌面显示的通知。</value>
+  </data>
+  <data name="TabsPanelsPageDescription" xml:space="preserve">
+    <value>会话标签和面板的外观与行为。</value>
+  </data>
+  <data name="BackupFileName" xml:space="preserve">
+    <value>备份文件名</value>
+  </data>
+  <data name="BackupNameFormatTip" xml:space="preserve">
+    <value>{0} = 连接配置文件，{1} = 备份时间（.NET 日期格式）</value>
+  </data>
+  <data name="LogFileLocation" xml:space="preserve">
+    <value>日志文件位置</value>
+  </data>
+  <data name="CurrentLogFile" xml:space="preserve">
+    <value>当前日志文件</value>
+  </data>
+  <data name="CheckForUpdatesNow" xml:space="preserve">
+    <value>立即检查更新</value>
+  </data>
+  <data name="ProxyAddressAndPort" xml:space="preserve">
+    <value>地址和端口</value>
+  </data>
+  <data name="FolderNodeLabel" xml:space="preserve">
+    <value>目录</value>
+  </data>
+  <data name="SearchPropertiesWatermark" xml:space="preserve">
+    <value>搜索属性</value>
+  </data>
+  <data name="NoPropertiesMatch" xml:space="preserve">
+    <value>没有与搜索匹配的属性。</value>
+  </data>
+  <data name="InheritHintLinkFormat" xml:space="preserve">
+    <value>开启链接的字段使用目录“{0}”的值。</value>
+  </data>
+  <data name="InheritFromFolderFormat" xml:space="preserve">
+    <value>从目录“{0}”继承</value>
+  </data>
+  <data name="NoHostNameYet" xml:space="preserve">
+    <value>尚未设置主机名</value>
+  </data>
+  <data name="InFolderFormat" xml:space="preserve">
+    <value>位于 {0}</value>
+  </data>
+  <data name="OneFieldNeedsAttention" xml:space="preserve">
+    <value>1 个字段需要注意</value>
+  </data>
+  <data name="FieldsNeedAttentionFormat" xml:space="preserve">
+    <value>{0} 个字段需要注意</value>
+  </data>
+  <data name="InsertVariable" xml:space="preserve">
+    <value>插入到参数中</value>
+  </data>
+  <data name="ImportDialogSubtitle" xml:space="preserve">
+    <value>选择连接的来源以及它们在连接树中的位置。</value>
+  </data>
+  <data name="FileToImport" xml:space="preserve">
+    <value>要导入的文件</value>
+  </data>
+  <data name="FolderToImport" xml:space="preserve">
+    <value>要导入的目录</value>
+  </data>
+  <data name="DirectoryToImport" xml:space="preserve">
+    <value>要导入的目录服务</value>
+  </data>
+  <data name="ExportDialogSubtitle" xml:space="preserve">
+    <value>将连接或其中某个目录保存到文件。</value>
+  </data>
+  <data name="PortScannerSubtitle" xml:space="preserve">
+    <value>查找开放了远程访问端口的主机，并将其添加到连接树。</value>
+  </data>
+  <data name="CredentialManagerSubtitle" xml:space="preserve">
+    <value>连接可使用的已保存用户名和密码。</value>
+  </data>
+  <data name="ConnectionFilePropertiesHeading" xml:space="preserve">
+    <value>连接文件属性</value>
+  </data>
+  <data name="PasswordProtected" xml:space="preserve">
+    <value>已保护</value>
+  </data>
+  <data name="NotPasswordProtected" xml:space="preserve">
+    <value>未保护</value>
+  </data>
+  <data name="UltraVncListenerPortDescription" xml:space="preserve">
+    <value>远程用户连接的端口（默认为 5500）。</value>
+  </data>
+  <data name="PuttyRootToolTip" xml:space="preserve">
+    <value>已保存的 PuTTY 会话（只读）。可直接连接，或创建会话副本以将其复制到连接树中。</value>
+  </data>
+  <data name="NoHostnameInParentheses" xml:space="preserve">
+    <value>（无主机名）</value>
+  </data>
+  <data name="ToolTipUserFormat" xml:space="preserve">
+    <value>用户：{0}</value>
+  </data>
+  <data name="PuttySavedSession" xml:space="preserve">
+    <value>PuTTY 已保存会话</value>
+  </data>
+  <data name="ReadOnlyNameFormat" xml:space="preserve">
+    <value>{0}（只读）</value>
+  </data>
+  <data name="ConfirmCloseSessionsOfFormat" xml:space="preserve">
+    <value>关闭“{1}”的 {0} 个会话？</value>
+  </data>
+  <data name="ConfirmDeleteFolderOneItemFormat" xml:space="preserve">
+    <value>删除目录“{0}”及其包含的 {1} 个项目？</value>
+  </data>
+  <data name="ConfirmDeleteFolderItemsFormat" xml:space="preserve">
+    <value>删除目录“{0}”及其包含的 {1} 个项目？</value>
+  </data>
+  <data name="SqlDatabaseStatusFormat" xml:space="preserve">
+    <value>SQL 数据库：{0}</value>
+  </data>
+  <data name="NewConnectionFileNotSaved" xml:space="preserve">
+    <value>新连接配置文件（尚未保存）</value>
+  </data>
+  <data name="Untitled" xml:space="preserve">
+    <value>未命名</value>
+  </data>
+  <data name="TitleOneActiveConnection" xml:space="preserve">
+    <value>（1 个活动连接）</value>
+  </data>
+  <data name="TitleActiveConnectionsFormat" xml:space="preserve">
+    <value>（{0} 个活动连接）</value>
+  </data>
+  <data name="IncorrectPasswordTryAgain" xml:space="preserve">
+    <value>密码不正确，请重试。</value>
+  </data>
+  <data name="FileIsPasswordProtectedFormat" xml:space="preserve">
+    <value>“{0}”受密码保护。</value>
+  </data>
+  <data name="UpdateAvailableTitle" xml:space="preserve">
+    <value>有可用更新</value>
+  </data>
+  <data name="OpenReleasePageQuestion" xml:space="preserve">
+    <value>打开发布页面？</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+  <data name="SaveChangesToFormat" xml:space="preserve">
+    <value>是否保存对 {0} 的更改？</value>
+  </data>
+  <data name="SaveChangesToNewFile" xml:space="preserve">
+    <value>是否保存对新连接配置文件的更改？</value>
+  </data>
+  <data name="UnsavedChangesTitle" xml:space="preserve">
+    <value>未保存的更改</value>
+  </data>
+  <data name="DontSave" xml:space="preserve">
+    <value>不保存</value>
+  </data>
+  <data name="StartupReopenLastFile" xml:space="preserve">
+    <value>重新打开上次的连接配置文件</value>
+  </data>
+  <data name="StartupOpenSpecificFile" xml:space="preserve">
+    <value>打开指定的连接配置文件</value>
+  </data>
+  <data name="StartupEmptyTree" xml:space="preserve">
+    <value>以空连接树启动</value>
+  </data>
+  <data name="ConfirmCloseOnExit" xml:space="preserve">
+    <value>存在打开的连接时退出</value>
+  </data>
+  <data name="ConfirmCloseOnExitAndClose" xml:space="preserve">
+    <value>退出时以及关闭连接时</value>
+  </data>
+  <data name="PortableDataFolderFormat" xml:space="preserve">
+    <value>便携模式：所有数据都保存在 {0}</value>
+  </data>
+  <data name="DataFolderFormat" xml:space="preserve">
+    <value>数据目录：{0}</value>
+  </data>
+  <data name="ThemeDarkChoice" xml:space="preserve">
+    <value>深色 (VS2015 Dark)</value>
+  </data>
+  <data name="ThemeLightChoice" xml:space="preserve">
+    <value>浅色 (VS2015 Light)</value>
+  </data>
+  <data name="ThemeFollowSystem" xml:space="preserve">
+    <value>跟随系统设置</value>
+  </data>
+  <data name="UserThemeFormat" xml:space="preserve">
+    <value>{0}（用户主题）</value>
+  </data>
+  <data name="OneSavedCredential" xml:space="preserve">
+    <value>1 个已保存的凭据。</value>
+  </data>
+  <data name="SavedCredentialsFormat" xml:space="preserve">
+    <value>{0} 个已保存的凭据。</value>
+  </data>
+  <data name="UpdateCheckFailedFormat" xml:space="preserve">
+    <value>检查更新失败：{0}</value>
+  </data>
+  <data name="DownloadFailedFormat" xml:space="preserve">
+    <value>下载失败：{0}</value>
+  </data>
+  <data name="DownloadingFormat" xml:space="preserve">
+    <value>正在下载 {0}…</value>
+  </data>
+  <data name="UpdateChannelStable" xml:space="preserve">
+    <value>稳定版</value>
+  </data>
+  <data name="UpdateChannelPreRelease" xml:space="preserve">
+    <value>稳定版和预发布版</value>
+  </data>
+  <data name="CheckingEllipsis" xml:space="preserve">
+    <value>正在检查…</value>
+  </data>
+  <data name="CouldNotSaveSettingsFormat" xml:space="preserve">
+    <value>无法保存设置：{0}</value>
+  </data>
+  <data name="SecretSavedEncrypted" xml:space="preserve">
+    <value>已保存（已加密）</value>
+  </data>
+  <data name="SecretNotSaved" xml:space="preserve">
+    <value>未保存：需要时询问</value>
+  </data>
+  <data name="TestingEllipsis" xml:space="preserve">
+    <value>正在测试…</value>
+  </data>
+  <data name="UnexpectedErrorFormat" xml:space="preserve">
+    <value>意外错误：{0}</value>
+  </data>
+  <data name="VaultAuthUserPass" xml:space="preserve">
+    <value>用户名和密码 (userpass)</value>
+  </data>
+  <data name="RoleId" xml:space="preserve">
+    <value>Role ID</value>
+  </data>
+  <data name="Token" xml:space="preserve">
+    <value>令牌</value>
+  </data>
+  <data name="SecretId" xml:space="preserve">
+    <value>Secret ID</value>
+  </data>
+  <data name="AwsDefaultCredentialChain" xml:space="preserve">
+    <value>默认 AWS 凭据链</value>
+  </data>
+  <data name="AwsNamedProfile" xml:space="preserve">
+    <value>命名配置文件</value>
+  </data>
+  <data name="AwsSavedAccessKey" xml:space="preserve">
+    <value>保存在 mRemoteNG 中的访问密钥</value>
+  </data>
+  <data name="AwsPublicIp" xml:space="preserve">
+    <value>公有 IP 地址</value>
+  </data>
+  <data name="AwsPrivateIp" xml:space="preserve">
+    <value>私有 IP 地址</value>
+  </data>
+  <data name="AwsPublicDnsName" xml:space="preserve">
+    <value>公有 DNS 名称</value>
+  </data>
+  <data name="AwsPrivateDnsName" xml:space="preserve">
+    <value>私有 DNS 名称</value>
+  </data>
+  <data name="DockThisPanelBack" xml:space="preserve">
+    <value>将此面板停靠回主窗口</value>
+  </data>
+  <data name="ClosePanel" xml:space="preserve">
+    <value>关闭面板</value>
+  </data>
+  <data name="ConfirmClosePanelFormat" xml:space="preserve">
+    <value>关闭面板“{0}”及其 {1} 个会话？</value>
+  </data>
+  <data name="RenamePanel" xml:space="preserve">
+    <value>重命名面板</value>
+  </data>
+  <data name="PanelNameExistsFormat" xml:space="preserve">
+    <value>已存在名为“{0}”的面板。</value>
+  </data>
+  <data name="DockPanel" xml:space="preserve">
+    <value>停靠面板</value>
+  </data>
+  <data name="FloatPanel" xml:space="preserve">
+    <value>浮动面板</value>
+  </data>
+  <data name="ReconnectingInFormat" xml:space="preserve">
+    <value>连接已断开。将在 {0:0} 秒后重新连接（第 {1} 次，共 {2} 次）</value>
+  </data>
+  <data name="ReconnectingAttemptFormat" xml:space="preserve">
+    <value>正在重新连接（第 {0} 次，共 {1} 次）…</value>
+  </data>
+  <data name="CouldNotReconnectOneAttempt" xml:space="preserve">
+    <value>尝试 {0} 次后仍无法重新连接。</value>
+  </data>
+  <data name="CouldNotReconnectFormat" xml:space="preserve">
+    <value>尝试 {0} 次后仍无法重新连接。</value>
+  </data>
+  <data name="LoadingEllipsis" xml:space="preserve">
+    <value>正在加载…</value>
+  </data>
+  <data name="AdHintWindows" xml:space="preserve">
+    <value>将服务器留空以使用此计算机所在的域，然后连接。</value>
+  </data>
+  <data name="AdHintOther" xml:space="preserve">
+    <value>输入域控制器和凭据，然后连接。</value>
+  </data>
+  <data name="ConnectingEllipsis" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="AdConnectedToDomain" xml:space="preserve">
+    <value>已连接到域。请选择一个 OU。</value>
+  </data>
+  <data name="AdConnectedToServerFormat" xml:space="preserve">
+    <value>已连接到 {0}。请选择一个 OU。</value>
+  </data>
+  <data name="AdReadingComputersFormat" xml:space="preserve">
+    <value>正在读取 {0} 中的计算机…</value>
+  </data>
+  <data name="AdConnectFirst" xml:space="preserve">
+    <value>请先连接并选择一个 OU。</value>
+  </data>
+  <data name="AdSelectComputer" xml:space="preserve">
+    <value>请至少选择一台要导入的计算机。</value>
+  </data>
+  <data name="AdInvalidCredentials" xml:space="preserve">
+    <value>服务器拒绝了该用户名或密码。</value>
+  </data>
+  <data name="AdServerUnavailable" xml:space="preserve">
+    <value>目录服务器不可用（请检查服务器名称、端口和 LDAPS 设置）。</value>
+  </data>
+  <data name="AdLdapErrorFormat" xml:space="preserve">
+    <value>LDAP 错误 {0}：{1}</value>
+  </data>
+  <data name="AdLdapLibraryMissing" xml:space="preserve">
+    <value>此系统上未安装 LDAP 库 (libldap)。</value>
+  </data>
+  <data name="AdNoComputersFormat" xml:space="preserve">
+    <value>{0} 中没有计算机。</value>
+  </data>
+  <data name="AdNoComputersSubtreeFormat" xml:space="preserve">
+    <value>{0} 及其子 OU 中没有计算机。</value>
+  </data>
+  <data name="AdComputersFormat" xml:space="preserve">
+    <value>{1} 中有 {0} 台计算机。</value>
+  </data>
+  <data name="AdComputersSubtreeFormat" xml:space="preserve">
+    <value>{1} 及其子 OU 中有 {0} 台计算机。</value>
+  </data>
+  <data name="BackupOnSave" xml:space="preserve">
+    <value>每次保存连接时</value>
+  </data>
+  <data name="BackupOnExit" xml:space="preserve">
+    <value>mRemoteNG 退出时</value>
+  </data>
+  <data name="BackupsAreOff" xml:space="preserve">
+    <value>备份已关闭。</value>
+  </data>
+  <data name="BackupNameFormatInvalid" xml:space="preserve">
+    <value>名称格式必须包含 {0}（文件）和 {1}（时间）。</value>
+  </data>
+  <data name="BackupExampleNextToFileFormat" xml:space="preserve">
+    <value>示例：{0}，与连接配置文件位于同一位置；保留最新的 {1} 个。</value>
+  </data>
+  <data name="BackupExampleInFolderFormat" xml:space="preserve">
+    <value>示例：{0}，位于备份目录中；保留最新的 {1} 个。</value>
+  </data>
+  <data name="TestFailedFormat" xml:space="preserve">
+    <value>测试失败：{0}</value>
+  </data>
+  <data name="SqlHostHintMySql" xml:space="preserve">
+    <value>主机或 主机:端口（默认端口 3306）</value>
+  </data>
+  <data name="SqlHostHintMsSql" xml:space="preserve">
+    <value>主机、主机:端口 或 主机\实例（默认端口 1433）</value>
+  </data>
+  <data name="SqlServerTypeOdbc" xml:space="preserve">
+    <value>ODBC 数据源（SQL Server 或 MySQL / MariaDB）</value>
+  </data>
+  <data name="SqlHostHintOdbc" xml:space="preserve">
+    <value>DSN 名称或 ODBC 连接字符串</value>
+  </data>
+  <data name="SqlDatabaseHintOdbc" xml:space="preserve">
+    <value>可选</value>
+  </data>
+  <data name="SqlOdbcDescription" xml:space="preserve">
+    <value>odbc.ini 中的数据源（例如 mremoteng），或类似 Driver={MariaDB Unicode};Server=db;Port=3306 的连接字符串。需要 unixODBC 和该数据库的 ODBC 驱动程序。请在“密码”字段中输入密码，不要写在字符串中。</value>
+  </data>
+  <data name="SqlOdbcDescriptionWindows" xml:space="preserve">
+    <value>ODBC 数据源管理器中的数据源（例如 mremoteng），或类似 Driver={ODBC Driver 18 for SQL Server};Server=db 的连接字符串。请在“密码”字段中输入密码，不要写在字符串中。</value>
+  </data>
+  <data name="LogLevelDebugEverything" xml:space="preserve">
+    <value>调试（全部）</value>
+  </data>
+  <data name="LogLevelInformation" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="LogLevelWarnings" xml:space="preserve">
+    <value>警告和错误</value>
+  </data>
+  <data name="LogLevelErrors" xml:space="preserve">
+    <value>仅错误</value>
+  </data>
+  <data name="PortableDataKeptInFormat" xml:space="preserve">
+    <value>便携模式：设置、凭据、known_hosts、主题和日志都保存在 {0}。</value>
+  </data>
+  <data name="DataKeptInFormat" xml:space="preserve">
+    <value>设置、凭据、known_hosts、主题和日志都保存在 {0}。</value>
+  </data>
+  <data name="NotListening" xml:space="preserve">
+    <value>未在监听。</value>
+  </data>
+  <data name="ListeningStoppedFormat" xml:space="preserve">
+    <value>监听已停止：{0}</value>
+  </data>
+  <data name="CannotListenOnPortFormat" xml:space="preserve">
+    <value>无法在端口 {0} 上监听：{1}</value>
+  </data>
+  <data name="ListeningForVncFormat" xml:space="preserve">
+    <value>正在端口 {0} 上监听传入的 VNC 连接…</value>
+  </data>
+  <data name="FailedFormat" xml:space="preserve">
+    <value>失败：{0}</value>
+  </data>
+  <data name="NoVncProtocolRegistered" xml:space="preserve">
+    <value>未注册 VNC 协议。</value>
+  </data>
+  <data name="ConnectedToDesktopFormat" xml:space="preserve">
+    <value>已连接：“{0}”</value>
+  </data>
+  <data name="ConnectedStatus" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="ExternalToolsNoConnection" xml:space="preserve">
+    <value>未选择连接：%HOSTNAME% 等变量为空。</value>
+  </data>
+  <data name="ExternalToolsTargetFormat" xml:space="preserve">
+    <value>启动和预览使用“{0}”。</value>
+  </data>
+  <data name="ExternalToolsVariablesHelpFormat" xml:space="preserve">
+    <value>变量：{0}。%-NAME% 仅转义 shell 元字符，%!NAME% 按原样插入值；其他名称为环境变量（\%NAME\% 始终展开，^%NAME^% 保留原文）。</value>
+  </data>
+  <data name="ExternalToolsSaveBeforeIntegrate" xml:space="preserve">
+    <value>启动在标签中打开的工具（“尝试集成”）之前，请先保存更改。</value>
+  </data>
+  <data name="ExternalToolStartedFormat" xml:space="preserve">
+    <value>已启动“{0}”。</value>
+  </data>
+  <data name="ExternalToolNotStartedFormat" xml:space="preserve">
+    <value>无法启动“{0}”；请查看日志。</value>
+  </data>
+  <data name="ExternalToolNeedsName" xml:space="preserve">
+    <value>每个工具都需要显示名称。</value>
+  </data>
+  <data name="ExternalToolNoFileNameFormat" xml:space="preserve">
+    <value>“{0}”没有文件名。</value>
+  </data>
+  <data name="ExternalToolDuplicateNameFormat" xml:space="preserve">
+    <value>有多个工具名为“{0}”；连接按名称引用工具。</value>
+  </data>
+  <data name="CouldNotSaveSeeLogFormat" xml:space="preserve">
+    <value>无法保存 {0}；请查看日志。</value>
+  </data>
+  <data name="ConfirmDeleteExternalToolDetailFormat" xml:space="preserve">
+    <value>删除外部工具“{0}”？
+将其用作外部应用程序或连接前/后运行工具的连接将无法再找到它。</value>
+  </data>
+  <data name="SelectTheProgram" xml:space="preserve">
+    <value>选择程序</value>
+  </data>
+  <data name="SelectTheWorkingDirectory" xml:space="preserve">
+    <value>选择工作目录</value>
+  </data>
+  <data name="SelectAnIcon" xml:space="preserve">
+    <value>选择图标</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>未连接。</value>
+  </data>
+  <data name="SftpConfirmDeleteFolderFormat" xml:space="preserve">
+    <value>永久删除目录“{0}”及其中的所有内容？</value>
+  </data>
+  <data name="SftpConfirmDeleteFileFormat" xml:space="preserve">
+    <value>永久删除“{0}”？</value>
+  </data>
+  <data name="ConnectingToFormat" xml:space="preserve">
+    <value>正在连接到 {0}…</value>
+  </data>
+  <data name="SftpConnectedFormat" xml:space="preserve">
+    <value>已连接到 {0}。{2} 中有 {1} 个项目。</value>
+  </data>
+  <data name="DisconnectedStatus" xml:space="preserve">
+    <value>已断开连接。</value>
+  </data>
+  <data name="LoadingFormat" xml:space="preserve">
+    <value>正在加载 {0}…</value>
+  </data>
+  <data name="SftpItemsInFormat" xml:space="preserve">
+    <value>{1} 中有 {0} 个项目。</value>
+  </data>
+  <data name="UploadingEllipsis" xml:space="preserve">
+    <value>正在上传…</value>
+  </data>
+  <data name="UploadingFileFormat" xml:space="preserve">
+    <value>正在上传 {0}…</value>
+  </data>
+  <data name="Uploading" xml:space="preserve">
+    <value>正在上传</value>
+  </data>
+  <data name="Downloading" xml:space="preserve">
+    <value>正在下载</value>
+  </data>
+  <data name="UploadedFileFormat" xml:space="preserve">
+    <value>已将 {0} 上传到 {1}。</value>
+  </data>
+  <data name="UploadedFilesFormat" xml:space="preserve">
+    <value>已将 {0} 个文件上传到 {1}。</value>
+  </data>
+  <data name="DownloadedFileFormat" xml:space="preserve">
+    <value>已将 {0} 下载到 {1}。</value>
+  </data>
+  <data name="CreatingFormat" xml:space="preserve">
+    <value>正在创建 {0}…</value>
+  </data>
+  <data name="CreatedFormat" xml:space="preserve">
+    <value>已创建 {0}。</value>
+  </data>
+  <data name="DeletingFormat" xml:space="preserve">
+    <value>正在删除 {0}…</value>
+  </data>
+  <data name="DeletedFormat" xml:space="preserve">
+    <value>已删除 {0}。</value>
+  </data>
+  <data name="CancelledStatus" xml:space="preserve">
+    <value>已取消。</value>
+  </data>
+  <data name="PortScanHint" xml:space="preserve">
+    <value>输入主机（例如 192.168.1.0/24、10.0.0.1-50 或名称）和端口，然后开始扫描。</value>
+  </data>
+  <data name="PortScanNeedHostAndPort" xml:space="preserve">
+    <value>请至少输入一个主机和一个端口。</value>
+  </data>
+  <data name="PortScanScanningFormat" xml:space="preserve">
+    <value>正在扫描 {0} 个主机的 {1} 个端口…</value>
+  </data>
+  <data name="PortScanProgressFormat" xml:space="preserve">
+    <value>正在扫描… 主机 {0}/{1}，已探测端口 {2}/{3}</value>
+  </data>
+  <data name="PortScanDoneFormat" xml:space="preserve">
+    <value>完成：已扫描 {0} 个主机，其中 {1} 个有开放端口。</value>
+  </data>
+  <data name="PortScanStoppedFormat" xml:space="preserve">
+    <value>已停止。目前已找到 {0} 个有开放端口的主机。</value>
+  </data>
+  <data name="PortScanSelectHosts" xml:space="preserve">
+    <value>请选择要导入的主机。</value>
+  </data>
+  <data name="ImportFailedFormat" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>（尚未保存）</value>
+  </data>
+  <data name="FileProtectedByMasterPassword" xml:space="preserve">
+    <value>此文件受主密码保护。</value>
+  </data>
+  <data name="FileNotProtectedByMasterPassword" xml:space="preserve">
+    <value>此文件不受主密码保护（密码使用默认密钥加密）。</value>
+  </data>
+  <data name="TheNameIsRequired" xml:space="preserve">
+    <value>名称为必填项。</value>
+  </data>
+  <data name="ConnectionError" xml:space="preserve">
+    <value>连接错误</value>
+  </data>
+  <data name="ReconnectingEllipsis" xml:space="preserve">
+    <value>正在重新连接…</value>
+  </data>
+  <data name="ToolTipPanelFormat" xml:space="preserve">
+    <value>面板：{0}</value>
+  </data>
+  <data name="SqlDatabaseIsPasswordProtectedFormat" xml:space="preserve">
+    <value>SQL 连接数据库 {0} 受密码保护。</value>
+  </data>
+  <data name="NoOpenSessions" xml:space="preserve">
+    <value>（没有打开的会话）</value>
+  </data>
+  <data name="MultiSshAllSessions" xml:space="preserve">
+    <value>所有会话</value>
+  </data>
+  <data name="MultiSshActivePanel" xml:space="preserve">
+    <value>活动面板</value>
+  </data>
+  <data name="OneSession" xml:space="preserve">
+    <value>1 个会话</value>
+  </data>
+  <data name="SessionsCountFormat" xml:space="preserve">
+    <value>{0} 个会话</value>
+  </data>
+  <data name="NewCredential" xml:space="preserve">
+    <value>新凭据</value>
+  </data>
+  <data name="CredentialNeedsName" xml:space="preserve">
+    <value>每个凭据都需要名称。</value>
+  </data>
+  <data name="CouldNotSaveCredentialsFormat" xml:space="preserve">
+    <value>无法保存凭据：{0}</value>
+  </data>
+  <data name="ConnectWithOptionsTitleFormat" xml:space="preserve">
+    <value>使用选项连接 — {0}</value>
+  </data>
+  <data name="SessionShownFullScreen" xml:space="preserve">
+    <value>此会话正以全屏显示。
+使用该窗口顶部的“退出全屏”将其恢复。</value>
+  </data>
+  <data name="SessionRunsInOwnWindow" xml:space="preserve">
+    <value>此会话在独立窗口中运行。</value>
+  </data>
+  <data name="ShowMRemoteNG" xml:space="preserve">
+    <value>显示 mRemoteNG</value>
+  </data>
+  <data name="ExitMRemoteNG" xml:space="preserve">
+    <value>退出 mRemoteNG</value>
+  </data>
+  <data name="ConfirmExitOneConnection" xml:space="preserve">
+    <value>仍有 1 个连接处于打开状态。退出 mRemoteNG 并关闭该连接？</value>
+  </data>
+  <data name="ConfirmExitConnectionsFormat" xml:space="preserve">
+    <value>仍有 {0} 个连接处于打开状态。退出 mRemoteNG 并关闭这些连接？</value>
+  </data>
+  <data name="CloseConnectionTitle" xml:space="preserve">
+    <value>关闭连接</value>
+  </data>
+  <data name="ConfirmCloseConnectionFormat" xml:space="preserve">
+    <value>关闭连接“{0}”？</value>
+  </data>
+  <data name="RightClickForPanelOptions" xml:space="preserve">
+    <value>右键单击可查看面板选项</value>
+  </data>
+  <data name="DefaultSshPrivateKey" xml:space="preserve">
+    <value>默认 SSH 私钥</value>
+  </data>
+  <data name="MRemoteNGConnectionFiles" xml:space="preserve">
+    <value>mRemoteNG 连接配置文件</value>
+  </data>
+  <data name="LogFileTitle" xml:space="preserve">
+    <value>日志文件</value>
+  </data>
+  <data name="BackupFolderTitle" xml:space="preserve">
+    <value>备份目录</value>
+  </data>
+  <data name="NoExternalTools" xml:space="preserve">
+    <value>（无外部工具）</value>
+  </data>
+  <data name="CustomThemeNameFormat" xml:space="preserve">
+    <value>{0}（自定义）</value>
+  </data>
+  <data name="ThemeSavedFormat" xml:space="preserve">
+    <value>已将“{0}”保存到 {1} 并应用。</value>
+  </data>
+  <data name="CouldNotSaveThemeFormat" xml:space="preserve">
+    <value>无法保存主题：{0}</value>
+  </data>
+  <data name="ThemeDeletedFormat" xml:space="preserve">
+    <value>已删除“{0}”。</value>
+  </data>
+  <data name="ExternalToolTipIntegratedFormat" xml:space="preserve">
+    <value>{0}（在标签中打开）— 针对所选连接运行</value>
+  </data>
+  <data name="ExternalToolTipFormat" xml:space="preserve">
+    <value>{0} — 针对所选连接运行</value>
+  </data>
+  <data name="ExportSelectedFolderFormat" xml:space="preserve">
+    <value>所选目录“{0}”及其子项</value>
+  </data>
+  <data name="ExportConnectionsToFile" xml:space="preserve">
+    <value>将连接导出到文件</value>
+  </data>
+  <data name="ExportChooseFile" xml:space="preserve">
+    <value>请选择要导出到的文件。</value>
+  </data>
+  <data name="ExportFolderMissing" xml:space="preserve">
+    <value>导出文件所在的目录不存在。</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>两次输入的密码不一致。</value>
+  </data>
+  <data name="UploadToFormat" xml:space="preserve">
+    <value>上传到 {0}</value>
+  </data>
+  <data name="DownloadAs" xml:space="preserve">
+    <value>下载为</value>
+  </data>
+  <data name="CreateFolderInFormat" xml:space="preserve">
+    <value>在 {0} 中创建目录：</value>
+  </data>
+  <data name="FolderName" xml:space="preserve">
+    <value>目录名称</value>
+  </data>
+  <data name="FloatingPanelTitleFormat" xml:space="preserve">
+    <value>{0} ({1}) — mRemoteNG</value>
+  </data>
+  <data name="MRemoteNGError" xml:space="preserve">
+    <value>mRemoteNG 错误</value>
+  </data>
+  <data name="Disconnected" xml:space="preserve">
+    <value>已断开连接</value>
+  </data>
+  <data name="HostKeyUnknownTitle" xml:space="preserve">
+    <value>未知的 SSH 主机密钥</value>
+  </data>
+  <data name="HostKeyUnknownHeadingFormat" xml:space="preserve">
+    <value>无法确认主机“{0}”的真实性。</value>
+  </data>
+  <data name="HostKeyUnknownExplanationFormat" xml:space="preserve">
+    <value>请将下面的指纹与服务器管理员公布的指纹进行比较。“接受并保存”会将密钥存储到 {0}，以便今后的连接自动验证。</value>
+  </data>
+  <data name="HostKeyOtherTypeKnown" xml:space="preserve">
+    <value>此主机已使用其他密钥类型记录：</value>
+  </data>
+  <data name="HostKeyChangedTitle" xml:space="preserve">
+    <value>SSH 主机密钥已更改</value>
+  </data>
+  <data name="HostKeyMismatchHeadingFormat" xml:space="preserve">
+    <value>“{1}”提供的 {0} 密钥与已存储的密钥不匹配。</value>
+  </data>
+  <data name="HostKeyMismatchExplanationFormat" xml:space="preserve">
+    <value>连接已被阻止。替换密钥会更新 {0}；~/.ssh/known_hosts 永远不会被修改。</value>
+  </data>
+  <data name="HostKeyStoredKey" xml:space="preserve">
+    <value>已存储的密钥：</value>
+  </data>
+  <data name="ImportTargetRoot" xml:space="preserve">
+    <value>根（顶层）</value>
+  </data>
+  <data name="ImportTargetSelectedFolderFormat" xml:space="preserve">
+    <value>所选目录：{0}</value>
+  </data>
+  <data name="BrowseDirectory" xml:space="preserve">
+    <value>浏览目录服务</value>
+  </data>
+  <data name="PuttySessionsFolderOptional" xml:space="preserve">
+    <value>PuTTY 会话目录（可选）</value>
+  </data>
+  <data name="ImportHintPuttyRegistry" xml:space="preserve">
+    <value>留空则读取 PuTTY 保存在 Windows 注册表中的会话。</value>
+  </data>
+  <data name="PuttySessionsFolder" xml:space="preserve">
+    <value>PuTTY 会话目录</value>
+  </data>
+  <data name="ImportHintPuttyFolder" xml:space="preserve">
+    <value>PuTTY 将会话存储在 ~/.putty/sessions 中（每个会话一个文件）。</value>
+  </data>
+  <data name="OpenSshConfigFile" xml:space="preserve">
+    <value>OpenSSH 配置文件</value>
+  </data>
+  <data name="ImportHintOpenSsh" xml:space="preserve">
+    <value>Host 条目将成为 SSH 连接；通配符模式会被跳过。</value>
+  </data>
+  <data name="ImportHintXml" xml:space="preserve">
+    <value>如果文件受保护，将要求您输入密码。</value>
+  </data>
+  <data name="ImportHintRdcMan" xml:space="preserve">
+    <value>无法导入由 RDCMan 加密（Windows DPAPI）的密码。</value>
+  </data>
+  <data name="ImportBrowseDirectoryWatermark" xml:space="preserve">
+    <value>浏览目录服务以选择 OU…</value>
+  </data>
+  <data name="ImportHintActiveDirectory" xml:space="preserve">
+    <value>连接到域控制器，选择一个 OU 及其中的计算机；它们将作为 RDP 连接导入。</value>
+  </data>
+  <data name="ImportHintCsv" xml:space="preserve">
+    <value>CSV 文件中的密码以明文存储。</value>
+  </data>
+  <data name="SelectPuttySessionsFolder" xml:space="preserve">
+    <value>选择 PuTTY 会话目录</value>
+  </data>
+  <data name="ImportFromFormat" xml:space="preserve">
+    <value>从 {0} 导入</value>
+  </data>
+  <data name="ImportNoPuttyFolder" xml:space="preserve">
+    <value>未找到 PuTTY 会话目录。请选择存放会话文件的目录。</value>
+  </data>
+  <data name="PathDoesNotExistFormat" xml:space="preserve">
+    <value>“{0}”不存在。</value>
+  </data>
+  <data name="PortScanImportedFormat" xml:space="preserve">
+    <value>已将 {0} 个 {1} 连接导入到“{2}”。</value>
+  </data>
+  <data name="PortScanSkippedFormat" xml:space="preserve">
+    <value>已跳过 {0} 个主机：未找到 {1} 服务。</value>
+  </data>
+  <data name="UserInterfaceLanguage" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="AlreadyRunning" xml:space="preserve">
+    <value>mRemoteNG 已在运行。</value>
+  </data>
+  <data name="HostStatusPingFormat" xml:space="preserve">
+    <value>ping {0} 毫秒</value>
+  </data>
+  <data name="HostStatusNoPingFormat" xml:space="preserve">
+    <value>无 ping 响应（{0}）</value>
+  </data>
+  <data name="HostStatusPortOpenFormat" xml:space="preserve">
+    <value>端口 {0} 开放</value>
+  </data>
+  <data name="HostStatusPortClosedFormat" xml:space="preserve">
+    <value>端口 {0} 关闭（{1}）</value>
+  </data>
+  <data name="HostStatusOnlineFormat" xml:space="preserve">
+    <value>在线 — {0}</value>
+  </data>
+  <data name="HostStatusOfflineFormat" xml:space="preserve">
+    <value>离线 — {0}</value>
+  </data>
+  <data name="ShellToastErrorTitle" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="ShellShowLog" xml:space="preserve">
+    <value>显示日志</value>
+  </data>
+  <data name="ShellDismiss" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="ShellSavedFormat" xml:space="preserve">
+    <value>已保存 {0}</value>
+  </data>
+  <data name="ShellCommandPalette" xml:space="preserve">
+    <value>命令面板</value>
+  </data>
+  <data name="ShellCommandPaletteTip" xml:space="preserve">
+    <value>搜索连接和命令 (Ctrl+K)</value>
+  </data>
+  <data name="ShellPaletteWatermark" xml:space="preserve">
+    <value>搜索连接和命令…</value>
+  </data>
+  <data name="ShellPaletteHintNavigate" xml:space="preserve">
+    <value>导航</value>
+  </data>
+  <data name="ShellPaletteHintOpen" xml:space="preserve">
+    <value>连接 / 运行</value>
+  </data>
+  <data name="ShellPaletteHintOptions" xml:space="preserve">
+    <value>使用选项连接</value>
+  </data>
+  <data name="ShellPaletteNoMatches" xml:space="preserve">
+    <value>没有匹配的连接或命令</value>
+  </data>
+  <data name="ShellRecent" xml:space="preserve">
+    <value>最近打开</value>
+  </data>
+  <data name="ShellFindConnection" xml:space="preserve">
+    <value>查找连接</value>
+  </data>
+  <data name="ShellExpandBottomPanel" xml:space="preserve">
+    <value>展开底部面板</value>
+  </data>
+  <data name="ShellToggleTheme" xml:space="preserve">
+    <value>切换深色/浅色主题</value>
+  </data>
+  <data name="ShellSwitchToLightTheme" xml:space="preserve">
+    <value>切换到浅色主题</value>
+  </data>
+  <data name="ShellSwitchToDarkTheme" xml:space="preserve">
+    <value>切换到深色主题</value>
+  </data>
+  <data name="ShellThemeDark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="ShellThemeLight" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="ShellThemeSystemFormat" xml:space="preserve">
+    <value>系统（{0}）</value>
+  </data>
+  <data name="ShellMoreNewItems" xml:space="preserve">
+    <value>新建目录、新建连接配置文件…</value>
+  </data>
+  <data name="ShellQuickConnectWatermark" xml:space="preserve">
+    <value>快速连接：主机[:端口]</value>
+  </data>
+  <data name="ShellQuickConnectTip" xml:space="preserve">
+    <value>主机或 主机:端口，也可使用 user@host 或 ssh://、rdp://、vnc://… — 按 Enter 连接</value>
+  </data>
+  <data name="ShellProtocol" xml:space="preserve">
+    <value>协议</value>
+  </data>
+  <data name="ShellOptionsTip" xml:space="preserve">
+    <value>选项 (Ctrl+,)</value>
+  </data>
+  <data name="ShellMoreExternalTools" xml:space="preserve">
+    <value>更多外部工具</value>
+  </data>
+  <data name="ShellLogIndicatorTip" xml:space="preserve">
+    <value>自上次查看日志以来的警告和错误 — 单击以显示日志</value>
+  </data>
+  <data name="ShellOneSession" xml:space="preserve">
+    <value>1 个会话</value>
+  </data>
+  <data name="ShellSessionsFormat" xml:space="preserve">
+    <value>{0} 个会话</value>
+  </data>
+  <data name="ShellToggleBottomPanelTip" xml:space="preserve">
+    <value>折叠/展开面板 (Ctrl+J)</value>
+  </data>
+  <data name="ShellCopyLogTip" xml:space="preserve">
+    <value>全部复制</value>
+  </data>
+  <data name="ShellClearLogTip" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="ShellHideBottomPanelTip" xml:space="preserve">
+    <value>隐藏面板 (Ctrl+Shift+L)</value>
+  </data>
+  <data name="ShellNoOpenSessions" xml:space="preserve">
+    <value>没有打开的会话</value>
+  </data>
+  <data name="ShellEmptyStateCaption" xml:space="preserve">
+    <value>从连接树中打开已保存的连接，或输入主机立即连接。</value>
+  </data>
+  <data name="ShellNewConnection" xml:space="preserve">
+    <value>新建连接</value>
+  </data>
+  <data name="ShellHintSearch" xml:space="preserve">
+    <value>搜索和命令</value>
+  </data>
+  <data name="ShellRecentAndFavorites" xml:space="preserve">
+    <value>最近使用和收藏夹</value>
+  </data>
+  <data name="TreeMoreActions" xml:space="preserve">
+    <value>更多操作</value>
+  </data>
+  <data name="TreeSearchWatermark" xml:space="preserve">
+    <value>搜索连接 (Ctrl+F)</value>
+  </data>
+  <data name="TreeEmptyTitle" xml:space="preserve">
+    <value>还没有连接</value>
+  </data>
+  <data name="TreeEmptyText" xml:space="preserve">
+    <value>创建您的第一个连接，或从文件导入现有连接。</value>
+  </data>
+  <data name="TreeNoMatchesTitle" xml:space="preserve">
+    <value>无匹配项</value>
+  </data>
+  <data name="TreeNoMatchesText" xml:space="preserve">
+    <value>名称、主机名或描述中没有与搜索匹配的内容。</value>
+  </data>
+  <data name="TreeClearSearch" xml:space="preserve">
+    <value>清除搜索</value>
+  </data>
+  <data name="ConnectRowTip" xml:space="preserve">
+    <value>连接 (Enter)</value>
+  </data>
+  <data name="SessionDotConnected" xml:space="preserve">
+    <value>打开的会话：已连接</value>
+  </data>
+  <data name="SessionDotBusy" xml:space="preserve">
+    <value>打开的会话：正在连接</value>
+  </data>
+  <data name="SessionDotFailed" xml:space="preserve">
+    <value>打开的会话：连接失败</value>
+  </data>
+  <data name="SessionDotIdle" xml:space="preserve">
+    <value>打开的会话：已断开连接</value>
+  </data>
+  <data name="SessionShowAllTabs" xml:space="preserve">
+    <value>显示所有标签</value>
+  </data>
+  <data name="CloseTabTip" xml:space="preserve">
+    <value>关闭（中键单击）</value>
+  </data>
+  <data name="PanelEmptyTitle" xml:space="preserve">
+    <value>此面板中没有会话</value>
+  </data>
+  <data name="PanelEmptyText" xml:space="preserve">
+    <value>“面板”设置为此面板的连接会在此处打开。在标签上使用“移动到面板”可将会话移到此处。</value>
+  </data>
+  <data name="SessionBannerErrorTitle" xml:space="preserve">
+    <value>连接失败</value>
+  </data>
+  <data name="SessionBannerDisconnectedTitle" xml:space="preserve">
+    <value>已断开连接</value>
+  </data>
+  <data name="SessionBannerReconnectingTitle" xml:space="preserve">
+    <value>正在重新连接</value>
+  </data>
+  <data name="ConfirmDeleteThemeTitle" xml:space="preserve">
+    <value>删除主题</value>
+  </data>
+  <data name="ConfirmDeleteThemeFormat" xml:space="preserve">
+    <value>删除主题“{0}”？此操作无法撤消。</value>
+  </data>
+  <data name="TerminalBackendBuiltInTerminal" xml:space="preserve">
+    <value>内置终端</value>
+  </data>
+  <data name="TerminalBackendOpenSshClient" xml:space="preserve">
+    <value>系统 OpenSSH 客户端 (ssh)</value>
+  </data>
+  <data name="TransferFileUltraVnc" xml:space="preserve">
+    <value>传输文件 (UltraVNC)</value>
+  </data>
+  <data name="UltraVncFileTransferTitle" xml:space="preserve">
+    <value>UltraVNC 文件传输</value>
+  </data>
+  <data name="UltraVncFileTransferDescriptionFormat" xml:space="preserve">
+    <value>文件通过 VNC 会话“{0}”传输。按“连接”向服务器请求文件访问权限。服务器必须允许文件传输：UltraVNC 在启用该功能时允许，x11vnc 需要 -ultrafilexfer，其他 LibVNCServer 服务器收到请求时会关闭 VNC 会话。</value>
+  </data>
+  <data name="TextChatTitleFormat" xml:space="preserve">
+    <value>与 {0} 聊天</value>
+  </data>
+  <data name="TextChatYou" xml:space="preserve">
+    <value>您</value>
+  </data>
+  <data name="TextChatNotSent" xml:space="preserve">
+    <value>未连接：消息未发送。</value>
+  </data>
+  <data name="TextChatOpenedFormat" xml:space="preserve">
+    <value>{0} 打开了聊天。</value>
+  </data>
+  <data name="TextChatClosedFormat" xml:space="preserve">
+    <value>{0} 关闭了聊天。</value>
+  </data>
+  <data name="TextChatWatermark" xml:space="preserve">
+    <value>输入消息并按 Enter</value>
+  </data>
+  <data name="TextChatSend" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="PluginLoadedFormat" xml:space="preserve">
+    <value>插件 {0} {1} 已加载。</value>
+  </data>
+  <data name="PluginNotLoadedFormat" xml:space="preserve">
+    <value>插件 {0} 未加载：{1}</value>
+  </data>
+  <data name="PluginImportNoFileFormat" xml:space="preserve">
+    <value>未导入来自插件的 {0} 个连接：没有打开的连接配置文件。</value>
+  </data>
+  <data name="PluginImportedFormat" xml:space="preserve">
+    <value>已将来自插件的 {0} 个连接导入到“{1}”。</value>
+  </data>
+  <data name="PluginsLoadedSummaryFormat" xml:space="preserve">
+    <value>已加载 {0} 个，共 {1} 个。</value>
+  </data>
+  <data name="PluginStateLoaded" xml:space="preserve">
+    <value>已加载</value>
+  </data>
+  <data name="PluginStateDisabled" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
+  <data name="PluginStateIncompatible" xml:space="preserve">
+    <value>需要更新的版本</value>
+  </data>
+  <data name="PluginStateDuplicate" xml:space="preserve">
+    <value>重复</value>
+  </data>
+  <data name="PluginStateUnsupported" xml:space="preserve">
+    <value>仅限 Windows 应用</value>
+  </data>
+  <data name="PluginStateFailed" xml:space="preserve">
+    <value>加载失败</value>
+  </data>
+  <data name="InstalledPlugins" xml:space="preserve">
+    <value>已安装的插件</value>
+  </data>
+  <data name="NoPluginsFound" xml:space="preserve">
+    <value>未找到插件</value>
+  </data>
+  <data name="NoPluginsFoundDescription" xml:space="preserve">
+    <value>将插件的 DLL 复制到下面的某个插件目录中，然后重新启动 mRemoteNG。</value>
+  </data>
+  <data name="PluginChangesAfterRestart" xml:space="preserve">
+    <value>启用、禁用或添加插件将在下次启动 mRemoteNG 时生效。工具窗口插件使用 Windows Forms，仅能在 Windows 应用中使用。</value>
+  </data>
+  <data name="PluginFolders" xml:space="preserve">
+    <value>插件目录</value>
+  </data>
+  <data name="PluginFoldersAlwaysSearched" xml:space="preserve">
+    <value>始终搜索</value>
+  </data>
+  <data name="OpenPluginFolder" xml:space="preserve">
+    <value>打开插件目录</value>
+  </data>
+  <data name="AdditionalPluginFolders" xml:space="preserve">
+    <value>其他目录</value>
+  </data>
+  <data name="AdditionalPluginFoldersDescription" xml:space="preserve">
+    <value>用于加载插件的其他目录，以分号（;）分隔。</value>
+  </data>
+</root>

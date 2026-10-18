@@ -117,7 +117,7 @@ namespace mRemoteNG.Core.Config.Connections
             ArgumentNullException.ThrowIfNull(store);
             var result = store.Load(password);
             ConnectionTreeModel = result.Model;
-            SqlLocalState?.Apply(ConnectionTreeModel);
+            SqlLocalState?.Apply(ConnectionTreeModel, result.StoredSharedColumns);
             Encryption = new ConnectionFileEncryption();
             CurrentFilePath = null;
             Database = store;
@@ -194,7 +194,7 @@ namespace mRemoteNG.Core.Config.Connections
             {
                 // Written even when the database save is refused (read-only): the WinForms app does the same,
                 // so favourites and open sessions are remembered without changing the shared tables.
-                SqlLocalState?.Save(ConnectionTreeModel);
+                SqlLocalState?.Save(ConnectionTreeModel, store.KnownColumns);
                 LastDatabaseUpdate = store.Save(ConnectionTreeModel);
             }
             Saved?.Invoke(this, new ConnectionsStorageEventArgs(ConnectionsStorageKind.Database, store.DisplayName));

@@ -23,8 +23,8 @@ namespace mRemoteNG.Core.Config.Connections.Sql
     /// (<c>tblCons</c>, <c>tblRoot</c>, <c>tblUpdate</c>), so the legacy WinForms app and this version can share it.
     /// <list type="bullet">
     ///   <item>Missing tables are created on first use; missing columns of older schema versions are added
-    ///         and <c>tblRoot.ConfVersion</c> raised to 3.0 (not in read-only mode).</item>
-    ///   <item>A newer schema version than 3.0 is refused (<see cref="ConnectionFileVersionException"/>).</item>
+    ///         and <c>tblRoot.ConfVersion</c> raised to 3.2 (not in read-only mode).</item>
+    ///   <item>A newer schema version than 3.2 is refused (<see cref="ConnectionFileVersionException"/>).</item>
     ///   <item>Passwords and the <c>tblRoot.Protected</c> marker use the legacy AES-CBC scheme
     ///         (<see cref="LegacyRijndaelCryptographyProvider"/>) keyed with the root password ("mR3m" unless a
     ///         master password is set), exactly as the legacy SQL backend does.</item>
@@ -66,8 +66,11 @@ namespace mRemoteNG.Core.Config.Connections.Sql
 
         public bool ReadOnly => Settings.ReadOnly;
 
+        /// <summary>The <c>tblCons</c> columns found by the last load or save (empty before the first one).</summary>
+        public IReadOnlySet<string> KnownColumns { get; private set; } = new HashSet<string>();
+
         /// <summary>A short description for logs and the window title, e.g. "MySql db:3306/mremoteng".</summary>
-        public string DisplayName => $"{Settings.ServerType} {Settings.Host}/{Settings.DatabaseName}";
+        public string DisplayName => $"{Settings.ServerType} {Settings.DisplayName}";
 
         // ── Load ──────────────────────────────────────────────────────────────
 
@@ -91,6 +94,7 @@ namespace mRemoteNG.Core.Config.Connections.Sql
 
             if (!ReadOnly)
                 UpgradeSchema(connector, metaData);
+            KnownColumns = GetConnectionTableColumns(connector);
 
             var rootName = string.IsNullOrWhiteSpace(metaData?.Name) ? "Connections" : metaData!.Name;
             var key = ResolveKey(metaData?.Protected, password);
@@ -103,7 +107,10 @@ namespace mRemoteNG.Core.Config.Connections.Sql
 
             var lastUpdate = ReadLastUpdate(connector);
             _logger.LogInformation("Loaded {Count} connections from {Database}", rows.Count, DisplayName);
-            return new SqlLoadResult(model, lastUpdate, metaData?.ConfVersion ?? SqlSchema.CurrentVersion);
+            return new SqlLoadResult(model, lastUpdate, metaData?.ConfVersion ?? SqlSchema.CurrentVersion)
+            {
+                StoredSharedColumns = mapper.StoredSharedColumns,
+            };
         }
 
         /// <summary>The <c>tblRoot</c> row, or null when the database has no tree yet.</summary>
@@ -139,6 +146,7 @@ namespace mRemoteNG.Core.Config.Connections.Sql
             var key = model.RootNode.PasswordString;
             var rows = new SqlConnectionRowMapper(_crypto, saveFilter, _clock).ToRows(model, key);
             var dbColumns = GetConnectionTableColumns(connector);
+            KnownColumns = dbColumns;
             var columns = SqlConnectionRowMapper.MappedColumns
                 .Where(dbColumns.Contains)
                 .ToList();
@@ -398,5 +406,10 @@ namespace mRemoteNG.Core.Config.Connections.Sql
     /// <summary>Result of <see cref="SqlConnectionsStore.Load"/>.</summary>
     /// <param name="LastUpdate">The database's <c>tblUpdate.LastUpdate</c> at load time.</param>
     /// <param name="SchemaVersion">The schema version found in <c>tblRoot</c> (before any upgrade).</param>
-    public sealed record SqlLoadResult(ConnectionTreeModel Model, DateTime? LastUpdate, Version SchemaVersion);
+    public sealed record SqlLoadResult(ConnectionTreeModel Model, DateTime? LastUpdate, Version SchemaVersion)
+    {
+        /// <summary>See <see cref="SqlConnectionRowMapper.StoredSharedColumns"/>.</summary>
+        public IReadOnlyDictionary<string, IReadOnlySet<string>> StoredSharedColumns { get; init; } =
+            new Dictionary<string, IReadOnlySet<string>>();
+    }
 }

@@ -4,6 +4,7 @@ using mRemoteNG.Core.Connection.Protocol.RDP;
 using mRemoteNG.Core.Connection.Protocol.VNC;
 using mRemoteNG.Protocols.Rdp;
 using CoreProtocol = mRemoteNG.Core.Connection.Protocol.ProtocolType;
+using TerminalBackend = mRemoteNG.Core.Connection.Protocol.TerminalBackend;
 
 namespace mRemoteNG.Protocols.Abstractions;
 
@@ -60,6 +61,10 @@ public static class ConnectionParametersFactory
         public const string RdpSoundQuality = "rdp.soundQuality";
         public const string RdpRestrictedAdmin = "rdp.restrictedAdmin";
         public const string RdpRemoteCredentialGuard = "rdp.remoteCredentialGuard";
+        /// <summary>RDP: after a broker redirection, connect to the target by name (FQDN/NetBIOS) rather than by IP.</summary>
+        public const string RdpUseRedirectionServerName = "rdp.useRedirectionServerName";
+        public const string RdpDisableCursorShadow = "rdp.disableCursorShadow";
+        public const string RdpDisableCursorBlinking = "rdp.disableCursorBlinking";
         /// <summary>RDP: disconnect after this many minutes without user input (0 = never).</summary>
         public const string RdpIdleTimeoutMinutes = "rdp.idleTimeoutMinutes";
         /// <summary>RDP: tell the user when the session was disconnected for inactivity.</summary>
@@ -97,7 +102,10 @@ public static class ConnectionParametersFactory
         public const string VncProxyPassword = "vnc.proxy.password";
         /// <summary>Command template for <see cref="ProtocolType.ExternalApp"/> (see ExternalAppProtocol).</summary>
         public const string ExternalCommand = "external.command";
-        /// <summary>Local shell flavour for <see cref="ProtocolType.LocalShell"/>: "terminal" or "wsl".</summary>
+        /// <summary>
+        /// Local shell flavour for <see cref="ProtocolType.LocalShell"/>: "terminal", "wsl", or "ssh" (an SSH
+        /// connection whose terminal backend is the system OpenSSH client).
+        /// </summary>
         public const string LocalShellMode = "shell.mode";
         /// <summary>Display name of the external tool an <see cref="ProtocolType.IntApp"/> session runs (ConnectionInfo.ExtApp).</summary>
         public const string IntAppTool = "intapp.tool";
@@ -145,6 +153,10 @@ public static class ConnectionParametersFactory
 
         var protocol = MapProtocol(info.Protocol)
             ?? throw new NotSupportedException($"The {info.Protocol} protocol is not supported on this platform yet.");
+        // The legacy "Windows Terminal" backend runs the OpenSSH client instead of the built-in SSH terminal.
+        var useOpenSsh = protocol == ProtocolType.Ssh && info.TerminalBackend == TerminalBackend.WindowsTerminal;
+        if (useOpenSsh)
+            protocol = ProtocolType.LocalShell;
 
         var extras = new Dictionary<string, string>();
         if (!string.IsNullOrEmpty(info.OpeningCommand))
@@ -156,7 +168,7 @@ public static class ConnectionParametersFactory
         if (info.Protocol == CoreProtocol.AnyDesk)
             extras[Keys.ExternalCommand] = AnyDeskCommand;
         if (protocol == ProtocolType.LocalShell)
-            extras[Keys.LocalShellMode] = info.Protocol == CoreProtocol.WSL ? "wsl" : "terminal";
+            extras[Keys.LocalShellMode] = useOpenSsh ? "ssh" : info.Protocol == CoreProtocol.WSL ? "wsl" : "terminal";
         if (protocol == ProtocolType.IntApp)
             AddIntAppExtras(info, extras);
 
@@ -235,6 +247,9 @@ public static class ConnectionParametersFactory
         };
         extras[Keys.RdpRestrictedAdmin] = Bool(info.UseRestrictedAdmin);
         extras[Keys.RdpRemoteCredentialGuard] = Bool(info.UseRCG);
+        extras[Keys.RdpUseRedirectionServerName] = Bool(info.UseRedirectionServerName);
+        extras[Keys.RdpDisableCursorShadow] = Bool(info.DisableCursorShadow);
+        extras[Keys.RdpDisableCursorBlinking] = Bool(info.DisableCursorBlinking);
         if (info.RDPMinutesToIdleTimeout > 0)
         {
             extras[Keys.RdpIdleTimeoutMinutes] = info.RDPMinutesToIdleTimeout.ToString(CultureInfo.InvariantCulture);
