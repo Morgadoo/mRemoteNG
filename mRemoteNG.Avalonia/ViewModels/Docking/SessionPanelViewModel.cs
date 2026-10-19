@@ -14,6 +14,22 @@ public enum PanelArrangement
 
     /// <summary>All docked panels above each other (rows).</summary>
     Stacked,
+
+    /// <summary>Two halves: the left section and the right section, each with its own tabs.</summary>
+    SplitVertical,
+
+    /// <summary>Two halves: the top section and the bottom section, each with its own tabs.</summary>
+    SplitHorizontal,
+}
+
+/// <summary>Which half of a split session area a panel belongs to.</summary>
+public enum PanelSection
+{
+    /// <summary>The only section, or the left / top half.</summary>
+    Primary,
+
+    /// <summary>The right half (vertical split) or the bottom half (horizontal split).</summary>
+    Secondary,
 }
 
 /// <summary>Position and size of a floating panel window.</summary>
@@ -31,6 +47,7 @@ public sealed class SessionPanelViewModel : ReactiveObject
     private bool _isFloating;
     private bool _isActive;
     private double _sizeWeight = 1;
+    private PanelSection _section = PanelSection.Primary;
 
     public SessionPanelViewModel(SessionsDockable owner, string name)
     {
@@ -79,6 +96,24 @@ public sealed class SessionPanelViewModel : ReactiveObject
     {
         get => _sizeWeight;
         set => this.RaiseAndSetIfChanged(ref _sizeWeight, double.IsFinite(value) && value > 0.01 ? value : 1);
+    }
+
+    /// <summary>
+    /// Which half the panel lives in when the session area is split in two. Ignored for the tabbed,
+    /// side-by-side and stacked arrangements.
+    /// </summary>
+    public PanelSection Section
+    {
+        get => _section;
+        set => SetSection(value);
+    }
+
+    /// <summary>Sets the half without notifying, so several panels can be rearranged before the layout rebuilds.</summary>
+    internal void SetSection(PanelSection value)
+    {
+        if (_section == value) return;
+        _section = value;
+        this.RaisePropertyChanged(nameof(Section));
     }
 
     /// <summary>Last bounds of the floating window; null for the default placement.</summary>

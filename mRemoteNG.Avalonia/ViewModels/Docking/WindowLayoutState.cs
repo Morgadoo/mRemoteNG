@@ -108,5 +108,8 @@ public sealed class PanelLayoutState
 
     public double Weight { get; set; } = 1;
 
+    /// <summary>Which half of a two-section split the panel belongs to (ignored by the other arrangements).</summary>
+    public PanelSection Section { get; set; } = PanelSection.Primary;
+
     public FloatingBounds? Floating { get; set; }
 }

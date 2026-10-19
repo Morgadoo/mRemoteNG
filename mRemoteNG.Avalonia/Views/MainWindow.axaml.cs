@@ -467,6 +467,8 @@ public partial class MainWindow : Window
         ArrangeTabbedItem.IsChecked = vm.Sessions.Arrangement == PanelArrangement.Tabbed;
         ArrangeSideBySideItem.IsChecked = vm.Sessions.Arrangement == PanelArrangement.SideBySide;
         ArrangeStackedItem.IsChecked = vm.Sessions.Arrangement == PanelArrangement.Stacked;
+        ArrangeSplitVerticalItem.IsChecked = vm.Sessions.Arrangement == PanelArrangement.SplitVertical;
+        ArrangeSplitHorizontalItem.IsChecked = vm.Sessions.Arrangement == PanelArrangement.SplitHorizontal;
     }
 
     private async void OnMultiSshKeyDown(object? sender, KeyEventArgs e)

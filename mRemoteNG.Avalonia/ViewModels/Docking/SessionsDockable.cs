@@ -196,6 +196,44 @@ public sealed class SessionsDockable : Document
     }
 
     /// <summary>
+    /// Moves a session into its own panel in the other half of the session area and switches to a two-section
+    /// split. The panel is named "Right", "Left", "Bottom" or "Top" (numbered when that name is taken).
+    /// </summary>
+    public SessionPanelViewModel SplitSession(SessionTabViewModel session, PanelSection section, bool vertical)
+    {
+        if (session.Panel is not { } from || !Sessions.Contains(session))
+            return session.Panel ?? GetOrCreatePanel(null);
+
+        // A panel with only this tab moves as a whole; otherwise the tab gets its own panel in that half.
+        SessionPanelViewModel panel;
+        if (from.Sessions.Count <= 1)
+        {
+            panel = from;
+        }
+        else
+        {
+            var name = section == PanelSection.Secondary
+                ? vertical ? "Right" : "Bottom"
+                : vertical ? "Left" : "Top";
+            panel = GetOrCreatePanel(UniquePanelName(name));
+            RemoveFromPanel(session, from);
+            session.Panel = panel;
+            panel.Sessions.Add(session);
+            panel.RaiseSessionCountChanged();
+        }
+        // The dropped tab must land opposite the sessions that stay behind, or both halves collapse into one
+        // and the other shows an empty panel. Applied quietly, then raised once, so the layout rebuilds once.
+        var opposite = section == PanelSection.Secondary ? PanelSection.Primary : PanelSection.Secondary;
+        foreach (var other in Panels.Where(p => !ReferenceEquals(p, panel) && p.Section == section && p.Sessions.Count > 0))
+            other.SetSection(opposite);
+        panel.SetSection(section);
+        panel.ActiveSession = session;
+        ActivePanel = panel;
+        Arrangement = vertical ? PanelArrangement.SplitVertical : PanelArrangement.SplitHorizontal;
+        return panel;
+    }
+
+    /// <summary>
     /// Tab drag and drop: puts a session at <paramref name="index"/> (a position among the target panel's tabs
     /// before the move) of <paramref name="to"/>, which reorders it within its own panel.
     /// </summary>
@@ -444,6 +482,36 @@ public sealed class SessionsDockable : Document
         panel.RaiseSessionCountChanged();
         if (wasActive)
             panel.ActiveSession = panel.Sessions.Count == 0 ? null : panel.Sessions[Math.Min(index, panel.Sessions.Count - 1)];
+        if (panel.Sessions.Count == 0)
+            RemoveEmptySplitPanel(panel);
+    }
+
+    /// <summary>
+    /// Panels created by a split ("Left", "Right", "Top", "Bottom") exist only to hold the moved session.
+    /// Once it leaves, the panel goes too, so a closed session does not leave an empty half behind.
+    /// </summary>
+    private void RemoveEmptySplitPanel(SessionPanelViewModel panel)
+    {
+        if (!IsSplitPanelName(panel.Name) || panel.Sessions.Count > 0) return;
+        panel.ActiveSessionChanged -= OnPanelActiveSessionChanged;
+        Panels.Remove(panel);
+        if (ReferenceEquals(ActivePanel, panel))
+            ActivePanel = Panels.FirstOrDefault(p => !p.IsFloating) ?? Panels.FirstOrDefault();
+        if (Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
+            && Panels.Count(p => !p.IsFloating) < 2)
+            Arrangement = PanelArrangement.Tabbed;
+    }
+
+    private static bool IsSplitPanelName(string name)
+    {
+        foreach (var prefix in new[] { "Left", "Right", "Top", "Bottom" })
+        {
+            if (name.Equals(prefix, StringComparison.OrdinalIgnoreCase)) return true;
+            if (name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(name[(prefix.Length + 1)..], out _))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>Tab menu ▸ Close other tabs (in the same panel).</summary>
@@ -734,6 +802,7 @@ public sealed class SessionsDockable : Document
             Name = p.Name,
             IsFloating = p.IsFloating,
             Weight = p.SizeWeight,
+            Section = p.Section,
             Floating = p.FloatingBounds,
         }).ToList();
     }
@@ -743,10 +812,17 @@ public sealed class SessionsDockable : Document
     {
         Arrangement = state.Arrangement;
         var order = new List<SessionPanelViewModel>();
-        foreach (var saved in state.Panels)
+        // A saved split panel with no sessions is the half of a session that was closed: it would open
+        // the window on an empty panel, so it is not recreated.
+        var savedPanels = state.Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
+            ? state.Panels.Where(p => Panels.Any(existing => string.Equals(existing.Name, p.Name, StringComparison.OrdinalIgnoreCase))
+                || !IsSplitPanelName(p.Name)).ToList()
+            : state.Panels;
+        foreach (var saved in savedPanels)
         {
             var panel = GetOrCreatePanel(saved.Name);
             panel.SizeWeight = saved.Weight;
+            panel.Section = saved.Section;
             panel.FloatingBounds = saved.Floating;
             panel.IsFloating = saved.IsFloating;
             order.Add(panel);
@@ -763,6 +839,11 @@ public sealed class SessionsDockable : Document
 
         if (state.ActivePanel is { } active && FindPanel(active) is { } activePanel)
             ActivePanel = activePanel;
+
+        // A split needs two docked panels; a restored layout that no longer has them goes back to tabs.
+        if (Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
+            && Panels.Count(p => !p.IsFloating) < 2)
+            Arrangement = PanelArrangement.Tabbed;
     }
 
     /// <summary>View ▸ Reset Layout: every panel docked, tabbed, equal sizes.</summary>
@@ -773,6 +854,7 @@ public sealed class SessionsDockable : Document
         {
             panel.IsFloating = false;
             panel.SizeWeight = 1;
+            panel.Section = PanelSection.Primary;
             panel.FloatingBounds = null;
         }
     }

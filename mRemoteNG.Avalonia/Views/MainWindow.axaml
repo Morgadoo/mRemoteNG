@@ -111,6 +111,12 @@
                     <MenuItem x:Name="ArrangeStackedItem" Header="{l:Tr Stacked}" ToggleType="Radio"
                               Command="{Binding ArrangePanelsCommand}"
                               CommandParameter="{x:Static dock:PanelArrangement.Stacked}"/>
+                    <MenuItem x:Name="ArrangeSplitVerticalItem" Header="{l:Tr SplitVertical, English='Split Left / Right'}" ToggleType="Radio"
+                              Command="{Binding ArrangePanelsCommand}"
+                              CommandParameter="{x:Static dock:PanelArrangement.SplitVertical}"/>
+                    <MenuItem x:Name="ArrangeSplitHorizontalItem" Header="{l:Tr SplitHorizontal, English='Split Top / Bottom'}" ToggleType="Radio"
+                              Command="{Binding ArrangePanelsCommand}"
+                              CommandParameter="{x:Static dock:PanelArrangement.SplitHorizontal}"/>
                 </MenuItem>
                 <MenuItem Header="{l:Tr ResetLayout, English='Reset Layout'}" Command="{Binding ResetLayoutCommand}"/>
                 <Separator/>

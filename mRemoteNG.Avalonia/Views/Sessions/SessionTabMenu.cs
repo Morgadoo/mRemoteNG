@@ -34,6 +34,10 @@ public static class SessionTabMenu
     public static string CopyHostname => Localizer.Get("CopyHostname");
     public static string MultiSshTarget => Localizer.Get("IncludeInMultiSsh");
     public static string MoveToPanel => Localizer.Get("MoveToPanel");
+    public static string SplitRight => Localizer.Get("SplitRight", "Split Right");
+    public static string SplitLeft => Localizer.Get("SplitLeft", "Split Left");
+    public static string SplitDown => Localizer.Get("SplitDown", "Split Down");
+    public static string SplitUp => Localizer.Get("SplitUp", "Split Up");
     public static string NewPanel => Localizer.Get("NewPanel") + "...";
     public static string Close => Localizer.Get("_Close");
     public static string CloseOthers => Localizer.Get("CloseOtherTabs");
@@ -81,6 +85,7 @@ public static class SessionTabMenu
             Check(MultiSshTarget, session.IsTerminal, session.IsTerminal && session.IsMultiSshTarget,
                 () => session.IsMultiSshTarget = !session.IsMultiSshTarget),
             MoveMenu(session, dock, owner),
+            SplitMenu(session, dock),
             new Separator(),
             Item(Close, true, () => session.CloseCommand.Execute().Subscribe()),
             Item(CloseOthers, dock is not null && panel is { Sessions.Count: > 1 },
@@ -211,6 +216,18 @@ public static class SessionTabMenu
             if (!string.IsNullOrWhiteSpace(name))
                 dock.MoveSession(session, name);
         }));
+        return item;
+    }
+
+    /// <summary>Moves the tab into its own half of the session area (left/right or top/bottom).</summary>
+    private static MenuItem SplitMenu(SessionTabViewModel session, SessionsDockable? dock)
+    {
+        var item = new MenuItem { Header = Localizer.Get("Split", "Split"), IsEnabled = dock is not null && session.Panel is not null };
+        if (dock is null) return item;
+        item.Items.Add(Item(SplitRight, true, () => dock.SplitSession(session, PanelSection.Secondary, vertical: true)));
+        item.Items.Add(Item(SplitLeft, true, () => dock.SplitSession(session, PanelSection.Primary, vertical: true)));
+        item.Items.Add(Item(SplitDown, true, () => dock.SplitSession(session, PanelSection.Secondary, vertical: false)));
+        item.Items.Add(Item(SplitUp, true, () => dock.SplitSession(session, PanelSection.Primary, vertical: false)));
         return item;
     }
 

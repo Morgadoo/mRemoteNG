@@ -30,11 +30,21 @@ public partial class SessionAreaView : UserControl
     private AppSettingsService? _settings;
     private List<SessionPanelViewModel> _arranged = [];
     private PanelArrangement? _arrangedMode;
+    private string? _arrangedSections;
+    private bool _rebuilding;
+    private bool _rebuildQueued;
+
+    /// <summary>Which half of a two-section split is showing, when the strip is in section mode.</summary>
+    private readonly Dictionary<Border, PanelSection> _sectionOfStrip = [];
 
     public SessionAreaView()
     {
         InitializeComponent();
         DataContextChanged += (_, _) => Bind(DataContext as SessionsDockable);
+        DragDrop.SetAllowDrop(SplitDropSurface, true);
+        SplitDropSurface.AddHandler(DragDrop.DragOverEvent, OnSplitDragOver);
+        SplitDropSurface.AddHandler(DragDrop.DropEvent, OnSplitDrop);
+        SplitDropSurface.AddHandler(DragDrop.DragLeaveEvent, (_, _) => HideSplitPreview());
     }
 
     /// <summary>Raised after panels were (re)arranged, docked, floated, added or removed.</summary>
@@ -123,6 +133,10 @@ public partial class SessionAreaView : UserControl
             case nameof(SessionPanelViewModel.IsFloating):
                 Rebuild();
                 break;
+            case nameof(SessionPanelViewModel.Section):
+                // Several panels change half together. Rebuild once, after they have all settled.
+                RequestRebuild();
+                break;
             case nameof(SessionPanelViewModel.Name):
             case nameof(SessionPanelViewModel.SessionCount):
                 UpdatePanelStrip();
@@ -139,8 +153,40 @@ public partial class SessionAreaView : UserControl
             global::Avalonia.Threading.Dispatcher.UIThread.Post(Rebuild);
     }
 
+    /// <summary>Coalesces the rebuilds queued by a burst of panel changes into one.</summary>
+    private void RequestRebuild()
+    {
+        if (_rebuildQueued) return;
+        _rebuildQueued = true;
+        global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            _rebuildQueued = false;
+            Rebuild();
+        });
+    }
+
     /// <summary>Brings the views and windows in line with the panels, their docking state and the arrangement.</summary>
     public void Rebuild()
+    {
+        if (_dock is null) return;
+        if (_rebuilding)
+        {
+            // A change made while laying out (never expected) must not start a second layout on this stack.
+            RequestRebuild();
+            return;
+        }
+        _rebuilding = true;
+        try
+        {
+            RebuildCore();
+        }
+        finally
+        {
+            _rebuilding = false;
+        }
+    }
+
+    private void RebuildCore()
     {
         if (_dock is null) return;
         var panels = _dock.Panels.ToList();
@@ -157,7 +203,7 @@ public partial class SessionAreaView : UserControl
         {
             var view = _views[panel];
             _views.Remove(panel);
-            PanelGrid.Children.Remove(view);
+            (view.Parent as Panel)?.Children.Remove(view);
             view.DataContext = null;
         }
 
@@ -165,7 +211,8 @@ public partial class SessionAreaView : UserControl
             _views[panel] = new SessionPanelView(panel);
 
         var docked = panels.Where(p => !p.IsFloating).ToList();
-        if (_arrangedMode != _dock.Arrangement || !_arranged.SequenceEqual(docked))
+        var sections = SectionSignature(docked);
+        if (_arrangedMode != _dock.Arrangement || !_arranged.SequenceEqual(docked) || _arrangedSections != sections)
             Arrange(docked);
 
         var toFloat = panels.Where(p => p.IsFloating && !_floating.ContainsKey(p)).ToList();
@@ -188,9 +235,19 @@ public partial class SessionAreaView : UserControl
     {
         _arranged = docked;
         _arrangedMode = _dock!.Arrangement;
+        _arrangedSections = SectionSignature(docked);
+        _sectionOfStrip.Clear();
+        foreach (var view in _views.Values)
+            (view.Parent as Panel)?.Children.Remove(view);
         PanelGrid.Children.Clear();
         PanelGrid.RowDefinitions.Clear();
         PanelGrid.ColumnDefinitions.Clear();
+
+        if (IsTwoSectionMode && docked.Count > 1)
+        {
+            ArrangeSections(docked);
+            return;
+        }
 
         if (_dock.Arrangement == PanelArrangement.Tabbed || docked.Count <= 1)
         {
@@ -203,26 +260,92 @@ public partial class SessionAreaView : UserControl
         for (var i = 0; i < docked.Count; i++)
         {
             if (i > 0)
-            {
-                AddDefinition(columns, new GridLength(SplitterSize));
-                var splitter = new GridSplitter
-                {
-                    ResizeDirection = columns ? GridResizeDirection.Columns : GridResizeDirection.Rows,
-                    ResizeBehavior = GridResizeBehavior.PreviousAndNext,
-                };
-                splitter.Classes.Add("panel-splitter");
-                splitter.Classes.Add(columns ? "columns" : "rows");
-                if (columns) splitter.Width = SplitterSize; else splitter.Height = SplitterSize;
-                splitter.DragCompleted += (_, _) => CaptureWeights();
-                Place(splitter, columns, i * 2 - 1);
-                PanelGrid.Children.Add(splitter);
-            }
+                AddSplitter(columns, i * 2 - 1);
 
             AddDefinition(columns, new GridLength(docked[i].SizeWeight, GridUnitType.Star));
             var view = _views[docked[i]];
             Place(view, columns, i * 2);
             PanelGrid.Children.Add(view);
         }
+    }
+
+    /// <summary>
+    /// Two halves, each a tabbed section. Panels marked <see cref="PanelSection.Secondary"/> go to the
+    /// right (or the bottom); everything else stays in the first half.
+    /// </summary>
+    private void ArrangeSections(List<SessionPanelViewModel> docked)
+    {
+        var columns = _dock!.Arrangement == PanelArrangement.SplitVertical;
+        var primary = docked.Where(p => p.Section != PanelSection.Secondary).ToList();
+        var secondary = docked.Where(p => p.Section == PanelSection.Secondary).ToList();
+
+        AddDefinition(columns, new GridLength(WeightOf(primary), GridUnitType.Star));
+        AddSplitter(columns, 1);
+        AddDefinition(columns, new GridLength(WeightOf(secondary), GridUnitType.Star));
+
+        PlaceSection(primary, PanelSection.Primary, columns, 0);
+        PlaceSection(secondary, PanelSection.Secondary, columns, 2);
+    }
+
+    private void PlaceSection(List<SessionPanelViewModel> panels, PanelSection section, bool columns, int index)
+    {
+        var host = new Grid();
+        Place(host, columns, index);
+        PanelGrid.Children.Add(host);
+        if (panels.Count == 0)
+            return;
+
+        if (panels.Count > 1)
+        {
+            var strip = new Border();
+            strip.Classes.Add("panel-strip");
+            _sectionOfStrip[strip] = section;
+            host.Children.Add(strip);
+            Grid.SetRow(strip, 0);
+        }
+
+        foreach (var panel in panels)
+        {
+            var view = _views[panel];
+            host.Children.Add(view);
+            if (panels.Count > 1)
+                Grid.SetRow(view, 1);
+        }
+        if (panels.Count > 1)
+        {
+            host.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            host.RowDefinitions.Add(new RowDefinition(GridLength.Star));
+        }
+    }
+
+    /// <summary>Changes that force a re-layout of the two halves (a panel switching section).</summary>
+    private string? SectionSignature(IReadOnlyList<SessionPanelViewModel> docked) =>
+        IsTwoSectionMode
+            ? string.Join("|", docked.Select(p => p.Section == PanelSection.Secondary ? "1" : "0"))
+            : null;
+
+    private bool IsTwoSectionMode =>
+        _dock?.Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal;
+
+    private bool IsTwoSections => IsTwoSectionMode && _arranged.Count > 1;
+
+    private static double WeightOf(IReadOnlyList<SessionPanelViewModel> panels) =>
+        panels.Count == 0 ? 1 : panels.Max(p => p.SizeWeight);
+
+    private void AddSplitter(bool columns, int index)
+    {
+        AddDefinition(columns, new GridLength(SplitterSize));
+        var splitter = new GridSplitter
+        {
+            ResizeDirection = columns ? GridResizeDirection.Columns : GridResizeDirection.Rows,
+            ResizeBehavior = GridResizeBehavior.PreviousAndNext,
+        };
+        splitter.Classes.Add("panel-splitter");
+        splitter.Classes.Add(columns ? "columns" : "rows");
+        if (columns) splitter.Width = SplitterSize; else splitter.Height = SplitterSize;
+        splitter.DragCompleted += (_, _) => CaptureWeights();
+        Place(splitter, columns, index);
+        PanelGrid.Children.Add(splitter);
     }
 
     private void AddDefinition(bool columns, GridLength length)
@@ -245,10 +368,21 @@ public partial class SessionAreaView : UserControl
     public void CaptureWeights()
     {
         if (!IsSplit) return;
-        var columns = _dock!.Arrangement == PanelArrangement.SideBySide;
+        if (IsTwoSections)
+        {
+            var columns = _dock!.Arrangement == PanelArrangement.SplitVertical;
+            var primary = columns ? PanelGrid.ColumnDefinitions[0].ActualWidth : PanelGrid.RowDefinitions[0].ActualHeight;
+            var secondary = columns ? PanelGrid.ColumnDefinitions[2].ActualWidth : PanelGrid.RowDefinitions[2].ActualHeight;
+            foreach (var panel in _arranged.Where(p => p.Section != PanelSection.Secondary))
+                if (primary > 0) panel.SizeWeight = primary;
+            foreach (var panel in _arranged.Where(p => p.Section == PanelSection.Secondary))
+                if (secondary > 0) panel.SizeWeight = secondary;
+            return;
+        }
+        var columnsSide = _dock!.Arrangement == PanelArrangement.SideBySide;
         for (var i = 0; i < _arranged.Count; i++)
         {
-            var size = columns ? PanelGrid.ColumnDefinitions[i * 2].ActualWidth : PanelGrid.RowDefinitions[i * 2].ActualHeight;
+            var size = columnsSide ? PanelGrid.ColumnDefinitions[i * 2].ActualWidth : PanelGrid.RowDefinitions[i * 2].ActualHeight;
             if (size > 0)
                 _arranged[i].SizeWeight = size;
         }
@@ -257,11 +391,28 @@ public partial class SessionAreaView : UserControl
     private void ApplyWeights()
     {
         if (!IsSplit) return;
-        var columns = _dock!.Arrangement == PanelArrangement.SideBySide;
+        if (IsTwoSections)
+        {
+            var columns = _dock!.Arrangement == PanelArrangement.SplitVertical;
+            var first = new GridLength(WeightOf(PanelsOf(PanelSection.Primary)), GridUnitType.Star);
+            var second = new GridLength(WeightOf(PanelsOf(PanelSection.Secondary)), GridUnitType.Star);
+            if (columns)
+            {
+                PanelGrid.ColumnDefinitions[0].Width = first;
+                PanelGrid.ColumnDefinitions[2].Width = second;
+            }
+            else
+            {
+                PanelGrid.RowDefinitions[0].Height = first;
+                PanelGrid.RowDefinitions[2].Height = second;
+            }
+            return;
+        }
+        var columnsSide = _dock!.Arrangement == PanelArrangement.SideBySide;
         for (var i = 0; i < _arranged.Count; i++)
         {
             var length = new GridLength(_arranged[i].SizeWeight, GridUnitType.Star);
-            if (columns) PanelGrid.ColumnDefinitions[i * 2].Width = length;
+            if (columnsSide) PanelGrid.ColumnDefinitions[i * 2].Width = length;
             else PanelGrid.RowDefinitions[i * 2].Height = length;
         }
     }
@@ -269,14 +420,72 @@ public partial class SessionAreaView : UserControl
     private void UpdateVisibility()
     {
         if (_dock is null) return;
+        if (IsTwoSections)
+        {
+            foreach (var (host, section) in SectionHosts())
+            {
+                var panels = PanelsOf(section);
+                var visible = VisibleIn(panels);
+                foreach (var panel in panels)
+                {
+                    var view = _views[panel];
+                    view.IsVisible = ReferenceEquals(panel, visible);
+                    view.ShowHeader = false;
+                }
+                if (host.Children.OfType<Border>().FirstOrDefault(b => b.Classes.Contains("panel-strip")) is { } strip)
+                    FillSectionStrip(strip, panels, visible);
+            }
+            return;
+        }
+
         var split = IsSplit;
-        var visible = split ? null : VisibleTabbedPanel();
+        var shown = split ? null : VisibleTabbedPanel();
         foreach (var panel in _arranged)
         {
             var view = _views[panel];
-            view.IsVisible = split || ReferenceEquals(panel, visible);
+            view.IsVisible = split || ReferenceEquals(panel, shown);
             view.ShowHeader = split;
         }
+    }
+
+    /// <summary>The grid of each half, with the section it shows.</summary>
+    private IEnumerable<(Grid Host, PanelSection Section)> SectionHosts()
+    {
+        foreach (var host in PanelGrid.Children.OfType<Grid>())
+        {
+            if (host.Children.OfType<Border>().FirstOrDefault(b => _sectionOfStrip.ContainsKey(b)) is { } strip)
+                yield return (host, _sectionOfStrip[strip]);
+            else if (host.Children.OfType<SessionPanelView>().FirstOrDefault() is { } view
+                     && _views.FirstOrDefault(kv => ReferenceEquals(kv.Value, view)).Key is { } panel)
+                yield return (host, panel.Section == PanelSection.Secondary ? PanelSection.Secondary : PanelSection.Primary);
+        }
+    }
+
+    private List<SessionPanelViewModel> PanelsOf(PanelSection section) =>
+        _arranged.Where(p => (p.Section == PanelSection.Secondary) == (section == PanelSection.Secondary)).ToList();
+
+    /// <summary>The panel a section shows: the active one when it belongs here, else the first.</summary>
+    private SessionPanelViewModel? VisibleIn(IReadOnlyList<SessionPanelViewModel> panels)
+    {
+        if (_dock?.ActivePanel is { } active && panels.Contains(active))
+            return active;
+        return panels.FirstOrDefault();
+    }
+
+    private void FillSectionStrip(Border strip, IReadOnlyList<SessionPanelViewModel> panels, SessionPanelViewModel? visible)
+    {
+        var bar = new StackPanel { Orientation = Orientation.Horizontal };
+        foreach (var panel in panels)
+        {
+            var button = PanelTab(panel, ReferenceEquals(panel, visible));
+            button.Click += (_, _) =>
+            {
+                _dock!.ActivePanel = panel;
+                UpdateVisibility();
+            };
+            bar.Children.Add(button);
+        }
+        strip.Child = bar;
     }
 
     /// <summary>In the tabbed arrangement: the active panel when docked, else the first docked one.</summary>
@@ -298,34 +507,12 @@ public partial class SessionAreaView : UserControl
         var visible = VisibleTabbedPanel();
         foreach (var panel in _arranged)
         {
-            var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-            content.Children.Add(new TextBlock { Text = panel.Name, VerticalAlignment = VerticalAlignment.Center });
-            if (panel.SessionCount > 0)
-            {
-                var badge = new Border { Child = new TextBlock { Text = panel.SessionCount.ToString(CultureInfo.CurrentCulture) } };
-                badge.Classes.Add("badge");
-                content.Children.Add(badge);
-            }
-            var button = new ToggleButton
-            {
-                Content = content,
-                IsChecked = ReferenceEquals(panel, visible),
-                Tag = panel,
-            };
-            button.Classes.Add("panel-tab");
-            ToolTip.SetTip(button, Localizer.Get("RightClickForPanelOptions"));
+            var button = PanelTab(panel, ReferenceEquals(panel, visible));
             button.Click += (_, _) =>
             {
                 _dock.ActivePanel = panel;
                 Rebuild();
             };
-            button.ContextRequested += (_, e) =>
-            {
-                SessionPanelView.BuildPanelMenu(panel, TopLevel.GetTopLevel(this) as Window).Open(button);
-                e.Handled = true;
-            };
-            AcceptTabDrops(button, (dock, tab) => !ReferenceEquals(tab.Panel, panel),
-                (dock, tab) => dock.MoveSession(tab, panel, panel.Sessions.Count));
             PanelStrip.Children.Add(button);
         }
 
@@ -341,6 +528,30 @@ public partial class SessionAreaView : UserControl
         AcceptTabDrops(add, (_, _) => true,
             (dock, tab) => dock.MoveSession(tab, dock.UniquePanelName(SessionsDockable.NewPanelBaseName)));
         PanelStrip.Children.Add(add);
+    }
+
+    /// <summary>A panel tab: selects the panel, offers its menu, and accepts dropped session tabs.</summary>
+    private ToggleButton PanelTab(SessionPanelViewModel panel, bool isChecked)
+    {
+        var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        content.Children.Add(new TextBlock { Text = panel.Name, VerticalAlignment = VerticalAlignment.Center });
+        if (panel.SessionCount > 0)
+        {
+            var badge = new Border { Child = new TextBlock { Text = panel.SessionCount.ToString(CultureInfo.CurrentCulture) } };
+            badge.Classes.Add("badge");
+            content.Children.Add(badge);
+        }
+        var button = new ToggleButton { Content = content, IsChecked = isChecked, Tag = panel };
+        button.Classes.Add("panel-tab");
+        ToolTip.SetTip(button, Localizer.Get("RightClickForPanelOptions"));
+        button.ContextRequested += (_, e) =>
+        {
+            SessionPanelView.BuildPanelMenu(panel, TopLevel.GetTopLevel(this) as Window).Open(button);
+            e.Handled = true;
+        };
+        AcceptTabDrops(button, (_, tab) => !ReferenceEquals(tab.Panel, panel),
+            (dock, tab) => dock.MoveSession(tab, panel, panel.Sessions.Count));
+        return button;
     }
 
     /// <summary>Lets session tabs be dropped on a panel strip button (to move them into that panel or a new one).</summary>
@@ -404,6 +615,95 @@ public partial class SessionAreaView : UserControl
                 ShowWhenOwnerReady(window);
         }
         AttachedToVisualTree += OnAttached;
+    }
+
+    /// <summary>
+    /// Dragging a tab onto an outer edge of the session area opens that half. The panels' own handlers keep
+    /// the tab strip (reorder) and the panel body (move into that panel).
+    /// </summary>
+    /// <summary>Shows the drop surface for the duration of a session-tab drag.</summary>
+    public void BeginSplitDrag() => SplitDropSurface.IsVisible = true;
+
+    /// <summary>Hides the drop surface when the drag ends.</summary>
+    public void EndSplitDrag()
+    {
+        SplitDropSurface.IsVisible = false;
+        HideSplitPreview();
+    }
+
+    /// <summary>
+    /// The whole session area (below the tab bar) splits: the half under the pointer is where the tab goes,
+    /// so it can be dropped on the empty space beside a session as well as on the session itself.
+    /// </summary>
+    private void OnSplitDragOver(object? sender, DragEventArgs e)
+    {
+        if (_dock is not { } dock || SessionPanelView.DraggedTab(e, dock) is not { } tab || SplitAt(e.GetPosition(SplitDropSurface)) is not { } split)
+        {
+            e.DragEffects = DragDropEffects.None;
+            HideSplitPreview();
+            return;
+        }
+        e.DragEffects = DragDropEffects.Move;
+        ShowSplitPreview(split);
+        e.Handled = true;
+    }
+
+    private void OnSplitDrop(object? sender, DragEventArgs e)
+    {
+        HideSplitPreview();
+        if (_dock is not { } dock || SessionPanelView.DraggedTab(e, dock) is not { } tab || SplitAt(e.GetPosition(SplitDropSurface)) is not { } split)
+            return;
+        dock.SplitSession(tab, split.Section, split.Vertical);
+        e.Handled = true;
+    }
+
+    /// <summary>Left/right of centre splits vertically, above/below horizontally; the nearer axis wins.</summary>
+    private (PanelSection Section, bool Vertical)? SplitAt(Point at)
+    {
+        var width = SplitDropSurface.Bounds.Width;
+        var height = SplitDropSurface.Bounds.Height;
+        if (width < 1 || height < 1) return null;
+        var horizontal = Math.Abs(at.X / width - 0.5);
+        var vertical = Math.Abs(at.Y / height - 0.5);
+        var side = horizontal >= vertical;
+        var secondary = side ? at.X >= width / 2 : at.Y >= height / 2;
+        return (secondary ? PanelSection.Secondary : PanelSection.Primary, side);
+    }
+
+    /// <summary>True while the drop preview is showing (for tests).</summary>
+    public bool IsSplitPreviewVisible => SplitPreview.IsVisible;
+
+    /// <summary>One rectangle, exactly the half the drop would open.</summary>
+    private void ShowSplitPreview((PanelSection Section, bool Vertical) split)
+    {
+        var width = SplitDropSurface.Bounds.Width;
+        var height = SplitDropSurface.Bounds.Height;
+        const double inset = 6;
+        double left, top, right, bottom;
+        if (split.Vertical)
+        {
+            var half = width / 2;
+            top = inset;
+            bottom = inset;
+            (left, right) = split.Section == PanelSection.Secondary ? (half + inset, inset) : (inset, half + inset);
+        }
+        else
+        {
+            var half = height / 2;
+            left = inset;
+            right = inset;
+            (top, bottom) = split.Section == PanelSection.Secondary ? (half + inset, inset) : (inset, half + inset);
+        }
+        SplitPreview.HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Stretch;
+        SplitPreview.VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Stretch;
+        SplitPreview.Margin = new Thickness(left, top, right, bottom);
+        SplitPreview.IsVisible = true;
+    }
+
+    private void HideSplitPreview()
+    {
+        if (SplitPreview is not null)
+            SplitPreview.IsVisible = false;
     }
 
     /// <summary>Keyboard shortcuts for floating windows and the main window.</summary>

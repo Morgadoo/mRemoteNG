@@ -334,12 +334,15 @@ public partial class SessionPanelView : UserControl
         _pressPoint = null;
         var data = new DataObject();
         data.Set(TabDragFormat, tab);
+        var area = this.FindAncestorOfType<SessionAreaView>();
+        area?.BeginSplitDrag();
         try
         {
             await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
         }
         finally
         {
+            area?.EndSplitDrag();
             HideDropIndicator();
         }
     }
@@ -350,7 +353,7 @@ public partial class SessionPanelView : UserControl
 
     private void OnTabDragOver(object? sender, DragEventArgs e)
     {
-        if (_panel is null || DraggedTab(e, _panel.Owner) is null)
+        if (_panel is null || DraggedTab(e, _panel.Owner) is not { } tab)
         {
             e.DragEffects = DragDropEffects.None;
             HideDropIndicator();
@@ -481,5 +484,7 @@ public partial class SessionPanelView : UserControl
         (PanelArrangement.Tabbed, Localizer.Menu("TabbedOnePanelAtATime")),
         (PanelArrangement.SideBySide, Localizer.Menu("SideBySide")),
         (PanelArrangement.Stacked, Localizer.Menu("Stacked")),
+        (PanelArrangement.SplitVertical, Localizer.Menu("SplitVertical")),
+        (PanelArrangement.SplitHorizontal, Localizer.Menu("SplitHorizontal")),
     ];
 }

@@ -1,9 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using Avalonia.Input.Raw;
 using FluentAssertions;
 using mRemoteNG.Avalonia.ViewModels.Docking;
@@ -128,6 +130,70 @@ public class SessionTabDragTests
     }
 
     [AvaloniaFact]
+    public async Task DropOnTheRightEdge_SplitsTheAreaInHalf()
+    {
+        await ResetAsync();
+        var factory = new FakeProtocolFactory();
+        var keep = (await SessionDock.OpenConnectionAsync(Connection("keep", 1), factory))!;
+        var moved = (await SessionDock.OpenConnectionAsync(Connection("moved", 1), factory))!;
+        var general = keep.Panel!;
+        Pump();
+
+        // The right half of the session area opens the right half.
+        Area.BeginSplitDrag();
+        Pump();
+        var surface = Area.FindControl<Grid>("SplitDropSurface")!;
+        DragOn(surface, new Point(surface.Bounds.Width - 30, surface.Bounds.Height / 2), RawDragEventType.DragOver, moved);
+        Area.IsSplitPreviewVisible.Should().BeTrue();
+        DragOn(surface, new Point(surface.Bounds.Width - 30, surface.Bounds.Height / 2), RawDragEventType.Drop, moved);
+        Pump();
+
+        Area.IsSplitPreviewVisible.Should().BeFalse();
+        SessionDock.Arrangement.Should().Be(PanelArrangement.SplitVertical);
+        moved.Panel!.Name.Should().Be("Right");
+        moved.Panel.Section.Should().Be(PanelSection.Secondary);
+        general.Sessions.Should().Equal(keep);
+        var grid = Area.FindControl<Grid>("PanelGrid")!;
+        grid.ColumnDefinitions.Should().HaveCount(3, "the left half, a splitter and the right half");
+        grid.Children.OfType<GridSplitter>().Should().ContainSingle();
+        Area.PanelViews[moved.Panel].IsVisible.Should().BeTrue();
+        Area.PanelViews[general].IsVisible.Should().BeTrue();
+        Area.PanelViews[moved.Panel].Hosts[moved].HostedView.Should().BeSameAs(moved.ContentView);
+
+        // The bottom edge opens the bottom half instead.
+        var again = Area.FindControl<Grid>("SplitDropSurface")!;
+        DragOn(again, new Point(again.Bounds.Width / 2, again.Bounds.Height - 30), RawDragEventType.Drop, keep);
+        Pump();
+        SessionDock.Arrangement.Should().Be(PanelArrangement.SplitHorizontal);
+        moved.Panel!.Section.Should().Be(PanelSection.Primary, "the other half stays opposite the dropped tab");
+        keep.Panel.Should().BeSameAs(general, "a panel holding only this tab moves as a whole");
+        keep.Panel!.Section.Should().Be(PanelSection.Secondary);
+        grid.RowDefinitions.Should().HaveCount(3);
+
+        await ResetAsync();
+    }
+
+    [AvaloniaFact]
+    public async Task SplitMenu_MovesTheTabIntoTheChosenHalf()
+    {
+        await ResetAsync();
+        var factory = new FakeProtocolFactory();
+        var first = (await SessionDock.OpenConnectionAsync(Connection("first", 1), factory))!;
+        var second = (await SessionDock.OpenConnectionAsync(Connection("second", 1), factory))!;
+
+        var menu = SessionTabMenu.Build(second, TestHost.MainWindow);
+        SessionTabMenu.Invoke(SessionTabMenu.Find(menu, SessionTabMenu.SplitRight)!);
+        Pump();
+
+        SessionDock.Arrangement.Should().Be(PanelArrangement.SplitVertical);
+        second.Panel!.Section.Should().Be(PanelSection.Secondary);
+        first.Panel!.Sessions.Should().Equal(first);
+        Area.FindControl<Grid>("PanelGrid")!.ColumnDefinitions.Should().HaveCount(3);
+
+        await ResetAsync();
+    }
+
+    [AvaloniaFact]
     public async Task OtherDragData_IsIgnored()
     {
         await ResetAsync();
@@ -163,6 +229,24 @@ public class SessionTabDragTests
 
     private static Point Center(Control control) =>
         control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), TestHost.MainWindow)!.Value;
+
+    /// <summary>Delivers the drag to one control (the window-level helper hit-tests and misses the drop surface).</summary>
+    private static void DragOn(Control target, Point at, RawDragEventType type, SessionTabViewModel tab)
+    {
+        var data = new DataObject();
+        data.Set(SessionPanelView.TabDragFormat, tab);
+        var window = TestHost.MainWindow;
+        var root = (Interactive)window.GetVisualRoot()!;
+        var point = target.TranslatePoint(at, root) ?? new Point();
+        var args = new DragEventArgs(type switch
+        {
+            RawDragEventType.Drop => DragDrop.DropEvent,
+            RawDragEventType.DragEnter => DragDrop.DragEnterEvent,
+            _ => DragDrop.DragOverEvent,
+        }, data, target, point, KeyModifiers.None);
+        ((Interactive)target).RaiseEvent(args);
+        Pump();
+    }
 
     private static void Drag(Point point, RawDragEventType type, SessionTabViewModel tab)
     {
