@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Avalonia.Input;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -128,6 +129,51 @@ public sealed class TerminalInputTests
 
         Encoding.ASCII.GetString(await received).Should().Be("hello\r\n");
         view.GetScreenText().Should().Contain("hello", "input is echoed locally, as when typed");
+    }
+
+    [SkippableFact]
+    public async Task InteractiveShell_OnLinuxPseudoTerminal_RunsACommand()
+    {
+        Skip.IfNot(OperatingSystem.IsLinux() && File.Exists("/bin/bash"), "needs Linux and /bin/bash");
+        var view = new TerminalView();
+        // --noprofile --norc: the user's login profile must not be required for the shell to answer.
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        Skip.If(string.IsNullOrEmpty(home) || !Directory.Exists(home), "needs a home directory");
+        using var shell = InteractiveShell.Start(view, "/bin/bash", ["--noprofile", "--norc", "-i"]);
+
+        view.RaiseEvent(new TextInputEventArgs
+        {
+            RoutedEvent = InputElement.TextInputEvent,
+            Text = "pwd; printf 'bottom-ok\\n'\r",
+        });
+
+        await WaitForScreenAsync(view, home);
+        await WaitForScreenAsync(view, "bottom-ok");
+    }
+
+    /// <summary>
+    /// The bottom Terminal tab starts <c>$SHELL -il</c>. That shell must print a prompt and stay alive.
+    /// </summary>
+    [SkippableFact]
+    public async Task InteractiveShell_LoginShell_PrintsPromptAndStaysUp()
+    {
+        Skip.IfNot(OperatingSystem.IsLinux() && File.Exists("/bin/bash"), "needs Linux and /bin/bash");
+        var view = new TerminalView();
+        using var shell = InteractiveShell.Start(view);
+
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (string.IsNullOrWhiteSpace(view.GetScreenText()) && DateTime.UtcNow < deadline)
+            await Task.Delay(50);
+
+        var text = view.GetScreenText();
+        text.Should().Contain("$", $"the login shell printed no prompt. Screen:\n[{text}]");
+
+        view.RaiseEvent(new TextInputEventArgs
+        {
+            RoutedEvent = InputElement.TextInputEvent,
+            Text = "printf 'login-ok\\n'\r",
+        });
+        await WaitForScreenAsync(view, "login-ok");
     }
 
     [SkippableFact]
