@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Numerics;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
@@ -25,7 +26,9 @@ public sealed class TerminalSizeEventArgs(int columns, int rows, int pixelWidth,
 /// changes (<see cref="TerminalResized"/>) so the remote side can be told the window size.
 ///
 /// Mouse: drag to select, Ctrl+Shift+C copies, Ctrl+Shift+V / Shift+Insert pastes, the wheel
-/// scrolls the scrollback (or sends cursor keys on the alternate screen).
+/// scrolls the scrollback (or sends cursor keys on the alternate screen). When the remote side
+/// enables mouse tracking (DECSET 1000/1002/1003), pointer events are reported back in the SGR
+/// encoding instead, so full-screen TUIs receive clicks, drags and wheel input.
 /// </summary>
 public sealed class TerminalView : UserControl
 {
@@ -54,6 +57,7 @@ public sealed class TerminalView : UserControl
     private double _baseline = FallbackCellHeight * 0.8;
     private bool _metricsMeasured;
     private long _renderedVersion = -1;
+    private int _mouseButtons;
     private int _scrollOffset;
     private bool _suppressNextTextInput;
 
@@ -294,7 +298,9 @@ public sealed class TerminalView : UserControl
                 _typefaces[0], TextSize, Brushes.White);
             if (probe.WidthIncludingTrailingWhitespace > 0 && probe.Height > 0)
             {
-                _cellWidth = probe.WidthIncludingTrailingWhitespace / 20;
+                // Ceil the cell size so glyphs never bleed into the next cell. The grid is then laid
+                // out from the exact cell size, which keeps the reported window size honest.
+                _cellWidth = Math.Ceiling(probe.WidthIncludingTrailingWhitespace / 20 * 1000) / 1000;
                 _cellHeight = Math.Ceiling(probe.Height);
                 _baseline = probe.Baseline;
                 _metricsMeasured = true;
@@ -319,8 +325,10 @@ public sealed class TerminalView : UserControl
         if (Bounds.Width <= 0 || Bounds.Height <= 0)
             return;
 
-        int cols = Math.Max(10, (int)(Bounds.Width / _cellWidth));
-        int rows = Math.Max(4, (int)(Bounds.Height / _cellHeight));
+        // Floor: only report rows/columns that are fully visible, otherwise a TUI paints into a
+        // region the view clips and its top rows become unreachable.
+        int cols = Math.Max(10, (int)Math.Floor(Bounds.Width / _cellWidth));
+        int rows = Math.Max(4, (int)Math.Floor(Bounds.Height / _cellHeight));
         if (cols == TerminalCols && rows == TerminalRows)
             return;
 
@@ -328,7 +336,8 @@ public sealed class TerminalView : UserControl
             _screen.Resize(cols, rows);
         TerminalCols = cols;
         TerminalRows = rows;
-        TerminalResized?.Invoke(this, new TerminalSizeEventArgs(cols, rows, (int)Bounds.Width, (int)Bounds.Height));
+        TerminalResized?.Invoke(this, new TerminalSizeEventArgs(
+            cols, rows, (int)Math.Round(cols * _cellWidth), (int)Math.Round(rows * _cellHeight)));
         InvalidateVisual();
     }
 
@@ -432,6 +441,19 @@ public sealed class TerminalView : UserControl
         base.OnPointerPressed(e);
         Focus();
         var point = e.GetCurrentPoint(this);
+
+        if (MouseTrackingActive())
+        {
+            int button = point.Properties.IsRightButtonPressed ? 2
+                : point.Properties.IsMiddleButtonPressed ? 1
+                : 0;
+            _mouseButtons |= 1 << button;
+            ReportMouse(button, point.Position, released: false);
+            e.Pointer.Capture(this);
+            e.Handled = true;
+            return;
+        }
+
         if (point.Properties.IsLeftButtonPressed)
         {
             lock (_lock)
@@ -451,17 +473,67 @@ public sealed class TerminalView : UserControl
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
-        if (_selectionAnchor is null || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        var point = e.GetCurrentPoint(this);
+
+        if (MouseTrackingActive())
+        {
+            bool motion;
+            lock (_lock)
+                motion = _screen.MouseMoveTracking || (_screen.MouseDragTracking && _mouseButtons != 0);
+            if (motion)
+            {
+                // Button-down motion uses button 0 with the motion bit; bare motion uses 3.
+                int button = _mouseButtons != 0 ? BitOperations.TrailingZeroCount(_mouseButtons) : 3;
+                ReportMouse(button, point.Position, released: false, motion: true);
+            }
+            e.Handled = true;
+            return;
+        }
+
+        if (_selectionAnchor is null || !point.Properties.IsLeftButtonPressed)
             return;
         lock (_lock)
-            _selectionEnd = HitTest(e.GetPosition(this));
+            _selectionEnd = HitTest(point.Position);
         InvalidateVisual();
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+
+        if (MouseTrackingActive() || _mouseButtons != 0)
+        {
+            int button = e.InitialPressMouseButton switch
+            {
+                MouseButton.Right => 2,
+                MouseButton.Middle => 1,
+                _ => 0,
+            };
+            _mouseButtons &= ~(1 << button);
+            ReportMouse(button, e.GetPosition(this), released: true);
+            if (_mouseButtons == 0)
+                e.Pointer.Capture(null);
+            e.Handled = true;
+            return;
+        }
+
         e.Pointer.Capture(null);
+    }
+
+    /// <summary>True while the remote side wants pointer events instead of local selection.</summary>
+    private bool MouseTrackingActive()
+    {
+        lock (_lock)
+            return _screen.MouseTracking && _screen.MouseSgrEncoding && _scrollOffset == 0;
+    }
+
+    /// <summary>Sends one SGR mouse report (CSI &lt; button ; column ; row M/m), 1-based cells.</summary>
+    private void ReportMouse(int button, Point position, bool released, bool motion = false)
+    {
+        int column = Math.Clamp((int)(position.X / _cellWidth), 0, TerminalCols - 1) + 1;
+        int row = Math.Clamp((int)(position.Y / _cellHeight), 0, TerminalRows - 1) + 1;
+        int code = button + (motion ? 32 : 0);
+        Send($"\x1b[<{code};{column};{row}{(released ? "m" : "M")}");
     }
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -480,9 +552,18 @@ public sealed class TerminalView : UserControl
 
         if (alternate)
         {
-            // Full-screen programs have no scrollback; scroll them with cursor keys like xterm's alternateScroll.
-            var key = TerminalKeyEncoder.Encode(lines > 0 ? Key.Up : Key.Down, KeyModifiers.None, applicationCursor)!;
-            DataToSend?.Invoke(this, Encoding.UTF8.GetBytes(string.Concat(Enumerable.Repeat(key, Math.Abs(lines)))));
+            if (MouseTrackingActive())
+            {
+                // Button 4 scrolls up, button 5 scrolls down (one report per line).
+                for (int i = 0; i < Math.Abs(lines); i++)
+                    ReportMouse(lines > 0 ? 4 : 5, e.GetPosition(this), released: false);
+            }
+            else
+            {
+                // Full-screen programs have no scrollback; scroll them with cursor keys like xterm's alternateScroll.
+                var key = TerminalKeyEncoder.Encode(lines > 0 ? Key.Up : Key.Down, KeyModifiers.None, applicationCursor)!;
+                DataToSend?.Invoke(this, Encoding.UTF8.GetBytes(string.Concat(Enumerable.Repeat(key, Math.Abs(lines)))));
+            }
         }
         else
         {

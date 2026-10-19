@@ -12,7 +12,8 @@ namespace mRemoteNG.Protocols.Ssh.Terminal;
 /// (ED/EL/ECH), insert/delete (ICH/DCH/IL/DL), scrolling (SU/SD, IND/RI/NEL), scroll regions
 /// (DECSTBM), origin mode, auto-wrap, insert mode, tab stops, DEC line drawing, save/restore
 /// cursor, the alternate screen (47/1047/1049), cursor visibility, application cursor keys,
-/// bracketed paste, DSR/DA replies, OSC window titles and a scrollback buffer.
+/// bracketed paste, mouse tracking (1000/1002/1003/1006), DSR/DA replies, OSC window titles
+/// and a scrollback buffer.
 /// East Asian wide and fullwidth characters, and emoji, occupy two cells
 /// (<see cref="DisplayWidth"/>); the second cell is a spacer.
 ///
@@ -91,6 +92,21 @@ public sealed class TerminalScreen
     public bool CursorVisible { get; private set; } = true;
     public bool ApplicationCursorKeys { get; private set; }
     public bool BracketedPaste { get; private set; }
+
+    /// <summary>Button clicks are reported to the host (DECSET 1000).</summary>
+    public bool MouseClickTracking { get; private set; }
+
+    /// <summary>Button-down drags are reported to the host (DECSET 1002).</summary>
+    public bool MouseDragTracking { get; private set; }
+
+    /// <summary>Every mouse move is reported to the host (DECSET 1003).</summary>
+    public bool MouseMoveTracking { get; private set; }
+
+    /// <summary>Any mouse reporting mode is active, so the view must forward pointer events.</summary>
+    public bool MouseTracking => MouseClickTracking || MouseDragTracking || MouseMoveTracking;
+
+    /// <summary>Reports use the SGR encoding (DECSET 1006), the only one this terminal speaks.</summary>
+    public bool MouseSgrEncoding { get; private set; }
     public bool IsAlternateScreen => _buffer == _alternate;
     public int ScrollTop => _scrollTop;
     public int ScrollBottom => _scrollBottom;
@@ -609,6 +625,10 @@ public sealed class TerminalScreen
                 break;
             case 7: _autoWrap = on; break;
             case 25: CursorVisible = on; break;
+            case 1000: MouseClickTracking = on; break;
+            case 1002: MouseDragTracking = on; break;
+            case 1003: MouseMoveTracking = on; break;
+            case 1006: MouseSgrEncoding = on; break;
             case 47:
             case 1047:
                 SwitchScreen(on, clearAlternate: mode == 1047 && on);

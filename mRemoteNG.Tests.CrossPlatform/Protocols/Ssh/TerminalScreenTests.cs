@@ -381,6 +381,26 @@ public sealed class TerminalScreenTests
     }
 
     [Fact]
+    public void PrivateModes_MouseTracking()
+    {
+        var s = Screen(input: $"{Esc}[?1000h{Esc}[?1006h");
+
+        s.MouseClickTracking.Should().BeTrue();
+        s.MouseSgrEncoding.Should().BeTrue();
+        s.MouseTracking.Should().BeTrue();
+        s.MouseDragTracking.Should().BeFalse();
+        s.MouseMoveTracking.Should().BeFalse();
+
+        s.Feed($"{Esc}[?1002;1003h");
+        s.MouseDragTracking.Should().BeTrue();
+        s.MouseMoveTracking.Should().BeTrue();
+
+        s.Feed($"{Esc}[?1000;1002;1003;1006l");
+        s.MouseTracking.Should().BeFalse();
+        s.MouseSgrEncoding.Should().BeFalse();
+    }
+
+    [Fact]
     public void InsertMode_ShiftsText()
     {
         var s = Screen(input: $"abc\r{Esc}[4hX{Esc}[4lY");
