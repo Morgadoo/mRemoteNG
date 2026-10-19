@@ -298,8 +298,12 @@ public class ShellTests
 
         toasts.Toasts.Should().ContainSingle().Which.Message.Should().Contain("refused");
         toasts.Toasts[0].HasAction.Should().BeTrue("errors offer \"Show log\"");
-        window.FindControl<ToastHost>("Toasts")!.GetVisualDescendants().OfType<Border>()
+        toasts.Toasts[0].ErrorToCopy.Should().Contain("refused");
+        var host = window.FindControl<ToastHost>("Toasts")!;
+        host.GetVisualDescendants().OfType<Border>()
             .Count(b => b.Classes.Contains("toast")).Should().Be(1);
+        host.GetVisualDescendants().OfType<Button>()
+            .Count(b => b.Classes.Contains("copy-error") && b.IsVisible).Should().Be(1);
         toasts.DismissAll();
     }
 }

@@ -2575,6 +2575,10 @@ Use “Exit full screen” at the top of that window to bring it back.</value>
     <value>Copy all</value>
     <comment>Tooltip of the bottom panel's copy button</comment>
   </data>
+  <data name="CopyErrorTip" xml:space="preserve">
+    <value>Copy error</value>
+    <comment>Tooltip of the icon next to an error message</comment>
+  </data>
   <data name="ShellClearLogTip" xml:space="preserve">
     <value>Clear</value>
     <comment>Tooltip of the bottom panel's clear button</comment>

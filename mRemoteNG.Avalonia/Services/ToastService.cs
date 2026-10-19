@@ -64,6 +64,9 @@ public sealed class ToastItem : ReactiveObject
 
     public bool IsError => Level == ToastLevel.Error;
 
+    /// <summary>The error text for the clipboard; empty unless this toast is an error.</summary>
+    public string ErrorToCopy => IsError ? (HasMessage ? Message! : Title) : string.Empty;
+
     public ReactiveCommand<Unit, Unit> DismissCommand { get; }
 
     public ReactiveCommand<Unit, Unit> ActionCommand { get; }

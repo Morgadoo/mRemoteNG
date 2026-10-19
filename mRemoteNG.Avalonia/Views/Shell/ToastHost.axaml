@@ -19,7 +19,7 @@
         <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="svc:ToastItem">
                 <Border Classes="elevated toast">
-                    <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                         <mi:MaterialIcon Grid.Column="0" Classes="toast-icon"
                                          Classes.success="{Binding IsSuccess}"
                                          Classes.warning="{Binding IsWarning}"
@@ -35,8 +35,14 @@
                                     Command="{Binding ActionCommand}" Padding="0" Margin="0,4,0,0"
                                     HorizontalAlignment="Left" FontSize="12"/>
                         </StackPanel>
-                        <Button Grid.Column="2" Classes="icon" Width="24" Height="24" VerticalAlignment="Top"
-                                Margin="8,0,0,0" Command="{Binding DismissCommand}"
+                        <Button Grid.Column="2" Classes="icon copy-error" Width="24" Height="24" VerticalAlignment="Top"
+                                Margin="8,0,0,0" Padding="0" Click="OnCopyToast"
+                                IsVisible="{Binding IsError}"
+                                ToolTip.Tip="{l:Tr CopyErrorTip}">
+                            <mi:MaterialIcon Kind="ContentCopy" Width="14" Height="14"/>
+                        </Button>
+                        <Button Grid.Column="3" Classes="icon" Width="24" Height="24" VerticalAlignment="Top"
+                                Margin="4,0,0,0" Command="{Binding DismissCommand}"
                                 ToolTip.Tip="{l:Tr ShellDismiss}">
                             <mi:MaterialIcon Kind="Close" Width="14" Height="14"/>
                         </Button>

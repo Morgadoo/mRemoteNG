@@ -1927,6 +1927,9 @@ Use “Sair do ecrã completo” no topo dessa janela para a trazer de volta.</v
   <data name="ShellCopyLogTip" xml:space="preserve">
     <value>Copiar tudo</value>
   </data>
+  <data name="CopyErrorTip" xml:space="preserve">
+    <value>Copiar erro</value>
+  </data>
   <data name="ShellClearLogTip" xml:space="preserve">
     <value>Limpar</value>
   </data>

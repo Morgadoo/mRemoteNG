@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using mRemoteNG.Avalonia.Services;
 
 namespace mRemoteNG.Avalonia.Views.Shell;
 
@@ -8,5 +10,11 @@ public partial class ToastHost : UserControl
     public ToastHost()
     {
         InitializeComponent();
+    }
+
+    private async void OnCopyToast(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ToastItem { ErrorToCopy.Length: > 0 } toast })
+            await TextClipboard.SetAsync(this, toast.ErrorToCopy);
     }
 }
