@@ -162,6 +162,10 @@
     <value>Stacked</value>
     <comment>MainWindow: Header</comment>
   </data>
+  <data name="Split" xml:space="preserve">
+    <value>Split</value>
+    <comment>Session tab menu: submenu for splitting the session area.</comment>
+  </data>
   <data name="SplitVertical" xml:space="preserve">
     <value>Split Left / Right</value>
     <comment>MainWindow: Header. Two halves, one beside the other.</comment>

@@ -118,6 +118,27 @@
   <data name="Stacked" xml:space="preserve">
     <value>Jeden nad drugim</value>
   </data>
+  <data name="Split" xml:space="preserve">
+    <value>Podziel</value>
+  </data>
+  <data name="SplitVertical" xml:space="preserve">
+    <value>Podziel lewo / prawo</value>
+  </data>
+  <data name="SplitHorizontal" xml:space="preserve">
+    <value>Podziel góra / dół</value>
+  </data>
+  <data name="SplitRight" xml:space="preserve">
+    <value>Podziel w prawo</value>
+  </data>
+  <data name="SplitLeft" xml:space="preserve">
+    <value>Podziel w lewo</value>
+  </data>
+  <data name="SplitDown" xml:space="preserve">
+    <value>Podziel w dół</value>
+  </data>
+  <data name="SplitUp" xml:space="preserve">
+    <value>Podziel w górę</value>
+  </data>
   <data name="DisconnectAll" xml:space="preserve">
     <value>Rozłącz wszystkie</value>
   </data>

@@ -46,6 +46,7 @@ public sealed class SessionPanelViewModel : ReactiveObject
     private SessionTabViewModel? _activeSession;
     private bool _isFloating;
     private bool _isActive;
+    private bool _isSplitPanel;
     private double _sizeWeight = 1;
     private PanelSection _section = PanelSection.Primary;
 
@@ -61,6 +62,16 @@ public sealed class SessionPanelViewModel : ReactiveObject
     {
         get => _name;
         internal set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    /// <summary>
+    /// True when the panel was created automatically as an anonymous split container (an implementation detail
+    /// rather than a user-named panel). It is hidden from user-facing panel lists and removed when empty.
+    /// </summary>
+    public bool IsSplitPanel
+    {
+        get => _isSplitPanel;
+        internal set => this.RaiseAndSetIfChanged(ref _isSplitPanel, value);
     }
 
     public ObservableCollection<SessionTabViewModel> Sessions { get; } = [];

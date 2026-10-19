@@ -118,6 +118,27 @@
   <data name="Stacked" xml:space="preserve">
     <value>堆叠</value>
   </data>
+  <data name="Split" xml:space="preserve">
+    <value>拆分</value>
+  </data>
+  <data name="SplitVertical" xml:space="preserve">
+    <value>左右拆分</value>
+  </data>
+  <data name="SplitHorizontal" xml:space="preserve">
+    <value>上下拆分</value>
+  </data>
+  <data name="SplitRight" xml:space="preserve">
+    <value>向右拆分</value>
+  </data>
+  <data name="SplitLeft" xml:space="preserve">
+    <value>向左拆分</value>
+  </data>
+  <data name="SplitDown" xml:space="preserve">
+    <value>向下拆分</value>
+  </data>
+  <data name="SplitUp" xml:space="preserve">
+    <value>向上拆分</value>
+  </data>
   <data name="DisconnectAll" xml:space="preserve">
     <value>全部断开</value>
   </data>

@@ -311,7 +311,7 @@
             </Grid>
         </Border>
 
-        <Grid Background="{DynamicResource AppBg0Brush}">
+        <Grid x:Name="BodyGrid" Background="{DynamicResource AppBg0Brush}">
             <!-- Empty panel -->
             <StackPanel x:Name="EmptyText" Classes="session-empty">
                 <mi:MaterialIcon Kind="TabUnselected"/>
@@ -319,6 +319,9 @@
                 <TextBlock Classes="caption" Text="{l:Tr PanelEmptyText}"/>
             </StackPanel>
             <Grid x:Name="SessionHost"/>
+            <Border x:Name="SplitPreview" IsHitTestVisible="False" IsVisible="False"
+                    Background="{DynamicResource AccentSubtleBrush}"
+                    BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" CornerRadius="4"/>
         </Grid>
     </DockPanel>
 </UserControl>

@@ -118,6 +118,27 @@
   <data name="Stacked" xml:space="preserve">
     <value>Empilés</value>
   </data>
+  <data name="Split" xml:space="preserve">
+    <value>Scinder</value>
+  </data>
+  <data name="SplitVertical" xml:space="preserve">
+    <value>Scinder gauche / droite</value>
+  </data>
+  <data name="SplitHorizontal" xml:space="preserve">
+    <value>Scinder haut / bas</value>
+  </data>
+  <data name="SplitRight" xml:space="preserve">
+    <value>Scinder à droite</value>
+  </data>
+  <data name="SplitLeft" xml:space="preserve">
+    <value>Scinder à gauche</value>
+  </data>
+  <data name="SplitDown" xml:space="preserve">
+    <value>Scinder en bas</value>
+  </data>
+  <data name="SplitUp" xml:space="preserve">
+    <value>Scinder en haut</value>
+  </data>
   <data name="DisconnectAll" xml:space="preserve">
     <value>Tout déconnecter</value>
   </data>

@@ -25,6 +25,8 @@ public sealed class SessionsDockable : Document
     private readonly Dictionary<SessionTabViewModel, CancellationTokenSource> _reconnectLoops = [];
     private SessionPanelViewModel? _activePanel;
     private PanelArrangement _arrangement = PanelArrangement.Tabbed;
+    private SplitLayoutNode? _layoutTree;
+    private int _nextSplitPanelId = 1;
 
     public SessionsDockable()
     {
@@ -97,9 +99,31 @@ public sealed class SessionsDockable : Document
         get => _arrangement;
         set
         {
-            if (_arrangement == value) return;
+            var clearTree = value is PanelArrangement.Tabbed or PanelArrangement.SideBySide or PanelArrangement.Stacked;
+            if (_arrangement == value && (!clearTree || _layoutTree is null)) return;
             _arrangement = value;
+            if (clearTree && _layoutTree is not null)
+            {
+                _layoutTree = null;
+                OnPropertyChanged(nameof(LayoutTree));
+            }
             OnPropertyChanged(nameof(Arrangement));
+        }
+    }
+
+    /// <summary>
+    /// Recursive split layout tree for the session area, or null when a flat arrangement
+    /// (<see cref="PanelArrangement.Tabbed"/>, <see cref="PanelArrangement.SideBySide"/>,
+    /// <see cref="PanelArrangement.Stacked"/>, or a two-section <see cref="PanelSection"/> split) is used.
+    /// </summary>
+    public SplitLayoutNode? LayoutTree
+    {
+        get => _layoutTree;
+        internal set
+        {
+            if (ReferenceEquals(_layoutTree, value)) return;
+            _layoutTree = value;
+            OnPropertyChanged(nameof(LayoutTree));
         }
     }
 
@@ -114,7 +138,7 @@ public sealed class SessionsDockable : Document
     /// </summary>
     public Func<IReadOnlyList<string>, string, Task<string?>>? PanelChooser { get; set; }
 
-    public IReadOnlyList<string> PanelNames => Panels.Select(p => p.Name).ToList();
+    public IReadOnlyList<string> PanelNames => Panels.Where(p => !p.IsSplitPanel).Select(p => p.Name).ToList();
 
     /// <summary>Writes a connection error to the log panel.</summary>
     public void ReportError(string message) => _log?.Log(message, LogLevel.Error);
@@ -165,7 +189,14 @@ public sealed class SessionsDockable : Document
         if (string.IsNullOrWhiteSpace(newName)) return false;
         newName = newName.Trim();
         if (FindPanel(newName) is { } other && !ReferenceEquals(other, panel)) return false;
+        var oldName = panel.Name;
         panel.Name = newName;
+        panel.IsSplitPanel = false;
+        if (_layoutTree is not null)
+        {
+            _layoutTree.RenameLeaf(oldName, newName);
+            OnPropertyChanged(nameof(LayoutTree));
+        }
         return true;
     }
 
@@ -174,10 +205,12 @@ public sealed class SessionsDockable : Document
     {
         foreach (var session in panel.Sessions.ToList())
             await CloseSessionAsync(session);
+        if (!Panels.Contains(panel)) return;
         panel.ActiveSessionChanged -= OnPanelActiveSessionChanged;
         Panels.Remove(panel);
         if (ReferenceEquals(ActivePanel, panel))
             ActivePanel = Panels.FirstOrDefault(p => !p.IsFloating) ?? Panels.FirstOrDefault();
+        PruneLayoutTree();
     }
 
     /// <summary>Moves a session to another panel (created when missing) and selects it there.</summary>
@@ -185,6 +218,7 @@ public sealed class SessionsDockable : Document
     {
         if (session.Panel is not { } from || !Sessions.Contains(session)) return;
         var to = GetOrCreatePanel(panelName);
+        to.IsSplitPanel = false;
         if (ReferenceEquals(from, to)) return;
 
         RemoveFromPanel(session, from);
@@ -197,40 +231,169 @@ public sealed class SessionsDockable : Document
 
     /// <summary>
     /// Moves a session into its own panel in the other half of the session area and switches to a two-section
-    /// split. The panel is named "Right", "Left", "Bottom" or "Top" (numbered when that name is taken).
+    /// split. When <paramref name="targetPanel"/> is given, splits that panel's region in the layout tree;
+    /// otherwise splits the session's current panel.
     /// </summary>
-    public SessionPanelViewModel SplitSession(SessionTabViewModel session, PanelSection section, bool vertical)
+    public SessionPanelViewModel SplitSession(
+        SessionTabViewModel session,
+        SplitSide side,
+        SessionPanelViewModel? targetPanel = null) =>
+        SplitSessionCore(session, side, targetPanel);
+
+    /// <summary>
+    /// Moves a session into its own panel in the other half of the session area and switches to a two-section
+    /// split.
+    /// </summary>
+    public SessionPanelViewModel SplitSession(SessionTabViewModel session, PanelSection section, bool vertical) =>
+        SplitSessionCore(session, section == PanelSection.Secondary
+            ? vertical ? SplitSide.Right : SplitSide.Bottom
+            : vertical ? SplitSide.Left : SplitSide.Top, targetPanel: null);
+
+    private SessionPanelViewModel SplitSessionCore(
+        SessionTabViewModel session,
+        SplitSide side,
+        SessionPanelViewModel? targetPanel)
     {
         if (session.Panel is not { } from || !Sessions.Contains(session))
             return session.Panel ?? GetOrCreatePanel(null);
 
-        // A panel with only this tab moves as a whole; otherwise the tab gets its own panel in that half.
+        var vertical = side is SplitSide.Left or SplitSide.Right;
+        var section = side is SplitSide.Right or SplitSide.Bottom ? PanelSection.Secondary : PanelSection.Primary;
+        var anchor = targetPanel ?? from;
+        var singleSessionInFrom = from.Sessions.Count <= 1;
+
+        if (singleSessionInFrom && ReferenceEquals(anchor, from))
+        {
+            var otherPanels = Panels.Where(p => !p.IsFloating && !ReferenceEquals(p, from) && p.Sessions.Count > 0).ToList();
+            if (otherPanels.Count == 0)
+            {
+                from.ActiveSession = session;
+                ActivePanel = from;
+                return from;
+            }
+            anchor = otherPanels[0];
+        }
+
+        // Seed the layout tree from the current docked panels before mutating panels.
+        var tree = BuildCurrentLayoutTree();
+
         SessionPanelViewModel panel;
-        if (from.Sessions.Count <= 1)
+        if (singleSessionInFrom)
         {
             panel = from;
+            // Remove the moving panel's old leaf so it can split the anchor cleanly.
+            var remaining = Panels
+                .Where(p => !p.IsFloating && !ReferenceEquals(p, from))
+                .Select(p => p.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            tree = tree?.Pruned(remaining);
         }
         else
         {
-            var name = section == PanelSection.Secondary
-                ? vertical ? "Right" : "Bottom"
-                : vertical ? "Left" : "Top";
-            panel = GetOrCreatePanel(UniquePanelName(name));
+            panel = CreateSplitPanel();
             RemoveFromPanel(session, from);
             session.Panel = panel;
             panel.Sessions.Add(session);
             panel.RaiseSessionCountChanged();
         }
-        // The dropped tab must land opposite the sessions that stay behind, or both halves collapse into one
-        // and the other shows an empty panel. Applied quietly, then raised once, so the layout rebuilds once.
+
+        if (tree is null || !tree.ContainsPanel(anchor.Name))
+        {
+            var newFirst = side is SplitSide.Left or SplitSide.Top;
+            var anchorLeaf = tree ?? SplitLayoutNode.Leaf(anchor.Name);
+            var addedLeaf = SplitLayoutNode.Leaf(panel.Name);
+            tree = SplitLayoutNode.Split(vertical,
+                newFirst ? addedLeaf : anchorLeaf,
+                newFirst ? anchorLeaf : addedLeaf);
+        }
+        else
+        {
+            tree = tree.SplitLeaf(anchor.Name, panel.Name, side);
+        }
+
+        // Keep Section and Arrangement in sync for menus and two-section compatibility.
         var opposite = section == PanelSection.Secondary ? PanelSection.Primary : PanelSection.Secondary;
         foreach (var other in Panels.Where(p => !ReferenceEquals(p, panel) && p.Section == section && p.Sessions.Count > 0))
             other.SetSection(opposite);
         panel.SetSection(section);
         panel.ActiveSession = session;
         ActivePanel = panel;
-        Arrangement = vertical ? PanelArrangement.SplitVertical : PanelArrangement.SplitHorizontal;
+
+        _layoutTree = tree;
+        var targetArrangement = vertical ? PanelArrangement.SplitVertical : PanelArrangement.SplitHorizontal;
+        if (_arrangement != targetArrangement)
+        {
+            _arrangement = targetArrangement;
+            OnPropertyChanged(nameof(Arrangement));
+        }
+        OnPropertyChanged(nameof(LayoutTree));
         return panel;
+    }
+
+    private SessionPanelViewModel CreateSplitPanel()
+    {
+        while (true)
+        {
+            var candidate = $"__split_{_nextSplitPanelId++}";
+            if (FindPanel(candidate) is null)
+            {
+                var panel = new SessionPanelViewModel(this, candidate) { IsSplitPanel = true };
+                panel.ActiveSessionChanged += OnPanelActiveSessionChanged;
+                Panels.Add(panel);
+                ActivePanel ??= panel;
+                return panel;
+            }
+        }
+    }
+
+    private SplitLayoutNode? BuildCurrentLayoutTree()
+    {
+        var docked = Panels.Where(p => !p.IsFloating && p.Sessions.Count > 0).ToList();
+        if (docked.Count == 0)
+            docked = Panels.Where(p => !p.IsFloating).ToList();
+        if (docked.Count == 0)
+            return null;
+
+        var validNames = docked.Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (_layoutTree?.Pruned(validNames) is { } existing)
+            return existing;
+
+        if (docked.Count == 1)
+            return SplitLayoutNode.Leaf(docked[0].Name);
+
+        var vertical = _arrangement is not (PanelArrangement.Stacked or PanelArrangement.SplitHorizontal);
+        if (_arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal)
+        {
+            var primary = docked.Where(p => p.Section != PanelSection.Secondary).ToList();
+            var secondary = docked.Where(p => p.Section == PanelSection.Secondary).ToList();
+            if (primary.Count > 0 && secondary.Count > 0)
+                return SplitLayoutNode.Split(vertical, ChainLeaves(primary, vertical), ChainLeaves(secondary, vertical));
+        }
+        return ChainLeaves(docked, vertical);
+    }
+
+    private static SplitLayoutNode ChainLeaves(IReadOnlyList<SessionPanelViewModel> panels, bool vertical)
+    {
+        var node = SplitLayoutNode.Leaf(panels[0].Name);
+        for (var i = 1; i < panels.Count; i++)
+            node = SplitLayoutNode.Split(vertical, node, SplitLayoutNode.Leaf(panels[i].Name));
+        return node;
+    }
+
+    private void PruneLayoutTree()
+    {
+        if (_layoutTree is null) return;
+        var dockedNames = Panels.Where(p => !p.IsFloating).Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var pruned = _layoutTree.Pruned(dockedNames);
+        if (pruned is { IsLeaf: true })
+            pruned = null;
+        _layoutTree = pruned;
+        if (_layoutTree is null && Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
+            && Panels.Count(p => !p.IsFloating) < 2)
+        {
+            Arrangement = PanelArrangement.Tabbed;
+        }
+        OnPropertyChanged(nameof(LayoutTree));
     }
 
     /// <summary>
@@ -347,7 +510,8 @@ public sealed class SessionsDockable : Document
 
         var configured = connection.Panel;
         var ask = string.IsNullOrWhiteSpace(configured) || Settings?.AlwaysShowPanelSelectionDlg == true;
-        var suggestion = string.IsNullOrWhiteSpace(configured) ? ActivePanel?.Name ?? DefaultPanelName : configured.Trim();
+        var activeNamed = ActivePanel is { IsSplitPanel: false } p ? p.Name : null;
+        var suggestion = string.IsNullOrWhiteSpace(configured) ? activeNamed ?? DefaultPanelName : configured.Trim();
         if (!ask || PanelChooser is null)
             return suggestion;
         return await PanelChooser(PanelNames, suggestion);
@@ -487,31 +651,26 @@ public sealed class SessionsDockable : Document
     }
 
     /// <summary>
-    /// Panels created by a split ("Left", "Right", "Top", "Bottom") exist only to hold the moved session.
-    /// Once it leaves, the panel goes too, so a closed session does not leave an empty half behind.
+    /// Panels created automatically by a split exist only to hold the moved session.
+    /// Once it leaves, the panel goes too, so a closed session does not leave an empty region behind.
     /// </summary>
     private void RemoveEmptySplitPanel(SessionPanelViewModel panel)
     {
-        if (!IsSplitPanelName(panel.Name) || panel.Sessions.Count > 0) return;
-        panel.ActiveSessionChanged -= OnPanelActiveSessionChanged;
-        Panels.Remove(panel);
-        if (ReferenceEquals(ActivePanel, panel))
-            ActivePanel = Panels.FirstOrDefault(p => !p.IsFloating) ?? Panels.FirstOrDefault();
-        if (Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
-            && Panels.Count(p => !p.IsFloating) < 2)
-            Arrangement = PanelArrangement.Tabbed;
-    }
-
-    private static bool IsSplitPanelName(string name)
-    {
-        foreach (var prefix in new[] { "Left", "Right", "Top", "Bottom" })
+        if (panel.Sessions.Count > 0) return;
+        if (panel.IsSplitPanel)
         {
-            if (name.Equals(prefix, StringComparison.OrdinalIgnoreCase)) return true;
-            if (name.StartsWith(prefix + " ", StringComparison.OrdinalIgnoreCase)
-                && int.TryParse(name[(prefix.Length + 1)..], out _))
-                return true;
+            panel.ActiveSessionChanged -= OnPanelActiveSessionChanged;
+            Panels.Remove(panel);
+            if (ReferenceEquals(ActivePanel, panel))
+                ActivePanel = Panels.FirstOrDefault(p => !p.IsFloating) ?? Panels.FirstOrDefault();
         }
-        return false;
+        PruneLayoutTree();
+        if (Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
+            && Panels.Count(p => !p.IsFloating && p.Sessions.Count > 0) < 2
+            && Panels.Count(p => !p.IsFloating) < 2)
+        {
+            Arrangement = PanelArrangement.Tabbed;
+        }
     }
 
     /// <summary>Tab menu ▸ Close other tabs (in the same panel).</summary>
@@ -797,10 +956,12 @@ public sealed class SessionsDockable : Document
     {
         state.Arrangement = Arrangement;
         state.ActivePanel = ActivePanel?.Name;
+        state.SplitLayout = _layoutTree?.Clone();
         state.Panels = Panels.Select(p => new PanelLayoutState
         {
             Name = p.Name,
             IsFloating = p.IsFloating,
+            IsSplitPanel = p.IsSplitPanel,
             Weight = p.SizeWeight,
             Section = p.Section,
             Floating = p.FloatingBounds,
@@ -812,15 +973,14 @@ public sealed class SessionsDockable : Document
     {
         Arrangement = state.Arrangement;
         var order = new List<SessionPanelViewModel>();
-        // A saved split panel with no sessions is the half of a session that was closed: it would open
+        // A saved split panel with no sessions is the region of a session that was closed: it would open
         // the window on an empty panel, so it is not recreated.
-        var savedPanels = state.Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
-            ? state.Panels.Where(p => Panels.Any(existing => string.Equals(existing.Name, p.Name, StringComparison.OrdinalIgnoreCase))
-                || !IsSplitPanelName(p.Name)).ToList()
-            : state.Panels;
+        var savedPanels = state.Panels.Where(p =>
+            !p.IsSplitPanel || Panels.Any(existing => string.Equals(existing.Name, p.Name, StringComparison.OrdinalIgnoreCase))).ToList();
         foreach (var saved in savedPanels)
         {
             var panel = GetOrCreatePanel(saved.Name);
+            panel.IsSplitPanel = saved.IsSplitPanel;
             panel.SizeWeight = saved.Weight;
             panel.Section = saved.Section;
             panel.FloatingBounds = saved.Floating;
@@ -840,6 +1000,17 @@ public sealed class SessionsDockable : Document
         if (state.ActivePanel is { } active && FindPanel(active) is { } activePanel)
             ActivePanel = activePanel;
 
+        if (state.SplitLayout is { } savedTree)
+        {
+            var dockedNames = Panels.Where(p => !p.IsFloating).Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var pruned = savedTree.Pruned(dockedNames);
+            LayoutTree = pruned is { IsLeaf: false } ? pruned : null;
+        }
+        else
+        {
+            LayoutTree = null;
+        }
+
         // A split needs two docked panels; a restored layout that no longer has them goes back to tabs.
         if (Arrangement is PanelArrangement.SplitVertical or PanelArrangement.SplitHorizontal
             && Panels.Count(p => !p.IsFloating) < 2)
@@ -849,13 +1020,21 @@ public sealed class SessionsDockable : Document
     /// <summary>View ▸ Reset Layout: every panel docked, tabbed, equal sizes.</summary>
     public void ResetLayout()
     {
+        _layoutTree = null;
         Arrangement = PanelArrangement.Tabbed;
-        foreach (var panel in Panels)
+        foreach (var panel in Panels.ToList())
         {
+            if (panel.IsSplitPanel && panel.Sessions.Count == 0)
+            {
+                panel.ActiveSessionChanged -= OnPanelActiveSessionChanged;
+                Panels.Remove(panel);
+                continue;
+            }
             panel.IsFloating = false;
             panel.SizeWeight = 1;
             panel.Section = PanelSection.Primary;
             panel.FloatingBounds = null;
         }
+        OnPropertyChanged(nameof(LayoutTree));
     }
 }

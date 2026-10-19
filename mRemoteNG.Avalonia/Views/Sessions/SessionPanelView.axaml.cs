@@ -42,7 +42,11 @@ public partial class SessionPanelView : UserControl
         TabStrip.AddHandler(PointerMovedEvent, OnTabPointerMoved, RoutingStrategies.Tunnel, handledEventsToo: true);
         DragDrop.SetAllowDrop(this, true);
         AddHandler(DragDrop.DragOverEvent, OnTabDragOver);
-        AddHandler(DragDrop.DragLeaveEvent, (_, _) => HideDropIndicator());
+        AddHandler(DragDrop.DragLeaveEvent, (_, _) =>
+        {
+            HideDropIndicator();
+            HideSplitPreview();
+        });
         AddHandler(DragDrop.DropEvent, OnTabDrop);
         TabStrip.AddHandler(ContextRequestedEvent, OnTabContextRequested, RoutingStrategies.Bubble);
         TabStrip.AddHandler(PointerWheelChangedEvent, OnTabStripWheel, RoutingStrategies.Tunnel);
@@ -334,16 +338,14 @@ public partial class SessionPanelView : UserControl
         _pressPoint = null;
         var data = new DataObject();
         data.Set(TabDragFormat, tab);
-        var area = this.FindAncestorOfType<SessionAreaView>();
-        area?.BeginSplitDrag();
         try
         {
             await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
         }
         finally
         {
-            area?.EndSplitDrag();
             HideDropIndicator();
+            HideSplitPreview();
         }
     }
 
@@ -351,33 +353,101 @@ public partial class SessionPanelView : UserControl
     internal static SessionTabViewModel? DraggedTab(DragEventArgs e, SessionsDockable dock) =>
         e.Data.Get(TabDragFormat) is SessionTabViewModel tab && dock.Sessions.Contains(tab) ? tab : null;
 
+    /// <summary>True while the split or panel drop preview is showing on this panel.</summary>
+    public bool IsSplitPreviewVisible => SplitPreview.IsVisible;
+
     private void OnTabDragOver(object? sender, DragEventArgs e)
     {
         if (_panel is null || DraggedTab(e, _panel.Owner) is not { } tab)
         {
             e.DragEffects = DragDropEffects.None;
             HideDropIndicator();
+            HideSplitPreview();
             return;
         }
+
+        if (IsOverTabBar(e))
+        {
+            HideSplitPreview();
+            e.DragEffects = DragDropEffects.Move;
+            ShowDropIndicator(DropIndex(e));
+            e.Handled = true;
+            return;
+        }
+
+        HideDropIndicator();
+        var dock = _panel.Owner;
+        var moveWholePanelToOther = !ReferenceEquals(tab.Panel, _panel)
+            && dock.Arrangement is PanelArrangement.SideBySide or PanelArrangement.Stacked;
+        var splitSide = moveWholePanelToOther ? null : BodyDropSide(e, allowCenterJoin: !ReferenceEquals(tab.Panel, _panel));
+
+        if (!moveWholePanelToOther && splitSide is null && ReferenceEquals(tab.Panel, _panel) && _panel.Sessions.Count <= 1
+            && dock.Panels.Count(p => !p.IsFloating && !ReferenceEquals(p, _panel) && p.Sessions.Count > 0) == 0)
+        {
+            e.DragEffects = DragDropEffects.None;
+            HideSplitPreview();
+            return;
+        }
+
         e.DragEffects = DragDropEffects.Move;
-        ShowDropIndicator(DropIndex(e));
+        ShowSplitPreview(splitSide);
         e.Handled = true;
     }
 
     private void OnTabDrop(object? sender, DragEventArgs e)
     {
         HideDropIndicator();
+        HideSplitPreview();
         if (_panel is null || DraggedTab(e, _panel.Owner) is not { } tab) return;
-        _panel.Owner.MoveSession(tab, _panel, DropIndex(e));
+
+        if (IsOverTabBar(e))
+        {
+            _panel.Owner.MoveSession(tab, _panel, DropIndex(e));
+            e.Handled = true;
+            return;
+        }
+
+        var dock = _panel.Owner;
+        var moveWholePanelToOther = !ReferenceEquals(tab.Panel, _panel)
+            && dock.Arrangement is PanelArrangement.SideBySide or PanelArrangement.Stacked;
+        var splitSide = moveWholePanelToOther ? null : BodyDropSide(e, allowCenterJoin: !ReferenceEquals(tab.Panel, _panel));
+
+        if (splitSide is { } side)
+            dock.SplitSession(tab, side, _panel);
+        else if (!ReferenceEquals(tab.Panel, _panel))
+            dock.MoveSession(tab, _panel, _panel.Sessions.Count);
         e.Handled = true;
     }
 
-    /// <summary>Where a drop goes: before the tab under the pointer's left half, else at the end.</summary>
+    private bool IsOverTabBar(DragEventArgs e) =>
+        TabBar.IsVisible && e.GetPosition(TabBar) is var bar && bar.Y >= 0 && bar.Y <= TabBar.Bounds.Height;
+
+    /// <summary>
+    /// Determines which edge of the panel body the pointer is over, or null for the centre of another panel
+    /// (joining that panel's tab group without splitting).
+    /// </summary>
+    private SplitSide? BodyDropSide(DragEventArgs e, bool allowCenterJoin)
+    {
+        var width = BodyGrid.Bounds.Width;
+        var height = BodyGrid.Bounds.Height;
+        if (width < 1 || height < 1) return SplitSide.Right;
+        var at = e.GetPosition(BodyGrid);
+        var nx = Math.Clamp(at.X / width, 0, 1);
+        var ny = Math.Clamp(at.Y / height, 0, 1);
+        var dx = Math.Abs(nx - 0.5);
+        var dy = Math.Abs(ny - 0.5);
+        if (allowCenterJoin && dx < 0.25 && dy < 0.25)
+            return null;
+        if (dx >= dy)
+            return nx >= 0.5 ? SplitSide.Right : SplitSide.Left;
+        return ny >= 0.5 ? SplitSide.Bottom : SplitSide.Top;
+    }
+
+    /// <summary>Where a drop goes in the tab bar: before the tab under the pointer's left half, else at the end.</summary>
     private int DropIndex(DragEventArgs e)
     {
         var count = _panel?.Sessions.Count ?? 0;
-        var overTabBar = e.GetPosition(TabBar) is var bar && bar.Y >= 0 && bar.Y <= TabBar.Bounds.Height;
-        if (!overTabBar) return count;
+        if (!IsOverTabBar(e)) return count;
         for (var i = 0; i < count; i++)
         {
             if (TabStrip.ContainerFromIndex(i) is not Control container) continue;
@@ -385,6 +455,44 @@ public partial class SessionPanelView : UserControl
                 return i;
         }
         return count;
+    }
+
+    private void ShowSplitPreview(SplitSide? side)
+    {
+        var width = BodyGrid.Bounds.Width;
+        var height = BodyGrid.Bounds.Height;
+        if (width < 1 || height < 1)
+        {
+            SplitPreview.IsVisible = false;
+            return;
+        }
+        const double inset = 6;
+        double left = inset, top = inset, right = inset, bottom = inset;
+        switch (side)
+        {
+            case SplitSide.Left:
+                right = width / 2 + inset;
+                break;
+            case SplitSide.Right:
+                left = width / 2 + inset;
+                break;
+            case SplitSide.Top:
+                bottom = height / 2 + inset;
+                break;
+            case SplitSide.Bottom:
+                top = height / 2 + inset;
+                break;
+        }
+        SplitPreview.HorizontalAlignment = global::Avalonia.Layout.HorizontalAlignment.Stretch;
+        SplitPreview.VerticalAlignment = global::Avalonia.Layout.VerticalAlignment.Stretch;
+        SplitPreview.Margin = new Thickness(left, top, right, bottom);
+        SplitPreview.IsVisible = true;
+    }
+
+    internal void HideSplitPreview()
+    {
+        if (SplitPreview is not null)
+            SplitPreview.IsVisible = false;
     }
 
     private void ShowDropIndicator(int index)

@@ -203,7 +203,7 @@ public static class SessionTabMenu
     {
         var item = new MenuItem { Header = MoveToPanel, IsEnabled = dock is not null };
         if (dock is null) return item;
-        foreach (var panel in dock.Panels.Where(p => !ReferenceEquals(p, session.Panel)))
+        foreach (var panel in dock.Panels.Where(p => !p.IsSplitPanel && !ReferenceEquals(p, session.Panel)))
             item.Items.Add(Item(panel.Name, true, () => dock.MoveSession(session, panel.Name)));
         if (item.Items.Count > 0)
             item.Items.Add(new Separator());
@@ -219,15 +219,15 @@ public static class SessionTabMenu
         return item;
     }
 
-    /// <summary>Moves the tab into its own half of the session area (left/right or top/bottom).</summary>
+    /// <summary>Moves the tab into its own region of the session area (left/right or top/bottom).</summary>
     private static MenuItem SplitMenu(SessionTabViewModel session, SessionsDockable? dock)
     {
         var item = new MenuItem { Header = Localizer.Get("Split", "Split"), IsEnabled = dock is not null && session.Panel is not null };
         if (dock is null) return item;
-        item.Items.Add(Item(SplitRight, true, () => dock.SplitSession(session, PanelSection.Secondary, vertical: true)));
-        item.Items.Add(Item(SplitLeft, true, () => dock.SplitSession(session, PanelSection.Primary, vertical: true)));
-        item.Items.Add(Item(SplitDown, true, () => dock.SplitSession(session, PanelSection.Secondary, vertical: false)));
-        item.Items.Add(Item(SplitUp, true, () => dock.SplitSession(session, PanelSection.Primary, vertical: false)));
+        item.Items.Add(Item(SplitRight, true, () => dock.SplitSession(session, SplitSide.Right)));
+        item.Items.Add(Item(SplitLeft, true, () => dock.SplitSession(session, SplitSide.Left)));
+        item.Items.Add(Item(SplitDown, true, () => dock.SplitSession(session, SplitSide.Bottom)));
+        item.Items.Add(Item(SplitUp, true, () => dock.SplitSession(session, SplitSide.Top)));
         return item;
     }
 

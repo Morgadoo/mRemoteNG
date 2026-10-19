@@ -410,9 +410,10 @@ public partial class MainWindow : Window
             return;
         }
 
+        var showGroupHeaders = panels.Count(p => !p.IsSplitPanel) > 1;
         foreach (var panel in panels)
         {
-            if (panels.Count > 1)
+            if (showGroupHeaders && !panel.IsSplitPanel)
                 items.Add(new MenuItem { Header = panel.Name, IsEnabled = false, FontWeight = global::Avalonia.Media.FontWeight.Bold });
             for (var i = 0; i < panel.Sessions.Count; i++)
             {

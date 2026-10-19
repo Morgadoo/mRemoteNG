@@ -1,11 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.VisualTree;
 using Avalonia.Input.Raw;
 using FluentAssertions;
 using mRemoteNG.Avalonia.ViewModels.Docking;
@@ -15,7 +13,7 @@ using static mRemoteNG.Avalonia.Tests.SessionTestSupport;
 
 namespace mRemoteNG.Avalonia.Tests;
 
-/// <summary>Dragging session tabs: reorder within a panel, move to another panel or into a new one.</summary>
+/// <summary>Dragging session tabs: reorder within a panel, move to another panel or split into a new region.</summary>
 public class SessionTabDragTests
 {
     private static SessionAreaView Area => TestHost.MainWindow.FindControl<SessionAreaView>("SessionArea")!;
@@ -138,19 +136,26 @@ public class SessionTabDragTests
         var moved = (await SessionDock.OpenConnectionAsync(Connection("moved", 1), factory))!;
         var general = keep.Panel!;
         Pump();
+        TestHost.MainWindow.UpdateLayout();
 
-        // The right half of the session area opens the right half.
-        Area.BeginSplitDrag();
-        Pump();
-        var surface = Area.FindControl<Grid>("SplitDropSurface")!;
-        DragOn(surface, new Point(surface.Bounds.Width - 30, surface.Bounds.Height / 2), RawDragEventType.DragOver, moved);
+        // Dragging onto the right half of the panel body previews the right half without showing the tab reorder indicator.
+        var generalView = Area.PanelViews[general];
+        var rightEdge = generalView.TranslatePoint(
+            new Point(generalView.Bounds.Width - 30, generalView.Bounds.Height / 2),
+            TestHost.MainWindow)!.Value;
+        Drag(rightEdge, RawDragEventType.DragEnter, moved);
+        Drag(rightEdge, RawDragEventType.DragOver, moved);
         Area.IsSplitPreviewVisible.Should().BeTrue();
-        DragOn(surface, new Point(surface.Bounds.Width - 30, surface.Bounds.Height / 2), RawDragEventType.Drop, moved);
+        generalView.DropIndicatorX.Should().BeNull("splitting the body does not fight the tab strip reorder indicator");
+        Drag(rightEdge, RawDragEventType.Drop, moved);
         Pump();
+        TestHost.MainWindow.UpdateLayout();
 
         Area.IsSplitPreviewVisible.Should().BeFalse();
         SessionDock.Arrangement.Should().Be(PanelArrangement.SplitVertical);
-        moved.Panel!.Name.Should().Be("Right");
+        moved.Panel.Should().NotBeSameAs(general);
+        moved.Panel!.IsSplitPanel.Should().BeTrue("the generated split panel is an internal container");
+        SessionDock.PanelNames.Should().NotContain(moved.Panel.Name, "split panels are hidden from user-facing panel lists");
         moved.Panel.Section.Should().Be(PanelSection.Secondary);
         general.Sessions.Should().Equal(keep);
         var grid = Area.FindControl<Grid>("PanelGrid")!;
@@ -158,17 +163,82 @@ public class SessionTabDragTests
         grid.Children.OfType<GridSplitter>().Should().ContainSingle();
         Area.PanelViews[moved.Panel].IsVisible.Should().BeTrue();
         Area.PanelViews[general].IsVisible.Should().BeTrue();
+        Area.PanelViews[moved.Panel].ShowHeader.Should().BeFalse();
+        Area.PanelViews[general].ShowHeader.Should().BeFalse();
         Area.PanelViews[moved.Panel].Hosts[moved].HostedView.Should().BeSameAs(moved.ContentView);
 
-        // The bottom edge opens the bottom half instead.
-        var again = Area.FindControl<Grid>("SplitDropSurface")!;
-        DragOn(again, new Point(again.Bounds.Width / 2, again.Bounds.Height - 30), RawDragEventType.Drop, keep);
+        // Dropping the remaining single tab onto the bottom edge of the other panel re-splits top/bottom.
+        var movedView = Area.PanelViews[moved.Panel];
+        var bottomEdge = movedView.TranslatePoint(
+            new Point(movedView.Bounds.Width / 2, movedView.Bounds.Height - 30),
+            TestHost.MainWindow)!.Value;
+        Drag(bottomEdge, RawDragEventType.DragEnter, keep);
+        Drag(bottomEdge, RawDragEventType.Drop, keep);
         Pump();
+        TestHost.MainWindow.UpdateLayout();
+
         SessionDock.Arrangement.Should().Be(PanelArrangement.SplitHorizontal);
         moved.Panel!.Section.Should().Be(PanelSection.Primary, "the other half stays opposite the dropped tab");
         keep.Panel.Should().BeSameAs(general, "a panel holding only this tab moves as a whole");
         keep.Panel!.Section.Should().Be(PanelSection.Secondary);
         grid.RowDefinitions.Should().HaveCount(3);
+
+        await ResetAsync();
+    }
+
+    [AvaloniaFact]
+    public async Task NestedSplits_AndClosingSplitSession_CollapsesEmptyRegion()
+    {
+        await ResetAsync();
+        var factory = new FakeProtocolFactory();
+        var s1 = (await SessionDock.OpenConnectionAsync(Connection("s1", 1), factory))!;
+        var s2 = (await SessionDock.OpenConnectionAsync(Connection("s2", 1), factory))!;
+        var s3 = (await SessionDock.OpenConnectionAsync(Connection("s3", 1), factory))!;
+        Pump();
+        TestHost.MainWindow.UpdateLayout();
+
+        // Split s2 to the right.
+        var generalView = Area.PanelViews[s1.Panel!];
+        var rightEdge = generalView.TranslatePoint(
+            new Point(generalView.Bounds.Width - 30, generalView.Bounds.Height / 2),
+            TestHost.MainWindow)!.Value;
+        Drag(rightEdge, RawDragEventType.DragEnter, s2);
+        Drag(rightEdge, RawDragEventType.Drop, s2);
+        Pump();
+        TestHost.MainWindow.UpdateLayout();
+
+        // Now split s3 into the bottom half of the right panel (nested split: left | (top / bottom)).
+        var rightView = Area.PanelViews[s2.Panel!];
+        var rightBottomEdge = rightView.TranslatePoint(
+            new Point(rightView.Bounds.Width / 2, rightView.Bounds.Height - 30),
+            TestHost.MainWindow)!.Value;
+        Drag(rightBottomEdge, RawDragEventType.DragEnter, s3);
+        Drag(rightBottomEdge, RawDragEventType.Drop, s3);
+        Pump();
+        TestHost.MainWindow.UpdateLayout();
+
+        SessionDock.LayoutTree.Should().NotBeNull();
+        SessionDock.LayoutTree!.Vertical.Should().BeTrue();
+        SessionDock.LayoutTree.Second!.IsLeaf.Should().BeFalse("the right region is nested into top and bottom");
+        SessionDock.LayoutTree.Second.Vertical.Should().BeFalse();
+        Area.PanelViews[s1.Panel!].IsVisible.Should().BeTrue();
+        Area.PanelViews[s2.Panel!].IsVisible.Should().BeTrue();
+        Area.PanelViews[s3.Panel!].IsVisible.Should().BeTrue();
+
+        // Closing s3 removes its anonymous split panel and collapses the nested split back to two columns.
+        var s3Panel = s3.Panel!;
+        await SessionDock.CloseSessionAsync(s3);
+        Pump();
+        SessionDock.Panels.Should().NotContain(s3Panel);
+        SessionDock.LayoutTree!.Second!.IsLeaf.Should().BeTrue();
+
+        // Closing s2 removes the remaining split panel and returns the layout to a single unsplit panel.
+        var s2Panel = s2.Panel!;
+        await SessionDock.CloseSessionAsync(s2);
+        Pump();
+        SessionDock.Panels.Should().NotContain(s2Panel);
+        SessionDock.LayoutTree.Should().BeNull();
+        SessionDock.Arrangement.Should().Be(PanelArrangement.Tabbed);
 
         await ResetAsync();
     }
@@ -187,8 +257,14 @@ public class SessionTabDragTests
 
         SessionDock.Arrangement.Should().Be(PanelArrangement.SplitVertical);
         second.Panel!.Section.Should().Be(PanelSection.Secondary);
+        second.Panel.IsSplitPanel.Should().BeTrue();
         first.Panel!.Sessions.Should().Equal(first);
         Area.FindControl<Grid>("PanelGrid")!.ColumnDefinitions.Should().HaveCount(3);
+
+        // Move to Panel menu does not list anonymous split panels.
+        var firstMenu = SessionTabMenu.Build(first, TestHost.MainWindow);
+        var moveItem = SessionTabMenu.Find(firstMenu, SessionTabMenu.MoveToPanel)!;
+        moveItem.Items.OfType<MenuItem>().Select(i => i.Header?.ToString()).Should().NotContain(second.Panel.Name);
 
         await ResetAsync();
     }
@@ -229,24 +305,6 @@ public class SessionTabDragTests
 
     private static Point Center(Control control) =>
         control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), TestHost.MainWindow)!.Value;
-
-    /// <summary>Delivers the drag to one control (the window-level helper hit-tests and misses the drop surface).</summary>
-    private static void DragOn(Control target, Point at, RawDragEventType type, SessionTabViewModel tab)
-    {
-        var data = new DataObject();
-        data.Set(SessionPanelView.TabDragFormat, tab);
-        var window = TestHost.MainWindow;
-        var root = (Interactive)window.GetVisualRoot()!;
-        var point = target.TranslatePoint(at, root) ?? new Point();
-        var args = new DragEventArgs(type switch
-        {
-            RawDragEventType.Drop => DragDrop.DropEvent,
-            RawDragEventType.DragEnter => DragDrop.DragEnterEvent,
-            _ => DragDrop.DragOverEvent,
-        }, data, target, point, KeyModifiers.None);
-        ((Interactive)target).RaiseEvent(args);
-        Pump();
-    }
 
     private static void Drag(Point point, RawDragEventType type, SessionTabViewModel tab)
     {

@@ -87,7 +87,6 @@
         </Style>
     </UserControl.Styles>
 
-    <Panel>
     <DockPanel>
         <!-- Panel tab strip (tabbed arrangement with more than one docked panel) -->
         <Border x:Name="PanelStripBar" DockPanel.Dock="Top" Classes="panel-strip" IsVisible="False">
@@ -95,13 +94,4 @@
         </Border>
         <Grid x:Name="PanelGrid"/>
     </DockPanel>
-    <!-- Covers the session area while a tab is dragged, so the empty space beside a session is a drop
-         target too (native session views swallow the drag otherwise). The tab bar stays reachable. -->
-    <Grid x:Name="SplitDropSurface" IsVisible="False" Margin="0,38,0,0" Background="Transparent">
-        <!-- Preview of the half the drop would open -->
-        <Border x:Name="SplitPreview" IsHitTestVisible="False" IsVisible="False"
-                Background="{DynamicResource AccentSubtleBrush}"
-                BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2" CornerRadius="4"/>
-    </Grid>
-    </Panel>
 </UserControl>
