@@ -12,6 +12,9 @@
     <Version>1.78.2-dev</Version>
     <!-- Avalonia uses its own designer -->
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Declares the supported Windows versions. Avalonia's NativeControlHost refuses to create its
+         child window without it and throws, which used to take the whole application down. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -67,6 +70,9 @@
                       CopyToPublishDirectory="PreserveNewest" />
     <!-- Runtime dependency of the Windows platform assembly (DPAPI); not flowed by the reference above. -->
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+    <!-- The embedded Remote Desktop control is hosted in a WinForms panel; the framework reference is not
+         flowed by the reflection-loaded platform assembly, so the app has to ask for it itself. -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
   </ItemGroup>
 
   <!-- Avalonia assets (icons, themes) embedded as resources -->

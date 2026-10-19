@@ -22,45 +22,40 @@
         </Style>
     </Window.Styles>
 
-    <Grid>
-        <Border BorderBrush="{Binding FrameBrush}"
-                BorderThickness="{Binding FrameThickness}"
-                Padding="{Binding FramePadding}">
-            <Border x:Name="ViewHost"/>
-        </Border>
-
-        <!-- Connection bar: faint until the pointer reaches it; Ctrl+Alt+Enter also leaves full screen -->
+    <!-- The bar gets its own row. An embedded remote desktop paints over anything sharing its space, so a
+         bar drawn on top of the session can never be seen or clicked; keeping it above the session fixes that. -->
+    <Grid RowDefinitions="Auto,*">
         <Border x:Name="ConnectionBar"
+                Grid.Row="0"
                 Classes="elevated"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                CornerRadius="0,0,10,10"
-                BorderThickness="1,0,1,1"
-                Padding="12,5,6,5"
-                Opacity="0.25">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <mi:MaterialIcon VerticalAlignment="Center"
+                HorizontalAlignment="Stretch"
+                BorderThickness="0,0,0,1"
+                Padding="12,4">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                <mi:MaterialIcon Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
                                  Kind="{Binding Converter={x:Static conv:ConnectionConverters.Icon}}"
                                  Foreground="{Binding IconBrush}"/>
-                <TextBlock Text="{Binding DisplayTitle}" VerticalAlignment="Center" FontWeight="Medium"
+                <TextBlock Grid.Column="1" Text="{Binding DisplayTitle}" VerticalAlignment="Center" FontWeight="Medium"
                            MaxWidth="320" TextTrimming="CharacterEllipsis"/>
-                <Border Classes="dot"
+                <Border Grid.Column="2" Classes="dot" Margin="10,0,0,0"
                         Classes.success="{Binding IsStatusConnected}"
                         Classes.warning="{Binding IsStatusBusy}"
                         Classes.danger="{Binding IsStatusError}"
                         IsVisible="{Binding HasStatusDot}"/>
-                <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" Margin="6,0,0,0">
-                    <Border Classes="keycap"><TextBlock Text="Ctrl"/></Border>
-                    <Border Classes="keycap"><TextBlock Text="Alt"/></Border>
-                    <Border Classes="keycap"><TextBlock Text="Enter"/></Border>
-                </StackPanel>
-                <Button x:Name="ExitButton" Classes="subtle" Padding="8,4">
+                <Button x:Name="ExitButton" Grid.Column="4" Classes="subtle" Padding="8,4">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <mi:MaterialIcon Kind="FullscreenExit"/>
                         <TextBlock Text="{l:Tr ExitFullScreen}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-            </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                BorderBrush="{Binding FrameBrush}"
+                BorderThickness="{Binding FrameThickness}"
+                Padding="{Binding FramePadding}">
+            <Border x:Name="ViewHost"/>
         </Border>
     </Grid>
 </Window>

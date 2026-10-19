@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
@@ -41,7 +43,9 @@ public sealed class RdpConnectionException : Exception
 }
 
 /// <summary>
-/// RDP via FreeRDP (xfreerdp3 / xfreerdp / wfreerdp) running as a child process.
+/// RDP via FreeRDP (xfreerdp3 / xfreerdp / wfreerdp) running as a child process. On Windows, when FreeRDP
+/// is not installed, the same connection is opened with Windows Remote Desktop (<c>mstsc.exe</c>) instead;
+/// that client always uses its own window (see <see cref="ConnectWithMstscAsync"/>).
 ///
 /// Embedding (Linux/X11 and Windows): <see cref="CreateView"/> returns an <see cref="RdpSessionView"/> whose
 /// <see cref="RdpNativeHost"/> (an Avalonia NativeControlHost) owns a native child window. ConnectAsync waits until
@@ -92,6 +96,9 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
     private TaskCompletionSource<int> _exited = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private ConnectionParameters? _parameters;
     private int _majorVersion;
+    private bool _usingMstsc;
+    private string? _mstscFile;
+    private object? _activeX;
     private volatile bool _disconnectRequested;
     private bool _remoteFocusWanted;
     private bool _disposed;
@@ -132,6 +139,7 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
 
         _parameters = parameters;
         _disconnectRequested = false;
+        _usingMstsc = false;
         _parser = new FreeRdpOutputParser();
         _embedded = false;
         lock (_recentOutput)
@@ -143,10 +151,25 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         RaiseStatus($"Connecting to {parameters.Hostname}:{parameters.Port}…");
         OnUi(v => v.ShowMessage($"Connecting to {parameters.Hostname}…"));
 
+        // Windows: the same Remote Desktop ActiveX control the WinForms app embeds, drawn into the session tab.
+        // Anything else (no control, no native window) falls through to a client in its own window.
+        if (OperatingSystem.IsWindows() && await TryConnectWithActiveXAsync(parameters))
+            return;
+
         string? freerdp = FindFreeRdpExecutable();
         if (freerdp is null)
+        {
+            // Windows ships its own client. It cannot be embedded in the tab, so it opens its own window.
+            if (OperatingSystem.IsWindows() && FindMstscExecutable() is { } mstsc)
+            {
+                await ConnectWithMstscAsync(mstsc, parameters, ct);
+                return;
+            }
+
             throw Fail("FreeRDP was not found. Install xfreerdp3 / xfreerdp (Linux, e.g. the freerdp3-x11 package), " +
-                       "wfreerdp (Windows) or FreeRDP via Homebrew (macOS).");
+                       "wfreerdp (Windows) or FreeRDP via Homebrew (macOS)." +
+                       (OperatingSystem.IsWindows() ? " Windows Remote Desktop (mstsc.exe) was not found either." : ""));
+        }
 
         _majorVersion = await GetFreeRdpMajorVersionAsync(freerdp, ct);
         bool argsFromEnvironment = _majorVersion >= 3;
@@ -286,10 +309,247 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         }
     }
 
+    /// <summary>
+    /// Embeds the Microsoft Remote Desktop ActiveX control in the session tab (Windows only; implemented in
+    /// mRemoteNG.Platform.Windows and loaded by reflection so this project stays free of WinForms and COM).
+    /// Returns false when there is nothing to embed into, and the caller uses a windowed client instead.
+    /// </summary>
+    private async Task<bool> TryConnectWithActiveXAsync(ConnectionParameters parameters)
+    {
+        var host = _view?.Host;
+        if (host is null)
+            return false;
+
+        IPlatformHandle handle;
+        try
+        {
+            handle = await host.HandleReady.WaitAsync(ViewWaitTimeout, CancellationToken.None);
+        }
+        catch (TimeoutException)
+        {
+            return false;
+        }
+        if (host.EmbeddingFailed || !EmbeddedWindowSupport.CanEmbedInto(handle))
+            return false;
+
+        await OnUiAsync(v => v.ShowEmbedded());
+        object? session;
+        try
+        {
+            session = await Dispatcher.UIThread.InvokeAsync(() => CreateActiveXSession(host, parameters));
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or FileNotFoundException or TypeLoadException)
+        {
+            _logger.LogWarning(ex, "RDP {Host}: the embedded Remote Desktop control is not available", parameters.Hostname);
+            return false;
+        }
+        if (session is null)
+            return false;
+
+        _activeX = session;
+        _embedded = true;
+        _logger.LogInformation("RDP {Host}: embedded the Microsoft Remote Desktop control in the session tab.", parameters.Hostname);
+        return true;
+    }
+
+    /// <summary>
+    /// Creates the ActiveX session inside the tab. Null when the Windows platform assembly has no such host
+    /// (the control is not installed, or this is not the Windows build).
+    /// </summary>
+    private object? CreateActiveXSession(RdpNativeHost host, ConnectionParameters parameters)
+    {
+        var assembly = AppDomain.CurrentDomain.GetAssemblies()
+            .FirstOrDefault(a => a.GetName().Name == "mRemoteNG.Platform.Windows");
+        var type = assembly?.GetType("mRemoteNG.Platform.Windows.Rdp.WindowsRdpActiveXHost");
+        var method = type?.GetMethod("TryConnect", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        if (method is null)
+            return null;
+
+        void Warn(string message) => _logger.LogWarning("RDP {Host}: {Message}", parameters.Hostname, message);
+        object? session;
+        try
+        {
+            session = method.Invoke(null, [host, parameters, (Action<string>)Warn]);
+        }
+        catch (System.Reflection.TargetInvocationException ex)
+        {
+            throw ex.InnerException ?? ex;
+        }
+        if (session is null)
+            return null;
+
+        void OnConnected(object? sender, EventArgs args) => MarkConnected();
+        void OnFailed(object? sender, string message) => Fail(message);
+        void OnDisconnected(object? sender, string message)
+        {
+            State = ConnectionState.Disconnected;
+            RaiseStatus(message);
+            OnUi(v => v.ShowMessage(message));
+        }
+        type!.GetEvent("Connected")?.AddEventHandler(session, new EventHandler((_, e) => OnConnected(_, e)));
+        type.GetEvent("Failed")?.AddEventHandler(session, new EventHandler<string>((_, e) => OnFailed(_, e)));
+        type.GetEvent("Disconnected")?.AddEventHandler(session, new EventHandler<string>((_, e) => OnDisconnected(_, e)));
+        return session;
+    }
+
+    /// <summary>
+    /// Windows fallback when FreeRDP is not installed: write the connection as an <c>.rdp</c> file and open it
+    /// with <c>mstsc.exe</c>. mstsc always uses its own window (it cannot be parented into the session tab)
+    /// and does not report connection state, so the session counts as connected once the process is running.
+    /// </summary>
+    private async Task ConnectWithMstscAsync(string mstsc, ConnectionParameters parameters, CancellationToken ct)
+    {
+        _usingMstsc = true;
+        PixelSize workArea = new(1920, 1080);
+        if (_view is { } view)
+        {
+            try
+            {
+                await view.Sized.WaitAsync(TimeSpan.FromSeconds(2), ct);
+                workArea = await Dispatcher.UIThread.InvokeAsync(() => view.PixelSize);
+            }
+            catch (TimeoutException)
+            {
+                // The tab was not shown; the default work area is fine.
+            }
+        }
+
+        var launch = new MstscLaunchOptions
+        {
+            WorkArea = workArea.Width >= 200 && workArea.Height >= 200 ? workArea : new PixelSize(1920, 1080),
+            ProtectPassword = ProtectForCurrentUser,
+        };
+        string contents = MstscRdpFile.Build(parameters, launch);
+        foreach (string warning in launch.Warnings)
+            _logger.LogWarning("RDP {Host}: {Message}", parameters.Hostname, warning);
+
+        _mstscFile = Path.Combine(Path.GetTempPath(), "mremoteng-" + Guid.NewGuid().ToString("N") + ".rdp");
+        // UTF-16 LE with BOM, which is what mstsc writes and reads.
+        await File.WriteAllTextAsync(_mstscFile, contents, new UnicodeEncoding(bigEndian: false, byteOrderMark: true), ct);
+
+        var startInfo = new ProcessStartInfo(mstsc)
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        foreach (string arg in MstscRdpFile.Arguments(parameters))
+            startInfo.ArgumentList.Add(arg);
+        startInfo.ArgumentList.Add(_mstscFile);
+
+        var process = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
+        process.Exited += (_, _) => OnProcessExited(process);
+        try
+        {
+            process.Start();
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            process.Dispose();
+            DeleteMstscFile();
+            throw Fail($"Windows Remote Desktop could not be started: {ex.Message}");
+        }
+
+        lock (_sync)
+        {
+            _process?.Dispose();
+            _process = process;
+        }
+
+        _logger.LogInformation("RDP {Host}: FreeRDP was not found; opened Windows Remote Desktop ({Mstsc}) in its own window.", parameters.Hostname, mstsc);
+        OnUi(v => v.ShowMessage(
+            $"Connecting to {parameters.Hostname}…\nWindows Remote Desktop will open in a separate window.",
+            showBringToFront: true,
+            showDisconnect: true));
+
+        // mstsc prints nothing we could read, and a bad host makes it show its own error dialog rather than
+        // exiting. Give it a moment to fail to start, then treat a running process as the session.
+        var cancelled = Task.Delay(Timeout.Infinite, ct);
+        var started = await Task.WhenAny(Task.Delay(TimeSpan.FromSeconds(2), CancellationToken.None), _exited.Task, cancelled);
+        if (started == cancelled)
+        {
+            await DisconnectAsync(CancellationToken.None);
+            ct.ThrowIfCancellationRequested();
+        }
+        if (_exited.Task.IsCompleted && !_disconnectRequested)
+        {
+            int exitCode = await _exited.Task;
+            throw Fail($"Windows Remote Desktop exited immediately (code {exitCode}).");
+        }
+
+        MarkMstscConnected();
+    }
+
+    private void MarkMstscConnected()
+    {
+        if (_disconnectRequested || _exited.Task.IsCompleted) return;
+        State = ConnectionState.Connected;
+        string host = _parameters?.Hostname ?? "host";
+        RaiseStatus($"Connected to {host} (Windows Remote Desktop)");
+        _connected.TrySetResult();
+        OnUi(v => v.ShowMessage(
+            $"Connected to {host}.\nWindows Remote Desktop is running in a separate window.",
+            showBringToFront: true,
+            showDisconnect: true));
+    }
+
+    /// <summary>
+    /// Encrypts a password the way mstsc does for <c>password 51</c>: DPAPI, current user, no extra entropy,
+    /// UTF-16LE. Returns null where DPAPI does not exist, so the password is left out and mstsc asks for it.
+    /// </summary>
+    private static byte[]? ProtectForCurrentUser(string secret)
+    {
+        if (!OperatingSystem.IsWindows()) return null;
+        try
+        {
+            return ProtectedData.Protect(
+                Encoding.Unicode.GetBytes(secret), optionalEntropy: null, DataProtectionScope.CurrentUser);
+        }
+        catch (Exception ex) when (ex is PlatformNotSupportedException or CryptographicException)
+        {
+            return null;
+        }
+    }
+
+    private void DeleteMstscFile()
+    {
+        string? file = _mstscFile;
+        _mstscFile = null;
+        if (file is null) return;
+        try { File.Delete(file); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+        }
+    }
+
+    private void ReleaseActiveX()
+    {
+        object? session;
+        lock (_sync)
+        {
+            session = _activeX;
+            _activeX = null;
+        }
+        if (session is IDisposable disposable)
+        {
+            if (Dispatcher.UIThread.CheckAccess())
+                disposable.Dispose();
+            else
+                Dispatcher.UIThread.Post(disposable.Dispose);
+        }
+    }
+
+    private static string? FindMstscExecutable()
+    {
+        string system = Path.Combine(Environment.SystemDirectory, "mstsc.exe");
+        if (File.Exists(system)) return system;
+        return FindOnPath("mstsc.exe");
+    }
+
     public override async Task DisconnectAsync(CancellationToken ct = default)
     {
         _disconnectRequested = true;
         StopIdleTimeout();
+        ReleaseActiveX();
         Process? process;
         lock (_sync)
             process = _process;
@@ -325,6 +585,7 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
             }
         }
 
+        DeleteMstscFile();
         if (State != ConnectionState.Disconnected)
         {
             State = ConnectionState.Disconnected;
@@ -408,7 +669,9 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         try { process.WaitForExit(); } catch (InvalidOperationException) { } // drain redirected output
         int exitCode;
         try { exitCode = process.ExitCode; } catch (InvalidOperationException) { exitCode = -1; }
-        _logger.LogInformation("FreeRDP exited with code {Code}", exitCode);
+        _logger.LogInformation("{Client} exited with code {Code}", _usingMstsc ? "Windows Remote Desktop" : "FreeRDP", exitCode);
+        if (_usingMstsc)
+            DeleteMstscFile();
 
         bool wasConnected = _connected.Task.IsCompleted;
         StopIdleTimeout();
@@ -417,6 +680,13 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         if (_disconnectRequested)
         {
             // DisconnectAsync reports the state.
+        }
+        else if (_usingMstsc && wasConnected)
+        {
+            // mstsc's exit code does not say why the window closed; the user closed it or the server ended it.
+            State = ConnectionState.Disconnected;
+            RaiseStatus("RDP session ended.");
+            OnUi(v => v.ShowMessage("The Remote Desktop window was closed."));
         }
         else if (wasConnected)
         {
@@ -474,6 +744,11 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         try
         {
             handle = await host.HandleReady.WaitAsync(ViewWaitTimeout, ct);
+            if (host.EmbeddingFailed)
+            {
+                _logger.LogWarning("The session tab cannot host a native window; the RDP session will use a separate window.");
+                return (null, null);
+            }
             await _view.Sized.WaitAsync(ViewWaitTimeout, ct);
         }
         catch (TimeoutException)
@@ -721,6 +996,8 @@ public sealed partial class RdpProtocol : ProtocolBase, IVisualProtocol
         {
         }
         process?.Dispose();
+        DeleteMstscFile();
+        ReleaseActiveX();
         DisposeEmbedSupport();
 
         // The native window must be destroyed on the UI thread, after FreeRDP's child window is gone.

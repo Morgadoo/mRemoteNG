@@ -84,7 +84,7 @@ public sealed partial class RdpProtocol : ISpecialKeysProtocol, IDisplayOptionsP
     /// when the user presses them there.
     /// </summary>
     public IReadOnlyList<SpecialKey> SupportedSpecialKeys =>
-        OperatingSystem.IsLinux() || OperatingSystem.IsWindows() ? AllSpecialKeys : [];
+        _usingMstsc ? [] : OperatingSystem.IsLinux() || OperatingSystem.IsWindows() ? AllSpecialKeys : [];
 
     public async Task SendSpecialKeyAsync(SpecialKey key, CancellationToken ct = default)
     {

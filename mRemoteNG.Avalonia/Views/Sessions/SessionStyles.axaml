@@ -50,25 +50,28 @@
         <Setter Property="Margin" Value="0,0,0,6"/>
         <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
     </Style>
+    <!-- The icon is the control's template, not its Content. A <Template> assigned to Content is not a
+         control, and measuring it throws inside ContentPresenter ("… is not a valid visual") — which took
+         the whole window down the moment an RDP session tab was shown. -->
     <Style Selector="ContentControl.session-message-icon.rdp">
-        <Setter Property="Content">
-            <Template>
+        <Setter Property="Template">
+            <ControlTemplate>
                 <mi:MaterialIcon Kind="MonitorScreenshot" Width="48" Height="48"/>
-            </Template>
+            </ControlTemplate>
         </Setter>
     </Style>
     <Style Selector="ContentControl.session-message-icon.app">
-        <Setter Property="Content">
-            <Template>
+        <Setter Property="Template">
+            <ControlTemplate>
                 <mi:MaterialIcon Kind="Application" Width="48" Height="48"/>
-            </Template>
+            </ControlTemplate>
         </Setter>
     </Style>
     <Style Selector="ContentControl.session-message-icon.web">
-        <Setter Property="Content">
-            <Template>
+        <Setter Property="Template">
+            <ControlTemplate>
                 <mi:MaterialIcon Kind="OpenInNew" Width="48" Height="48"/>
-            </Template>
+            </ControlTemplate>
         </Setter>
     </Style>
 
