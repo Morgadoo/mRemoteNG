@@ -37,15 +37,41 @@ internal sealed class RdpNativeHost : NativeControlHost
     /// <summary>Completes with the native parent handle once Avalonia has created it.</summary>
     public Task<IPlatformHandle> HandleReady => _handleReady.Task;
 
+    /// <summary>The native child window the remote desktop is drawn into, or 0 before it exists.</summary>
+    public nint NativeHandle => _handle?.Handle ?? 0;
+
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
     {
         if (_handle is null)
         {
-            _handle = base.CreateNativeControlCore(parent);
+            try
+            {
+                _handle = base.CreateNativeControlCore(parent);
+            }
+            catch (InvalidOperationException)
+            {
+                // Windows without a supportedOS manifest refuses the child window. A placeholder keeps the
+                // control alive so the failure does not escape onto the UI thread and exit the application;
+                // the session then runs in its own window.
+                _handle = new PlaceholderHandle(parent.Handle);
+                _embeddingFailed = true;
+            }
             _handleReady.TrySetResult(_handle);
         }
         _heldByAvalonia = true;
         return _handle;
+    }
+
+    /// <summary>True when the native child window could not be created and embedding is impossible.</summary>
+    public bool EmbeddingFailed => _embeddingFailed;
+
+    private bool _embeddingFailed;
+
+    /// <summary>Stand-in handle so the host can stay in the tree after its real window was refused.</summary>
+    private sealed class PlaceholderHandle(nint handle) : IPlatformHandle
+    {
+        public nint Handle { get; } = handle;
+        public string HandleDescriptor => "placeholder";
     }
 
     protected override void DestroyNativeControlCore(IPlatformHandle control)

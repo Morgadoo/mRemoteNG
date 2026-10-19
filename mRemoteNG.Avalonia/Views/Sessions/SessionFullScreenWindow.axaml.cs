@@ -23,8 +23,6 @@ public partial class SessionFullScreenWindow : Window
         DataContext = session;
         ExitButton.Click += (_, _) => Close();
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
-        ConnectionBar.PointerEntered += (_, _) => ConnectionBar.Opacity = 1;
-        ConnectionBar.PointerExited += (_, _) => ConnectionBar.Opacity = 0.25;
         session.PropertyChanged += OnSessionPropertyChanged;
         Closing += (_, _) =>
         {

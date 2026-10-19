@@ -10,10 +10,21 @@
     <Description>Windows-specific platform service implementations for mRemoteNG</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\mRemoteNG.Platform\mRemoteNG.Platform.csproj" />
+    <ProjectReference Include="..\mRemoteNG.Protocols\mRemoteNG.Protocols.csproj" />
+  </ItemGroup>
+
+  <!-- Interop for the Remote Desktop ActiveX control (mstscax.dll), generated from the type library because
+       the dotnet SDK cannot resolve COMReference (MSB4803). Regenerate with Tools/build-mstsc-interop.ps1. -->
+  <ItemGroup>
+    <Reference Include="MSTSCLib">
+      <HintPath>Interop\MSTSCLib.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

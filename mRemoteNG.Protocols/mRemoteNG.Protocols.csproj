@@ -25,6 +25,9 @@
     <!-- Serial port support -->
     <PackageReference Include="System.IO.Ports" />
 
+    <!-- DPAPI, so a password can be stored in an .rdp file the way mstsc.exe does (Windows only at runtime). -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+
     <!-- DI abstractions -->
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
@@ -41,6 +44,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="mRemoteNG.Tests.CrossPlatform" />
+    <!-- Hosts the Windows Remote Desktop ActiveX control inside the session tab. -->
+    <InternalsVisibleTo Include="mRemoteNG.Platform.Windows" />
     <!-- Headless UI tests of the embedded-window focus handling (RdpSessionView) -->
     <InternalsVisibleTo Include="mRemoteNG.Avalonia.Tests" />
   </ItemGroup>
