@@ -118,6 +118,27 @@
   <data name="Stacked" xml:space="preserve">
     <value>Друг под другом</value>
   </data>
+  <data name="Split" xml:space="preserve">
+    <value>Разделить</value>
+  </data>
+  <data name="SplitVertical" xml:space="preserve">
+    <value>Разделить слева / справа</value>
+  </data>
+  <data name="SplitHorizontal" xml:space="preserve">
+    <value>Разделить сверху / снизу</value>
+  </data>
+  <data name="SplitRight" xml:space="preserve">
+    <value>Разделить вправо</value>
+  </data>
+  <data name="SplitLeft" xml:space="preserve">
+    <value>Разделить влево</value>
+  </data>
+  <data name="SplitDown" xml:space="preserve">
+    <value>Разделить вниз</value>
+  </data>
+  <data name="SplitUp" xml:space="preserve">
+    <value>Разделить вверх</value>
+  </data>
   <data name="DisconnectAll" xml:space="preserve">
     <value>Отключить все</value>
   </data>

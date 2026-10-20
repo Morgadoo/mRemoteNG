@@ -53,6 +53,9 @@ public sealed class WindowLayoutState
 
     public List<PanelLayoutState> Panels { get; set; } = [];
 
+    /// <summary>Recursive binary split layout tree when the session area has been split into regions.</summary>
+    public SplitLayoutNode? SplitLayout { get; set; }
+
     public string ToJson() => JsonSerializer.Serialize(this, JsonOptions);
 
     /// <summary>Parses a stored layout; null when empty or unreadable (the default layout is used then).</summary>
@@ -106,7 +109,12 @@ public sealed class PanelLayoutState
 
     public bool IsFloating { get; set; }
 
+    public bool IsSplitPanel { get; set; }
+
     public double Weight { get; set; } = 1;
+
+    /// <summary>Which half of a two-section split the panel belongs to (ignored by the other arrangements).</summary>
+    public PanelSection Section { get; set; } = PanelSection.Primary;
 
     public FloatingBounds? Floating { get; set; }
 }

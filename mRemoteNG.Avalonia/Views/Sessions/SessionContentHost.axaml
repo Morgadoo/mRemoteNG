@@ -8,6 +8,7 @@
 
     <!-- ConnectionFrameColor: coloured border around the session (legacy InterfaceControl). -->
     <Border x:Name="Frame"
+            Background="Transparent"
             BorderBrush="{Binding FrameBrush}"
             BorderThickness="{Binding FrameThickness}"
             Padding="{Binding FramePadding}">

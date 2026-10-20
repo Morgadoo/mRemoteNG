@@ -162,6 +162,34 @@
     <value>Stacked</value>
     <comment>MainWindow: Header</comment>
   </data>
+  <data name="Split" xml:space="preserve">
+    <value>Split</value>
+    <comment>Session tab menu: submenu for splitting the session area.</comment>
+  </data>
+  <data name="SplitVertical" xml:space="preserve">
+    <value>Split Left / Right</value>
+    <comment>MainWindow: Header. Two halves, one beside the other.</comment>
+  </data>
+  <data name="SplitHorizontal" xml:space="preserve">
+    <value>Split Top / Bottom</value>
+    <comment>MainWindow: Header. Two halves, one above the other.</comment>
+  </data>
+  <data name="SplitRight" xml:space="preserve">
+    <value>Split Right</value>
+    <comment>Session tab menu: move this tab into the right half.</comment>
+  </data>
+  <data name="SplitLeft" xml:space="preserve">
+    <value>Split Left</value>
+    <comment>Session tab menu: move this tab into the left half.</comment>
+  </data>
+  <data name="SplitDown" xml:space="preserve">
+    <value>Split Down</value>
+    <comment>Session tab menu: move this tab into the bottom half.</comment>
+  </data>
+  <data name="SplitUp" xml:space="preserve">
+    <value>Split Up</value>
+    <comment>Session tab menu: move this tab into the top half.</comment>
+  </data>
   <data name="DisconnectAll" xml:space="preserve">
     <value>Disconnect All</value>
     <comment>MainWindow: Header</comment>
